@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Mòdul 1 — BernatLab Wiki</title>
+    <link rel="stylesheet" href="css/wiki.css">
+</head>
+<body>
+<div class="layout">
+<nav>
+<h2>BernatLab</h2>
+<p style="color: #888; font-size: 0.9em;">Wiki del manual tècnic</p>
+<a href="modul-1.html">Mòdul 1</a>
+<a href="modul-2.html">Mòdul 2</a>
+<a href="modul-3.html">Mòdul 3</a>
+<h2>Capítols</h2>
+<a href="#01-que-es-bernatlab"><span class="toc-num">01</span>Capítol 1 — Què és BernatLab</a>
+<a href="#02-raspberry-pi"><span class="toc-num">02</span>Capítol 2 — La Raspberry Pi 4 per dins</a>
+<a href="#03-linux-servidor"><span class="toc-num">03</span>Capítol 3 — Linux per administrar un servidor</a>
+<a href="#04-xarxa-ssh-tailscale"><span class="toc-num">04</span>Capítol 4 — Xarxa, SSH i Tailscale</a>
+<a href="#05-docker"><span class="toc-num">05</span>Capítol 5 — Docker des de zero</a>
+<a href="#06-portainer"><span class="toc-num">06</span>Capítol 6 — Portainer</a>
+<a href="#07-uptime-kuma"><span class="toc-num">07</span>Capítol 7 — Uptime Kuma</a>
+<a href="#08-homepage"><span class="toc-num">08</span>Capítol 8 — Homepage</a>
+<a href="#09-git-documentacio"><span class="toc-num">09</span>Capítol 9 — Git i documentació</a>
+<a href="#10-full-de-ruta"><span class="toc-num">10</span>Capítol 10 — Full de ruta del BernatLab</a>
+</nav>
+<main>
+<h1>Mòdul 1</h1>
+<p><em>Fonaments, contenidors i pràctica</em></p>
+<hr>
+<h2 id="01-que-es-bernatlab">Capítol 1 — Què és BernatLab</h2>
+<p>> <em>"Si vols entendre un sistema, construeix-lo tu mateix. Si el vols mantenir, documenta'l."</em></p>
+<h2>1.1 Què és un homelab</h2>
+<p>Un <strong>homelab</strong> és un servidor — o un petit conjunt de servidors — que un particular munta a casa seva per aprendre, experimentar i allotjar els seus propis serveis. No és una empresa de hosting. No és un núvol professional. És el teu laboratori personal, la teva escola i, sovint, la teva joguina preferida.</p>
+<p>La paraula <strong>home</strong> ja diu molt: el servidor viu a casa teva, normalment connectat al teu router domèstic, darrere d'una IP dinàmica i d'un tallafoc que no controles. La paraula <strong>lab</strong> diu la resta: és un entament d'experimentació, no de producció. Aquí es pot trencar coses. Aquí es poden provar tecnologies noves. Aquí s'equivoca un mateix i s'aprèn d'això.</p>
+<p>Un homelab no és cap novetat. Fa dècades que enginyers i administradors de sistemes en tenen: torres amb discs durs, màquines velles reciclades, plaques base en calaixos. El que ha canviat en els últims anys és que avui pots muntar un homelab seriós, capaç de fer feines reals, amb una Raspberry Pi de 50 € i una targeta microSD de 16 €. I el que també ha canviat és el programari: contenidors Docker, serveis autoallotjats, xarxes privades com Tailscale, eines de monitorització com Uptime Kuma, panells com Homepage. Tot plegat, un ecosistema ric que abans era patrimoni de les empreses.</p>
+<h2>1.2 Per què construir un servidor propi</h2>
+<p>Hi ha moltes raons per tenir un homelab, i la majoria d'elles tenen poc a veure amb estalviar diners — probablement pagaries menys per un VPS de 3 € al mes. La raó de fons és <strong>aprenentatge i control</strong>.</p>
+<p>Quan algú decideix muntar un homelab, el que busca és:</p>
+<ul>
+<li><strong>Aprendre de veritat</strong>. Llegir sobre Docker no és entendre Docker. Posar-lo en marxa, trencar-lo, refer-lo, llegir els logs a les dues de la matinada, descobrir per què un contenidor no es connecta a una xarxa — això és aprendre.</li>
+<li><strong>Tenir control sobre les dades</strong>. Quan puges una foto a un núvol, algú altre decideix què se'n fa, durant quant de temps es guarda i qui hi té accés. Quan les dades viuen a la teva Raspberry, la decisió és teva.</li>
+<li><strong>Experimentar amb projectes reals</strong>. Sensors, automatitzacions, webs personals, bases de dades, petits models d'intel·ligència artificial. Tot plegat, en una sola caixa que cabria en un calaix.</li>
+<li><strong>Reduir la dependència tecnològica</strong>. Si un dia vols deixar d'utilitzar un servei comercial, tenir la infraestructura a casa et permet fer-ho gradualment.</li>
+<li><strong>Divertir-se</strong>. Muntar un homelab i mantenir-lo sa és una afició com pot ser-ho la moto, la cuina o la programació. Té un component pràctic, però sobretot un component de plaer personal.</li>
+</ul>
+<p>I, francament, hi ha una darrera raó menys noble però igualment vàlida: la <strong>curiositat</strong>. Saber què passa quan un contenidor no arrenca, entendre per què una VPN et permet entrar al teu servidor des de qualsevol lloc del món, descobrir que un missatge de Telegram pot fer arrencar un motor a 245 metres de casa teva. Això, avui, és a l'abast de qualsevol amb una Raspberry Pi i ganes de furgar.</p>
+<h2>1.3 Què volem aconseguir amb el BernatLab</h2>
+<p>El BernatLab no és un projecte abstracte. Té objectius molt concrets:</p>
+<p>1. <strong>Centralitzar serveis</strong>. En lloc de tenir una Raspberry per als sensors, un servidor vell per a la web, un portàtil per fer proves, tenir una sola màquina que ho aculli tot — o que, com a mínim, en sigui el centre de control.
+2. <strong>Donar suport al projecte Hort Osona</strong>. Una aplicació web pública allotjada a GitHub Pages, una API futura allotjada al BernatLab, sensors al terreny que enviaran dades per MQTT, una base de dades InfluxDB, gràfiques amb Grafana.
+3. <strong>Servir com a entorn d'aprenentatge continu</strong>. Vull aprendre Docker a fons, entendre xarxes, provar Node-RED, experimentar amb Telegram bots, muntar un assistent IA local amb Ollama. Tot plegat, en un entorn segur i controlat.
+4. <strong>Servir com a centre de projectes personals</strong>. Música, fotografia, desenvolupament web, scripts d'automatització, còpies de seguretat. Tot ha de tenir cabuda.
+5. <strong>Ser resilient dins les seves limitacions</strong>. Una Raspberry Pi 4 amb 4 GB de RAM no és un servidor de producció. No ha de ser-ho. Ha de ser estable, documentat, fàcil de recuperar i honest amb els seus límits.</p>
+<p>El que <strong>no</strong> volem:</p>
+<ul>
+<li>Un servidor que depengui de trucs opacs que ningú entén.</li>
+<li>Un sistema ple de comandes copiades de StackOverflow que ningú sap per què funcionen.</li>
+<li>Un punt únic de fallada que, quan es trenqui, ens deixi sense res.</li>
+<li>Una despesa energètica o econòmica desproporcionada.</li>
+</ul>
+<h2>1.4 Arquitectura general del BernatLab</h2>
+<p>A grans trets, el BernatLab té tres capes:</p>
+<pre class="code"><code class="language-">┌───────────────────────────────────────────────────────────────┐
+│                          EXTERIOR                             │
+│                                                               │
+│  Internet ── Tailscale ── 100.115.134.76 ── hortosona        │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+                               │
+┌───────────────────────────────────────────────────────────────┐
+│                       SISTEMA OPERATIU                        │
+│                                                               │
+│   Debian 13 Lite · arm64 · kernel Linux · systemd             │
+│   Usuari bernat · SSH · tallafoc UFW opcional                │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+                               │
+┌───────────────────────────────────────────────────────────────┐
+│                  PLATAFORMA DE CONTENIDORS                    │
+│                                                               │
+│   Docker Engine                                              │
+│   └── Docker Compose (fitxers a /home/bernat/homelab)         │
+│       ├── Portainer     (gestió web)                          │
+│       ├── Uptime Kuma   (monitorització)                      │
+│       ├── Homepage      (panell d&#x27;entrada)                    │
+│       ├── [pròxims: File Browser, Node-RED, Mosquitto, ...]   │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘</code></pre>
+<p>Aquesta divisió en tres capes és pedagògica i pràctica alhora. Entenent-les per separat, podem raonar sobre què falla quan alguna cosa falla.</p>
+<h3>La capa exterior</h3>
+<p>És el que es veu des de fora. La Raspberry Pi té una IP a la teva xarxa local (normalment `192.168.x.y`), una IP pública dinàmica que el teu operador assigna al router, i una IP Tailscale (`100.115.134.76` en el nostre cas) que és fixa mentre duri la teva subscripció i que ens permet accedir-hi des de qualsevol lloc del món sense tocar el router.</p>
+<p>La idea clau és aquesta: <strong>mai no exposem directament la Raspberry a Internet</strong>. Tots els accessos remots passen per Tailscale, que crea una xarxa privada virtual entre els teus dispositius. El router de casa no sap que existeix la Raspberry com a servidor — sap que és un dispositiu més de la xarxa local.</p>
+<h3>La capa de sistema operatiu</h3>
+<p>Debian 13 Lite és la base. La versió Lite no porta entorn gràfic, ni servidor d'impressió, ni mil programes innecessaris. Porta just el que un servidor necessita: el kernel, les utilitats bàsiques, el gestor de paquets `apt`, el dimoni `systemd` que arrenca els serveis, i poc més. Això és bo perquè redueix la superfície d'atac i el consum de RAM.</p>
+<p>Aquí és on vivim nosaltres com a administradors: editem fitxers, instal·lem programes, configurem serveis de sistema, gestionem usuaris, mirem logs.</p>
+<h3>La capa de contenidors</h3>
+<p>Per sobre del sistema operatiu, Docker. Docker ens permet instal·lar serveis complexos — com Portainer, Uptime Kuma, Homepage, Grafana — sense contaminar el sistema base. Cada servei viu en un <strong>contenidor</strong>: un entorn aïllat que conté el seu propi sistema de fitxers, la seva pròpia xarxa i el seu propi cicle de vida. Si un contenidor es trenca, l'esborres, el tornes a crear, i tot segueix igual. Si vols actualitzar un servei, fas una ordre i Docker es descarrega la nova versió, atura l'antic i engega el nou.</p>
+<p>La capa de contenidors es gestiona amb <strong>Docker Compose</strong>, que és un fitxer `yaml` on descrius tots els teus serveis, les seves configuracions, els volums, les xarxes i els ports. En lloc de recordar vint ordres llargues, tens un sol fitxer que documenta tot el sistema. A `/home/bernat/homelab/docker-compose.yml` hi haurà la definició de tot el BernatLab.</p>
+<h2>1.5 Serveis que ja tenim en marxa</h2>
+<p>A dia d'avui, el BernatLab té tres serveis principals desplegats amb Docker Compose:</p>
+<h3>Portainer (`https://100.115.134.76:9443`)</h3>
+<p>Portainer és una interfície web que ens permet veure i gestionar tots els contenidors Docker de la Raspberry sense haver de tocar la línia d'ordres. És com un panell de control per al Docker. Porta un any, dos, sent l'eina estàndard per a homelabs i petites empreses.</p>
+<p>Hi accedim per HTTPS, tot i que el certificat és autosignat (ens saltarà l'avís del navegador la primera vegada, cosa perfectament normal en un entorn personal). Un cop dins, podem veure contenidors actius, aturar-los, reiniciar-los, veure els logs en directe, explorar volums, veure imatges, gestionar xarxes. També permet crear piles (stacks) de Docker Compose directament des del navegador, cosa que pot ser útil però que, per a aquest manual, farem sempre des de la línia d'ordres per entendre què passa.</p>
+<h3>Uptime Kuma (`http://100.115.134.76:3001`)</h3>
+<p>Uptime Kuma és una eina de monitorització. La seva feina és senzilla: comprovar periòdicament que els nostres serveis estan vius i avisar-nos quan no ho estan. Pot fer pings a màquines, peticions HTTP a webs, comprovacions de ports TCP, comprovacions de certificats SSL, i un llarg etcètera.</p>
+<p>En el BernatLab, Uptime Kuma vigila, com a mínim:</p>
+<ul>
+<li>La pròpia Raspberry Pi (ping).</li>
+<li>Portainer (HTTP).</li>
+<li>El mateix Uptime Kuma (meta-monitorització).</li>
+<li>La web pública Hort Osona (HTTP a `bernatmora.github.io`).</li>
+</ul>
+<p>Quan algun d'aquests serveis falla, Uptime Kuma pot enviar una alerta per correu, Telegram, Discord, Slack, webhook, o qualsevol combinació imaginable. En aquest manual veurem com configurar-lo per avisar-nos per Telegram.</p>
+<h3>Homepage (`http://100.115.134.76:3000`)</h3>
+<p>Homepage és el <strong>panell d'entrada</strong> al BernatLab. Una pàgina web molt neta, feta per un projecte de codi obert, que ens mostra una graella de targetes: cadascuna és un enllaç directe als nostres serveis. L'objectiu és que quan obrim el navegador i posem `100.115.134.76:3000`, veiem d'un cop d'ull tot el que tenim, si està funcionant, i hi puguem entrar amb un sol clic.</p>
+<p>Homepage és personalitzable: podem posar un fons, podem agrupar serveis per categories (Monitorització, Gestió, Dades, Experimentals, etc.), podem afegir widgets que mostren estadístiques en directe (ús de CPU, RAM, temperatura, etc.). És la porta d'entrada i la targeta de presentació del BernatLab.</p>
+<h2>1.6 Filosofia del projecte</h2>
+<p>El BernatLab es regeix per cinc principis. No són normes escrites en marbre, però ajuden a prendre decisions quan hi ha dubtes.</p>
+<h3>Primer principi: entendre abans de copiar</h3>
+<p>Quan trobem una ordre a Internet, abans d'executar-la a cegues, l'hem d'entendre. Què fa? Per què funciona? Què canviaria si la meva màquina fos diferent? Si no podem respondre aquestes preguntes, millor preguntar, provar en un entorn segur o esperar. Un homelab és, sobretot, una escola.</p>
+<h3>Segon principi: documentar sempre</h3>
+<p>Si hem après alguna cosa, l'escrivim. Si hem trobat un error, l'escrivim. Si hem canviat una configuració, l'escrivim. El futur jo del Bernat agrairà el present jo del Bernat cada vegada que obri un fitxer i hi trobi el context que necessita.</p>
+<h3>Tercer principi: senzillesa per defecte</h3>
+<p>Si hi ha dues maneres de fer una cosa, escollim la més senzilla. Un sol contenidor és millor que dos. Un fitxer de configuració és millor que tres. Una eina bona és millor que tres eines mitjanes. La complexitat és la principal font d'errors en un homelab.</p>
+<h3>Quart principi: còpies de seguretat com a rutina</h3>
+<p>Un homelab sense còpies de seguretat és una bomba de rellotgeria. Les targetes microSD fallen. Els discs durs fallen. Les actualitzacions fallen. Si no podem restaurar el sistema en una hora, no estem preparats. Per això, en el Capítol 9, dedicarem temps a còpies de seguretat de la carpeta `/home/bernat/homelab` i de les bases de dades.</p>
+<h3>Cinquè principi: mesurar abans d'optimitzar</h3>
+<p>No afegim RAM perquè sí. No comprem un disc SSD perquè ens sembla. No movem serveis a una màquina més potent per intuïció. Primer mesurem — Uptime Kuma, `htop`, `docker stats`, logs — i després decidim.</p>
+<h2>1.7 Com s'administra un homelab: el dia a dia</h2>
+<p>Un homelab no és un projecte que es fa un cop i s'oblida. És un sistema viu que canvia, creix i, de tant en tant, es trenca. La vida d'un administrador de homelab es compon de tasques quotidianes que, amb el temps, esdevenen rutines:</p>
+<ul>
+<li><strong>Matí</strong>: comprovar Uptime Kuma, mirar si hi ha alertes.</li>
+<li><strong>Setmanal</strong>: actualitzar contenidors, llegir notes de versió, fer còpia de seguretat.</li>
+<li><strong>Quan toca</strong>: afegir un servei nou, configurar un sensor nou, muntar una base de dades.</li>
+<li><strong>Quan es trenca</strong>: mirar logs, buscar l'error, arreglar-lo, documentar-lo.</li>
+</ul>
+<p>Aquest manual està pensat per donar-te les eines per fer tot això amb confiança. No per tenir un servidor bonic, sinó per tenir un servidor <strong>entès</strong>.</p>
+<h2>1.8 Resum</h2>
+<p>En aquest primer capítol hem après què és un homelab, per què val la pena tenir-ne un, quins objectius concrets té el BernatLab, com s'estructura en tres capes (xarxa, sistema operatiu, contenidors) i quins serveis hi ha desplegats. També hem establert cinc principis que ens guiaran: entendre, documentar, simplificar, copiar i mesurar. En el proper capítol baixarem al metall: la Raspberry Pi 4, peça a peça.</p>
+<h2>1.9 Exercicis pràctics</h2>
+<p>1. <strong>Obre el panell d'Homepage</strong> (`http://100.115.134.76:3000`) i mira què hi ha. Anota tres serveis que vulguis afegir.
+2. <strong>Obre Portainer</strong> (`https://100.115.134.76:9443`) i compta quants contenidors estan `running`. Apunta'ls tots en un paper.
+3. <strong>Obre Uptime Kuma</strong> (`http://100.115.134.76:3001`) i mira l'estat dels monitors. N'hi ha cap de caigut? Si sí, investiga per què.
+4. <strong>Connecta't per SSH</strong> a la Raspberry i executa `hostname`, `uptime` i `whoami`. Apunta el resultat. Això ja és administració de veritat.</p>
+<p>Comandes útils d'aquest capítol:
+<pre class="code"><code class="language-bash">ssh bernat@100.115.134.76
+hostname
+uptime
+whoami</code></pre></p>
+<p>Paraules clau per recordar: <strong>homelab, autosuficiència, contenidors, documentació, mesurar, simplificar</strong>.</p>
+<hr>
+<h2 id="02-raspberry-pi">Capítol 2 — La Raspberry Pi 4 per dins</h2>
+<p>> <em>"El primer pas per administrar bé una màquina és entendre-la. La Raspberry Pi 4 no és un PC: és un ordinador amb coses per aprendre."</em></p>
+<h2>2.1 Què és exactament una Raspberry Pi 4</h2>
+<p>La Raspberry Pi 4 Model B és un <strong>ordinador de placa única</strong> (SBC, single-board computer) fabricat per la Raspberry Pi Foundation, una organització britànica sense ànim de lucre que va néixer el 2012 amb l'objectiu de portar la informàtica a les escoles. La idea era construir un ordinador prou barat, prou petit i prou obert perquè qualsevol nen o nena del món pogués aprendre programació. Aquella idea va acabar convertint-se en una plataforma de referència per a projectes de tota mena: des de media centers fins a homelabs, passant per robots, càmeres de seguretat, sistemes industrials i, naturalment, servidors personals com el BernatLab.</p>
+<p>La Raspberry Pi 4 va aparèixer el 2019 com la quarta generació important de la família. La <strong>B</strong> del nom indica que és la versió completa, amb tots els ports i capacitats — la versió que ens interessa per a un servidor. A diferència de la Raspberry Pi 5 (més nova, més cara, més potent), la 4 té un equilibri excel·lent entre preu, consum i potència, i la comunitat la coneix a fons.</p>
+<p>El model que tenim al BernatLab és la <strong>Raspberry Pi 4 Model B amb 4 GB de RAM</strong>. Hi ha versions amb 1 GB, 2 GB i 8 GB; 4 GB és el punt dolç per a un servidor amb contenidors: prou memòria per a Portainer, Uptime Kuma, Homepage, i encara queda espai per afegir Grafana, InfluxDB o una base de dades petita.</p>
+<h2>2.2 CPU: el cor ARM</h2>
+<p>La CPU és el <strong>Broadcom BCM2711</strong>, un processador <strong>ARM Cortex-A72</strong> de quatre nuclis (quad-core) a 1,8 GHz. Això és molt important per entendre la Raspberry Pi, perquè ARM no és x86.</p>
+<p>La majoria d'ordinadors que has fet servir — PCs de sobretaula, portàtils, servidors professionals — duen processadors <strong>x86</strong> (Intel o AMD), una arquitectura de 64 bits amb instruccions complexes (CISC). Les Raspberry Pi duen processadors <strong>ARM</strong>, una arquitectura de 32 o 64 bits amb instruccions reduïdes (RISC), pensada originalment per a mòbils i sistemes encastats. La diferència pràctica, avui, és menor del que sembla: les dues arquitectures corren Linux, les dues corren Docker, les dues corren navegadors moderns. Però hi ha tres coses que cal saber:</p>
+<p>1. <strong>Les imatges Docker arm64</strong>: quan descarreguem una imatge de Docker Hub, hem de mirar si n'hi ha versió `linux/arm64` (la nostra) o només `linux/amd64` (x86). La majoria de projectes moderns ja publiquen ambdues. Si una imatge només té `amd64`, Docker pot intentar executar-la amb <strong>emulació</strong> (binfmt_misc) i funcionar, però amb una pèrdua de rendiment notable.
+2. <strong>El sistema operatiu és arm64</strong>: per això tenim <strong>Debian 13 Trixie Lite per a arm64</strong>. Si algú ens passa una ISO per a x86, no funcionarà. Si volem instal·lar programes, hem d'assegurar-nos que el paquet `apt` és per a arm64 (cosa que el propi `apt` ja gestiona quan detecta l'arquitectura).
+3. <strong>Rendiment</strong>: a 1,8 GHz amb quatre nuclis, la CPU és modesta comparada amb un PC modern, però més que suficient per a un servidor de serveis petits. La limitació real no és la CPU; és la RAM i, sobretot, l'emmagatzematge.</p>
+<p>Els quatre nuclis volen dir que el sistema pot fer quatre coses alhora de veritat, no de manera simulada. Això és útil per a Docker: un contenidor pot estar fent una consulta a base de dades mentre un altre serveix pàgines web i un tercer monitoritza. En un sistema amb un sol nucli, tot aniria molt més a poc a poc.</p>
+<h2>2.3 Memòria RAM</h2>
+<p>Tenim 4 GB de RAM LPDDR4. La LPDDR4 és una memòria de baix consum dissenyada originalment per a mòbils, que comparteix el mateix xip que la CPU (package-on-package, PoP). Això té avantatges (menys latència, menys espai) i inconvenients (no es pot ampliar, no es pot canviar).</p>
+<p>Quan el sistema arrenca, Debian Lite consumeix al voltant de 80-120 MB de RAM. La resta queda lliure per a aplicacions i contenidors Docker. Una distribució amb entorn gràfic consumiria 400-600 MB només per al sistema base, la qual cosa deixaria molt poc espai per als serveis.</p>
+<p>Amb 4 GB podem allotjar còmodament 5-8 contenidors petits simultàniament. Si volem allotjar InfluxDB amb una càrrega important de dades, Grafana, una base de dades PostgreSQL, i mitja dotzena més de serveis, començarem a notar la pressió. Per això, en el Capítol 10, parlarem de la possibilitat d'afegir swap a un disc SSD extern — una mena de "RAM virtual" que ens pot treure d'un embús puntual, tot i que és molt més lenta que la RAM real.</p>
+<p>Per veure la memòria disponible, podem executar:</p>
+<pre class="code"><code class="language-bash">free -h</code></pre>
+<p>La sortida mostrarà quatre línies importants: `Mem` (memòria física total), `Swap` (disc d'intercanvi), amb columnes `total`, `used`, `free` i `available`. La que realment importa és `available`, que és la que el nucli considera utilitzable tenint en compte caches i reserves.</p>
+<h2>2.4 Emmagatzematge: la targeta microSD</h2>
+<p>Aquí hi ha la gran particularitat de la Raspberry Pi — i el seu principal punt feble com a servidor. L'emmagatzematge principal és una <strong>targeta microSD</strong>, no un disc dur ni un SSD.</p>
+<p>La Raspberry Pi 4 no porta emmagatzematge intern. Per arrencar, necessita una targeta microSD amb un sistema operatiu gravat. A la pràctica, una microSD és una memòria flash NAND — la mateixa tecnologia que duen els pendrives USB i els discs SSD barats — però amb un controlador molt més senzill i, per tant, amb una durabilitat molt menor.</p>
+<p>Això vol dir que les targetes microSD:</p>
+<ul>
+<li><strong>Es degraden amb les escriptures</strong>. Cada vegada que el sistema escriu un fitxer, la memòria NAND pateix un petit desgast. Les targetes modernes duren milers de cicles d'escriptura, però un servidor escriu molt: logs, bases de dades, configuracions, actualitzacions. Una targeta barata pot morir en mesos.</li>
+<li><strong>Són lentes</strong>. Comparades amb un SSD, les microSD tenen latències altes i velocitats seqüencials baixes. Per a un servidor amb molta lectura (servir pàgines web, executar consultes), això es nota.</li>
+<li><strong>Són petites</strong>. 16, 32, 64 GB, rarament més. Per a un sistema operatiu amb contenidors, això s'omple ràpid.</li>
+</ul>
+<p>La solució estàndard al món Raspberry és <strong>arrencar des d'un disc SSD USB</strong>. La Raspberry Pi 4 ho permet des del firmware de 2020: amb una actualització de la EEPROM i un disc SSD connectat a un port USB 3.0, podem fer que la màquina arrenqui des del SSD com si fos una microSD. Aquesta és una de les millores que tenim a la full de ruta (Capítol 10) — encara no implementada, però prevista.</p>
+<p>Mentre no fem el pas a SSD, podem allargar la vida de la microSD amb dues mesures bàsiques:</p>
+<p>1. <strong>Usar una targeta de qualitat</strong>. Samsung EVO, SanDisk Extreme, Kingston Canvas. Targeta "no name" de 5 € és llençar diners.
+2. <strong>Reduir les escriptures</strong>. Moure els logs a RAM amb `log2ram`, moure els volums Docker a un SSD extern, desactivar la swap agressiva, evitar `apt` innecessaris.</p>
+<h2>2.5 Ports i connectivitat</h2>
+<p>La Raspberry Pi 4 Model B té una quantitat interessant de ports, alguns dels quals val la pena conèixer bé:</p>
+<h3>USB</h3>
+<p>Dos ports <strong>USB 3.0</strong> (blaus) i dos ports <strong>USB 2.0</strong> (negres). Els USB 3.0 són útils per connectar un SSD extern (fins a 5 Gbps teòrics, ~400 MB/s reals) o dispositius d'emmagatzematge ràpids. Els USB 2.0 (480 Mbps) són per a perifèrics lents: teclats, ratolins, dongles Wi-Fi externs, o un segon disc si la velocitat no és crítica.</p>
+<h3>Ethernet</h3>
+<p>Un port <strong>Gigabit Ethernet</strong> (1 Gbps, 125 MB/s) connectat directament al xip, no pas a un hub USB intern (a diferència de les Raspberry anteriors). Això vol dir que la xarxa per cable pot aprofitar-se bé: podem saturar-la amb un SSD de xarxa o amb tràfic intens. Per a un servidor personal, 1 Gbps és més que suficient: la majoria d'Internet domèstic no passa de 100-300 Mbps de baixada.</p>
+<h3>Wi-Fi i Bluetooth</h3>
+<p>La Raspberry Pi 4 porta un xip <strong>Cypress CYW43455</strong> que ofereix Wi-Fi 802.11ac (dual-band 2,4 i 5 GHz) i Bluetooth 5.0. Per a un servidor, la Wi-Fi és útil com a backup si el cable falla, però <strong>un servidor sempre ha d'anar per cable</strong>. La Wi-Fi és menys estable, té més latència, i en un homelab volem predibilitat.</p>
+<h3>GPIO</h3>
+<p>40 pins <strong>GPIO</strong> (general-purpose input/output) són el cor del "maker" de la Raspberry. A través d'aquests pins podem connectar sensors, LEDs, motors, relés, i comunicar-nos amb ells des de programes. Són la porta d'entrada al món de l'electrònica.</p>
+<p>En el context del BernatLab, els GPIO els usarem eventualment per connectar sensors ambientals o per comunicar-nos amb un mòdul LoRa SX1262. Però aquesta és feina del Capítol 10, no d'ara. De moment, només cal saber que hi són.</p>
+<h3>HDMI</h3>
+<p>Dos ports <strong>micro-HMI</strong> (HDMI 0 i HDMI 1) que permeten connectar dos monitors 4K a 30 Hz o un a 60 Hz. Com que tenim la versió Lite de Debian sense entorn gràfic, aquests ports no els farem servir. Sí que els podem fer servir puntualment per connectar un monitor en cas d'emergència — per exemple, si la màquina no arrenca i volem veure què passa.</p>
+<h3>USB-C (alimentació)</h3>
+<p>L'<strong>alimentació</strong> entra per un connector USB-C. La Raspberry Pi 4 accepta 5 V a 3 A, és a dir, 15 W de potència màxima. En un servidor, és recomanable usar un carregador oficial o un de qualitat, capaç de subministrar els 3 A de forma estable. Subministrar menys pot provocar reinicions sota càrrega, cosa que en un servidor és inadmissible.</p>
+<h2>2.6 Temperatura i refrigeració</h2>
+<p>La CPU genera calor. Sense refrigeració, sota càrrega, pot arribar a 80-85 °C i començar a fer <strong>thermal throttling</strong>: reduir la velocitat dels nuclis per no cremar-se. Això passa amb freqüència en servidors 24/7.</p>
+<p>Les opcions de refrigeració són:</p>
+<ul>
+<li><strong>Disipador passiu</strong>: un petit bloc d'alumini enganxat al xip. Gratuït o gairebé, funciona bé si la càrrega és moderada.</li>
+<li><strong>Ventilador actiu</strong>: un petit ventilador de 30 mm alimentat pels pins GPIO 5V. Gairebé sempre inaudible, refreda molt bé, però afegeix un component mecànic que es pot trencar.</li>
+<li><strong>Carcassa amb dissipació</strong>: una carcassa d'alumini que actua com a dissipador. Elegant, però més cara.</li>
+</ul>
+<p>Al BernatLab, tenim [pendent d'anotar quina solució hem posat]. Independentment del que hi hagi, podem monitoritzar la temperatura amb:</p>
+<pre class="code"><code class="language-bash">vcgencmd measure_temp</code></pre>
+<p>o, si `vcgencmd` no està disponible:</p>
+<pre class="code"><code class="language-bash">cat /sys/thermal/thermal_zone0/temp</code></pre>
+<p>que retorna la temperatura en mil·lis de grau Celsius (dividir entre 1000).</p>
+<p>Si la temperatura supera els 70 °C de forma regular, és hora de millorar la refrigeració. En un servidor, la temperatura òptima és 40-60 °C en repòs, 55-70 °C sota càrrega. Més de 80 °C és senyal d'alarma.</p>
+<h2>2.7 Procés d'arrencada</h2>
+<p>Quan connectem l'alimentació a la Raspberry Pi 4, passa el següent:</p>
+<p>1. <strong>El xip de vídeo (VideoCore VII) agafa el control</strong>. Llegeix la primera etapa del bootloader des d'una petita ROM interna del xip. Aquesta primera etapa és immutable i s'encarrega d'inicialitzar el mínim necessari.
+2. <strong>El bootloader carrega la segona etapa</strong> des de la targeta microSD (o SSD USB). Aquesta segona etapa és a la partició `boot` (FAT32) i s'anomena `bootcode.bin` o, en versions modernes, és el fitxer `pieeprom.bin`.
+3. <strong>La EEPROM entra en acció</strong>. En les Raspberry Pi 4 modernes, el bootloader es troba en una EEPROM reprogramable. Això ens permet actualitzar el firmware (per exemple, per habilitar l'arrencada USB) sense canviar la targeta.
+4. <strong>El kernel Linux arrenca</strong>. Un cop el bootloader ha acabat la seva feina, carrega el fitxer `kernel8.img` (per a arm64) i li passa el control. El kernel munta el sistema de fitxers arrel (`/`), carrega els mòduls, configura el maquinari.
+5. <strong>systemd arrenca els serveis</strong>. Un cop el kernel ha muntat tot el que cal, executa `/sbin/init`, que en el nostre cas és un enllaç a `systemd`. systemd és el <strong>gestor de serveis i d'arrencada</strong> que s'encarrega d'activar tots els serveis del sistema: xarxa, SSH, Docker, Portainer, etc.
+6. <strong>El sistema està llest</strong>. Tots els serveis configurats per arrencar automàticament estan funcionant. La Raspberry està esperant connexions SSH, contenidors en marxa, etc.</p>
+<p>El procés complet dura entre 15 i 60 segons, depenent de la targeta i de quants serveis tinguis. Ho podem comprobar amb:</p>
+<pre class="code"><code class="language-bash">systemd-analyze</code></pre>
+<p>que ens dirà quant ha trigat el kernel i quant ha trigat l'espai d'usuari. Si triga massa, podem veure on es perd el temps amb:</p>
+<pre class="code"><code class="language-bash">systemd-analyze blame</code></pre>
+<p>que ens dóna una llista dels serveis ordenats pel temps que han trigat a arrencar. Si Docker triga 20 segons i Portainer 8, potser podem optimitzar l'ordre d'arrencada.</p>
+<h2>2.8 El kernel Linux</h2>
+<p>El <strong>kernel</strong> és el nucli del sistema operatiu. És el programa que s'executa amb més privilegis (mode kernel) i que té accés directe al maquinari: CPU, memòria, discos, xarxa, GPIO. Tot el que fem servir — la línia d'ordres, els contenidors, els serveis — passa per sobre del kernel, que actua com a intermediari entre el programari i el metall.</p>
+<p>Al BernatLab tenim un <strong>kernel Linux</strong> compilat per a ARM, versió [caldrà comprovar amb `uname -r`]. Aquest kernel inclou tots els controladors necessaris per al maquinari de la Raspberry Pi 4: el controlador de la CPU, de la xarxa, de l'USB, del GPIO, de la GPU, etc.</p>
+<p>El kernel es pot actualitzar amb `apt`:</p>
+<pre class="code"><code class="language-bash">sudo apt update
+sudo apt full-upgrade</code></pre>
+<p>Però compte: actualitzar el kernel pot trencar coses. Algunes funcionalitats — com el controlador de GPIO, l'accés a la càmera, o la sortida HDMI — poden canviar de comportament entre versions. Per això, en un servidor, sempre és bona idea llegir les notes de versió abans d'actualitzar el kernel, i tenir una manera de tornar enrere si alguna cosa falla.</p>
+<p>Per veure quin kernel tenim:</p>
+<pre class="code"><code class="language-bash">uname -a</code></pre>
+<p>que ens retornarà una línia amb el nom del kernel, la versió, l'arquitectura, la data de compilació i el hostname.</p>
+<h2>2.9 systemd: el mestre de cerimònies</h2>
+<p><strong>systemd</strong> és el <strong>gestor de sistemes i serveis</strong> que Debian i la majoria de distribucions modernes fan servir. La seva feina és:</p>
+<ul>
+<li>Arrencar els serveis en l'ordre correcte durant l'inici del sistema.</li>
+<li>Aturar-los ordenadament durant l'apagada.</li>
+<li>Supervisar els serveis i reiniciar-los automàticament si fallen.</li>
+<li>Gestionar punts de muntatge, dispositius, temporitzadors, sockets.</li>
+</ul>
+<p>systemd organitza els serveis en <strong>unitats</strong> (units). Cada unitat és un fitxer de text amb una extensió que indica el tipus: `.service` (un servei normal), `.timer` (un temporitzador), `.mount` (un punt de muntatge), `.socket` (un socket de xarxa), `.target` (un objectiu que agrupa altres unitats), etc.</p>
+<p>Per exemple, el servei de Docker és `docker.service`, definit a `/lib/systemd/system/docker.service`. Per veure'n l'estat:</p>
+<pre class="code"><code class="language-bash">systemctl status docker</code></pre>
+<p>Per activar-lo a l'arrencada:</p>
+<pre class="code"><code class="language-bash">sudo systemctl enable docker</code></pre>
+<p>Per iniciar-lo ara:</p>
+<pre class="code"><code class="language-bash">sudo systemctl start docker</code></pre>
+<p>Per aturar-lo:</p>
+<pre class="code"><code class="language-bash">sudo systemctl stop docker</code></pre>
+<p>Per reiniciar-lo:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart docker</code></pre>
+<p>Per veure tots els serveis actius:</p>
+<pre class="code"><code class="language-bash">systemctl list-units --type=service --state=running</code></pre>
+<p>Aquestes ordres les farem servir cada setmana. Són la base de l'administració d'un servidor Linux modern.</p>
+<h2>2.10 Per què Debian Lite</h2>
+<p>Triar un sistema operatiu per a un homelab és una decisió important. Tenim opcions com Raspberry Pi OS (l'oficial), Ubuntu Server, DietPi, Arch Linux ARM, Alpine. Per què Debian Lite?</p>
+<p>Tres raons pràctiques:</p>
+<p>1. <strong>Estabilitat</strong>. Debian és coneguda per ser extremadament estable. La versió actual (Trixie, 13) porta programes provats i madurs, no les últimes versions. Per a un servidor, això és bo: volem que el sistema no canviï sota els nostres peus.
+2. <strong>Repositoris</strong>. Debian té un dels repositoris de paquets més grans del món. Qualsevol cosa que necessitem — eines de xarxa, editors, llenguatges de programació, biblioteques — hi és. La majoria de documentació que trobem a Internet assumeix Debian/Ubuntu.
+3. <strong>Lleugeresa</strong>. La versió <strong>Lite</strong> (o <strong>netinst</strong>) no porta entorn gràfic ni programari innecessari. Només el sistema base. Això ens dóna control absolut sobre què hi ha instal·lat i redueix la superfície d'atac.</p>
+<p>Raspberry Pi OS, la distribució oficial, és bona i està optimitzada per al maquinari, però porta moltes coses innecessàries per a un servidor (escriptori, Chromium, LibreOffice, Mathematica). DietPi és excel·lent per a sistemes molt limitats, però el seu valor afegit (instal·lador de programes automatitzat) no el necessitem en un entorn on ja tenim Docker. Ubuntu Server seria una bona opció, però la seva política d'actualitzacions és més agressiva i les seves versions LTS canvien coses cada pocs anys.</p>
+<p>Debian Lite és, simplement, la millor relació entre simplicitat, estabilitat i control.</p>
+<h2>2.11 Esquema de la Raspberry Pi 4</h2>
+<pre class="code"><code class="language-mermaid">graph TB
+    subgraph SoC[&quot;SoC Broadcom BCM2711&quot;]
+        CPU[&quot;CPU ARM Cortex-A72&lt;br/&gt;4 nuclis @ 1.8 GHz&quot;]
+        GPU[&quot;GPU VideoCore VI&quot;]
+        RAM[&quot;RAM LPDDR4&lt;br/&gt;4 GB&quot;]
+    end
+<p>subgraph Xarxa[&quot;Connectivitat&quot;]
+        ETH[&quot;Ethernet&lt;br/&gt;1 Gbps&quot;]
+        WIFI[&quot;Wi-Fi ac + BT 5.0&quot;]
+    end</p>
+<p>subgraph Ports[&quot;Ports externs&quot;]
+        USB3[&quot;2× USB 3.0&quot;]
+        USB2[&quot;2× USB 2.0&quot;]
+        GPIO[&quot;40 pins GPIO&quot;]
+        HDMI[&quot;2× micro-HDMI&quot;]
+        USBC[&quot;USB-C&lt;br/&gt;Alimentació 5V/3A&quot;]
+    end</p>
+<p>subgraph Emm[&quot;Emmagatzematge&quot;]
+        SD[&quot;microSD&lt;br/&gt;(sistema operatiu)&quot;]
+        SSD[&quot;SSD USB&lt;br/&gt;(pròximament)&quot;]
+    end</p>
+<p>CPU &lt;--&gt; RAM
+    CPU &lt;--&gt; GPU
+    CPU --&gt; ETH
+    CPU --&gt; WIFI
+    CPU --&gt; USB3
+    CPU --&gt; USB2
+    CPU --&gt; GPIO
+    GPU --&gt; HDMI
+    USBC --&gt; CPU
+    SD --&gt; CPU
+    SSD -.-&gt;|pròximament| USB3</code></pre></p>
+<h2>2.12 Errors habituals</h2>
+<p><strong>Error 1: comprar una microSD barata</strong>. Símptoma: la targeta falla al cap de 2-3 mesos, el sistema es corromp. Solució: targeta de marca (Samsung EVO Select, SanDisk Extreme), classe A2 o superior.</p>
+<p><strong>Error 2: subministrar poca potència</strong>. Símptoma: la Raspberry es reinicia aleatòriament, sobretot quan hi ha un USB connectat. Solució: carregador oficial o de qualitat, 5V/3A mínim.</p>
+<p><strong>Error 3: ignorar la temperatura</strong>. Símptoma: rendiment baix, "throttling" als logs (`dmesg | grep -i thermal`). Solució: afegir dissipador, ventilador, o carcassa dissipativa.</p>
+<p><strong>Error 4: actualitzar el kernel sense previ avís</strong>. Símptoma: el GPIO, la càmera, o algun altre maquinari deixa de funcionar. Solució: llegir notes de versió, fer còpia de seguretat, tenir un pla per tornar enrere.</p>
+<p><strong>Error 5: confondre ARM amb x86</strong>. Símptoma: descarregar una ISO o una imatge Docker que no funciona. Solució: verificar sempre l'arquitectura amb `uname -m` (que retorna `aarch64` per a arm64) i usar imatges adequades.</p>
+<h2>2.13 Resum</h2>
+<p>Hem recorregut la Raspberry Pi 4 peça a peça: la CPU ARM Cortex-A72, els 4 GB de RAM, la microSD i les seves limitacions, els ports USB, Ethernet, GPIO i HDMI, l'alimentació USB-C, la temperatura, el procés d'arrencada, el kernel Linux i systemd. Hem entès per què hem triat Debian Lite i quin paper juga cada peça en el BernatLab. En el proper capítol baixarem al sistema operatiu: aprendrem a administrar Linux de veritat.</p>
+<h2>2.14 Exercicis pràctics</h2>
+<p>1. Executa `uname -a` i anota la versió exacta del kernel.
+2. Executa `free -h` i calcula quanta RAM queda lliure amb tots els serveis aturats.
+3. Executa `vcgencmd measure_temp` o `cat /sys/thermal/thermal_zone0/temp` per veure la temperatura actual.
+4. Executa `systemd-analyze` per veure quant ha trigat a arrencar el sistema.
+5. Executa `systemd-analyze blame` i identifica els tres serveis que més triguen a arrencar.
+6. Mira els logs del kernel amb `dmesg | less` i busca missatges sobre el maquinari (Ethernet, USB, etc.).</p>
+<p>Comandes útils del capítol:
+<pre class="code"><code class="language-bash">uname -a
+free -h
+vcgencmd measure_temp
+cat /sys/thermal/thermal_zone0/temp
+systemd-analyze
+systemd-analyze blame
+systemctl status docker
+systemctl list-units --type=service --state=running</code></pre></p>
+<p>Paraules clau: <strong>ARM Cortex-A72, BCM2711, microSD, EEPROM, systemd, kernel, thermal throttling, Debian Lite, arm64</strong>.</p>
+<hr>
+<h2 id="03-linux-servidor">Capítol 3 — Linux per administrar un servidor</h2>
+<p>> <em>"La consola no és una eina del passat. És la manera més precisa, més lleugera i més fiable de parlar amb un servidor."</em></p>
+<h2>3.1 Per què la consola</h2>
+<p>Quan algú entra per primera vegada a un servidor Linux, sovint se sent perdut. La pantalla és negra, no hi ha icones, no hi ha menú. Però aquesta pantalla negra és, paradoxalment, una de les eines més potents que tenim. La consola de Linux ens permet:</p>
+<ul>
+<li>Fer coses que una interfície gràfica no pot fer.</li>
+<li>Automatitzar tasques amb un sol script.</li>
+<li>Treballar remotament, per una connexió de xarxa molt petita, sense dependre d'entorns gràfics.</li>
+<li>Entendre què està passant realment, sense la intermediació d'una interfície que amaga la complexitat.</li>
+</ul>
+<p>Aquest capítol no és un manual exhaustiu de Linux. És un <strong>recorregut pràctic pels conceptes i les ordres que farem servir cada dia al BernatLab</strong>. Algunes són molt bàsiques, d'altres una mica més avançades. Totes, però, són útils.</p>
+<h2>3.2 El sistema de fitxers</h2>
+<p>Tot a Linux és un fitxer. Aquesta és potser la idea més important del sistema. Els directoris són fitxers. Els dispositius de maquinari són fitxers. Els processos són fitxers. Les connexions de xarxa són fitxers. Quan entens això, comences a entendre Linux.</p>
+<p>L'estructura del sistema de fitxers de Linux segueix l'estàndard <strong>FHS (Filesystem Hierarchy Standard)</strong>. A Debian, l'estructura arrel és:</p>
+<pre class="code"><code class="language-">/
+├── bin/        → binaris essencials (ls, cat, cp...)
+├── sbin/       → binaris d&#x27;administració (mount, fdisk...)
+├── etc/        → fitxers de configuració
+├── home/       → directoris personals dels usuaris
+│   └── bernat/ → el nostre directori
+│       └── homelab/  → la carpeta de treball del BernatLab
+├── var/        → dades variables (logs, bases de dades, cues)
+│   └── log/    → logs del sistema
+├── tmp/        → fitxers temporals
+├── usr/        → programes d&#x27;usuari (la majoria del sistema)
+├── opt/        → programes opcionals / comercials
+├── lib/        → biblioteques compartides
+├── dev/        → dispositius
+├── proc/       → informació del kernel i processos
+├── sys/        → interfície amb el kernel
+└── mnt/ i media/ → punts de muntatge temporals</code></pre>
+<p>Les normes no escrites que val la pena recordar:</p>
+<ul>
+<li><strong>Tot el que és configurable és a `/etc`</strong>. Si vols canviar el comportament d'un servei, és gairebé segur que el fitxer és aquí.</li>
+<li><strong>Els logs són a `/var/log`</strong>. Si alguna cosa falla, és aquí on has de mirar.</li>
+<li><strong>Les dades temporals són a `/tmp`</strong>. Es poden esborrar en qualsevol moment — no hi posis res important.</li>
+<li><strong>La teva àrea personal és a `/home/bernat`</strong>. Aquí és on treballaràs, on guardaràs els teus projectes, on crearàs la carpeta `homelab`.</li>
+</ul>
+<h3>Navegació bàsica</h3>
+<pre class="code"><code class="language-bash">pwd                # mostra on sóc
+ls                 # llista el contingut
+ls -l              # llista amb detalls
+ls -la             # llista amb detalls i amagats
+cd /home/bernat    # canvia de directori
+cd ..              # puja un nivell
+cd ~               # va a /home/bernat
+cd -               # torna a l&#x27;últim directori</code></pre>
+<h3>Operacions amb fitxers</h3>
+<pre class="code"><code class="language-bash">cp origen desti       # copia
+mv origen desti        # mou o reanomena
+rm fitxer             # esborra
+rm -r directori       # esborra recursivament
+mkdir directori       # crea directori
+rmdir directori       # esborra directori buit
+touch fitxer          # crea fitxer buit o actualitza data
+cat fitxer            # mostra contingut
+less fitxer           # mostra contingut paginat
+head -n 20 fitxer     # primeres 20 línies
+tail -n 20 fitxer     # últimes 20 línies
+tail -f fitxer        # últimes línies, en directe</code></pre>
+<h3>Comandes molt útils al BernatLab</h3>
+<pre class="code"><code class="language-bash">du -sh /home/bernat/homelab    # espai ocupat
+df -h                          # espai en discos
+find / -name &quot;docker-compose.yml&quot;  # buscar un fitxer
+grep -ri &quot;error&quot; /var/log/     # buscar text en fitxers</code></pre>
+<h2>3.3 Usuaris i permisos</h2>
+<p>Linux és un sistema <strong>multi-usuari</strong>. Cada persona (o cada servei) té un compte propi, amb un nom, un directori personal i uns permisos. Al BernatLab tenim, com a mínim, dos usuaris importants:</p>
+<ul>
+<li><strong>root</strong>: el superusuari, que pot fer tot. Compte — el seu directori personal és `/root`, no pas `/home/root`.</li>
+<li><strong>bernat</strong>: l'usuari amb què treballem normalment. Té el seu directori a `/home/bernat`.</li>
+</ul>
+<p>Per canviar temporalment a root:</p>
+<pre class="code"><code class="language-bash">su -</code></pre>
+<p>o per executar una sola ordre amb privilegis de root:</p>
+<pre class="code"><code class="language-bash">sudo ordre</code></pre>
+<p>`sudo` és el mecanisme estàndard. Està configurat al fitxer `/etc/sudoers` (millor no editar-lo a mà; usa `visudo` per seguretat). L'usuari `bernat` està al grup `sudo`, cosa que li permet executar ordres com a root sense contrasenya o amb la seva pròpia contrasenya.</p>
+<h3>Permisos</h3>
+<p>Cada fitxer té tres tipus de permisos per a tres categories d'usuaris:</p>
+<pre class="code"><code class="language-">-rwxr-xr-- 1 bernat bernat  1234 oct  3 12:00 script.sh</code></pre>
+<p>Desglossant:</p>
+<ul>
+<li>`-` → és un fitxer regular (un directori seria `d`)</li>
+<li>`rwx` → el propietari pot llegir, escriure, executar</li>
+<li>`r-x` → el grup pot llegir i executar (no escriure)</li>
+<li>`r--` → la resta només pot llegir</li>
+</ul>
+<p>Per canviar permisos:</p>
+<pre class="code"><code class="language-bash">chmod 755 script.sh      # rwxr-xr-x
+chmod u+x script.sh      # afegeix execució al propietari
+chmod go-w directori     # treu escriptura a grup i altres</code></pre>
+<p>Per canviar propietari:</p>
+<pre class="code"><code class="language-bash">chown bernat:bernat fitxer
+chown -R bernat:bernat directori</code></pre>
+<p>Els números de `chmod` es calculen així: r=4, w=2, x=1. Suma'ls per a cada categoria. `755` = propietari 7 (rwx), grup 5 (r-x), altres 5 (r-x).</p>
+<h2>3.4 El sistema de paquets apt</h2>
+<p><strong>apt</strong> és el gestor de paquets de Debian. La seva feina és descarregar, instal·lar, actualitzar i eliminar programes des dels <strong>repositoris</strong> oficials de Debian — enormes magatzems de programari mantinguts per la comunitat.</p>
+<h3>Configuració bàsica</h3>
+<p>Els repositoris estan definits a `/etc/apt/sources.list` i als fitxers de `/etc/apt/sources.list.d/`. Si obrim el primer amb `cat`, veurem una cosa semblant a:</p>
+<pre class="code"><code class="language-">deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware</code></pre>
+<p>Això vol dir: "Baixa paquets per a la versió Trixie, des del servidor principal de Debian, de les seccions main, contrib, non-free i non-free-firmware".</p>
+<h3>Ús diari</h3>
+<pre class="code"><code class="language-bash">sudo apt update                  # actualitza la llista de paquets disponibles
+sudo apt upgrade                 # actualitza tots els paquets
+sudo apt full-upgrade            # igual però permet canvis majors
+sudo apt install paquet          # instal·la un paquet
+sudo apt remove paquet           # elimina un paquet
+sudo apt purge paquet            # elimina un paquet i la seva configuració
+sudo apt autoremove              # elimina dependències innecessàries
+sudo apt search paraula          # busca paquets
+apt show paquet                  # mostra informació d&#x27;un paquet</code></pre>
+<p>La diferència clau entre `apt update` i `apt upgrade` és que el primer només actualitza la informació sobre quins paquets hi ha disponibles, i el segon descarrega i instal·la les noves versions. Sempre s'ha de fer `update` abans de `upgrade`, i és bo fer-los junts.</p>
+<p>Quan s'instal·la un paquet, `apt` resol automàticament les <strong>dependències</strong>: si volem instal·lar un programa que necessita una biblioteca, `apt` la descarrega i la instal·la sense que l'hi demanem. Aquesta és una de les grans virtuts de Debian.</p>
+<h2>3.5 L'editor nano</h2>
+<p>Per editar fitxers de configuració, necessitem un editor de text en consola. N'hi ha molts: <strong>nano</strong>, <strong>vim</strong>, <strong>emacs</strong>, <strong>micro</strong>, <strong>joe</strong>. Al BernatLab farem servir <strong>nano</strong>, que és el més amable per a principiants i que ve preinstal·lat a Debian Lite.</p>
+<p>Per obrir-lo:</p>
+<pre class="code"><code class="language-bash">nano /etc/sudoers</code></pre>
+<p>A la part inferior de la pantalla veuràs les dreceres de teclat. Les més útils:</p>
+<ul>
+<li>`Ctrl+O` → desar (write Out)</li>
+<li>`Ctrl+X` → sortir</li>
+<li>`Ctrl+K` → tallar una línia</li>
+<li>`Ctrl+U` → enganxar</li>
+<li>`Ctrl+W` → buscar</li>
+<li>`Ctrl+G` → ajuda</li>
+</ul>
+<p>Important: nano per sí sol no demana confirmació abans de desar. Polsar `Ctrl+X` i respondre `Y` desarà i sortirà. `Ctrl+C` cancel·la.</p>
+<p>Si volem un editor una mica més potent, podem instal·lar <strong>micro</strong> (`sudo apt install micro`) o aprendre <strong>vim</strong> (un viatge al·lucinant, però que val la pena si volem ser administradors de veritat).</p>
+<h2>3.6 Serveis i systemd</h2>
+<p>Ja hem parlat de systemd al Capítol 2. Aquí aprofundim en la gestió quotidiana dels serveis.</p>
+<pre class="code"><code class="language-bash">systemctl status servei          # estat detallat
+systemctl start servei           # iniciar
+systemctl stop servei            # aturar
+systemctl restart servei         # reiniciar
+systemctl reload servei          # recarregar config sense parar
+systemctl enable servei          # arrencar a l&#x27;inici
+systemctl disable servei         # no arrencar a l&#x27;inici
+systemctl is-active servei       # actiu? (yes/no)
+systemctl is-enabled servei      # habilitat? (yes/no)
+systemctl list-units --type=service --state=running
+systemctl list-unit-files --type=service</code></pre>
+<p>A Debian, la majoria de serveis tenen el seu fitxer de configuració a `/etc/nomservei/`. Per exemple, la configuració de Docker és a `/etc/docker/`, i la de SSH a `/etc/ssh/sshd_config`.</p>
+<p>Per veure els logs d'un servei:</p>
+<pre class="code"><code class="language-bash">journalctl -u servei                  # tots els logs
+journalctl -u servei -f               # en directe (follow)
+journalctl -u servei --since &quot;1 hour ago&quot;
+journalctl -u servei --since today</code></pre>
+<p>`journalctl` és l'eina estàndard de systemd per accedir als logs. Combina tots els missatges de tots els serveis en una base de dades indexada, i permet filtres potents per data, prioritat, unitat, etc.</p>
+<h2>3.7 Processos</h2>
+<p>Cada programa que s'executa al sistema és un <strong>procés</strong>, amb un identificador únic (<strong>PID</strong>). Per veure'ls:</p>
+<pre class="code"><code class="language-bash">ps aux                 # tots els processos
+ps aux | grep docker    # processos que contenen &quot;docker&quot;
+top                    # vista dinàmica, ordenada per ús
+htop                   # millor que top, cal instal·lar-lo</code></pre>
+<p>Si volem instal·lar `htop` (recomanable):</p>
+<pre class="code"><code class="language-bash">sudo apt install htop</code></pre>
+<p>Per matar un procés:</p>
+<pre class="code"><code class="language-bash">kill PID               # envia SIGTERM (amable)
+kill -9 PID            # envia SIGKILL (forçat)
+killall nom            # mata tots els processos amb aquest nom
+pkill -f patro         # mata processos que coincideixen amb un patró</code></pre>
+<p>Quan un contenidor Docker no respon, sovint el "matarem" amb `docker kill` (que veurem al Capítol 5), però entendre `kill` i `ps` és fonamental.</p>
+<h2>3.8 Logs</h2>
+<p>Els logs són la memòria del sistema. Quan alguna cosa falla, els logs són la primera — i sovint l'única — pista que tenim per entendre per què.</p>
+<p>Els principals fitxers de log a Debian són:</p>
+<ul>
+<li>`/var/log/syslog` → log general del sistema</li>
+<li>`/var/log/auth.log` → autenticacions (SSH, sudo)</li>
+<li>`/var/log/kern.log` → missatges del kernel</li>
+<li>`/var/log/mail.log` → correu</li>
+<li>`/var/log/docker/` → logs de Docker</li>
+<li>`/var/log/apt/` → historial d'instal·lacions apt</li>
+</ul>
+<p>Comandes útils:</p>
+<pre class="code"><code class="language-bash">tail -f /var/log/syslog
+less /var/log/syslog
+grep &quot;error&quot; /var/log/syslog
+journalctl -xe           # últims missatges amb explicacions
+journalctl --since &quot;1 hour ago&quot;</code></pre>
+<p>Al BernatLab, els logs poden créixer molt. Una bona pràctica és configurar <strong>logrotate</strong> (que ja ve amb Debian) perquè els vagi rotant i comprimint, i <strong>log2ram</strong> per moure'ls a RAM, reduint les escriptures a la targeta microSD.</p>
+<h2>3.9 La carpeta /home/bernat/homelab</h2>
+<p>Aquí és on viu la nostra feina. L'estructura recomanada per al BernatLab és:</p>
+<pre class="code"><code class="language-">/home/bernat/homelab/
+├── README.md                    # descripció general
+├── CHANGELOG.md                 # registre de canvis
+├── docker-compose.yml           # definició principal de serveis
+├── .env                         # variables d&#x27;entorn (no versionat)
+├── .gitignore                   # què no versionar
+├── stacks/                      # sub-piles de compose
+│   ├── monitoring/              # Uptime Kuma, Grafana, etc.
+│   ├── data/                    # InfluxDB, PostgreSQL, etc.
+│   ├── iot/                     # Mosquitto, Node-RED, etc.
+│   └── media/                   # File Browser, foto, música
+├── data/                        # volums persistents
+│   ├── uptime-kuma/
+│   ├── homepage/
+│   ├── portainer/
+│   └── ...
+├── backup/                      # còpies de seguretat
+├── scripts/                     # scripts de manteniment
+└── docs/                        # documentació addicional</code></pre>
+<p>Aquesta estructura ens permet:</p>
+<ul>
+<li><strong>Tenir un sol fitxer `docker-compose.yml`</strong> a l'arrel, o bé dividir-lo en piles temàtiques.</li>
+<li><strong>Guardar les dades persistents</strong> dins de `data/`, cosa que facilita les còpies de seguretat.</li>
+<li><strong>Versionar tot</strong> amb Git, excepte `.env` i `data/` (gràcies a `.gitignore`).</li>
+<li><strong>Documentar</strong> dins del projecte, no en un altre lloc.</li>
+</ul>
+<h2>3.10 Comandes útils del dia a dia</h2>
+<p>Aquesta és la llista que consultarem cada setmana:</p>
+<pre class="code"><code class="language-bash"># Sistema
+uname -a               # kernel i arquitectura
+uptime                 # temps encès, càrrega
+date                   # data i hora
+who                    # qui està connectat
+w                      # qui i què fa
+<h1>Disc</h1>
+df -h                  # espai en sistemes de fitxers
+du -sh /camí/          # espai ocupat per un directori
+lsblk                  # llista de dispositius de bloc
+<h1>Xarxa</h1>
+ip a                   # adreces IP
+ip r                   # rutes
+ss -tulpn              # ports oberts
+ping host              # comprovar connectivitat
+<h1>Processos</h1>
+ps aux
+htop
+pkill -f patro
+<h1>Logs</h1>
+journalctl -xe
+tail -f /var/log/syslog
+<h1>Serveis</h1>
+systemctl status servei
+systemctl restart servei</code></pre>
+<h2>3.11 Bones pràctiques</h2>
+<p>1. <strong>Mai no treballis com a root per defecte</strong>. Usa un usuari normal i puja amb `sudo` quan calgui.
+2. <strong>Documenta cada canvi important</strong>. Un cop fet, un parell de línies al `CHANGELOG.md`.
+3. <strong>Fes còpies de seguretat abans de canvis grans</strong>. `apt full-upgrade`, canvis de configuració, actualitzacions de contenidors. Si alguna cosa es trenca, has de poder tornar enrere.
+4. <strong>Mira els logs quan alguna cosa falla</strong>. No reinicis a cegues. Llegeix, entén, actua.
+5. <strong>No instal·lis programes que no necessitis</strong>. Cada programa és un risc potencial i un consumidor de recursos.
+6. <strong>Aprèn una ordre abans de memoritzar el seu àlies</strong>. Els àlies estan bé, però entén el que fas servir.</p>
+<h2>3.12 Errors habituals</h2>
+<p><strong>Error 1: executar ordres com a root "perquè sí"</strong>. Símptoma: fitxers propietat de root que després no podem editar, o canvis irreversibles. Solució: usar `sudo` només quan és estrictament necessari.</p>
+<p><strong>Error 2: `rm -rf` sense comprovar</strong>. Símptoma: hem esborrat alguna cosa que no tocava. Solució: llegir dues vegades abans de prémer Enter. Mai no executar `rm -rf /` o `rm -rf *` en un directori arrel.</p>
+<p><strong>Error 3: instal·lar paquets innecessaris</strong>. Símptoma: sistema ple de coses, ports oberts, serveis innecessaris. Solució: abans d'instal·lar, preguntar-se si realment cal.</p>
+<p><strong>Error 4: no mirar els logs</strong>. Símptoma: quan alguna cosa falla, no sabem per què. Solució: `journalctl -xe` i `tail -f` són els nostres millors amics.</p>
+<p><strong>Error 5: editar `/etc/sudoers` a mà amb nano</strong>. Símptoma: sudo es trenca i no podem arreglar res. Solució: usar sempre `visudo`, que valida la sintaxi abans de desar.</p>
+<h2>3.13 Esquema del sistema</h2>
+<pre class="code"><code class="language-mermaid">graph TB
+    subgraph Usuari[&quot;Espai d&#x27;usuari&quot;]
+        SHELL[&quot;Shell (bash)&quot;]
+        TOOLS[&quot;Eines: nano, htop, less, grep&quot;]
+    end
+<p>subgraph Sistema[&quot;Sistema operatiu&quot;]
+        KERNEL[&quot;Kernel Linux&lt;br/&gt;(gestió de recursos)&quot;]
+        SYSTEMD[&quot;systemd&lt;br/&gt;(gestor de serveis)&quot;]
+        LOGS[&quot;journald + /var/log&quot;]
+    end</p>
+<p>subgraph Disc[&quot;Sistema de fitxers&quot;]
+        EXT4[&quot;/ (root)&quot;]
+        DATA[&quot;/home/bernat/homelab&quot;]
+        ETCC[&quot;/etc (configuració)&quot;]
+    end</p>
+<p>subgraph Hard[&quot;Maquinari&quot;]
+        CPU[&quot;CPU ARM&quot;]
+        RAM[&quot;RAM 4 GB&quot;]
+        SD[&quot;microSD&quot;]
+    end</p>
+<p>SHELL --&gt; TOOLS
+    TOOLS --&gt; KERNEL
+    SYSTEMD --&gt; KERNEL
+    LOGS --&gt; KERNEL
+    KERNEL --&gt; CPU
+    KERNEL --&gt; RAM
+    KERNEL --&gt; SD
+    EXT4 --&gt; SD
+    DATA --&gt; EXT4
+    ETCC --&gt; EXT4</code></pre></p>
+<h2>3.14 Resum</h2>
+<p>Hem après les ordres bàsiques de Linux aplicades al BernatLab: sistema de fitxers, usuaris, permisos, sudo, paquets apt, nano, serveis amb systemd, processos, logs. També hem vist com ha d'estar organitzada la carpeta `/home/bernat/homelab` i quines bones pràctiques seguir. En el proper capítol pujarem de nivell: xarxa, SSH i Tailscale.</p>
+<h2>3.15 Exercicis pràctics</h2>
+<p>1. Entra a `/home/bernat/homelab` i comprova què hi ha. Si no existeix, crea-la: `mkdir -p /home/bernat/homelab/{stacks,data,backup,scripts,docs}`.
+2. Executa `ls -la /home/bernat/homelab` i explica què hi veus.
+3. Mira l'ús de disc amb `df -h` i l'ús de memòria amb `free -h`. Anota els valors.
+4. Executa `systemctl list-units --type=service --state=running` i compta quants serveis hi ha actius.
+5. Mira les últimes 20 línies de `/var/log/syslog` amb `tail -n 20 /var/log/syslog`. Hi ha algun error o advertència?
+6. Instal·la `htop` amb `sudo apt install htop`, executa'l i surt amb `q`.</p>
+<p>Comandes útils del capítol:
+<pre class="code"><code class="language-bash">pwd, ls, cd, cp, mv, rm, mkdir
+chmod, chown, sudo
+apt update &amp;&amp; apt upgrade
+apt install, apt remove
+nano, systemctl, journalctl
+ps aux, htop, kill
+df -h, du -sh, free -h
+ip a, ss -tulpn</code></pre></p>
+<p>Paraules clau: <strong>filesystem, FHS, permisos, sudo, apt, nano, systemd, journalctl, htop, /var/log, homelab, bones pràctiques</strong>.</p>
+<hr>
+<h2 id="04-xarxa-ssh-tailscale">Capítol 4 — Xarxa, SSH i Tailscale</h2>
+<p>> <em>"Un servidor sense xarxa és una caixa forta en una illa deserta. Un servidor amb bona xarxa és una extensió de tu mateix."</em></p>
+<h2>4.1 Què vol dir "xarxa" en un servidor</h2>
+<p>Quan diem "xarxa" en el context d'un servidor, ens referim a la capacitat de la màquina de comunicar-se amb altres dispositius. Aquesta comunicació es fa a través de <strong>protocols</strong> (com TCP/IP), a través de <strong>ports</strong> (com el 22 per a SSH, el 80 per a HTTP, el 443 per a HTTPS), i a través d'<strong>adreces</strong> que identifiquen cada dispositiu de forma única.</p>
+<p>Al BernatLab, la xarxa és fonamental perquè:</p>
+<ul>
+<li>Accedim al servidor remotament per SSH.</li>
+<li>Els serveis (Portainer, Uptime Kuma, Homepage) escolten peticions en ports específics.</li>
+<li>La Raspberry es comunica amb sensors, amb serveis al núvol, amb la base de dades.</li>
+<li>Volem accedir-hi des de qualsevol lloc del món — des de la feina, des del mòbil, des d'un portàtil de viatge.</li>
+</ul>
+<p>Aquest capítol explica els conceptes bàsics i, sobretot, com fer que tot això funcioni <strong>de manera segura</strong> amb Tailscale.</p>
+<h2>4.2 IP, ports i DNS</h2>
+<h3>Adreces IP</h3>
+<p>Una adreça <strong>IP</strong> (Internet Protocol) és un número que identifica un dispositiu en una xarxa. En la versió 4 (IPv4), és un número de 32 bits que s'escriu com quatre grups de fins a tres xifres separats per punts, p. ex. `192.168.1.42` o `100.115.134.76`.</p>
+<p>A la nostra Raspberry podem veure les adreces assignades amb:</p>
+<pre class="code"><code class="language-bash">ip a</code></pre>
+<p>Aquesta ordre ens mostrarà diverses interfícies de xarxa:</p>
+<ul>
+<li><strong>lo</strong> (loopback): la interfície "cap a un mateix", amb adreça `127.0.0.1`. Sempre present.</li>
+<li><strong>eth0</strong>: la interfície Ethernet, per cable. Aquesta serà la principal al BernatLab.</li>
+<li><strong>wlan0</strong> (si l'habilitem): la interfície Wi-Fi.</li>
+</ul>
+<p>En una xarxa domèstica, la Raspberry tindrà una adreça del tipus `192.168.x.y`, assignada pel router (que fa de servidor DHCP). Aquesta és la <strong>IP privada local</strong>: només és visible des de dins de casa.</p>
+<p>Quan la Raspberry parla amb Internet, el router tradueix la seva IP privada per la <strong>IP pública</strong> que ens ha assignat l'operador. Això es fa gràcies al <strong>NAT</strong> (Network Address Translation). El problema: aquesta IP pública canvia de tant en tant (llevat que paguem una IP fixa), i des de fora de casa no sabem quina és en cada moment.</p>
+<h3>Ports</h3>
+<p>Un <strong>port</strong> és un número de 16 bits (de 0 a 65535) que identifica una aplicació concreta dins d'una màquina. Quan un programa vol rebre connexions, escolta en un port. Per convenció:</p>
+<ul>
+<li><strong>22</strong>: SSH</li>
+<li><strong>80</strong>: HTTP</li>
+<li><strong>443</strong>: HTTPS</li>
+<li><strong>3000-3999</strong>: aplicacions web (Homepage, Grafana)</li>
+<li><strong>3001</strong>: Uptime Kuma</li>
+<li><strong>9443</strong>: Portainer</li>
+<li><strong>5432</strong>: PostgreSQL</li>
+<li><strong>1883</strong>: MQTT</li>
+</ul>
+<p>Quan accedim a `100.115.134.76:9443`, estem dient: "vull connectar a la IP `100.115.134.76`, port `9443`". El port és part essencial de l'adreça.</p>
+<p>Per veure quins ports té oberts la nostra màquina:</p>
+<pre class="code"><code class="language-bash">ss -tulpn</code></pre>
+<p>Aquesta ordre ens mostrarà totes les connexions TCP/UDP obertes, amb el protocol, l'adreça local, el port i el procés que les manté. És una eina molt útil per entendre què està passant.</p>
+<h3>DNS</h3>
+<p>El <strong>DNS</strong> (Domain Name System) és el sistema que tradueix noms fàcils de recordar (`bernatmora.github.io`) en adreces IP (`140.82.121.4` o similar). Quan posem una adreça al navegador, el sistema consulta un servidor DNS per obtenir la IP.</p>
+<p>A Debian, la configuració de DNS és a `/etc/resolv.conf`. Normalment hi veurem:</p>
+<pre class="code"><code class="language-">nameserver 192.168.1.1</code></pre>
+<p>que apunta al router, que al seu sap on són els servidors DNS de l'operador (o pot ser ell mateix, fent de DNS forwarder).</p>
+<h2>4.3 Tallafoc i seguretat bàsica</h2>
+<p>Un <strong>tallafoc</strong> (firewall) és un programa que decideix quin tràfic pot entrar i sortir d'una màquina. A Debian, el tallafoc estàndard és <strong>nftables</strong> (l'evolució de l'antic iptables), tot i que molts encara prefereixen la interfície <strong>ufw</strong> (Uncomplicated Firewall) per la seva senzillesa.</p>
+<p>A l'instal·lació de Debian Lite, el tallafoc pot estar totalment obert (acceptant tot el tràfic) o parcialment tancat, depenent de la configuració. Per veure l'estat:</p>
+<pre class="code"><code class="language-bash">sudo ufw status</code></pre>
+<p>Si `ufw` no està instal·lat:</p>
+<pre class="code"><code class="language-bash">sudo apt install ufw</code></pre>
+<p>Regles bàsiques que podem aplicar al BernatLab:</p>
+<pre class="code"><code class="language-bash">sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow ssh
+sudo ufw allow 9443/tcp    # Portainer
+sudo ufw allow 3001/tcp    # Uptime Kuma
+sudo ufw allow 3000/tcp    # Homepage
+sudo ufw enable</code></pre>
+<p>Això obre els ports estrictament necessaris i tanca la resta. A la pràctica, com que Tailscale ja ens dona una xarxa privada i el router ja ens protegeix, el tallafoc del servidor és una <strong>bona capa addicional</strong> però no l'única.</p>
+<h2>4.4 SSH: la porta d'entrada</h2>
+<p><strong>SSH</strong> (Secure Shell) és el protocol estàndard per accedir a una consola remota de forma segura. Quan obrim una sessió SSH, tot el que escrivim i tot el que rebem viatja <strong>xifrat</strong> per la xarxa, de manera que ningú no el pot interceptar.</p>
+<p>Al BernatLab, SSH és la nostra eina principal. Treballem habitualment des del nostre PC o portàtil, connectant-nos a la Raspberry per SSH. Sense SSH, hauríem de tenir un monitor, un teclat i un ratolí connectats a la Raspberry — inviable per a un servidor 24/7.</p>
+<h3>Com funciona SSH</h3>
+<p>Quan un client SSH es connecta a un servidor, passa el següent:</p>
+<p>1. <strong>Handshake inicial</strong>: el client i el servidor intercanvien informació sobre les versions del protocol i quins algorismes de xifratge suporten.
+2. <strong>Intercanvi de claus</strong>: s'estableix una connexió xifrada mitjançant un sistema asimètric (claus públiques i privades).
+3. <strong>Autenticació</strong>: el client demostra la seva identitat al servidor. Pot fer-ho amb:
+<ul>
+<li><strong>Contrasenya</strong>: el mètode més senzill però menys segur.</li>
+<li><strong>Clau pública</strong>: el mètode recomanable, basat en criptografia asimètrica.</li>
+</ul>
+4. <strong>Sessió establerta</strong>: a partir d'aquí, tota la comunicació viatja xifrada.</p>
+<h3>Connexió bàsica</h3>
+<pre class="code"><code class="language-bash">ssh bernat@100.115.134.76</code></pre>
+<p>Això connecta a la IP `100.115.134.76` (la Tailscale), com a usuari `bernat`. Ens demanarà la contrasenya (o la clau, si està configurada) i, un cop autenticats, estarem dins de la consola del servidor.</p>
+<h3>Claus SSH: autenticació sense contrasenya</h3>
+<p>El mètode recomanat per a SSH és l'<strong>autenticació amb clau pública</strong>. En lloc d'escriure una contrasenya cada vegada, generem un parell de claus:</p>
+<ul>
+<li><strong>Clau privada</strong>: queda al nostre PC (al fitxer `~/.ssh/id_ed25519`). <strong>No l'hem de compartir mai.</strong></li>
+<li><strong>Clau pública</strong>: la pengem al servidor, al fitxer `~/.ssh/authorized_keys`. Qualsevol pot veure-la — és pública.</li>
+</ul>
+<p>Quan ens connectem, el client demostra al servidor que posseeix la clau privada sense enviar-la mai per la xarxa. Això és molt més segur que una contrasenya, perquè:</p>
+<ul>
+<li>Una clau de 256 bits és pràcticament impossible d'endevinar.</li>
+<li>La clau privada no viatja mai per la xarxa.</li>
+<li>Podem protegir la clau amb una passphrase (contrasenya local).</li>
+</ul>
+<p>Per generar el parell de claus al nostre PC client:</p>
+<pre class="code"><code class="language-bash">ssh-keygen -t ed25519 -C &quot;bernat@bernatlab&quot;</code></pre>
+<p>Ens demanarà una passphrase (recomanable) i guardarà les claus a `~/.ssh/id_ed25519` (privada) i `~/.ssh/id_ed25519.pub` (pública).</p>
+<p>Per pujar la clau pública al servidor:</p>
+<pre class="code"><code class="language-bash">ssh-copy-id bernat@100.115.134.76</code></pre>
+<p>A partir d'ara, podem entrar sense contrasenya (o amb la passphrase de la clau). El servidor confia en nosaltres perquè tenim la clau privada que correspon a la clau pública que ha acceptat.</p>
+<h3>Configuració del servidor SSH</h3>
+<p>L'arxiu principal és `/etc/ssh/sshd_config`. Algunes directives recomanables:</p>
+<pre class="code"><code class="language-">Port 22
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+AllowUsers bernat</code></pre>
+<ul>
+<li><strong>PermitRootLogin no</strong>: impedeix que l'usuari root entri directament. Cal entrar com a `bernat` i fer `sudo`.</li>
+<li><strong>PasswordAuthentication no</strong>: desactiva l'autenticació per contrasenya. Només es pot entrar amb clau.</li>
+<li><strong>AllowUsers bernat</strong>: només l'usuari `bernat` pot entrar per SSH.</li>
+</ul>
+<p>Després de modificar el fitxer, cal reiniciar el servei:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart ssh</code></pre>
+<p>I, IMPORTANT, abans de tancar la sessió, comprovar que podem reconnectar. Si hem deshabilitat l'accés per contrasenya sense pujar cap clau, ens quedarem fora del servidor.</p>
+<h3>SSH segur: bones pràctiques</h3>
+<p>1. <strong>Usa claus, no contrasenyes</strong>.
+2. <strong>Desactiva l'accés de root</strong>.
+3. <strong>Limita els usuaris</strong> que poden entrar.
+4. <strong>Considera canviar el port 22 per un altre</strong> (per dissuadir els bots que escanegen la xarxa). No és seguretat real, però redueix el soroll als logs.
+5. <strong>Mantén el servidor actualitzat</strong>: `sudo apt update && sudo apt upgrade`.
+6. <strong>Monitoritza els intents de connexió</strong> amb `journalctl -u ssh` o eines com `fail2ban`.</p>
+<h2>4.5 Tailscale: la xarxa privada</h2>
+<p>Aquí és on el BernatLab esdevé interessant. <strong>Tailscale</strong> és una eina que ens permet crear una <strong>xarxa privada virtual (VPN)</strong> entre tots els nostres dispositius, sense tocar el router, sense obrir ports, sense configurar NAT.</p>
+<h3>Què és exactament</h3>
+<p>Tailscale es basa en <strong>WireGuard</strong>, un protocol de VPN modern, ràpid i segur. La diferència amb una VPN tradicional és que Tailscale s'encarrega de tota la complexitat: trobar els dispositius a través de NAT, travessar tallafocs, gestionar les claus. Nosaltres només hem d'instal·lar el client, autenticar-nos amb un compte, i tots els nostres dispositius apareixen en una xarxa comuna.</p>
+<h3>La nostra xarxa</h3>
+<p>Al BernatLab tenim:</p>
+<ul>
+<li>La Raspberry Pi (hostname `hortosona`) → IP Tailscale `100.115.134.76`</li>
+<li>El PC amb Windows on treballem (BernatMora) → una altra IP `100.x.y.z`</li>
+<li>El mòbil Android, si hi instal·lem Tailscale → una altra IP `100.x.y.z`</li>
+<li>Potser un servidor a casa dels pares, una màquina virtual, etc.</li>
+</ul>
+<p>Tots aquests dispositius es poden veure entre ells, com si estiguessin connectats a un switch virtual invisible. I tot, xifrat de punta a punta.</p>
+<h3>Com s'ha instal·lat</h3>
+<p>La instal·lació a Debian és directa:</p>
+<pre class="code"><code class="language-bash">curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up</code></pre>
+<p>Aquesta segona ordre ens dóna un enllaç per autenticar-nos al navegador. Un cop autentiquem el compte, la màquina apareix a la nostra xarxa Tailscale i li assigna una IP del rang `100.x.y.z`.</p>
+<p>Per veure l'estat:</p>
+<pre class="code"><code class="language-bash">tailscale status</code></pre>
+<p>Per veure la nostra IP:</p>
+<pre class="code"><code class="language-bash">tailscale ip -4</code></pre>
+<h3>MagicDNS: noms en lloc d'IPs</h3>
+<p>Una de les funcions més útils de Tailscale és <strong>MagicDNS</strong>. Un cop activat, podem accedir a qualsevol dispositiu de la nostra xarxa pel seu nom, sense recordar la IP. Per exemple:</p>
+<pre class="code"><code class="language-bash">ssh bernat@hortosona</code></pre>
+<p>en lloc de:</p>
+<pre class="code"><code class="language-bash">ssh bernat@100.115.134.76</code></pre>
+<p>Això funciona perquè Tailscale munta un servidor DNS local (`100.100.100.100`) que resol els noms dels nostres dispositius. Si al nostre PC client tenim Tailscale instal·lat i actiu, podem accedir a `http://hortosona:3000` en lloc de `http://100.115.134.76:3000`. Més net, més fàcil de recordar.</p>
+<h3>Per què és tan important</h3>
+<p>Tres raons:</p>
+<p>1. <strong>Seguretat</strong>: cap port de la Raspberry està exposat a Internet. Només els dispositius de la nostra xarxa Tailscale hi poden accedir. Això és una capa de seguretat brutalment efectiva.
+2. <strong>Simplicitat</strong>: no hem de configurar NAT, no hem d'obrir ports al router, no hem de gestionar IP dinàmica. Tailscale ho fa tot.
+3. <strong>Mobilitat</strong>: podem accedir al BernatLab des d'una Wi-Fi pública, des del 4G del mòbil, des d'un cafè amb WiFi. La xarxa Tailscale funciona igual a tot arreu.</p>
+<h3>Taildrop: compartició de fitxers</h3>
+<p>Tailscale inclou <strong>Taildrop</strong>, una eina per enviar fitxers entre dispositius de la xarxa. És útil, per exemple, per pujar una captura de pantalla del mòbil a la Raspberry, o per descarregar una còpia de seguretat al PC.</p>
+<h3>Compartició de serveis amb altres</h3>
+<p>Si volem que algú altre (un amic, un company de feina) accedeixi a un dels nostres serveis sense tenir Tailscale, podem fer-ho amb <strong>Tailnet Share</strong> o, més senzill, exposant un port específic amb `tailscale serve`. Però de moment, al BernatLab, tots els serveis són d'ús personal.</p>
+<h2>4.6 Sortir a Internet: com es connecta la Raspberry a la xarxa</h2>
+<p>Fins aquí hem parlat de com la Raspberry escolta peticions entrants. Però, evidentment, la Raspberry també ha de poder parlar amb l'exterior: per actualitzar paquets amb `apt`, per descarregar imatges Docker, per fer pings als serveis que monitoritzem.</p>
+<p>Això ho fa gràcies a la configuració de xarxa per defecte: la interfície `eth0` (o `wlan0`) rep una IP del router via DHCP, el router li dona accés a Internet a través del NAT, i el sistema configura el gateway per defecte. Per veure la ruta per defecte:</p>
+<pre class="code"><code class="language-bash">ip r</code></pre>
+<p>que ens mostrarà una línia tipus:</p>
+<pre class="code"><code class="language-">default via 192.168.1.1 dev eth0</code></pre>
+<p>que vol dir: "tot el tràfic que no és per a la xarxa local, passa pel router `192.168.1.1` per la interfície `eth0`".</p>
+<p>Els servidors DNS estan configurats a `/etc/resolv.conf`, que sol apuntar al router o a servidors com `8.8.8.8` (Google) o `1.1.1.1` (Cloudflare).</p>
+<h2>4.7 Esquema de xarxa del BernatLab</h2>
+<pre class="code"><code class="language-mermaid">graph TB
+    subgraph Casa[&quot;Xarxa local de casa (192.168.x)&quot;]
+        RPI[&quot;Raspberry Pi&lt;br/&gt;hortosona&lt;br/&gt;192.168.1.x&quot;]
+        ROUTER[&quot;Router&lt;br/&gt;192.168.1.1&quot;]
+    end
+<p>subgraph Tailscale[&quot;Xarxa Tailscale (100.x)&quot;]
+        TS_RPI[&quot;RPi → 100.115.134.76&quot;]
+        TS_PC[&quot;PC Bernat → 100.x.y.z&quot;]
+        TS_MOB[&quot;Mòbil → 100.x.y.z&quot;]
+    end</p>
+<p>subgraph Internet[&quot;Internet&quot;]
+        APT[&quot;Repositoris apt&quot;]
+        DOCKER[&quot;Docker Hub&quot;]
+        GH[&quot;GitHub&quot;]
+        WEB[&quot;Hort Osona web&quot;]
+    end</p>
+<p>RPI &lt;--&gt; ROUTER
+    ROUTER &lt;--&gt; Internet
+    RPI -.-&gt;|Tailscale| TS_RPI
+    PC[&quot;PC Bernat&quot;] -.-&gt;|Tailscale| TS_PC
+    MOB[&quot;Mòbil&quot;] -.-&gt;|Tailscale| TS_MOB
+    TS_RPI &lt;--&gt; TS_PC
+    TS_RPI &lt;--&gt; TS_MOB</p>
+<p>style Casa fill:#e8f5e9
+    style Tailscale fill:#e3f2fd
+    style Internet fill:#fff3e0</code></pre></p>
+<h2>4.8 Comandes útils</h2>
+<pre class="code"><code class="language-bash"># Adreça IP
+ip a
+ip r
+hostname -I
+<h1>DNS</h1>
+cat /etc/resolv.conf
+nslookup bernatmora.github.io
+dig hortosona
+<h1>Ports</h1>
+ss -tulpn
+netstat -tulpn     # alternativa antiga
+<h1>SSH</h1>
+ssh bernat@hortosona
+ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76
+scp fitxer.txt bernat@hortosona:~/
+<h1>Tailscale</h1>
+tailscale status
+tailscale ip -4
+tailscale ping hortosona</code></pre>
+<h2>4.9 Errors habituals</h2>
+<p><strong>Error 1: entrar per SSH amb contrasenya en lloc de clau</strong>. Símptoma: cada vegada que entrem, hem d'escriure la contrasenya. Solució: generar clau i penjar-la al servidor.</p>
+<p><strong>Error 2: deshabilitar l'autenticació per contrasenya sense pujar cap clau</strong>. Símptoma: no podem entrar al servidor. Solució: connectar-hi un monitor i teclat, editar `/etc/ssh/sshd_config`, reiniciar.</p>
+<p><strong>Error 3: pensar que Tailscale ens protegeix de tot</strong>. Símptoma: ens relaxem massa. Solució: Tailscale és una capa, no l'única. Calen contrasenyes fortes, clau de SSH, tallafoc, actualitzacions.</p>
+<p><strong>Error 4: obrir ports al router de casa</strong>. Símptoma: el router queda exposat a Internet. Solució: mai no cal amb Tailscale. Si algú t'ho suggereix, desconfia.</p>
+<p><strong>Error 5: no documentar les claus SSH</strong>. Símptoma: perdem una clau, no podem entrar. Solució: desar una còpia segura de la clau privada (en un gestor de contrasenyes o en un dispositiu segur).</p>
+<h2>4.10 Resum</h2>
+<p>Hem après què és una IP, un port, un DNS, un tallafoc. Hem après a configurar SSH amb claus públiques, a deshabilitar l'accés per contrasenya, a limitar els usuaris. Hem après què és Tailscale, com funciona, com ens dóna una xarxa privada sense tocar el router, i com MagicDNS ens permet accedir als serveis pel nom. Ara ja podem connectar-nos al BernatLab de manera segura des de qualsevol lloc del món. En el proper capítol començarem a desplegar-hi serveis amb Docker.</p>
+<h2>4.11 Exercicis pràctics</h2>
+<p>1. Comprova la teva IP Tailscale amb `tailscale ip -4`.
+2. Comprova l'estat dels dispositius de la teva xarxa amb `tailscale status`.
+3. Connecta't a la Raspberry per SSH usant el nom en lloc de la IP: `ssh bernat@hortosona`.
+4. Mira els últims accessos SSH amb `journalctl -u ssh --since "1 day ago"`.
+5. Comprova quins ports tens oberts amb `ss -tulpn`. Quants serveis escolten? Quins?
+6. Comprova si tens el tallafoc actiu: `sudo ufw status`. Si no el tens, instal·la'l i configura'l com s'ha explicat.
+7. Genera una clau SSH al teu PC (si no en tens) i puja-la al servidor. Comprova que pots entrar sense contrasenya.</p>
+<p>Comandes útils:
+<pre class="code"><code class="language-bash">ip a, ip r, ss -tulpn
+ssh bernat@hortosona
+ssh-keygen -t ed25519
+ssh-copy-id bernat@hortosona
+sudo ufw status
+sudo ufw allow ssh
+tailscale status
+tailscale ip -4</code></pre></p>
+<p>Paraules clau: <strong>IP, port, DNS, tallafoc, SSH, clau pública, WireGuard, Tailscale, MagicDNS, NAT, VPN, seguretat</strong>.</p>
+<hr>
+<h2 id="05-docker">Capítol 5 — Docker des de zero</h2>
+<p>> <em>"Docker no és una eina. Docker és una manera de pensar els serveis: cadascun en la seva caixa, tots parlant entre ells, cap contaminant l'altre."</em></p>
+<h2>5.1 Què és Docker i per què serveix</h2>
+<p>Docker és una eina que ens permet executar aplicacions dins de <strong>contenidors</strong>: entorns aïllats, lleugers, portables, que contenen tot el que una aplicació necessita per funcionar. Un contenidor és, en essència, un <strong>procés del sistema operatiu</strong> que ve amb el seu propi sistema de fitxers, la seva pròpia interfície de xarxa i el seu propi cicle de vida — però sense portar un sistema operatiu sencer com ho faria una màquina virtual.</p>
+<p>La diferència amb una màquina virtual és clau. Una VM emula un maquinari complet i executa un sistema operatiu sencer dins: pèrdues de rendiment evidents, consum de RAM important, arrencada lenta. Un contenidor comparteix el kernel de la màquina amfitriona (la nostra Raspberry) i només porta les biblioteques, configuracions i binaris que l'aplicació necessita. Com a resultat:</p>
+<ul>
+<li>Arrenca en segons, no en minuts.</li>
+<li>Consumeix pocs megabytes de RAM, no gigabytes.</li>
+<li>És totalment portable: un contenidor que funciona a la Raspberry, funcionarà a un servidor professional, al PC, a un núvol.</li>
+</ul>
+<p>Docker ens permet tractar cada servei del BernatLab com una <strong>unitat independent i autosuficient</strong>. Portainer és un contenidor. Uptime Kuma és un altre. Homepage és un altre. Si un falla, els altres continuen funcionant. Si en volem actualitzar un, els altres ni se n'assabenten. Si volem moure'ns a un altre servidor, podem emportar-nos els contenidors com si fossin caixes de cartró ben etiquetades.</p>
+<h2>5.2 Conceptes fonamentals</h2>
+<p>Per entendre Docker, cal dominar quatre conceptes:</p>
+<h3>Imatge</h3>
+<p>Una <strong>imatge</strong> Docker és un fitxer (o un conjunt de fitxers) que conté tot el necessari per executar un servei: el codi, les biblioteques, les configuracions per defecte, les dependències del sistema. Pensa en una imatge com una <strong>plantilla de només lectura</strong>: un motlle a partir del qual crearem contenidors.</p>
+<p>Les imatges es distribueixen des de registres, el més conegut dels quals és <strong>Docker Hub</strong> (<a href="https://hub.docker.com">hub.docker.com</a>). Quan fem `docker pull portainer/portainer-ce:latest`, estem dient: "descarrega la imatge oficial de Portainer, en la seva última versió".</p>
+<p>Les imatges es construeixen amb un fitxer anomenat <strong>Dockerfile</strong>, que és una recepta: "comença amb una imatge base, instal·la aquestes dependències, copia aquest codi, exposa aquest port, executa aquesta ordre". Però al BernatLab no construirem imatges pròpies; usarem les que la comunitat ja ha publicat.</p>
+<h3>Contenidor</h3>
+<p>Un <strong>contenidor</strong> és una instància viva d'una imatge. Si la imatge és la plantilla, el contenidor és la instància en execució. Podem tenir diversos contenidors de la mateixa imatge (per exemple, tres instàncies de Redis fent papers diferents) cadascun amb el seu propi estat.</p>
+<p>Quan executem un contenidor, Docker hi assigna un identificador únic (un hash de 64 caràcters, encara que normalment en veiem només els 12 primers) i un nom aleatori (com `portainer-app-1` o `agitated_mclean`). Podem donar-li un nom nosaltres amb `--name`.</p>
+<h3>Volum</h3>
+<p>Un <strong>volum</strong> és un emmagatzematge persistent, gestionat per Docker, que viu fora del sistema de fitxers del contenidor. Per què és important? Perquè els contenidors, per naturalesa, són <strong>efímers</strong>: quan els esborrem, tot el seu sistema de fitxers desapareix. Si el contenidor de Portainer té la seva configuració dins, i l'esborrem per accident, perdem la configuració. Per això, tot allò que volem conservar — bases de dades, configuracions, fitxers pujats — es munta en un volum.</p>
+<p>Hi ha dos tipus de volums:</p>
+<ul>
+<li><strong>Volums anomenats</strong> (named volumes): gestionats per Docker, amb noms com `portainer_data`. Es guarden a `/var/lib/docker/volumes/`.</li>
+<li><strong>Muntatges de bind</strong> (bind mounts): apuntem a una carpeta concreta del sistema amfitrió, com `/home/bernat/homelab/data/portainer`. Al BernatLab farem servir aquesta segona opció, perquè ens permet tenir les dades dins de la nostra carpeta de treball, fàcil de copiar i versionar.</li>
+</ul>
+<h3>Xarxa</h3>
+<p>Una <strong>xarxa</strong> Docker és un espai aïlat on els contenidors es poden comunicar entre ells pel nom. Per defecte, Docker crea una xarxa `bridge` que comunica tots els contenidors entre ells. Podem crear xarxes personalitzades per organitzar-los.</p>
+<p>Això ens permet fer coses com: el contenidor de Uptime Kuma pot parlar amb el de Portainer pel nom `portainer`, sense necessitat d'IP ni de ports exposats a l'exterior.</p>
+<h2>5.3 Instal·lació i verificació</h2>
+<p>A Debian 13, Docker es pot instal·lar des dels repositoris oficials de Docker (no pas de Debian, perquè la versió empaquetada per Debian acostuma a ser antiga). La seqüència estàndard és:</p>
+<pre class="code"><code class="language-bash"># Eliminar versions antigues
+sudo apt remove docker docker-engine docker.io containerd runc
+<h1>Afegir el repositori oficial</h1>
+sudo apt install ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release &amp;&amp; echo &quot;$VERSION_CODENAME&quot;) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+<h1>Instal·lar</h1>
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+<h1>Afegir l&#x27;usuari bernat al grup docker</h1>
+sudo usermod -aG docker bernat</code></pre>
+<p>L'última ordre és fonamental: sense ella, només `root` pot executar ordres Docker. En afegir `bernat` al grup `docker`, podem fer `docker ps` sense `sudo`. Perquè el canvi tingui efecte, cal tancar i tornar a obrir la sessió SSH.</p>
+<p>Per comprovar que tot funciona:</p>
+<pre class="code"><code class="language-bash">docker run hello-world</code></pre>
+<p>Aquesta ordre descarrega una imatge mínima, executa un contenidor que imprimeix un missatge de benvinguda, i surt. Si veiem el missatge, Docker està correctament instal·lat.</p>
+<h2>5.4 Ordres essencials</h2>
+<p>Aquestes són les ordres que farem servir cada dia. Convé memoritzar-les o, si més no, tenir-les a mà.</p>
+<h3>Imatges</h3>
+<pre class="code"><code class="language-bash">docker images                       # llista imatges locals
+docker pull imatge:tag              # descarrega una imatge
+docker rmi imatge                   # esborra una imatge
+docker image prune                  # esborra imatges no usades
+docker image prune -a               # esborra TOTES les imatges no usades</code></pre>
+<h3>Contenidors</h3>
+<pre class="code"><code class="language-bash">docker ps                           # contenidors actius
+docker ps -a                        # tots els contenidors (inclosos aturats)
+docker run -d --name web nginx      # crea i arrenca un contenidor
+docker start nom                    # arrenca un contenidor existent
+docker stop nom                     # atura un contenidor
+docker restart nom                  # reinicia
+docker rm nom                       # esborra un contenidor aturat
+docker rm -f nom                    # forçar esborrat
+docker logs nom                     # mostra logs
+docker logs -f nom                  # logs en directe
+docker exec -it nom bash            # obre una consola dins del contenidor
+docker stats                        # ús de recursos en temps real</code></pre>
+<h3>Volums</h3>
+<pre class="code"><code class="language-bash">docker volume ls                    # llista volums
+docker volume create nom            # crea un volum
+docker volume rm nom                # esborra un volum
+docker volume prune                 # esborra volums no usats
+docker volume inspect nom           # info d&#x27;un volum</code></pre>
+<h3>Xarxes</h3>
+<pre class="code"><code class="language-bash">docker network ls                   # llista xarxes
+docker network create nom           # crea una xarxa
+docker network rm nom               # esborra una xarxa
+docker network inspect nom          # info d&#x27;una xarxa</code></pre>
+<h3>Sistema</h3>
+<pre class="code"><code class="language-bash">docker system df                    # espai ocupat
+docker system prune                 # neteja general
+docker system prune -a --volumes    # neteja total (compte!)
+docker info                         # informació del sistema Docker</code></pre>
+<h2>5.5 Exemple pràctic: Nginx en un contenidor</h2>
+<p>Per veure-ho en acció, despleguem Nginx (un servidor web lleuger) en un contenidor. Això ens permetrà entendre tot el mecanisme sense complicacions:</p>
+<pre class="code"><code class="language-bash">docker run -d --name web -p 8080:80 nginx</code></pre>
+<p>Desglossant:</p>
+<ul>
+<li>`-d`: detached, en segon terme. Si no, la consola es queda penjada.</li>
+<li>`--name web`: li donem un nom.</li>
+<li>`-p 8080:80`: mapegem el port 80 del contenidor al port 8080 de la Raspberry.</li>
+<li>`nginx`: la imatge.</li>
+</ul>
+<p>Ara podem obrir un navegador i anar a `http://100.115.134.76:8080`. Veurem la pàgina de benvinguda de Nginx.</p>
+<p>Quan volguem netejar:</p>
+<pre class="code"><code class="language-bash">docker stop web
+docker rm web</code></pre>
+<p>Ara, el mateix amb <strong>persistencia</strong> (volum) i <strong>configuració</strong>:</p>
+<pre class="code"><code class="language-bash">mkdir -p /home/bernat/homelab/data/nginx
+docker run -d \
+  --name web \
+  -p 8080:80 \
+  -v /home/bernat/homelab/data/nginx:/usr/share/nginx/html:ro \
+  nginx</code></pre>
+<p>Amb `-v` hem muntat una carpeta local dins del contenidor, en mode només lectura (`ro`). Si creem un fitxer `index.html` a `/home/bernat/homelab/data/nginx/`, el Nginx el servirà. Si esborrem el contenidor, les dades continuen a la carpeta.</p>
+<h2>5.6 Per què Docker Compose i no docker run</h2>
+<p>Fins aquí hem vist `docker run`, que és perfectament vàlid per a un contenidor aïllat. Però al BernatLab tenim diversos serveis que volem gestionar junts, amb configuracions complexes, volums, xarxes, variables. Si els llancem un a un amb `docker run`, acabarem amb ordres llarguíssimes, impossibles de recordar, impossibles de reproduir.</p>
+<p><strong>Docker Compose</strong> ens permet descriure tot això en un sol fitxer `YAML`. Un cop definit, podem aixecar, parar, actualitzar tota la pila amb una sola ordre. I el fitxer YAML és <strong>documentació en si mateix</strong>: qualsevol que el llegeixi, sabrà exactament què s'està executant.</p>
+<p>Exemple de fitxer `docker-compose.yml` per a Portainer:</p>
+<pre class="code"><code class="language-yaml">services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;9443:9443&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>/var/run/docker.sock:/var/run/docker.sock</li>
+<li>/home/bernat/homelab/data/portainer:/data</code></pre></li>
+</ul>
+<p>Això és molt més llegible que la línia de `docker run` equivalent. I a mesura que afegim serveis, el fitxer creix ordenadament.</p>
+<h2>5.7 Docker Compose: estructura del fitxer</h2>
+<p>Un fitxer `docker-compose.yml` té tres seccions principals:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;   # versió de l&#x27;esquema (opcional en versions modernes)
+<p>services:        # definició dels serveis (contenidors)
+  servei1:
+    image: ...
+    ports: ...
+    volumes: ...
+    environment: ...
+    restart: ...
+    depends_on:
+<ul>
+<li>altre_servei</li>
+</ul></p>
+<p>volumes:         # definició de volums (opcional)
+  volum1:</p>
+<p>networks:        # definició de xarxes personalitzades (opcional)
+  xarxa1:</code></pre></p>
+<h3>Claus essencials per a cada servei</h3>
+<ul>
+<li><strong>image</strong>: quina imatge usar, amb tag opcional.</li>
+<li><strong>container_name</strong>: nom del contenidor (opcional; per defecte, generat).</li>
+<li><strong>restart</strong>: política de reinici. `unless-stopped` és la més comuna.</li>
+<li><strong>ports</strong>: mapeig de ports `HOST:CONTENIDOR`.</li>
+<li><strong>volumes</strong>: llista de volums o bind mounts.</li>
+<li><strong>environment</strong>: variables d'entorn.</li>
+<li><strong>depends_on</strong>: serveis dels quals depèn (ordre d'arrencada).</li>
+<li><strong>networks</strong>: xarxes a les quals es connecta.</li>
+</ul>
+<h2>5.8 Ordres de Docker Compose</h2>
+<pre class="code"><code class="language-bash">docker compose up -d              # aixeca tots els serveis
+docker compose down               # atura i esborra contenidors
+docker compose ps                 # llista serveis
+docker compose logs servei        # logs d&#x27;un servei
+docker compose logs -f            # logs en directe
+docker compose restart servei     # reinicia un servei
+docker compose pull               # descarrega noves imatges
+docker compose up -d              # re- crea contenidors amb noves imatges
+docker compose exec servei bash    # consola dins del contenidor
+docker compose config             # valida el fitxer</code></pre>
+<p>Important: en versions modernes de Docker, l'ordre és `docker compose` (amb espai), no pas `docker-compose` (amb guió). La sintaxi antiga encara funciona si tenim l'eina instal·lada com a binari, però la nova és la recomanada.</p>
+<h2>5.9 Exemple complet: Portainer + Uptime Kuma + Homepage</h2>
+<p>Aquest és el fitxer `docker-compose.yml` que tenim al BernatLab. Serveix d'exemple del que podem arribar a fer:</p>
+<pre class="code"><code class="language-yaml">services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;9443:9443&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>/var/run/docker.sock:/var/run/docker.sock</li>
+<li>/home/bernat/homelab/data/portainer:/data</li>
+</ul>
+<p>uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;3001:3001&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>/home/bernat/homelab/data/uptime-kuma:/app/data</li>
+</ul></p>
+<p>homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;3000:3000&quot;</li>
+</ul>
+    environment:
+<ul>
+<li>HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000</li>
+</ul>
+    volumes:
+<ul>
+<li>/var/run/docker.sock:/var/run/docker.sock:ro</li>
+<li>/home/bernat/homelab/data/homepage:/app/config</li>
+<li>/home/bernat/homelab/stacks/homepage:/app/config/widgets</code></pre></li>
+</ul></p>
+<p>Per aixecar tot això:</p>
+<pre class="code"><code class="language-bash">cd /home/bernat/homelab
+docker compose up -d</code></pre>
+<p>I en qüestió de segons, els tres serveis estaran funcionant. Podem comprovar-ho amb `docker compose ps`.</p>
+<h2>5.10 Actualitzar contenidors</h2>
+<p>Una de les tasques habituals és mantenir els serveis actualitzats. El procediment estàndard és:</p>
+<pre class="code"><code class="language-bash">cd /home/bernat/homelab
+docker compose pull              # descarrega noves versions
+docker compose up -d             # re- crea els contenidors
+docker image prune               # neteja imatges antigues</code></pre>
+<p>El `up -d` és intel·ligent: si la imatge ha canviat, Docker atura el contenidor antic, l'esborra i en crea un de nou amb la nova imatge. Si no ha canviat, no fa res.</p>
+<p>Això es pot automatitzar amb <strong>Watchtower</strong> (un contenidor que vigila les actualitzacions) o amb <strong>Diun</strong> (que només avisa), o simplement amb un script al cron. Però abans d'automatitzar, fem-ho manualment unes quantes vegades per entendre què passa.</p>
+<h2>5.11 Volums i xarxes: com Docker els gestiona</h2>
+<p>Quan creem un contenidor amb un volum de bind mount, com `-v /home/bernat/homelab/data/portainer:/data`, el que fem és muntar una carpeta de l'amfitrió dins del contenidor. Els canvis que fem al contenidor es reflecteixen a l'amfitrió i viceversa. Si el contenidor s'esborra, la carpeta de l'amfitrió continua intacta.</p>
+<p>Quan creem un contenidor amb un volum anomenat, com `-v portainer_data:/data`, Docker crea un directori a `/var/lib/docker/volumes/portainer_data/` i el munta dins del contenidor. La diferència pràctica: els volums anomenats són gestionats enterament per Docker, els bind mounts els gestionem nosaltres.</p>
+<p>Al BernatLab, <strong>preferim els bind mounts</strong> perquè:</p>
+<ul>
+<li>Les dades són dins de la nostra carpeta de treball (`/home/bernat/homelab/data/`).</li>
+<li>Podem fer-ne còpies de seguretat amb eines normals (`tar`, `rsync`).</li>
+<li>Podem editar fitxers de configuració directament sense entrar al contenidor.</li>
+<li>Podem versionar les configuracions amb Git (els fitxers de configuració, no les dades binàries com bases de dades).</li>
+</ul>
+<h2>5.12 Xarxes Docker</h2>
+<p>Per defecte, tots els contenidors d'un `docker-compose.yml` es connecten a una xarxa interna que Docker crea automàticament. Aquesta xarxa permet que els contenidors es comuniquin entre ells pel <strong>nom del servei</strong> (no pas per IP).</p>
+<p>Per exemple, al fitxer `docker-compose.yml` d'abans, el contenidor `uptime-kuma` podria parlar amb el `portainer` fent referència a `http://portainer:9443` des del seu interior, sense que el port 9443 estigui exposat a l'amfitrió. Això és útil per a serveis que volem que només siguin accessibles dins la xarxa Docker, no pas des de fora.</p>
+<p>Podem definir xarxes personalitzades:</p>
+<pre class="code"><code class="language-yaml">networks:
+  frontend:
+  backend:
+<p>services:
+  homepage:
+    networks:
+<ul>
+<li>frontend</li>
+</ul>
+  portainer:
+    networks:
+<ul>
+<li>backend</li>
+<li>frontend</code></pre></li>
+</ul></p>
+<p>Això ens permet segmentar l'accés: Homepage pot parlar amb Portainer (a través de la xarxa frontend), però els altres serveis no.</p>
+<h2>5.13 El fitxer .env</h2>
+<p>Les variables d'entorn sovint contenen informació sensible: contrasenyes, tokens, claus. Per això, Docker Compose pot llegir variables d'un fitxer `.env` al mateix directori:</p>
+<pre class="code"><code class="language-env">TZ=Europe/Madrid
+POSTGRES_PASSWORD=secret
+INFLUXDB_TOKEN=elmeutoken</code></pre>
+<p>I al `docker-compose.yml` les referenciem amb `${POSTGRES_PASSWORD}`. Aquest fitxer <strong>no s'ha de versionar amb Git</strong> — l'afegim al `.gitignore` (Capítol 9).</p>
+<h2>5.14 Esquema conceptual</h2>
+<pre class="code"><code class="language-mermaid">graph TB
+    subgraph Host[&quot;Amfitrió (Raspberry Pi · Debian)&quot;]
+        DOCKER[&quot;Docker Engine&quot;]
+        SOCK[&quot;/var/run/docker.sock&quot;]
+        DATA[&quot;/home/bernat/homelab/data/&quot;]
+    end
+<p>subgraph XarxaDocker[&quot;Xarxa Docker&quot;]
+        P[&quot;Portainer&lt;br/&gt;(contenidor)&quot;]
+        U[&quot;Uptime Kuma&lt;br/&gt;(contenidor)&quot;]
+        H[&quot;Homepage&lt;br/&gt;(contenidor)&quot;]
+    end</p>
+<p>subgraph Extern[&quot;Xarxa amfitrió&quot;]
+        HOSTP[&quot;Port 9443&quot;]
+        HOSTU[&quot;Port 3001&quot;]
+        HOSTH[&quot;Port 3000&quot;]
+    end</p>
+<p>DOCKER --&gt; SOCK
+    DOCKER --&gt; P
+    DOCKER --&gt; U
+    DOCKER --&gt; H
+    P --&gt; DATA
+    U --&gt; DATA
+    H --&gt; DATA
+    P --&gt; HOSTP
+    U --&gt; HOSTU
+    H --&gt; HOSTH</code></pre></p>
+<h2>5.15 Errors habituals</h2>
+<p><strong>Error 1: executar contenidors com a root i no configurar-los bé</strong>. Símptoma: el contenidor pot fer coses perilloses perquè té privilegis de root. Solució: usar sempre `restart: unless-stopped` i, quan calgui, opcions de seguretat com `read_only`, `cap_drop`, o executar com a usuari no root.</p>
+<p><strong>Error 2: no persistir les dades</strong>. Símptoma: en actualitzar o esborrar un contenidor, es perden les dades. Solució: SEMPRE usar volums o bind mounts per a dades importants.</p>
+<p><strong>Error 3: mapejar massa ports a l'amfitrió</strong>. Símptoma: la llista de serveis exposats creix, és difícil saber què és accessible i des de on. Solució: exposar només el que cal, mantenir la comunicació interna dins la xarxa Docker.</p>
+<p><strong>Error 4: no mirar els logs quan alguna cosa falla</strong>. Símptoma: contenidor que no arrenca, no sabem per què. Solució: `docker compose logs servei` o `docker logs nom`. El 90% dels errors es veuen als logs.</p>
+<p><strong>Error 5: deixar contenidors antics consumint recursos</strong>. Símptoma: el sistema va lent, el disc s'omple. Solució: `docker container prune`, `docker image prune`, `docker volume prune`. Compte amb els volums que continguin dades.</p>
+<h2>5.16 Bones pràctiques</h2>
+<p>1. <strong>Usa sempre `docker compose`</strong>, no pas `docker run` per a serveis que vagin més enllà d'una prova ràpida.
+2. <strong>Defineix un sol `docker-compose.yml`</strong> per a tot el sistema, o divideix en piles (`stacks/`) per temàtica.
+3. <strong>Fes servir bind mounts</strong> per a dades i configuracions a `/home/bernat/homelab/data/`.
+4. <strong>Usa fitxers `.env`</strong> per a secrets, i no els versionis.
+5. <strong>Política `restart: unless-stopped`</strong> per a tots els serveis que han d'estar sempre disponibles.
+6. <strong>Neteja periòdicament</strong> amb `docker system prune`.
+7. <strong>Monitoritza</strong> amb Uptime Kuma — que els contenidors no estiguin `running` no vol dir que estiguin funcionant correctament.</p>
+<h2>5.17 Resum</h2>
+<p>Hem après què és Docker, per què serveix, què són imatges, contenidors, volums i xarxes. Hem après les ordres essencials, hem vist per què `docker compose` és millor que `docker run` per a un homelab, i hem analitzat un `docker-compose.yml` complet del BernatLab. En el proper capítol veurem Portainer, la interfície web que ens permet gestionar tot això gràficament.</p>
+<h2>5.18 Exercicis pràctics</h2>
+<p>1. Comprova la versió de Docker: `docker --version`, `docker compose version`.
+2. Llista les imatges locals: `docker images`.
+3. Llista els contenidors actius: `docker ps` i `docker ps -a`.
+4. Entra dins d'un contenidor: `docker exec -it uptime-kuma bash`. Mira què hi ha dins. Surt amb `exit`.
+5. Mira els logs d'un servei: `docker compose logs homepage`.
+6. Comprova l'ús de recursos: `docker stats` (executa durant 5 segons i prem `Ctrl+C`).
+7. Crea una carpeta nova dins de `homelab/stacks/experiment/`, escriu-hi un `docker-compose.yml` amb un servidor Nginx i aixeca'l.
+8. Fes `docker compose down` i comprova que el contenidor ha desaparegut.
+9. Comprova l'espai ocupat per Docker: `docker system df`.</p>
+<p>Comandes útils:
+<pre class="code"><code class="language-bash">docker ps, docker ps -a
+docker images, docker pull, docker rmi
+docker logs, docker logs -f
+docker exec -it nom bash
+docker stats
+docker volume ls, docker network ls
+docker compose up -d, docker compose down
+docker compose logs, docker compose pull</code></pre></p>
+<p>Paraules clau: <strong>imatge, contenidor, volum, xarxa, port, bind mount, env, restart, docker compose, prune, persistència, portainer, uptime-kuma, homepage</strong>.</p>
+<hr>
+<h2 id="06-portainer">Capítol 6 — Portainer</h2>
+<p>> <em>"Portainer és la finestra al cor de Docker. Sense ella, hem de saber totes les ordres; amb ella, podem tocar-ho tot amb el ratolí."</em></p>
+<h2>6.1 Què és Portainer</h2>
+<p>Portainer Community Edition (CE) és una <strong>interfície web de codi obert</strong> per gestionar entorns Docker. Ens permet, des d'un navegador, veure i controlar contenidors, imatges, volums, xarxes, piles, serveis i configuracions — tot allò que, des de la línia d'ordres, requeriria desenes de comandes diferents.</p>
+<p>Portainer va néixer el 2016 com una eina per a administradors que volien una manera més visual de gestionar contenidors. Avui és l'eina estàndard de facto per a homelabs i petites empreses. La versió CE (gratuïta) cobreix tot el que necessitem al BernatLab. La versió comercial (Business) afegeix funcionalitats que, per al nostre cas, serien supèrflues.</p>
+<p>Portainer es connecta al <strong>socket de Docker</strong> (`/var/run/docker.sock`), que és l'API interna que Docker exposa per a la gestió. A través d'aquest socket, Portainer pot fer exactament el que faríem nosaltres des de la consola, però amb una interfície gràfica, gràfics, formularis, cerques, filtres.</p>
+<h2>6.2 Per què l'utilitzem</h2>
+<p>Hi ha servidors professionals que opten per no instal·lar Portainer i gestionar-ho tot des de la consola. Té els seus arguments: una eina menys, una superfície d'atac menor, un coneixement més profund de Docker. Però al BernatLab, Portainer ens aporta molt:</p>
+<ul>
+<li><strong>Visibilitat immediata</strong>. Obrim el navegador i veiem tots els contenidors, el seu estat, l'ús de CPU/RAM, els ports exposats, les dates de creació. En un cop d'ull, sabem com està el sistema.</li>
+<li><strong>Operacions ràpides</strong>. Reiniciar un contenidor, veure els seus logs, inspeccionar el seu sistema de fitxers, accedir a una consola — tot amb un parell de clics.</li>
+<li><strong>Punt d'entrada per a gent no tècnica</strong>. Si algun dia algú altre ha de tocar el sistema (un company, un familiar), Portainer és molt més amable que la consola.</li>
+<li><strong>Documentació visual</strong>. Quan expliquem com és el BernatLab, una captura de Portainer val més que mil descripcions.</li>
+</ul>
+<p>Això no vol dir que abandonem la consola. Al contrari: Portainer ens servirà per a operacions puntuals, consulta ràpida, i per ensenyar. Per a canvis importants (configuracions, actualitzacions, desplegaments) continuarem treballant amb fitxers `docker-compose.yml` i ordres de línia de comandes.</p>
+<h2>6.3 Instal·lació al BernatLab</h2>
+<p>Portainer ja està instal·lat a `https://100.115.134.76:9443`. Vegem com s'ha fet i què hi ha configurat.</p>
+<h3>Definició al docker-compose.yml</h3>
+<pre class="code"><code class="language-yaml">services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;9443:9443&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>/var/run/docker.sock:/var/run/docker.sock</li>
+<li>/home/bernat/homelab/data/portainer:/data</code></pre></li>
+</ul>
+<p>Tres aspectes a notar:</p>
+<p>1. <strong>El port 9443</strong> és el port HTTPS de Portainer. Noteu que no és el 9000 estàndard, sinó el 9443, que és el port segur. El 9000 encara existeix com a alternativa HTTP, però el 9443 és el recomanat.
+2. <strong>`/var/run/docker.sock`</strong>: muntat dins del contenidor. Això és el que permet a Portainer parlar amb el dimoni de Docker de l'amfitrió. Sense això, Portainer no podria fer res.
+3. <strong>`/home/bernat/homelab/data/portainer`</strong>: bind mount a la nostra carpeta, on es guardarà la configuració i la base de dades de Portainer.</p>
+<h3>Primer accés</h3>
+<p>La primera vegada que entrem a `https://100.115.134.76:9443`, el navegador ens mostrarà un avís de certificat no vàlid — és normal, perquè Portainer genera un certificat autosignat en instal·lar-se. Cal acceptar l'avís (a Chrome, "Configuració avançada → Continua").</p>
+<p>A continuació, ens demanarà crear un usuari administrador. Triarem una contrasenya forta, perquè Portainer té el control absolut del Docker de la màquina.</p>
+<p>Un cop dins, ens portarà a la <strong>vista local</strong> (Local environment), que és l'entorn Docker de la nostra Raspberry.</p>
+<h2>6.4 Interfície: vista general</h2>
+<p>Quan entrem, veiem el <strong>dashboard</strong> amb:</p>
+<ul>
+<li>Una graella de targetes amb estadístiques: nombre de contenidors actius, aturats, imatges, volums, xarxes.</li>
+<li>Una gràfica d'ús de recursos (CPU, memòria).</li>
+<li>Un llistat dels contenidors en execució.</li>
+</ul>
+<p>A la part superior hi ha la <strong>barra de navegació</strong> amb:</p>
+<ul>
+<li><strong>Home</strong>: vista general.</li>
+<li><strong>Stacks</strong>: agrupacions de serveis basades en fitxers Compose.</li>
+<li><strong>Containers</strong>: tots els contenidors, actius i aturats.</li>
+<li><strong>Images</strong>: imatges Docker presents a la màquina.</li>
+<li><strong>Volumes</strong>: volums i bind mounts.</li>
+<li><strong>Networks</strong>: xarxes Docker.</li>
+<li><strong>Configs</strong>: configuracions de Docker Swarm (no les farem servir).</li>
+<li><strong>Events</strong>: registre d'esdeveniments del sistema.</li>
+</ul>
+<p>A l'esquerra, una barra lateral ens permet canviar d'entorn (per defecte, l'entorn local) i accedir a la configuració.</p>
+<h2>6.5 Gestió de contenidors</h2>
+<p>La secció <strong>Containers</strong> és la que més farem servir. Aquí veiem tots els contenidors, amb columnes que ens indiquen:</p>
+<ul>
+<li><strong>Nom</strong>: l'identificador del contenidor.</li>
+<li><strong>Estat</strong>: running, stopped, paused, exited.</li>
+<li><strong>Imatge</strong>: la imatge a partir de la qual es va crear.</li>
+<li><strong>Ports</strong>: ports exposats a l'amfitrió.</li>
+<li><strong>Acció</strong>: botons ràpids.</li>
+</ul>
+<p>Si cliquem sobre un contenidor concret, accedim a una vista detallada amb:</p>
+<ul>
+<li><strong>Logs</strong>: sortida estàndard i d'error del contenidor, en directe. Molt útil per diagnosticar errors.</li>
+<li><strong>Inspect</strong>: la configuració completa del contenidor en format JSON.</li>
+<li><strong>Stats</strong>: ús de CPU, memòria, xarxa, en temps real.</li>
+<li><strong>Console</strong>: una consola dins del contenidor (`/bin/sh` o `/bin/bash`, segons la imatge).</li>
+<li><strong>Volumes</strong>: la llista de volums i bind mounts del contenidor.</li>
+<li><strong>Network</strong>: les xarxes a les quals està connectat.</li>
+</ul>
+<h3>Accions habituals</h3>
+<ul>
+<li><strong>Start / Stop / Restart</strong>: arrencar, aturar, reiniciar un contenidor.</li>
+<li><strong>Kill</strong>: aturar de forma forçada (equivalent a `docker kill`).</li>
+<li><strong>Pause / Unpause</strong>: pausar temporalment.</li>
+<li><strong>Remove</strong>: esborrar el contenidor.</li>
+<li><strong>Recreate</strong>: tornar a crear el contenidor amb la mateixa configuració.</li>
+<li><strong>Duplicate / Export</strong>: opcions avançades que rarament usarem.</li>
+</ul>
+<p>A la pràctica, el 80% del temps estarem mirant <strong>Logs</strong> (per entendre errors) i fent <strong>Restart</strong> (per recuperar serveis).</p>
+<h2>6.6 Stacks: una capa d'organització</h2>
+<p>Una <strong>Stack</strong> a Portainer és un grup de serveis definits en un fitxer `docker-compose.yml`. La gràcia és que podem:</p>
+<ul>
+<li>Crear una nova stack des del navegador, enganxant un fitxer `docker-compose.yml`.</li>
+<li>Desplegar-la amb un clic.</li>
+<li>Editar-la visualment.</li>
+<li>Aturar-la, reiniciar-la, esborrar-la.</li>
+</ul>
+<p>Al BernatLab, podem organitzar les piles per temàtica:</p>
+<pre class="code"><code class="language-">homelab/
+├── stacks/
+│   ├── core/         → portainer, homepage, uptime-kuma
+│   ├── monitoring/   → grafana, influxdb
+│   ├── data/         → postgres, filebrowser
+│   ├── iot/          → mosquitto, node-red
+│   └── media/        → pi-hole, nginx-proxy</code></pre>
+<p>Cadascuna amb el seu `docker-compose.yml`. A Portainer, les podem veure totes, cadascuna amb el seu estat.</p>
+<h2>6.7 Imatges</h2>
+<p>La secció <strong>Images</strong> ens mostra totes les imatges Docker presents a la màquina. Podem:</p>
+<ul>
+<li>Veure mida, data de creació, etiqueta, ID.</li>
+<li><strong>Pull</strong> una nova imatge des d'un registre.</li>
+<li><strong>Build</strong> una imatge a partir d'un Dockerfile.</li>
+<li><strong>Push</strong> una imatge a un registre.</li>
+<li><strong>Remove</strong> imatges que no usem.</li>
+<li><strong>Prune</strong> per netejar les imatges penjant (dangling).</li>
+</ul>
+<p>Al BernatLab, és bona pràctica fer un <strong>prune</strong> periòdicament per alliberar espai. Les imatges no usades es poden acumular ràpidament, especialment després d'actualitzacions.</p>
+<h2>6.8 Volums</h2>
+<p>La secció <strong>Volumes</strong> ens permet gestionar l'emmagatzematge persistent. Hi trobarem:</p>
+<ul>
+<li><strong>Volums anomenats</strong> (els que Docker crea automàticament quan usem `volumes: nom_volum`).</li>
+<li><strong>Bind mounts</strong> apareixen aquí, encara que tècnicament no són volums gestionats per Docker, sinó carpetes de l'amfitrió.</li>
+</ul>
+<p>Podem veure la mida de cada volum (útil per entendre què ocupa espai), inspeccionar-los, i esborrar-los. Compte: esborrar un volum equival a perdre les dades que conté. Feu-ho només si esteu segurs.</p>
+<h2>6.9 Xarxes</h2>
+<p>La secció <strong>Networks</strong> ens mostra les xarxes Docker. Per defecte, n'hi ha tres:</p>
+<ul>
+<li><strong>bridge</strong>: la xarxa per defecte, a la qual es connecten tots els contenidors que no especifiquem una xarxa.</li>
+<li><strong>host</strong>: una xarxa especial que fa que el contenidor comparteixi la xarxa de l'amfitrió (no l'usarem).</li>
+<li><strong>none</strong>: sense xarxa.</li>
+</ul>
+<p>Quan usem `docker compose`, es crea una xarxa nova per a cada projecte. A Portainer les podem veure totes.</p>
+<h2>6.10 Configuració i seguretat</h2>
+<p>A la configuració de Portainer podem:</p>
+<ul>
+<li>Canviar la contrasenya de l'usuari administrador.</li>
+<li>Afegir altres usuaris (útil si volem donar accés a algú amb permisos limitats).</li>
+<li>Definir equips (teams) per organitzar accessos.</li>
+<li>Configurar el registre d'esdeveniments.</li>
+<li>Veure les estadístiques d'ús de Portainer.</li>
+</ul>
+<p><strong>Recomanació de seguretat</strong>: si no l'estem fent servir, podem aturar temporalment el contenidor. Però compte: si l'aturem i volem tornar a entrar, ho haurem de fer des de la consola amb `docker compose up -d`. Una bona política és mantenir Portainer sempre actiu, però limitar-ne l'accés a la xarxa Tailscale — cosa que ja fem, perquè el port 9443 no està exposat a Internet.</p>
+<h2>6.11 Quan NO usar Portainer</h2>
+<p>Portainer és una eina fantàstica, però hi ha casos en què la consola és millor:</p>
+<ul>
+<li><strong>Edició de fitxers de configuració</strong>. Canviar el `docker-compose.yml` directament al fitxer de l'amfitrió és més transparent que fer-ho des de la interfície de Portainer, que desa el fitxer a la seva pròpia base de dades.</li>
+<li><strong>Automatització</strong>. Si volem scriptar accions, hem d'usar la consola o l'API de Docker, no pas la interfície gràfica.</li>
+<li><strong>Aprenentatge</strong>. Si volem entendre bé Docker, hem de fer servir les seves ordres, no pas una eina que les amaga.</li>
+</ul>
+<p>Al BernatLab, <strong>la consola és la nostra eina principal</strong> i Portainer és el complement visual. Aquest és l'equilibri correcte.</p>
+<h2>6.12 Exemples d'operacions</h2>
+<h3>Veure els logs en directe d'un contenidor</h3>
+<p>A Portainer: Containers → uptime-kuma → Logs → Live (botó de seguiment).</p>
+<p>Equivalent a la consola:</p>
+<pre class="code"><code class="language-bash">docker logs -f uptime-kuma</code></pre>
+<h3>Inspeccionar un contenidor</h3>
+<p>A Portainer: Containers → portainer → Inspect.</p>
+<p>Equivalent a la consola:</p>
+<pre class="code"><code class="language-bash">docker inspect portainer</code></pre>
+<h3>Obrir una consola dins d'un contenidor</h3>
+<p>A Portainer: Containers → homepage → Console → connectar.</p>
+<p>Equivalent a la consola:</p>
+<pre class="code"><code class="language-bash">docker exec -it homepage bash</code></pre>
+<h3>Veure l'ús de recursos en temps real</h3>
+<p>A Portainer: Containers → un contenidor qualsevol → Stats.</p>
+<p>Equivalent a la consola:</p>
+<pre class="code"><code class="language-bash">docker stats</code></pre>
+<h3>Netejar imatges antigues</h3>
+<p>A Portainer: Images → Prune.</p>
+<p>Equivalent a la consola:</p>
+<pre class="code"><code class="language-bash">docker image prune -a</code></pre>
+<h2>6.13 Errors habituals</h2>
+<p><strong>Error 1: oblidar que Portainer pot fer molt de mal</strong>. Si accidentalment esborrem un volum, podem perdre dades. Compte amb l'opció <strong>Remove</strong> — assegureu-vos de què esteu esborrant.</p>
+<p><strong>Error 2: deixar Portainer exposat a Internet</strong>. Si per error exposem el port 9443 a la xarxa pública, algú podria accedir-hi i fer malbé tot el sistema. Al BernatLab, el port 9443 només és accessible des de Tailscale.</p>
+<p><strong>Error 3: confiar massa en Portainer i oblidar la consola</strong>. Si Portainer falla (per exemple, per un error en una actualització), necessitarem poder arreglar les coses des de la consola. Per això, sempre hem de saber què està passant per sota.</p>
+<h2>6.14 Resum</h2>
+<p>Portainer ens dóna una interfície visual per gestionar tot el sistema Docker de la Raspberry: contenidors, imatges, volums, xarxes, piles. L'hem d'usar com a complement de la consola, no pas com a substitut. Al BernatLab ja el tenim configurat i és la nostra eina de consulta ràpida. En el proper capítol veurem Uptime Kuma, l'eina que ens avisa quan alguna cosa falla.</p>
+<h2>6.15 Exercicis pràctics</h2>
+<p>1. Entra a `https://100.115.134.76:9443` i explora el dashboard.
+2. Compta quants contenidors hi ha actius. Compara'l amb la sortida de `docker ps`.
+3. Mira els logs en directe d'Homepage durant 30 segons.
+4. Entra dins del contenidor de Uptime Kuma amb la consola de Portainer i executa `ls /app`. Què hi ha?
+5. A la secció Imatges, comprova quantes imatges hi ha i quant ocupen en total.
+6. A la secció Volums, identifica els volums de cada servei. Quins són bind mounts i quins són volums gestionats per Docker?
+7. Fes un `prune` d'imatges no usades. Compte! Primer comprova que tens espai.</p>
+<p>Comandes útils equivalents a accions de Portainer:
+<pre class="code"><code class="language-bash">docker ps                    # Containers
+docker logs -f nom           # Logs en directe
+docker inspect nom           # Detalls
+docker exec -it nom bash     # Consola
+docker stats                 # Recursos
+docker image prune -a        # Neteja imatges</code></pre></p>
+<p>Paraules clau: <strong>Portainer, dashboard, contenidor, logs, exec, prune, socket, stack, bind mount, interfície gràfica, homelab</strong>.</p>
+<hr>
+<h2 id="07-uptime-kuma">Capítol 7 — Uptime Kuma</h2>
+<p>> <em>"Un servei que no saps si està caigut és un servei que ja està caigut. Però no t'has adonat."</em></p>
+<h2>7.1 Què és Uptime Kuma</h2>
+<p><strong>Uptime Kuma</strong> és una eina de <strong>monitorització autoallotjada</strong> de codi obert. La seva feina és, essencialment, fer comprovacions periòdiques sobre serveis que nosaltres definim i avisar-nos quan alguna cosa falla. Està escrita en Node.js, és lleugera, té una interfície neta, i és una de les millors opcions gratuïtes per a homelabs.</p>
+<p>La paraula <strong>uptime</strong> en anglès vol dir "temps de funcionament". Un servei amb un uptime del 99,9% ha estat disponible el 99,9% del temps en un període determinat. Uptime Kuma ens ajuda a mesurar aquest número — i a millorar-lo, perquè ens avisa quan baixa.</p>
+<p>Uptime Kuma va ser creada per Louis Cheung, un desenvolupador de Hong Kong, i publicada el 2021. Des de llavors, ha esdevingut l'estàndard de facto per a la monitorització autoallotjada, amb una comunitat activa i una quantitat enorme de funcionalitats.</p>
+<h2>7.2 Per què ens interessa</h2>
+<p>Al BernatLab tenim diversos serveis que volem que estiguin sempre disponibles: Portainer per gestionar, Uptime Kuma mateix (meta-monitorització), Homepage com a porta d'entrada, i — més endavant — la base de dades, Node-RED, l'API de sensors, etc. Sense monitorització, no sabríem si algun d'aquests serveis ha caigut fins que intentéssim accedir-hi i no poguéssim. I sovint, quan un usuari s'adona, ja fa estona que el servei no funciona.</p>
+<p>Uptime Kuma ens permet:</p>
+<ul>
+<li>Saber en <strong>temps real</strong> l'estat de cada servei.</li>
+<li>Rebre <strong>alertes</strong> quan un servei cau o es recupera.</li>
+<li>Mesurar el <strong>temps de resposta</strong> dels serveis.</li>
+<li>Guardar un <strong>historial</strong> d'incidències.</li>
+<li>Generar una <strong>pàgina pública d'estat</strong> per a qui vulgui consultar-la.</li>
+<li>Rebre notificacions per <strong>Telegram, correu, Discord, Slack, webhook</strong>, etc.</li>
+</ul>
+<h2>7.3 Instal·lació al BernatLab</h2>
+<p>Uptime Kuma ja està instal·lat a `http://100.115.134.76:3001`. Vegem com està configurat.</p>
+<h3>Definició al docker-compose.yml</h3>
+<pre class="code"><code class="language-yaml">services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;3001:3001&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>/home/bernat/homelab/data/uptime-kuma:/app/data</code></pre></li>
+</ul>
+<p>Aspectes a notar:</p>
+<ul>
+<li>La imatge `louislam/uptime-kuma:latest` és l'oficial.</li>
+<li>Muntem un bind mount a `/home/bernat/homelab/data/uptime-kuma` per persistir la configuració i l'historial.</li>
+<li>No exposem cap port intern — el 3001 és el port de Uptime Kuma i l'exposem a l'amfitrió.</li>
+</ul>
+<h3>Primer accés</h3>
+<p>Quan entrem per primera vegada a `http://100.115.134.76:3001`, Uptime Kuma ens demana crear un compte d'administrador. Triarem una contrasenya forta. A partir d'aquí, totes les dades (usuaris, monitors, configuracions) es guarden a la base de dades interna del contenidor, que està al bind mount que hem definit.</p>
+<h2>7.4 Tipus de monitors</h2>
+<p>Uptime Kuma suporta una quantitat impressionant de tipus de monitor. Els que farem servir al BernatLab són:</p>
+<h3>HTTP(s)</h3>
+<p>El tipus més comú. Uptime Kuma fa una petició HTTP/HTTPS a una URL i ens diu:</p>
+<ul>
+<li>Si la petició ha retingut resposta.</li>
+<li>El codi d'estat (200, 404, 500, etc.).</li>
+<li>El temps de resposta.</li>
+<li>El cos de la resposta (opcional).</li>
+</ul>
+<p>Serveix per monitoritzar pàgines web, APIs, serveis que escolten HTTP. Per defecte, busca un codi 2xx com a èxit. Podem canviar-ho per acceptar només 200, o per acceptar qualsevol cosa menys 5xx.</p>
+<h3>Ping</h3>
+<p>Uptime Kuma envia un ping ICMP a una adreça IP o nom de domini. Si rep resposta, el servei està viu. No ens diu res sobre el servei concret, només sobre la connectivitat. Serveix per monitoritzar màquines, dispositius de xarxa, o simplement comprovar que la Raspberry està en marxa.</p>
+<h3>Port TCP</h3>
+<p>Uptime Kuma intenta obrir una connexió TCP a un port concret. Si la connexió s'obre amb èxit, el servei està escoltant. Serveix per monitoritzar serveis que no parlen HTTP (per exemple, una base de dades al port 5432, MQTT al 1883).</p>
+<h3>DNS</h3>
+<p>Comprova que un nom de domini es resol correctament a una IP. Serveix per monitoritzar el DNS mateix o per alertar si un domini canvia d'IP.</p>
+<h3>Certificat SSL/TLS</h3>
+<p>Comprova la validesa i expiració d'un certificat HTTPS. Ens pot avisar X dies abans que caduqui, la qual cosa és molt útil per a serveis amb certificats propis (no pas per a serveis darrere de Tailscale, que no exposen HTTPS directament).</p>
+<h3>Paraula clau (Keyword)</h3>
+<p>Una variació del monitor HTTP: Uptime Kuma cerca una paraula concreta a la resposta. Si la troba, el servei està funcionant correctament; si no, alguna cosa va malament. Serveix per fer comprovacions més fines que el simple codi d'estat.</p>
+<h3>Altres</h3>
+<p>Hi ha més tipus: <strong>Docker container</strong> (comprova si un contenidor concret està en marxa), <strong>Steam Game Server</strong>, <strong>MQTT</strong>, <strong>SQL Server</strong>, <strong>Push</strong> (per a monitors que es disparen des d'una font externa), <strong>gRPC</strong>, etc. Al BernatLab, els bàsics (HTTP i Ping) ens cobriran la majoria dels casos.</p>
+<h2>7.5 Configurar monitors al BernatLab</h2>
+<p>Vegem quins monitors hauríem de tenir configurats al BernatLab i quins valors posar.</p>
+<h3>1. La pròpia Raspberry (Ping)</h3>
+<ul>
+<li><strong>Tipus</strong>: Ping</li>
+<li><strong>Nom</strong>: "Raspberry Pi (hortosona)"</li>
+<li><strong>Host</strong>: `hortosona` (MagicDNS de Tailscale) o `100.115.134.76`</li>
+<li><strong>Interval</strong>: 60 segons</li>
+<li><strong>Timeout</strong>: 5 segons</li>
+<li><strong>Retries</strong>: 3 (abans d'alertar)</li>
+</ul>
+<p>Aquest monitor ens avisa si la Raspberry deixa de respondre a pings. Compte: si la Raspberry penja totalment, el monitor quedarà caigut però no podrem rebre l'alerta perquè el correu/Telegram depenen d'ella. En aquest cas, podem complementar amb un <strong>monitor extern</strong> (Uptime Kuma al núvol, o un servei com UptimeRobot) que ens avisi si la Tailscale IP deixa de respondre des de fora.</p>
+<h3>2. Portainer (HTTP)</h3>
+<ul>
+<li><strong>Tipus</strong>: HTTP(s)</li>
+<li><strong>Nom</strong>: "Portainer"</li>
+<li><strong>URL</strong>: `https://100.115.134.76:9443`</li>
+<li><strong>Interval</strong>: 60 segons</li>
+<li><strong>Acceptar codis 2xx</strong> (per defecte)</li>
+</ul>
+<p>Això fa una petició HTTPS a Portainer. Compte: Uptime Kuma potser no validarà el certificat autosignat. Podem desactivar la validació SSL al monitor.</p>
+<h3>3. Uptime Kuma (HTTP)</h3>
+<ul>
+<li><strong>Tipus</strong>: HTTP(s)</li>
+<li><strong>Nom</strong>: "Uptime Kuma (self)"</li>
+<li><strong>URL</strong>: `http://100.115.134.76:3001`</li>
+<li><strong>Interval</strong>: 60 segons</li>
+</ul>
+<p>Meta-monitorització. Útil per confirmar que el sistema de monitorització funciona.</p>
+<h3>4. Homepage (HTTP)</h3>
+<ul>
+<li><strong>Tipus</strong>: HTTP(s)</li>
+<li><strong>Nom</strong>: "Homepage"</li>
+<li><strong>URL</strong>: `http://100.115.134.76:3000`</li>
+<li><strong>Interval</strong>: 60 segons</li>
+</ul>
+<h3>5. Hort Osona (HTTP, web pública)</h3>
+<ul>
+<li><strong>Tipus</strong>: HTTP(s)</li>
+<li><strong>Nom</strong>: "Hort Osona"</li>
+<li><strong>URL</strong>: `https://bernatmora.github.io/hort-osona/`</li>
+<li><strong>Interval</strong>: 300 segons (5 minuts, per no carregar GitHub Pages)</li>
+<li><strong>Acceptar codis 2xx</strong></li>
+</ul>
+<p>Aquest monitor ens avisa si la web pública deixa de funcionar.</p>
+<h3>6. Tailscale (Ping extern)</h3>
+<ul>
+<li><strong>Tipus</strong>: Ping</li>
+<li><strong>Nom</strong>: "Tailscale connectivity"</li>
+<li><strong>Host</strong>: `100.115.134.76` o un nom de Tailscale</li>
+<li><strong>Interval</strong>: 300 segons</li>
+</ul>
+<p>Comprova que la xarxa Tailscale continua activa.</p>
+<h2>7.6 Configurar alertes</h2>
+<p>Aquí és on Uptime Kuma demostra la seva potència. Podem configurar notificacions per múltiples canals. Vegem com configurar <strong>Telegram</strong>, que és el canal que farem servir al BernatLab.</p>
+<h3>Configurar un bot de Telegram</h3>
+<p>1. Parlem amb <strong>@BotFather</strong> a Telegram.
+2. Li diem `/newbot` i seguim les instruccions: posem un nom i un nom d'usuari (que ha d'acabar en `bot`).
+3. Rebem un <strong>token</strong> llarg, del tipus `123456789:ABCDefghIJKlmnoPQRsTUVwxyz`. <strong>Guardem aquest token en lloc segur</strong>.
+4. Iniciem una conversa amb el nostre bot (li enviem qualsevol missatge).
+5. Per obtenir el nostre <strong>chat ID</strong>, podem:
+<ul>
+<li>Usar @userinfobot, que ens el donarà.</li>
+<li>O fer una petició a `https://api.telegram.org/bot<TOKEN>/getUpdates` i buscar l'ID al JSON retornat.</li>
+</ul></p>
+<h3>Configurar la notificació a Uptime Kuma</h3>
+<p>A Uptime Kuma:</p>
+<p>1. Anem a <strong>Settings → Notifications</strong>.
+2. Cliquem <strong>Setup Notification</strong>.
+3. Triem <strong>Telegram</strong>.
+4. Omplim:
+<ul>
+<li><strong>Bot Token</strong>: el token que hem rebut.</li>
+<li><strong>Chat ID</strong>: el nostre chat ID.</li>
+</ul>
+5. Cliquem <strong>Test</strong> per comprovar que funciona. Hauríem de rebre un missatge del bot.
+6. Desem.</p>
+<p>A partir d'ara, podem seleccionar aquesta notificació per a qualsevol monitor. Quan el monitor passi de "up" a "down", Uptime Kuma enviarà un missatge a Telegram. Quan torni a "up", rebré un altre missatge informant de la recuperació.</p>
+<h3>Bones pràctiques amb alertes</h3>
+<ul>
+<li><strong>No configurar alertes per a tot</strong>. Si rebem 50 missatges al dia, deixarem de mirar-los. Configurem alertes només per als serveis crítics.</li>
+<li><strong>Definir el llindar de retries correcte</strong>. Si un monitor fa 3 comprovacions i falla, podem configurar que ho faci 1 vegada abans d'alertar (per evitar falss positius).</li>
+<li><strong>Configurar finestres de manteniment</strong>. Si sabem que anem a fer una aturada, podem silenciar les alertes temporalment.</li>
+<li><strong>Combinar canals</strong>. Telegram per a alertes immediates, correu per a informes setmanals.</li>
+</ul>
+<h2>7.7 Pàgina d'estat pública</h2>
+<p>Uptime Kuma ens permet generar una <strong>pàgina d'estat pública</strong> on qualsevol pot veure l'estat dels nostres serveis, sense necessitat d'autenticació. És útil si volem:</p>
+<ul>
+<li>Compartir l'estat del BernatLab amb altres persones.</li>
+<li>Tenir una pàgina pública del tipus `status.bernatlab.cat` (en el futur, quan tinguem un domini).</li>
+</ul>
+<p>Per activar-la, anem a <strong>Settings → Status Page</strong>, creem una pàgina nova, afegim els monitors que volem que siguin visibles, i obtenim una URL pública.</p>
+<p>A la pràctica, al BernatLab, podem crear una pàgina d'estat interna per al nostre ús, sense fer-la pública a Internet.</p>
+<h2>7.8 Manteniment i actualitzacions</h2>
+<p>Uptime Kuma evoluciona activament. Per mantenir-lo actualitzat:</p>
+<pre class="code"><code class="language-bash">cd /home/bernat/homelab
+docker compose pull uptime-kuma
+docker compose up -d uptime-kuma</code></pre>
+<p>Les actualitzacions solen ser suaus i no trenquen la configuració. De tota manera, és bona pràctica fer una còpia de seguretat abans:</p>
+<pre class="code"><code class="language-bash">tar czf ~/homelab/backup/uptime-kuma-$(date +%F).tar.gz \
+  ~/homelab/data/uptime-kuma</code></pre>
+<h2>7.9 Comprendre les estadístiques</h2>
+<p>Uptime Kuma ens dóna molta informació útil:</p>
+<ul>
+<li><strong>Uptime %</strong>: percentatge de temps que el servei ha estat disponible. Es calcula sobre una finestra mòbil (per defecte, els últims 90 dies).</li>
+<li><strong>Avg. response time</strong>: temps de resposta mitjà.</li>
+<li><strong>Cert exp</strong>: data d'expiració del certificat SSL.</li>
+<li><strong>Historial</strong>: línia de temps amb pujades, baixades, incidents.</li>
+</ul>
+<p>Aquesta informació és valuosa per:</p>
+<ul>
+<li>Detectar serveis que es degraden lentament.</li>
+<li>Planificar capacitats (si els temps de resposta pugen, potser el sistema va saturat).</li>
+<li>Demostrar estabilitat (per exemple, davant d'un proveïdor de núvol).</li>
+</ul>
+<h2>7.10 Exemple d'incident: què fer</h2>
+<p>Imagineu que Uptime Kuma ens avisa per Telegram: "Portainer is down". Què fem?</p>
+<p>1. <strong>Comprovar</strong>: el missatge és correcte? És un fals positiu? Esperem un parell de minuts a veure si es recupera sol.
+2. <strong>Mirar logs</strong>: `docker logs portainer` o `docker compose logs portainer`. Sovint el problema és obvi.
+3. <strong>Reiniciar</strong>: `docker compose restart portainer`. Soluciona el 80% dels casos.
+4. <strong>Si no es recupera</strong>: accedir a Portainer via... oh, espera, Portainer és el que falla. Cal entrar per SSH directament.
+5. <strong>Escalar</strong>: mirar Uptime Kuma, mirar la càrrega del sistema amb `htop`, mirar l'espai de disc amb `df -h`.
+6. <strong>Documentar</strong>: un cop resolt, escriure al CHANGELOG què ha passat i per què.</p>
+<p>Aquesta és la rutina de resposta a incidents. No cal ser expert, només cal seguir els passos amb calma.</p>
+<h2>7.11 Esquema de monitorització</h2>
+<pre class="code"><code class="language-mermaid">graph LR
+    subgraph BernatLab[&quot;BernatLab&quot;]
+        KUMA[&quot;Uptime Kuma&lt;br/&gt;(3001)&quot;]
+    end
+<p>subgraph Objectius[&quot;Objectius a monitoritzar&quot;]
+        RPI[&quot;Raspberry Pi&lt;br/&gt;(ping)&quot;]
+        PORT[&quot;Portainer&lt;br/&gt;(HTTPS:9443)&quot;]
+        HOME[&quot;Homepage&lt;br/&gt;(HTTP:3000)&quot;]
+        HORT[&quot;Hort Osona&lt;br/&gt;(HTTPS)&quot;]
+        TAIL[&quot;Tailscale&lt;br/&gt;(ping)&quot;]
+    end</p>
+<p>subgraph Alertes[&quot;Canals d&#x27;alerta&quot;]
+        TG[&quot;Telegram bot&quot;]
+        MAIL[&quot;Correu electrònic&quot;]
+    end</p>
+<p>KUMA --&gt;|ping| RPI
+    KUMA --&gt;|https| PORT
+    KUMA --&gt;|http| HOME
+    KUMA --&gt;|https| HORT
+    KUMA --&gt;|ping| TAIL</p>
+<p>RPI -.-&gt;|caigut| KUMA
+    PORT -.-&gt;|caigut| KUMA
+    HOME -.-&gt;|caigut| KUMA
+    HORT -.-&gt;|caigut| KUMA
+    TAIL -.-&gt;|caigut| KUMA</p>
+<p>KUMA -.-&gt;|alerta| TG
+    KUMA -.-&gt;|alerta| MAIL</code></pre></p>
+<h2>7.12 Errors habituals</h2>
+<p><strong>Error 1: configurar alertes per a tot</strong>. Símptoma: rebem tants missatges que els ignorem. Solució: només alertes per a serveis crítics, i combinar amb finestres silenciades.</p>
+<p><strong>Error 2: no configurar retries</strong>. Símptoma: rebem alertes falses per pèrdues puntuals de xarxa. Solució: configurar `retries: 3` o més, perquè el servei hagi de fallar diverses vegades consecutives abans d'alertar.</p>
+<p><strong>Error 3: monitoritzar serveis que depenen d'altres serveis</strong>. Símptoma: quan un servei cau, molts monitors entren en alerta alhora. Solució: estructurar bé els monitors, acceptar que algunes dependències són inevitables.</p>
+<p><strong>Error 4: no guardar l'historial</strong>. Símptoma: volem veure què va passar fa dues setmanes i Uptime Kuma ja ho ha esborrat. Solució: augmentar la finestra d'historial, o exportar periòdicament.</p>
+<h2>7.13 Resum</h2>
+<p>Uptime Kuma és el cor de la monitorització del BernatLab. Ens permet veure en temps real l'estat dels nostres serveis, rebre alertes quan alguna cosa falla, i mesurar el temps de resposta. Combinat amb Telegram, ens dóna un sistema d'alertes eficaç i lleuger. En el proper capítol veurem Homepage, el panell d'entrada al BernatLab.</p>
+<h2>7.14 Exercicis pràctics</h2>
+<p>1. Entra a `http://100.115.134.76:3001` i revisa la configuració dels monitors.
+2. Comprova quin és l'uptime de cada monitor.
+3. Crea un nou monitor de tipus Ping per a una adreça IP externa, com `1.1.1.1`.
+4. Configura una alerta per Telegram (si no la tens configurada).
+5. Fes una prova: atura un dels contenidors amb `docker stop portainer`, espera un parell de minuts, comprova que Uptime Kuma ha detectat la caiguda, rep l'alerta a Telegram, i reinicia el contenidor.
+6. Mira l'historial d'un monitor i compta quantes vegades ha estat caigut en els últims 30 dies.</p>
+<p>Comandes útils:
+<pre class="code"><code class="language-bash">docker logs uptime-kuma
+docker compose restart uptime-kuma
+docker compose pull uptime-kuma</code></pre></p>
+<p>Paraules clau: <strong>monitorització, uptime, ping, HTTP, HTTPS, certificat SSL, Telegram, alerta, retries, status page, fallada, temps de resposta</strong>.</p>
+<hr>
+<h2 id="08-homepage">Capítol 8 — Homepage</h2>
+<p>> <em>"Quan algú entra al BernatLab, el primer que ha de veure és ordre. Homepage és el porter que dóna la benvinguda."</em></p>
+<h2>8.1 Què és Homepage</h2>
+<p><strong>Homepage</strong> és una aplicació web moderna, escrita en Next.js, que ens permet crear un <strong>panell d'entrada</strong> personalitzat per al nostre servidor. La pàgina mostra una graella de targetes, cadascuna de les quals és un enllaç directe a un dels nostres serveis. A més, pot incloure <strong>widgets</strong> que mostren informació en temps real: ús de CPU, memòria, temperatura, estat dels contenidors, estadístiques diverses.</p>
+<p>Homepage va ser creada per iurylab, un desenvolupador europeu, i publicada el 2022. Des de llavors, s'ha convertit en una de les aplicacions d'autoallotjament més populars, amb milers d'estrelles a GitHub, una comunitat activa, i una documentació excel·lent.</p>
+<p>La gràcia de Homepage és la seva <strong>configuració totalment basada en fitxers YAML</strong>. No hi ha base de dades externa, no hi ha interfície d'administració web: tot es configura editant fitxers, que viuen dins del contenidor (o al bind mount que hem definit). Això pot semblar poc amigable al principi, però en realitat és una virtut: podem versionar la configuració amb Git, podem replicar-la en una altra màquina, podem entendre exactament què està passant.</p>
+<h2>8.2 Per què l'utilitzem al BernatLab</h2>
+<p>Al BernatLab tenim, avui, tres serveis principals: Portainer, Uptime Kuma i Homepage mateix. Més endavant, tindrem Grafana, InfluxDB, Node-RED, File Browser, una base de dades, l'API de sensors, etc. Si entrem al servidor per la IP Tailscale, què trobem?</p>
+<p>Sense Homepage, hauríem de recordar totes les adreces i ports: `https://100.115.134.76:9443` per a Portainer, `http://100.115.134.76:3001` per a Uptime Kuma, etc. Un malson.</p>
+<p>Amb Homepage, posem `http://100.115.134.76:3000` i veiem una pàgina maca amb totes les targetes organitzades. Un clic, i entrem al servei. A més, podem veure d'un cop d'ull quin servei està caigut, quina temperatura té la CPU, quanta RAM queda.</p>
+<p>Homepage és, per tant, la <strong>porta d'entrada visual</strong> al BernatLab. També és un bon lloc per mostrar el sistema a visites (o a un mateix, per fer-se'n una foto mental).</p>
+<h2>8.3 Instal·lació al BernatLab</h2>
+<p>Homepage ja està instal·lat a `http://100.115.134.76:3000`. Vegem com està configurat.</p>
+<h3>Definició al docker-compose.yml</h3>
+<pre class="code"><code class="language-yaml">services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;3000:3000&quot;</li>
+</ul>
+    environment:
+<ul>
+<li>HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000</li>
+</ul>
+    volumes:
+<ul>
+<li>/var/run/docker.sock:/var/run/docker.sock:ro</li>
+<li>/home/bernat/homelab/data/homepage:/app/config</li>
+<li>/home/bernat/homelab/stacks/homepage:/app/config/widgets</code></pre></li>
+</ul>
+<p>Detalls importants:</p>
+<ul>
+<li><strong>Imatge</strong>: `ghcr.io/gethomepage/homepage:latest`. Compte: la imatge oficial NO és a Docker Hub, sinó a GitHub Container Registry. Si busquem a Docker Hub, trobarem imatges no oficials que poden estar desactualitzades.</li>
+<li><strong>Port 3000</strong>: el port estàndard de Homepage.</li>
+<li><strong>Variable HOMEPAGE_ALLOWED_HOSTS</strong>: explicada més avall.</li>
+<li><strong>Tres volums</strong>:</li>
+<li>`/var/run/docker.sock`: per accedir a la informació de Docker (contenidors, volums, etc.).</li>
+<li>`/home/bernat/homelab/data/homepage`: on viuen els fitxers de configuració principals.</li>
+<li>`/home/bernat/homelab/stacks/homepage`: on posarem els fitxers dels widgets personalitzats.</li>
+</ul>
+<h2>8.4 El socket de Docker: per què és tan important</h2>
+<p>Un dels aspectes clau de Homepage és que pot mostrar informació sobre els nostres <strong>contenidors en temps real</strong>: si estan corrent, quina CPU consumeixen, etc. Per fer-ho, necessita accedir al socket de Docker de l'amfitrió.</p>
+<p>El socket és un fitxer especial a `/var/run/docker.sock` que Docker exposa com a API. Quan muntem aquest fitxer dins del contenidor de Homepage (amb la línia `/var/run/docker.sock:/var/run/docker.sock:ro`), estem donant a Homepage permisos per <strong>llegir</strong> l'estat de Docker. La `ro` (read-only) és important: així Homepage només pot veure, no pas canviar coses.</p>
+<p>Això és molt poderós, però també és un risc potencial. Si algú entrés a Homepage amb intencions malicioses, podria obtenir informació detallada sobre el sistema. Per això:</p>
+<ul>
+<li>Muntem el socket en mode només lectura.</li>
+<li>Mantenim Homepage en una xarxa privada (Tailscale).</li>
+<li>Estem atents a actualitzacions de seguretat.</li>
+</ul>
+<h2>8.5 HOMEPAGE_ALLOWED_HOSTS: el host validation</h2>
+<p>Aquesta és una de les configuracions més importants i menys enteses de Homepage. La variable `HOMEPAGE_ALLOWED_HOSTS` indica a quins <strong>noms de host</strong> o adreces pot servir la interfície Homepage.</p>
+<p>Per què existeix? Per defecte, Next.js (el framework sobre el qual corre Homepage) bloqueja les peticions que arriben amb un `Host` header que no coincideix amb cap dels seus hosts coneguts. Això és una <strong>mesura de seguretat</strong> per evitar atacs de tipus <strong>host header injection</strong>.</p>
+<p>Al BernatLab, hem configurat:</p>
+<pre class="code"><code class="language-">HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000</code></pre>
+<p>Això vol dir que si entrem a Homepage amb l'URL `http://gethomepage.local:3000`, funcionarà. Si entrem amb una altra URL, com `http://100.115.134.76:3000`, rebré un error 400 de Next.js: "Invalid host header".</p>
+<p>Hi ha dues solucions possibles:</p>
+<p>1. <strong>Configurar DNS perquè `gethomepage.local` apunti a la IP de la Raspberry</strong>. Això es pot fer afegint una entrada al DNS local, o simplement al fitxer `hosts` de la nostra màquina client.
+2. <strong>Modificar HOMEPAGE_ALLOWED_HOSTS per permetre múltiples hosts</strong>. Per exemple:
+   ```
+   HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000,100.115.134.76:3000,hortosona:3000
+   ```</p>
+<p>Al BernatLab, segon la documentació oficial, la manera correcta és:</p>
+<pre class="code"><code class="language-">HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000,100.115.134.76:3000</code></pre>
+<p>Així podem accedir tant per la IP Tailscale com pel nom `gethomepage.local` (si tenim el DNS configurat).</p>
+<p>També podem posar `*` per permetre tots els hosts, però això és menys segur:</p>
+<pre class="code"><code class="language-">HOMEPAGE_ALLOWED_HOSTS=*</code></pre>
+<p>A la pràctica, al BernatLab, si veiem l'error "Invalid host header", sabem que hem de revisar aquesta variable.</p>
+<h2>8.6 L'estructura de configuració</h2>
+<p>La configuració de Homepage viu a `/home/bernat/homelab/data/homepage` (el bind mount). Dins hi trobem:</p>
+<pre class="code"><code class="language-">/home/bernat/homelab/data/homepage/
+├── settings.yaml          # configuració general (tema, fons, etc.)
+├── bookmarks.yaml         # enllaços externs
+├── services.yaml          # definició dels serveis
+├── widgets/               # configuració dels widgets
+│   ├── resources.yaml     # CPU, RAM, etc.
+│   ├── docker.yaml        # estat dels contenidors
+│   ├── uptime.yaml        # integració amb Uptime Kuma
+│   └── ...
+└── ...</code></pre>
+<p>Quan editem un fitxer, els canvis s'apliquen automàticament — Homepage llegeix els fitxers cada pocs segons i actualitza la interfície.</p>
+<h3>settings.yaml: configuració general</h3>
+<pre class="code"><code class="language-yaml">title: BernatLab
+background:
+  opacity: 50
+  blur: sm
+  saturate: 100
+  brightness: 50
+  image: https://images.unsplash.com/...
+theme: dark
+color: slate
+headerStyle: boxed</code></pre>
+<p>Aquest fitxer controla el títol de la pàgina, el fons (podem posar una imatge, un color sòlid, o un degradat), el tema (clar/fosc), el color d'accent, l'estil de la capçalera.</p>
+<h3>services.yaml: la llista de serveis</h3>
+<pre class="code"><code class="language-yaml">---
+<ul>
+<li>Gestió:</li>
+<li>Portainer:</li>
+</ul>
+        href: https://100.115.134.76:9443
+        description: Gestió Docker
+        icon: portainer
+        siteMonitor: http://100.115.134.76:9443
+<ul>
+<li>Homepage:</li>
+</ul>
+        href: http://100.115.134.76:3000
+        description: Aquesta pàgina
+        icon: homepage
+        siteMonitor: http://100.115.134.76:3000
+<ul>
+<li>Monitorització:</li>
+<li>Uptime Kuma:</li>
+</ul>
+        href: http://100.115.134.76:3001
+        description: Monitoratge de serveis
+        icon: uptimekuma
+        siteMonitor: http://100.115.134.76:3001
+<ul>
+<li>Hort Osona:</li>
+</ul>
+        href: https://bernatmora.github.io/hort-osona/
+        description: Projecte hort familiar
+        icon: hortosona
+        siteMonitor: https://bernatmora.github.io/hort-osona/</code></pre>
+<p>La sintaxi és simple:</p>
+<ul>
+<li>Cada entrada és un <strong>grup</strong> (per exemple, "Gestió", "Monitorització").</li>
+<li>Dins de cada grup, hi ha <strong>serveis</strong>, cadascun amb:</li>
+<li><strong>Nom</strong>: el que es mostra a la targeta.</li>
+<li><strong>href</strong>: l'enllaç.</li>
+<li><strong>description</strong>: una descripció breu.</li>
+<li><strong>icon</strong>: la icona. Pot ser el nom d'un icon pack predefinit (com `portainer`, `uptimekuma`) o una URL externa.</li>
+<li><strong>siteMonitor</strong>: si volem que la targeta mostri l'estat del servei (integració amb Uptime Kuma o ping).</li>
+</ul>
+<h2>8.7 Widgets: informació en temps real</h2>
+<p>A més de les targetes, Homepage pot mostrar <strong>widgets</strong> que aporten informació dinàmica. Hi ha molts widgets disponibles:</p>
+<h3>Widget de recursos del sistema</h3>
+<p>Mostra CPU, memòria, disc, xarxa del sistema amfitrió. Es connecta al socket de Docker per obtenir les dades.</p>
+<pre class="code"><code class="language-yaml"># widgets/resources.yaml
+resources:
+  cpu: true
+  memory: true
+  disk: /
+  network: true
+  uptime: true
+  temperature: true
+  load: 5</code></pre>
+<p>Això ens mostra una secció amb l'ús actual de recursos, molt útil d'un cop d'ull.</p>
+<h3>Widget de Docker</h3>
+<p>Mostra l'estat dels contenidors: quins estan corrent, quins aturats, quins han caigut.</p>
+<pre class="code"><code class="language-yaml"># widgets/docker.yaml
+docker:
+  server:
+    socket: /var/run/docker.sock
+    containers:
+      onlyAvailable: true</code></pre>
+<h3>Widget d'Uptime Kuma</h3>
+<p>Integra l'estat dels monitors d'Uptime Kuma directament a Homepage. Per configurar-lo:</p>
+<p>1. A Uptime Kuma, creem una <strong>Status Page</strong> pública.
+2. A Homepage, configurem el widget amb l'URL d'aquesta pàgina.</p>
+<p>Això ens permet veure a Homepage, sense canviar de pestanya, l'estat dels nostres serveis.</p>
+<h2>8.8 Personalització</h2>
+<p>Homepage és altament personalitzable. Algunes idees:</p>
+<ul>
+<li><strong>Títol personalitzat</strong>: "BernatLab — el meu servidor".</li>
+<li><strong>Fons</strong>: una foto de l'hort, una imatge de la Raspberry, un degradat subtil.</li>
+<li><strong>Icones personalitzades</strong>: podem pujar les nostres icones (PNG, SVG) i referenciar-les per URL.</li>
+<li><strong>Bookmarks</strong>: enllaços externs que volem tenir a mà (documentació de Docker, fòrums, etc.).</li>
+<li><strong>Widgets personalitzats</strong>: podem escriure'ls nosaltres si tenim coneixements de JavaScript.</li>
+</ul>
+<h2>8.9 Integració amb altres serveis</h2>
+<p>Homepage es pot integrar amb molts serveis. Algunes integracions útils per al BernatLab:</p>
+<ul>
+<li><strong>Uptime Kuma</strong>: ja l'hem vist.</li>
+<li><strong>Sonarr, Radarr, Plex, Jellyfin</strong>: per a la gestió de continguts multimèdia.</li>
+<li><strong>Pi-hole</strong>: per a la gestió de DNS i bloqueig d'anuncis.</li>
+<li><strong>Pihole, AdGuard Home</strong>: per a DNS.</li>
+<li><strong>Nextcloud</strong>: per a emmagatzematge al núvol.</li>
+<li><strong>Jellyseerr</strong>: per a gestió de peticions multimèdia.</li>
+</ul>
+<p>Tots aquests serveis tenen integracions preconfigurades o exemples a la documentació de Homepage.</p>
+<h2>8.10 Manuals de referència i resolució de problemes</h2>
+<p>Quan alguna cosa falla a Homepage, hi ha tres llocs on mirar:</p>
+<p>1. <strong>Logs del contenidor</strong>: `docker logs homepage` o `docker compose logs homepage`. Aquí veurem errors d'inici, problemes de permisos amb el socket, errors de configuració.
+2. <strong>Documentació oficial</strong>: <a href="https://gethomepage.dev">gethomepage.dev</a>. Molt completa, amb exemples de tots els widgets i serveis.
+3. <strong>GitHub Issues</strong>: <a href="https://github.com/gethomepage/homepage/issues">github.com/gethomepage/homepage</a>. Sovint trobem algú que ha tingut el mateix problema.</p>
+<p>Problemes habituals:</p>
+<ul>
+<li><strong>"Invalid host header"</strong>: hem de revisar `HOMEPAGE_ALLOWED_HOSTS`.</li>
+<li><strong>El socket de Docker no funciona</strong>: cal revisar que estigui muntat correctament al `docker-compose.yml`.</li>
+<li><strong>Les icones no apareixen</strong>: el nom de la icona no és correcte, o la URL no és accessible.</li>
+<li><strong>Els canvis no s'apliquen</strong>: cal esperar uns segons, o forçar un refresh (`Ctrl+Shift+R`).</li>
+</ul>
+<h2>8.11 Esquema conceptual</h2>
+<pre class="code"><code class="language-mermaid">graph TB
+    subgraph Navegador[&quot;Navegador de l&#x27;usuari&quot;]
+        USR[&quot;Usuari obre http://100.115.134.76:3000&quot;]
+    end
+<p>subgraph HomeContainer[&quot;Contenidor Homepage&quot;]
+        APP[&quot;App Next.js&quot;]
+        CFG[&quot;/app/config/*.yaml&quot;]
+        SOCK[&quot;/var/run/docker.sock&quot;]
+    end</p>
+<p>subgraph Dades[&quot;Fonts de dades&quot;]
+        DOCKER[&quot;Docker Engine&quot;]
+        KUMA[&quot;Uptime Kuma API&quot;]
+        SIST[&quot;Sistema operatiu&quot;]
+    end</p>
+<p>USR --&gt; APP
+    APP --&gt; CFG
+    APP --&gt; SOCK
+    SOCK --&gt; DOCKER
+    APP -.-&gt;|polling| KUMA
+    DOCKER --&gt; SIST</code></pre></p>
+<h2>8.12 Errors habituals</h2>
+<p><strong>Error 1: "Invalid host header"</strong>. Símptoma: la pàgina no carrega i veiem un error 400. Solució: afegir la IP/host a `HOMEPAGE_ALLOWED_HOSTS`.</p>
+<p><strong>Error 2: icones que no apareixen</strong>. Símptoma: les targetes es mostren sense icona, o amb una icona per defecte. Solució: revisar que el nom de la icona és correcte a la llista de icones suportades.</p>
+<p><strong>Error 3: widgets buits</strong>. Símptoma: la secció de widgets no mostra dades. Solució: comprovar els logs, revisar que el socket de Docker estigui muntat.</p>
+<p><strong>Error 4: canvis que no s'apliquen</strong>. Símptoma: editem un fitxer YAML, refresquem, i res canvia. Solució: validar la sintaxi YAML (un espai mal posat pot fer-ho fallar), esperar uns segons, refrescar forçadament.</p>
+<h2>8.13 Bones pràctiques</h2>
+<p>1. <strong>Configurar `HOMEPAGE_ALLOWED_HOSTS` correctament</strong> des del primer moment.
+2. <strong>Versionar la configuració</strong> amb Git (la carpeta `data/homepage` conté només fitxers de configuració, ideals per a Git).
+3. <strong>Usar el socket de Docker en mode només lectura</strong> (`ro`).
+4. <strong>Triar icones consistents</strong>. Barrejar molts estils queda malament.
+5. <strong>Documentar els serveis</strong> amb descripcions clares, per si algú altre ha d'entendre què fa cadascun.
+6. <strong>Fer còpies de seguretat</strong> periòdiques de la carpeta de configuració.</p>
+<h2>8.14 Resum</h2>
+<p>Homepage és la porta d'entrada visual al BernatLab. Ens permet organitzar tots els nostres serveis en una sola pàgina, amb informació en temps real. La configuració és totalment basada en fitxers, cosa que ens permet versionar-la amb Git. El socket de Docker, en mode lectura, ens permet accedir a informació dels contenidors. `HOMEPAGE_ALLOWED_HOSTS` és una de les variables clau per evitar errors. En el proper capítol veurem com versionar tota aquesta feina amb Git i com mantenir una bona documentació.</p>
+<h2>8.15 Exercicis pràctics</h2>
+<p>1. Entra a `http://100.115.134.76:3000` i observa la configuració actual.
+2. Mira el fitxer `services.yaml` dins de `/home/bernat/homelab/data/homepage/`. Quants grups té? Quants serveis?
+3. Comprova la variable `HOMEPAGE_ALLOWED_HOSTS` amb `docker inspect homepage | grep -A 5 Env`. Què hi ha?
+4. Afegeix un servei nou a `services.yaml` (per exemple, un enllaç a la documentació de Docker). Refresca la pàgina. Hauries de veure la nova targeta.
+5. Mira els logs de Homepage: `docker logs homepage --tail 20`. Hi ha algun error?
+6. Mira el widget de recursos del sistema. Quina és la temperatura actual? Quanta RAM s'està usant?
+7. Si tens Docker socket, comprova que el widget Docker funciona i mostra els teus contenidors.</p>
+<p>Comandes útils:
+<pre class="code"><code class="language-bash">docker logs homepage
+docker inspect homepage
+ls /home/bernat/homelab/data/homepage/
+ls /home/bernat/homelab/data/homepage/widgets/
+nano /home/bernat/homelab/data/homepage/services.yaml</code></pre></p>
+<p>Paraules clau: <strong>Homepage, panell, targetes, widgets, YAML, socket Docker, read-only, HOMEPAGE_ALLOWED_HOSTS, host validation, status page, integració, configuració</strong>.</p>
+<hr>
+<h2 id="09-git-documentacio">Capítol 9 — Git i documentació</h2>
+<p>> <em>"Un servidor sense documentació és un misteri. Un servidor amb Git és una història."</em></p>
+<h2>9.1 Per què versionar la configuració</h2>
+<p>Al BernatLab tenim una quantitat creixent de configuració: fitxers `docker-compose.yml`, configuracions de serveis, scripts, documentació, decisions preses. Sense un sistema de control de versions, aquesta informació viu escampada: en fitxers, en missatges, en notes al mòbil, en la memòria. I quan arriba el moment de recordar per què vam prendre una decisió fa tres mesos, o de recuperar un fitxer que hem esborrat per error, no podem.</p>
+<p><strong>Git</strong> és el sistema de control de versions estàndard de la indústria. El fan servir des de projectes petits fins a Linux, passant per Microsoft, Google, Meta i qualsevol empresa tecnològica que puguis imaginar. És robust, distribuït (cada còpia és completa), gratuït, i molt ben documentat.</p>
+<p>Al BernatLab, el farem servir per:</p>
+<p>1. <strong>Versionar la configuració</strong> dels nostres serveis: tots els fitxers `docker-compose.yml`, configuracions YAML, scripts.
+2. <strong>Tenir un historial de canvis</strong>: qui ha canviat què, quan, i per què.
+3. <strong>Recuperar versions anteriors</strong>: si una actualització trenca alguna cosa, podem tornar enrere.
+4. <strong>Documentar</strong>: els missatges de commit són una mena de diari del sistema.
+5. <strong>Treballar des de diverses màquines</strong>: podem clonar el repositori des del PC, fer-hi canvis, i fer push quan estiguin validats.</p>
+<h2>9.2 Què versionar i què no</h2>
+<p>Abans de posar res a Git, cal tenir clar què hi va i què no:</p>
+<h3>SÍ versionar</h3>
+<ul>
+<li>`docker-compose.yml` i tots els fitxers relacionats.</li>
+<li>Configuracions de serveis (YAML, JSON, TOML, etc.) que estiguin a `/home/bernat/homelab/data/*/config/...`.</li>
+<li>Scripts de manteniment.</li>
+<li>`README.md`, `CHANGELOG.md`, documentació.</li>
+<li>`.gitignore`, `.gitattributes`.</li>
+<li>Plantilles de configuració (per exemple, `config.example.yaml`).</li>
+</ul>
+<h3>NO versionar</h3>
+<ul>
+<li><strong>Secrets</strong>: contrasenyes, tokens, claus privades. Això va a `.env`, que s'afegeix al `.gitignore`.</li>
+<li><strong>Dades binàries grans</strong>: bases de dades SQLite, còpies de seguretat, fitxers multimèdia. Això va a `/home/bernat/homelab/data/` però NO a Git.</li>
+<li><strong>Caches i logs</strong>: són regenerables.</li>
+<li><strong>Configuracions personalitzades</strong> que canvien a cada màquina: fitxers amb IPs locals, noms d'usuari específics, etc.</li>
+</ul>
+<p>La regla pràctica: <strong>versionem la configuració, no les dades</strong>.</p>
+<h2>9.3 Inicialitzar el repositori</h2>
+<p>Entrem a la carpeta de treball i inicialitzem un repositori Git:</p>
+<pre class="code"><code class="language-bash">cd /home/bernat/homelab
+git init</code></pre>
+<p>Això crea una carpeta `.git/` amagada amb tota la infraestructura de versionat. A partir d'ara, Git començarà a seguir els canvis dels fitxers dins d'aquesta carpeta.</p>
+<p>Comprovem l'estat:</p>
+<pre class="code"><code class="language-bash">git status</code></pre>
+<p>Ens mostrarà una llista de fitxers "untracked" — fitxers que encara no estan sota control de versions.</p>
+<h2>9.4 El fitxer .gitignore</h2>
+<p>Aquest és un dels fitxers més importants. Li diu a Git quins fitxers o patrons <strong>ignorar</strong> — no versionar, ni tan sols mostrar. La sintaxi és simple, un patró per línia:</p>
+<pre class="code"><code class="language-gitignore"># Secrets
+.env
+*.env
+!.env.example
+<h1>Dades</h1>
+data/
+backup/
+*.db
+*.sqlite
+*.sqlite3
+<h1>Logs</h1>
+*.log
+logs/
+<h1>Configuració local</h1>
+.vscode/
+.idea/
+*.swp
+.DS_Store
+<h1>Build artifacts</h1>
+node_modules/
+__pycache__/
+*.pyc
+<h1>Caches</h1>
+.cache/</code></pre>
+<p>Cal crear aquest fitxer <strong>abans</strong> de fer el primer commit. Si no, podem acabar versionant fitxers sensibles sense adonar-nos-en.</p>
+<p>Al BernatLab, el `.gitignore` recomanat és:</p>
+<pre class="code"><code class="language-gitignore"># Secrets
+.env
+.env.*
+!.env.example
+<h1>Dades</h1>
+data/
+backup/
+<h1>Logs</h1>
+*.log
+<h1>Editor</h1>
+.vscode/
+*.swp
+<h1>OS</h1>
+.DS_Store
+Thumbs.db</code></pre>
+<p>Això ignora `.env`, totes les dades, els logs, i les configuracions locals d'editor. L'única cosa que es versiona són els fitxers de configuració i la documentació.</p>
+<h2>9.5 Primer commit</h2>
+<p>Ara podem afegir els fitxers al repositori:</p>
+<pre class="code"><code class="language-bash">git add .
+git status</code></pre>
+<p>Això prepara tots els fitxers (excepte els ignorats) per al commit. `git status` ens hauria de mostrar una llista del que s'afegirà.</p>
+<p>Si tot és correcte, fem el primer commit:</p>
+<pre class="code"><code class="language-bash">git commit -m &quot;Configuració inicial del BernatLab&quot;</code></pre>
+<p>El missatge de commit ha de ser clar i descriptiu. Aquest és el primer missatge, i marca l'inici de la història del projecte.</p>
+<h2>9.6 Estratègia de branques</h2>
+<p>Per a un homelab personal, la complexitat de les branques no cal que sigui gran. Hi ha dues estratègies raonables:</p>
+<h3>Opció A: una sola branca (main)</h3>
+<p>Tot va a `main`. Fem commits regulars, endavant. Si volem provar alguna cosa arriscada, podem crear una branca temporal, experimentar, i tornar a `main`. Però la majoria de canvis són petits i no justifiquen una branca.</p>
+<h3>Opció B: main + dev</h3>
+<p>Una branca principal (`main`) que sempre ha de funcionar, i una branca `dev` on anem acumulant canvis abans de validar-los. Quan estem segurs que tot funciona a `dev`, fusionem a `main`. Això ens dóna una mica més de seguretat.</p>
+<p>Al BernatLab, <strong>una sola branca és suficient</strong>. La regla és: només fem commit quan els canvis funcionen. Si un canvi és arriscat, el fem servir per aprendre, i quan funciona, fem commit.</p>
+<h2>9.7 Flux de treball diari</h2>
+<p>El dia a dia amb Git al BernatLab segueix aquest patró:</p>
+<pre class="code"><code class="language-bash"># 1. Fer canvis (editar fitxers, crear-ne, esborrar-ne)
+nano /home/bernat/homelab/data/homepage/services.yaml
+<h1>2. Veure què ha canviat</h1>
+git status
+git diff
+<h1>3. Afegir els canvis</h1>
+git add .
+<h1>4. Fer commit amb un missatge clar</h1>
+git commit -m &quot;Afegeix targeta Grafana a Homepage&quot;
+<h1>5. Tornar a la vida normal</code></pre></h1>
+<p>Aquest patró el repetirem cada vegada que fem un canvi. Si treballem des del PC amb SSH, podem fer els canvis des de qualsevol lloc.</p>
+<h2>9.8 Missatges de commit clars</h2>
+<p>El missatge de commit és la <strong>documentació del canvi</strong>. Val la pena dedicar-hi un moment. Bones pràctiques:</p>
+<ul>
+<li><strong>Primera línia curta</strong> (50-72 caràcters), en present, que resumeixi el canvi.</li>
+<li><strong>Línia en blanc</strong>.</li>
+<li><strong>Cos del missatge</strong> (opcional) amb més detalls.</li>
+</ul>
+<p>Exemples bons:</p>
+<pre class="code"><code class="language-">Afegeix monitorització de Tailscale a Uptime Kuma
+<p>Afegeix un monitor de tipus ping a 100.115.134.76 amb
+interval de 5 minuts. Si Tailscale deixa de funcionar,
+rebrarem una alerta per Telegram.</code></pre></p>
+<p>Exemples dolents:</p>
+<pre class="code"><code class="language-">canvis
+wip
+probe coses</code></pre>
+<p>Un bon missatge de commit és or quan, al cap de tres mesos, volem entendre per què vam canviar aquella línia de configuració.</p>
+<h2>9.9 El fitxer README.md</h2>
+<p>A l'arrel de `/home/bernat/homelab/`, el `README.md` és la <strong>porta d'entrada</strong> al projecte. Ha d'explicar:</p>
+<ul>
+<li>Què és el BernatLab.</li>
+<li>Com està organitzat.</li>
+<li>Com començar (clonar, instal·lar, configurar).</li>
+<li>Enllaços a la documentació (aquest manual, la carpeta `docs/`).</li>
+</ul>
+<p>Un bon `README.md` té aquesta estructura:</p>
+<pre class="code"><code class="language-markdown"># BernatLab
+<p>[Descripció breu]</p>
+<h2>Estructura</h2>
+<p>[Llista de carpetes principals]</p>
+<h2>Com començar</h2>
+<p>1. Requisits
+2. Instal·lació
+3. Configuració</p>
+<h2>Documentació</h2>
+<p>[Enllaços a altres documents]</p>
+<h2>Contacte</h2>
+<p>[Com trobar-me]</code></pre></p>
+<h2>9.10 El fitxer CHANGELOG.md</h2>
+<p>Mentre que el `README.md` explica <strong>què és</strong> el projecte, el `CHANGELOG.md` explica <strong>què ha canviat</strong> al llarg del temps. És un registre cronològic.</p>
+<pre class="code"><code class="language-markdown"># CHANGELOG — BernatLab
+<h2>2026-07-08</h2>
+<ul>
+<li>Afegit monitor de Tailscale a Uptime Kuma</li>
+<li>Canviat fons de Homepage</li>
+<li>Actualitzat Portainer a 2.21.0</li>
+</ul>
+<h2>2026-07-01</h2>
+<ul>
+<li>Versió inicial amb Portainer, Uptime Kuma, Homepage</code></pre></li>
+</ul>
+<p>Aquest fitxer el mantenim a mà. No cal que sigui perfecte, només que reflecteixi els canvis importants.</p>
+<h2>9.11 Còpies de seguretat</h2>
+<p>Versionar amb Git ens dóna seguretat davant d'errors humans, però <strong>no ens protegeix</strong> de fallades de maquinari. Si la targeta microSD mor, perdem el `.git/` i, amb ell, tota la història.</p>
+<p>Per això, al BernatLab tenim una política de <strong>còpies de seguretat periòdiques</strong>:</p>
+<h3>Què copiem</h3>
+<ul>
+<li>Tota la carpeta `/home/bernat/homelab/` (configuració + dades + .git).</li>
+<li>Bases de dades d'Uptime Kuma, Grafana, etc.</li>
+<li>La carpeta `/home/bernat/homelab/backup/` allotja les còpies.</li>
+</ul>
+<h3>On copiem</h3>
+<p>Tres opcions:</p>
+<p>1. <strong>Un altre disc de la mateixa Raspberry</strong> (per exemple, un SSD USB muntat a `/mnt/backup/`).
+2. <strong>Un altre ordinador de la xarxa</strong> (per exemple, el PC, amb `rsync` o `scp`).
+3. <strong>Un servei al núvol</strong> (Backblaze B2, Mega.nz, un repositori Git privat a GitHub).</p>
+<p>La millor opció és una combinació: còpies locals ràpides + còpies al núvol periòdiques.</p>
+<h3>Com copiem</h3>
+<p>Un script senzill:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+<h1>/home/bernat/homelab/scripts/backup.sh</h1>
+<p>DATA=$(date +%F)
+DEST=&quot;/home/bernat/homelab/backup&quot;</p>
+<h1>Comprimir tota la carpeta homelab</h1>
+tar czf $DEST/homelab-$DATA.tar.gz \
+  -C /home/bernat \
+  homelab \
+  --exclude=&#x27;homelab/backup/*.tar.gz&#x27; \
+  --exclude=&#x27;homelab/data/*/.git&#x27;
+<h1>Mantenir només les últimes 7 còpies</h1>
+ls -t $DEST/homelab-*.tar.gz | tail -n +8 | xargs -r rm</code></pre>
+<p>Podem programar aquest script amb `cron` o systemd timers perquè s'executi diàriament, per exemple.</p>
+<h3>Restauració</h3>
+<p>Si hem de restaurar:</p>
+<pre class="code"><code class="language-bash"># Aturar serveis
+cd /home/bernat/homelab
+docker compose down
+<h1>Restaurar des de la còpia</h1>
+tar xzf backup/homelab-2026-07-08.tar.gz -C /home/bernat
+<h1>Tornar a aixecar serveis</h1>
+docker compose up -d</code></pre>
+<p>Aquesta és la operativa bàsica de recuperació de desastres. Sovint no cal restaurar-ho tot; n'hi ha prou amb un fitxer de configuració concret.</p>
+<h2>9.12 GitHub: el repositori remot</h2>
+<p>Per a una capa extra de seguretat i per poder treballar des del PC, podem <strong>pujar el repositori a GitHub</strong> (o a un altre servei similar: GitLab, Codeberg, Gitea autoallotjat).</p>
+<pre class="code"><code class="language-bash"># Crear un repositori nou a GitHub (sense README ni .gitignore, ja els tenim)
+<h1>Aleshores:</h1>
+<p>cd /home/bernat/homelab
+git remote add origin git@github.com:bernatmora/bernatlab.git
+git branch -M main
+git push -u origin main</code></pre></p>
+<p>A partir d'ara, podem fer `git push` per pujar canvis i `git pull` per baixar-los des d'una altra màquina.</p>
+<p>Per a informació sensible, podem fer servir <strong>repositoris privats</strong>. El pla gratuït de GitHub permet repositoris privats il·limitats.</p>
+<h2>9.13 Treballar des del PC</h2>
+<p>Si volem editar fitxers de configuració des del PC, podem clonar el repositori i treballar-hi:</p>
+<pre class="code"><code class="language-bash"># Al PC
+git clone git@github.com:bernatmora/bernatlab.git
+cd bernatlab
+<h1>Fer canvis amb el nostre editor preferit</h1>
+nano services.yaml
+<h1>Pujar canvis</h1>
+git add .
+git commit -m &quot;Canvia el fons de Homepage&quot;
+git push
+<h1>Aplicar els canvis a la Raspberry</h1>
+ssh bernat@hortosona
+cd /home/bernat/homelab
+git pull</code></pre>
+<p>Aquest patró és molt poderós: ens permet treballar des d'un entorn còmode (el nostre PC, amb un editor potent), validar els canvis visualment, i només aplicar-los a la Raspberry quan estiguem segurs.</p>
+<p>Alternativament, podem editar directament a la Raspberry per SSH, usant `nano` o un altre editor. Per a canvis petits, això és més ràpid. Per a canvis grans, treballar des del PC és més còmode.</p>
+<h2>9.14 Bones pràctiques</h2>
+<p>1. <strong>Fer commits sovint</strong>, amb missatges clars.
+2. <strong>Mai no versionar secrets</strong>. Usar `.env` i `.gitignore`.
+3. <strong>Documentar al `README.md` i al `CHANGELOG.md`</strong>.
+4. <strong>Fer còpies de seguretat periòdiques</strong> de tota la carpeta.
+5. <strong>Pujar a un remot</strong> (GitHub, GitLab) per seguretat addicional.
+6. <strong>Revisar abans de fer commit</strong>: `git status` i `git diff` són els nostres amics.
+7. <strong>Mantenir la història neta</strong>: podem fer `git rebase` per reorganitzar commits locals abans de pujar-los.</p>
+<h2>9.15 Esquema del versionat</h2>
+<pre class="code"><code class="language-mermaid">graph TB
+    subgraph Local[&quot;Carpeta local /home/bernat/homelab&quot;]
+        WORK[&quot;Working directory&quot;]
+        INDEX[&quot;Staging area&quot;]
+        REPO[&quot;.git/ (repositori local)&quot;]
+    end
+<p>subgraph Remot[&quot;Repositori remot&quot;]
+        GH[&quot;GitHub (o similar)&quot;]
+    end</p>
+<p>subgraph Backup[&quot;Còpies de seguretat&quot;]
+        BACK[&quot;~/homelab/backup/*.tar.gz&quot;]
+        CLOUD[&quot;Núvol (Backblaze, Mega)&quot;]
+    end</p>
+<p>WORK --&gt;|git add| INDEX
+    INDEX --&gt;|git commit| REPO
+    REPO --&gt;|git push| GH
+    GH --&gt;|git pull| REPO</p>
+<p>WORK -.-&gt;|tar / rsync| BACK
+    BACK -.-&gt;|sync| CLOUD</code></pre></p>
+<h2>9.16 Errors habituals</h2>
+<p><strong>Error 1: versionar secrets per accident</strong>. Símptoma: pugem un `.env` amb contrasenyes a GitHub. Solució: configurar `.gitignore` des del primer moment; usar `git secret` o solucions equivalents per a informació crítica.</p>
+<p><strong>Error 2: fer commits amb missatges buits o inútils</strong>. Símptoma: la història és il·legible. Solució: dedicar 30 segons a escriure un bon missatge.</p>
+<p><strong>Error 3: oblidar fer `git pull` abans d'editar</strong>. Símptoma: conflictes quan intentem fer push. Solució: sempre `git pull` abans d'editar.</p>
+<p><strong>Error 4: no fer còpies de seguretat</strong>. Símptoma: quan la microSD mor, perdem tot. Solució: backup periòdic, idealment al núvol.</p>
+<p><strong>Error 5: editar fitxers de dades directament</strong>. Símptoma: canvis que es perden en actualitzar un contenidor. Solució: editar fitxers de configuració, no pas dades binàries.</p>
+<h2>9.17 Resum</h2>
+<p>Git ens permet tenir un historial complet i versionat de la configuració del BernatLab, amb seguretat davant d'errors i la possibilitat de treballar des de múltiples màquines. Combinat amb bones pràctiques de `.gitignore`, fitxers `README.md` i `CHANGELOG.md`, i còpies de seguretat periòdiques, tenim un sistema robust i fàcil de mantenir. En el proper i últim capítol d'aquest mòdul, veurem què vindrà al BernatLab: la full de ruta dels pròxims mesos.</p>
+<h2>9.18 Exercicis pràctics</h2>
+<p>1. Entra a `/home/bernat/homelab` i comprova si ja hi ha un repositori Git (`ls -la .git`).
+2. Si no n'hi ha, inicialitza'l: `git init`.
+3. Crea un fitxer `.gitignore` adequat per a la carpeta.
+4. Fes el primer commit: `git add . && git commit -m "Configuració inicial"`.
+5. Crea un `README.md` i un `CHANGELOG.md` a l'arrel.
+6. Prova de fer una modificació: edita un fitxer, fes `git status`, veu els canvis amb `git diff`, i fés commit.
+7. Crea un script de backup a `scripts/backup.sh` i programa'l amb `cron`.
+8. Si tens compte a GitHub, puja el repositori.</p>
+<p>Comandes útils:
+<pre class="code"><code class="language-bash">git init, git status, git add, git commit
+git log, git diff
+git push, git pull
+git clone
+git remote add origin URL</code></pre></p>
+<p>Paraules clau: <strong>Git, control de versions, .gitignore, README.md, CHANGELOG.md, còpia de seguretat, rsync, tar, GitHub, repositori, commit, push, pull, homelab</strong>.</p>
+<hr>
+<h2 id="10-full-de-ruta">Capítol 10 — Full de ruta del BernatLab</h2>
+<p>> <em>"Un servidor mai no està acabat. Està en camí."</em></p>
+<h2>10.1 On som</h2>
+<p>A dia d'avui, el BernatLab té:</p>
+<ul>
+<li>Una Raspberry Pi 4 amb Debian 13 Lite, funcionant 24/7.</li>
+<li>Tailscale, que ens permet accedir-hi des de qualsevol lloc.</li>
+<li>Tres serveis principals: Portainer, Uptime Kuma, Homepage.</li>
+<li>La web pública Hort Osona allotjada a GitHub Pages.</li>
+<li>Una estructura de carpetes clara a `/home/bernat/homelab/`.</li>
+<li>(Imminent) un sistema de documentació i versionat amb Git.</li>
+</ul>
+<p>Això ja és molt. Molts homelabs no passen d'aquí en anys. Però al BernatLab tenim plans: volem convertir-lo en el centre de tots els nostres projectes, especialment Hort Osona, els sensors LoRa, l'automatització, la música, la IA i el desenvolupament web.</p>
+<p>En aquest capítol veurem què vindrà. No és un pla rígid — és una llista de prioritats que anirem abordant a mesura que tinguem temps, coneixement i ganes. Algunes coses es faran en setmanes; d'altres, en mesos o trimestres. I totes les prendrem amb calma.</p>
+<h2>10.2 Estratègia general</h2>
+<p>La nostra estratègia és <strong>creixement incremental</strong>: afegir un servei, entendre'l bé, documentar-lo, i només després passar al següent. Mai no afegirem dues coses noves alhora. Mai no desplegarem un servei sense saber què fa i per què.</p>
+<p>Això té tres avantatges:</p>
+<p>1. <strong>Redueix el risc d'errors</strong>: cada canvi és petit i aïllat.
+2. <strong>Permet aprendre de veritat</strong>: quan dediquem una setmana a entendre Node-RED, l'entenem.
+3. <strong>Genera confiança</strong>: cada pas endavant és un pas que hem fet bé.</p>
+<p>L'ordre de les prioritats ve determinat per:</p>
+<ul>
+<li><strong>Necessitat real</strong>: el que ens serveix per als nostres projectes (Hort Osona, sensors).</li>
+<li><strong>Aprenentatge</strong>: el que ensenya més i ens obre portes a més coses.</li>
+<li><strong>Complementarietat</strong>: serveis que es connecten entre ells i creen un ecosistema útil.</li>
+</ul>
+<h2>10.3 Les pròximes passes, ordenades</h2>
+<h3>A. Integrar sensors al Hort Osona (curt termini)</h3>
+<p>Aquesta és la prioritat número u. Tenim (o tindrem aviat) sensors al terreny — sensors de temperatura, humitat del sòl, il·luminació, potser més — que volem que enviïn dades al BernatLab. La integració es farà en diverses fases:</p>
+<p><strong>Fase 1 — Infraestructura MQTT</strong></p>
+<ul>
+<li>Desplegar <strong>Mosquitto</strong>, un broker MQTT lleuger.</li>
+<li>Configurar-lo per acceptar connexions des de la xarxa Tailscale.</li>
+<li>Documentar el patró de temes (topics) que farem servir.</li>
+</ul>
+<p><strong>Fase 2 — Recepció i emmagatzematge</strong></p>
+<ul>
+<li>Desplegar <strong>InfluxDB</strong> per emmagatzemar les dades dels sensors (time series).</li>
+<li>Desplegar <strong>Telegraf</strong> per recollir dades de MQTT i escriure-les a InfluxDB.</li>
+<li>Configurar la retenció de dades (quants mesos guardem, com agreguem).</li>
+</ul>
+<p><strong>Fase 3 — Visualització</strong></p>
+<ul>
+<li>Desplegar <strong>Grafana</strong> per crear dashboards amb gràfiques de les dades.</li>
+<li>Integrar Grafana amb Homepage (afegir targeta al panell).</li>
+<li>Fer que les dades siguin visibles des del mòbil (Grafana és responsive).</li>
+</ul>
+<p><strong>Fase 4 — API pública</strong></p>
+<ul>
+<li>Desplegar una <strong>API REST</strong> (probablement amb Node-RED o amb un petit servidor Python/Node) que llegeixi d'InfluxDB i serveixi dades agregades.</li>
+<li>Publicar l'API perquè la web Hort Osona la pugui consumir.</li>
+</ul>
+<p><strong>Fase 5 — Integració amb la web</strong></p>
+<ul>
+<li>Modificar la web Hort Osona perquè mostri dades en temps real (o quasi-real) consumint l'API.</li>
+<li>Això ja és feina de desenvolupament web, no de servidor, però el servidor n'és la base.</li>
+</ul>
+<h3>B. File Browser — gestió de fitxers web</h3>
+<p><strong>File Browser</strong> és una interfície web per explorar, pujar, descarregar i editar fitxers al servidor. És molt útil per:</p>
+<ul>
+<li>Gestionar les dades dels serveis sense entrar per SSH.</li>
+<li>Compartir fitxers amb altres dispositius de la xarxa Tailscale.</li>
+<li>Editar fitxers de configuració amb un editor web (per als moments en què no volem usar `nano`).</li>
+</ul>
+<p>Es desplega fàcilment:</p>
+<pre class="code"><code class="language-yaml">services:
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;8080:80&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>/home/bernat/homelab:/srv</li>
+<li>/home/bernat/homelab/data/filebrowser:/database</code></pre></li>
+</ul>
+<p>Un cop configurat, ens donarà accés a tota la carpeta `/home/bernat/homelab` des del navegador. Compte amb els permisos: no volem que ningú que entri a File Browser pugui esborrar res crític per error.</p>
+<h3>C. Node-RED — automatització visual</h3>
+<p><strong>Node-RED</strong> és una eina de programació visual, basada en fluxos, que ens permet connectar serveis, sensors, APIs, bases de dades sense escriure codi tradicional. Es representa com una graella on arrosseguem nodes i els connectem amb cables.</p>
+<p>Al BernatLab, Node-RED ens servirà per:</p>
+<ul>
+<li>Processar les dades dels sensors (netejar, agregar, transformar) abans d'escriure-les a InfluxDB.</li>
+<li>Crear automatitzacions: "si la temperatura del sòl baixa de 5 °C, envia'm un missatge a Telegram".</li>
+<li>Connectar serveis: quan Uptime Kuma detecta una caiguda, executar una acció.</li>
+<li>Crear la base de l'API de Hort Osona: un node HTTP que respongui a peticions web.</li>
+</ul>
+<p>Node-RED té una comunitat enorme i milers de nodes preconfigurats per a tota mena de serveis. El seu punt feble és que pot esdevenir un embolic de fluxos difícil de mantenir. Per això, caldrà documentar bé cada flux.</p>
+<h3>D. Mosquitto MQTT — el cor de la IoT</h3>
+<p><strong>MQTT</strong> és un protocol de missatgeria lleuger, dissenyat específicament per a dispositius IoT. La seva filosofia és simple: un <strong>broker</strong> central (Mosquitto) rep missatges dels <strong>publishers</strong> (sensors) i els distribueix als <strong>subscribers</strong> (consumidors).</p>
+<p>Ja n'hem parlat a la secció A. La diferència és que aquí el considerem com a servei independent, no pas com a part de la fase de sensors.</p>
+<p>Característiques importants:</p>
+<ul>
+<li>Suporta QoS (qualitat de servei): 0 (com foc i oblida), 1 (almenys un cop), 2 (exactament un cop).</li>
+<li>Suporta retenció de missatges: l'últim valor queda disponible per als subscriptors nous.</li>
+<li>Suporta wildcards als temes: `sensors/+/temperature` selecciona tots els sensors.</li>
+</ul>
+<p>Al BernatLab, el desplegarem amb una configuració que:</p>
+<ul>
+<li>Només accepti connexions autenticades.</li>
+<li>Restingeixi l'accés per ACL (llistes de control d'accés).</li>
+<li>Exposeixi el port 1883 a la xarxa Tailscale.</li>
+</ul>
+<h3>E. InfluxDB — base de dades de sèries temporals</h3>
+<p><strong>InfluxDB</strong> és una base de dades optimitzada per a <strong>sèries temporals</strong>: dades amb una marca de temps, com lectures de sensors, mètriques de sistema, preus, etc. A diferència d'una base de dades relacional, InfluxDB està dissenyada per:</p>
+<ul>
+<li>Emmagatzemar milions de punts de dades de forma compacta.</li>
+<li>Fer consultes ràpides sobre intervals temporals.</li>
+<li>Agregar dades (mitjanes, mínims, màxims) en temps real.</li>
+</ul>
+<p>Al BernatLab, InfluxDB rebrà les dades dels sensors, les emmagatzemarà, i servirà per a Grafana. La configuració haurà de tenir en compte:</p>
+<ul>
+<li><strong>Retenció</strong>: quant de temps guardem les dades en resolució original.</li>
+<li><strong>Continuous queries</strong>: agregacions automàtiques (per exemple, "cada 10 minuts, calcula la mitjana horària i guarda-la").</li>
+<li><strong>Autenticació</strong>: token d'accés per a Telegraf i Grafana.</li>
+</ul>
+<p>Cal tenir present que InfluxDB pot ser exigent en recursos. Amb 4 GB de RAM, caldrà ajustar la configuració per no saturar el sistema.</p>
+<h3>F. Grafana — visualització de dades</h3>
+<p><strong>Grafana</strong> és probablement la millor eina de visualització de dades de codi obert. Ens permet crear <strong>dashboards</strong> amb gràfiques, taules, gauges, heatmaps, alertes, i un llarg etcètera, connectant-nos a múltiples fonts de dades: InfluxDB, Prometheus, MySQL, PostgreSQL, fins i tot APIs HTTP.</p>
+<p>Al BernatLab, Grafana ens permetrà:</p>
+<ul>
+<li>Veure l'evolució de la temperatura del sòl al llarg del temps.</li>
+<li>Comparar la humitat de diferents zones de l'hort.</li>
+<li>Crear alertes visuals (un termòmetre que es posa vermell si la temperatura puja massa).</li>
+<li>Crear una <strong>vista pública</strong> que es pugui incrustar a la web Hort Osona.</li>
+</ul>
+<p>Grafana té una corba d'aprenentatge inicial, però un cop entesa la lògica de panell-dashboard-data source, és molt potent.</p>
+<h3>G. PostgreSQL — base de dades relacional</h3>
+<p><strong>PostgreSQL</strong> és la base de dades relacional de codi obert més avançada del món. Molts serveis la fan servir per defecte: Nextcloud, Mastodon, Gitea, etc. Al BernatLab, la podem necessitar per a:</p>
+<ul>
+<li>L'API de Hort Osona, si volem guardar informació estructurada (espècies plantades, calendari de sembra, etc.).</li>
+<li>Altres serveis que la requereixin per defecte.</li>
+<li>Aprenentatge: és una base de dades excel·lent per aprendre SQL.</li>
+</ul>
+<p>Es desplega fàcilment amb la imatge oficial `postgres:16`. Compte amb la configuració: cal establir una contrasenya forta per a l'usuari `postgres`, i considerar si volem exposar el port 5432 a la xarxa (probablement no, només comunicació interna).</p>
+<h3>H. Integració LoRa SX1262 868 MHz</h3>
+<p>Aquesta és una de les parts més emocionants i complexes. <strong>LoRa</strong> (Long Range) és una tecnologia de comunicació per ràdio de llarg abast i baix consum. El mòdul <strong>SX1262</strong> treballa a la banda de 868 MHz (a Europa) i pot cobrir distàncies d'uns quants quilòmetres amb un consum molt baix.</p>
+<p>Al BernatLab, l'objectiu és:</p>
+<p>1. Connectar un mòdul SX1262 a la Raspberry (via SPI/GPIO).
+2. Rep les transmissions dels sensors de l'hort (que tindran el seu propi mòdul SX1262).
+3. Descodificar les dades i enviar-les per MQTT a InfluxDB.</p>
+<p>Això implica:</p>
+<ul>
+<li>Hardware: mòdul SX1262, antena, cablejat.</li>
+<li>Software: una llibreria Python com `pyLoRa` o similar, o un servei com <strong>ChirpStack</strong> (un servidor LoRaWAN complet, però que pot ser excessiu per al nostre cas).</li>
+<li>Configuració: freqüència, amplada de banda, factor d'spreading, clau de xifratge.</li>
+</ul>
+<p>Aquesta és la part més experimental del projecte. Hi dedicarem un capítol propi quan arribi el moment, perquè té molts detalls tècnics que no es poden tractar de passada.</p>
+<h3>I. Telegram — notificacions i comandament</h3>
+<p>Telegram és el canal de comunicació que ja estem fent servir per a Uptime Kuma. Però les seves possibilitats van molt més enllà:</p>
+<ul>
+<li><strong>Bot personalitzat</strong>: podem crear un bot a mida que ens permeti interactuar amb el BernatLab: veure l'estat dels serveis, consultar dades de sensors, executar ordres.</li>
+<li><strong>Alertes avançades</strong>: no només "servei caigut", sinó alertes riques amb imatges, gràfiques, botons d'acció.</li>
+<li><strong>Comandament remot</strong>: podem enviar ordres al servidor des de Telegram (per exemple, "apaga el contenidor X" o "reinicia el servidor").</li>
+</ul>
+<p>Per crear un bot, parlem amb @BotFather, igual que vam fer per a Uptime Kuma. Per fer-lo servir des de Python, podem fer servir la llibreria `python-telegram-bot` o `httpx` per cridar directament l'API de Telegram.</p>
+<h3>J. IA local — assistent Ollama</h3>
+<p><strong>Ollama</strong> és una eina que ens permet executar <strong>models de llenguatge grans (LLM) localment</strong>, sense dependre de serveis al núvol. Al BernatLab, amb 4 GB de RAM, podem executar models petits com <strong>Phi-3 mini</strong>, <strong>TinyLlama</strong>, <strong>Gemma 2B</strong>, o <strong>Llama 3.2 3B</strong>. No seran tan potents com GPT-4, però funcionen, són privats, i són gratuïts.</p>
+<p>Aplicacions:</p>
+<ul>
+<li><strong>Assistent personal</strong>: podem integrar Ollama amb un client com <strong>Open WebUI</strong> (una interfície web similar a ChatGPT) per tenir el nostre propi ChatGPT privat.</li>
+<li><strong>RAG sobre documentació</strong>: podem indexar les 76 fitxes d'Hort Osona (i tota la documentació del BernatLab) i fer que l'assistent pugui respondre preguntes sobre el contingut.</li>
+<li><strong>Resum automàtic</strong>: podem fer que l'assistent ens resumeixi articles, correus, logs.</li>
+<li><strong>Generació de codi</strong>: ajudar-nos a escriure scripts, configuracions, consultes.</li>
+</ul>
+<p>Això s'integrarà amb Node-RED (per fer crides a l'API d'Ollama) i potser amb un client propi desenvolupat per nosaltres.</p>
+<h3>K. Desenvolupament web — VSCodium, Git, deploy</h3>
+<p>Per a la part de desenvolupament web, volem un entorn complet a la Raspberry:</p>
+<ul>
+<li><strong>VSCodium</strong> (o Codi OSS) — un editor de codi accessible des del navegador, similar a VS Code. Es pot instal·lar amb <strong>code-server</strong>.</li>
+<li>Un <strong>entorn de test</strong> per a les webs que desenvolupem.</li>
+<li>Un <strong>pipeline de deploy</strong>: fer canvis, validar, publicar.</li>
+</ul>
+<p>Això ja és un altre àmbit, però el BernatLab n'és la base.</p>
+<h2>10.4 Cronograma realista</h2>
+<p>No totes les fites es faran alhora. Una estimació realista, assumint que hi dediquem algunes hores cada setmana:</p>
+<p>| Fase | Què | Termini |
+|---|---|---|
+| 1 | Documentar el que tenim, Git, backup | Fet al Mòdul 1 |
+| 2 | File Browser | 1-2 setmanes |
+| 3 | Mosquitto MQTT, recepció bàsica | 2-3 setmanes |
+| 4 | InfluxDB, Telegraf, primers dashboards | 3-4 setmanes |
+| 5 | Node-RED, automatitzacions | 4-5 setmanes |
+| 6 | Grafana, visualització | 5-6 setmanes |
+| 7 | API pública, integració web | 6-8 setmanes |
+| 8 | LoRa SX1262 (experimental) | 8-12 setmanes |
+| 9 | PostgreSQL, base per a altres serveis | 3-4 mesos |
+| 10 | Telegram bot avançat | 3-4 mesos |
+| 11 | Ollama, Open WebUI, RAG | 4-6 mesos |
+| 12 | code-server, entorn desenvolupament | 5-6 mesos |</p>
+<p>Això és aproximat. Algunes coses es faran abans, d'altres es retardaran. I apareixeran coses noves que no havíem previst. És la naturalesa d'un projecte viu.</p>
+<h2>10.5 Riscos i limitacions</h2>
+<p>Hem de ser honestos amb els límits del BernatLab:</p>
+<h3>Limitacions de maquinari</h3>
+<ul>
+<li><strong>4 GB de RAM</strong>: insuficients per a molts serveis simultanis. Si despleguem Grafana, InfluxDB, Node-RED, Ollama i mitja dotzena més, el sistema anirà just.</li>
+<li><strong>MicroSD</strong>: com ja hem comentat, és un punt feble. A mitjà termini, caldrà migrar a SSD.</li>
+<li><strong>CPU ARM</strong>: no tots els serveis tenen imatges arm64 natives. Cal verificar-ho.</li>
+</ul>
+<h3>Limitacions d'ample de banda</h3>
+<p>La pujada des de casa sol ser lenta (10-50 Mbps típicament). Si tenim molts dispositius accedint al BernatLab, podem saturar-la. La solució és Tailscale: el tràfic es comprimeix i xifra, però la velocitat de pujada segueix sent el coll d'ampolla.</p>
+<h3>Limitacions de temps</h3>
+<p>Un homelab és una afició, i com a tal competeix amb la feina, la família, la salut, el temps lliure. No podem posar-nos terminis inabastables. Cada pas endavant ha de ser sostenible.</p>
+<h3>Riscos de seguretat</h3>
+<p>A mesura que afegim serveis, ampliem la superfície d'atac. Cal:</p>
+<ul>
+<li>Mantenir tot actualitzat.</li>
+<li>Usar contrasenyes fortes.</li>
+<li>Configurar autenticació de doble factor on sigui possible.</li>
+<li>No exposar serveis a Internet directament.</li>
+<li>Fer còpies de seguretat regularment.</li>
+</ul>
+<h2>10.6 Què NO farem</h2>
+<p>Igual d'important que la llista de coses que farem és la llista de coses que no farem (almenys no immediatament):</p>
+<ul>
+<li><strong>Kubernetes</strong>: excessiu per a un homelab petit. Docker Compose és suficient.</li>
+<li><strong>Alta disponibilitat</strong>: no tenim dues Raspberry, no podem fer balanceig de càrrega. Acceptem que el servidor pot caure (i ens assegurem que sabem com recuperar-lo).</li>
+<li><strong>Streaming de vídeo o jocs</strong>: la Raspberry no dona per a tant.</li>
+<li><strong>Allotjament massiu de webs</strong>: tenim una sola màquina, no podem oferir serveis comercials.</li>
+<li><strong>Criptomineria</strong>: ni se'ns acudeixi.</li>
+</ul>
+<h2>10.7 El mòdul 2 d'aquest manual</h2>
+<p>Quan hàgim completat les fases 2-6, estarem en disposició d'escriure el <strong>Mòdul 2</strong> d'aquest manual, que tractarà en profunditat:</p>
+<ul>
+<li>MQTT, broker, publicadors, subscriptors, wildcards.</li>
+<li>InfluxDB, llenguatge Flux, retenció, agregacions.</li>
+<li>Grafana, panells, dashboards, alertes.</li>
+<li>Node-RED, fluxos, nodes personalitzats, depuració.</li>
+</ul>
+<p>Aquest Mòdul 2 s'escriurà quan tinguem experiència real amb tot plegat, no pas ara amb teoria.</p>
+<h2>10.8 El Mòdul 3: IoT i LoRa</h2>
+<p>Quan arribi el moment de desplegar LoRa, escriurem un Mòdul 3 dedicat a:</p>
+<ul>
+<li>Conceptes de ràdio: freqüència, amplada de banda, modulació.</li>
+<li>El xip SX1262: especificacions, comandes AT (si escau), biblioteques Python.</li>
+<li>Xarxes LoRaWAN vs. xarxes LoRa punt a punt.</li>
+<li>Integració amb el broker MQTT.</li>
+<li>Seguretat en LoRa: claus, xifratge, anti-replay.</li>
+</ul>
+<h2>10.9 El Mòdul 4: IA local</h2>
+<p>Quan Ollama estigui en marxa, escriurem el Mòdul 4 sobre:</p>
+<ul>
+<li>Què són els LLM i com funcionen a grans trets.</li>
+<li>Instal·lació i configuració d'Ollama a la Raspberry.</li>
+<li>Open WebUI com a interfície.</li>
+<li>RAG: dividir documents, indexar-los, recuperar-los.</li>
+<li>Casos pràctics: assistent per al BernatLab, resum de documentació, generació de codi.</li>
+</ul>
+<h2>10.10 Com prioritzem</h2>
+<p>Quan tot està per fer, és difícil saber per on començar. La regla és:</p>
+<p>1. <strong>Necessitem-ho per a un projecte real?</strong> Si sí, va primer.
+2. <strong>Serveix de base per a altres coses?</strong> Si sí, va primer.
+3. <strong>És divertit i fàcil?</strong> Si sí, ens motiva per seguir.</p>
+<p>La integració de sensors al Hort Osona compleix les tres: és per a un projecte real, serveix de base per a moltes coses (visualització, alertes, API), i és motivador.</p>
+<h2>10.11 Resum</h2>
+<p>El BernatLab és un projecte en construcció permanent. En aquest mòdul hem vist:</p>
+<ul>
+<li>On som avui.</li>
+<li>Cap a on volem anar.</li>
+<li>Quin ordre té sentit.</li>
+<li>Quins riscos i limitacions tenim.</li>
+</ul>
+<p>Les pròximes passes són clares: File Browser, MQTT, InfluxDB, Node-RED, Grafana, API pública, LoRa, IA local, desenvolupament web. Cadascuna, quan arribi el moment, serà objecte d'un nou mòdul del manual.</p>
+<h2>10.12 Exercicis pràctics</h2>
+<p>1. Mira la pàgina `CHANGELOG.md` del BernatLab. Quin és l'últim canvi registrat?
+2. Mira la carpeta `/home/bernat/homelab/`. Quins subdirectoris hi ha? Què hi falta segons la full de ruta?
+3. Pensa en una millora que voldries afegir al BernatLab. Quin cost té? Quin benefici? Documenta-la al CHANGELOG amb l'etiqueta `[pendent]`.
+4. Mira la llista de tasques pendents i tria'n una per fer aquesta setmana. Fes-la, documenta-la al CHANGELOG.
+5. Comparteix el manual amb algú que conegui menys el tema i pregunta-li què no entén. Probablement trobaràs un capítol per millorar.</p>
+<p>Comandes útils:
+<pre class="code"><code class="language-bash"># Veure l&#x27;estructura
+ls /home/bernat/homelab/
+tree /home/bernat/homelab/ -L 2  # si tree està instal·lat</p>
+<h1>Veure l&#x27;últim canvi al CHANGELOG</h1>
+head -20 /home/bernat/homelab/CHANGELOG.md
+<h1>Comprovar espai</h1>
+df -h
+docker system df</code></pre>
+<p>Paraules clau: <strong>full de ruta, MQTT, InfluxDB, Grafana, Node-RED, PostgreSQL, LoRa SX1262, Ollama, File Browser, Telegram, API, priorització, cronograma, limitacions, sostenibilitat, mòdul 2, mòdul 3, mòdul 4</strong>.</p>
+<p>---</p>
+<h1>Final del Mòdul 1</h1>
+<p>Amb aquest capítol es tanca el primer mòdul del BernatLab. Hem après què és un homelab, com funciona la Raspberry Pi, com administrar Linux, com configurar xarxa i SSH, com desplegar serveis amb Docker, com gestionar-los amb Portainer, com monitorar-los amb Uptime Kuma, com presentar-los amb Homepage, com versionar-ho tot amb Git, i quin és el camí que tenim per davant.</p>
+<p>El proper pas pràctic és posar en marxa el que s'ha descrit: instal·lar File Browser, configurar Mosquitto, muntar InfluxDB, desplegar Grafana, i començar a rebre les primeres dades dels sensors. I quan tot això funcioni, escriurem el Mòdul 2.</p>
+<p>Fins aviat, BernatLab.</p>
+<hr>
+</main>
+</div>
+<footer>
+    BernatLab Wiki · Generada automàticament a partir dels capítols Markdown.
+</footer>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>BernatLab — Wiki</title>
+    <link rel="stylesheet" href="css/wiki.css">
+</head>
+<body>
+<div class="layout">
+<nav>
+<h2>BernatLab</h2>
+<p style="color: #888; font-size: 0.9em;">Wiki del manual tècnic</p>
+<a href="modul-1.html">Mòdul 1</a>
+<a href="modul-2.html">Mòdul 2</a>
+<a href="modul-3.html">Mòdul 3</a>
+<h2>Glossari</h2>
+<a href="#glossari">Termes clau</a>
+</nav>
+<main>
+<h1>BernatLab — Wiki</h1>
+<p>Documentació navegable del servidor personal BernatLab. Generada automàticament a partir del llibre tècnic.</p>
+<h2>Mòduls disponibles</h2>
+<ul>
+<li><a href="modul-1.html"><strong>Mòdul 1</strong></a> <em>— Fonaments, contenidors i pràctica</em></li>
+<li><a href="modul-2.html"><strong>Mòdul 2</strong></a> <em>— Sensors, dades i visualització</em></li>
+<li><a href="modul-3.html"><strong>Mòdul 3</strong></a> <em>— LoRa, sensors remots i xarxa de camp</em></li>
+</ul>
+<h2 id="glossari">Glossari</h2>
+<p>Termes clau del manual, en ordre alfabètic.</p>
+<dl class="glossary">
+<dt>ABP</dt>
+<dd>Activation By Personalization, mètode alternatiu amb claus preconfigurades.</dd>
+<dt>AppEUI</dt>
+<dd>Identificador de l&#x27;aplicació LoRaWAN a la qual pertany el node.</dd>
+<dt>AppKey</dt>
+<dd>Clau mestra de 128 bits per autenticar el node durant el join.</dd>
+<dt>BME280</dt>
+<dd>Sensor digital que mesura temperatura, humitat i pressió.</dd>
+<dt>BW</dt>
+<dd>Bandwidth, amplada de banda del canal LoRa.</dd>
+<dt>CayenneLPP</dt>
+<dd>Format de payload eficient per a LoRaWAN, basat en canals i tipus.</dd>
+<dt>Concentratord</dt>
+<dd>Programari per a gateways LoRaWAN basats en SX1302/SX1303.</dd>
+<dt>Debian</dt>
+<dd>Distribució Linux estable i àmpliament utilitzada en servidors.</dd>
+<dt>DevEUI</dt>
+<dd>Identificador únic de 64 bits d&#x27;un dispositiu LoRaWAN.</dd>
+<dt>Docker</dt>
+<dd>Plataforma de contenidors que permet empaquetar aplicacions amb les seves dependències.</dd>
+<dt>Docker Compose</dt>
+<dd>Eina per definir i executar múltiples contenidors Docker amb un sol fitxer YAML.</dd>
+<dt>ESP32</dt>
+<dd>Microcontrolador de baix cost amb Wi-Fi i Bluetooth, molt utilitzat en IoT.</dd>
+<dt>ESP32-S3</dt>
+<dd>Variant de l&#x27;ESP32 amb més potència i suport per a USB OTG.</dd>
+<dt>Git</dt>
+<dd>Sistema de control de versions distribuït.</dd>
+<dt>Grafana</dt>
+<dd>Plataforma de visualització i alertes per a dades temporals.</dd>
+<dt>HTTPS</dt>
+<dd>HTTP sobre TLS, la versió segura del web.</dd>
+<dt>Homepage</dt>
+<dd>Dashboard modern per a serveis autoallotjats, configurable via YAML.</dd>
+<dt>InfluxDB</dt>
+<dd>Base de dades de sèries temporals optimitzada per a dades amb marca de temps.</dd>
+<dt>LoRa</dt>
+<dd>Tecnologia de ràdio de llarg abast i baix consum (Long Range).</dd>
+<dt>LoRa P2P</dt>
+<dd>Comunicació LoRa directa entre dos dispositius, sense network server.</dd>
+<dt>LoRaWAN</dt>
+<dd>Protocol de xarxa que usa LoRa com a capa física, gestionat per un network server.</dd>
+<dt>MQTT</dt>
+<dd>Protocol de missatgeria lleuger dissenyat per a dispositius IoT.</dd>
+<dt>MagicDNS</dt>
+<dd>Servei DNS de Tailscale que resol noms dins del tailnet.</dd>
+<dt>Mosquitto</dt>
+<dd>Broker MQTT de codi obert, àmpliament utilitzat.</dd>
+<dt>Node-RED</dt>
+<dd>Eina de programació visual basada en fluxos, ideal per a IoT.</dd>
+<dt>OTAA</dt>
+<dd>Over-The-Air Activation, mètode recomanat d&#x27;unió a LoRaWAN.</dd>
+<dt>Portainer</dt>
+<dd>Interfície web per gestionar Docker visualment.</dd>
+<dt>RSSI</dt>
+<dd>Indicador de potència del senyal rebut, en dBm.</dd>
+<dt>SF</dt>
+<dd>Spreading Factor. Com més alt, més abast però més lent.</dd>
+<dt>SNR</dt>
+<dd>Relació senyal-soroll, en dB. Indica la qualitat del senyal.</dd>
+<dt>SSH</dt>
+<dd>Protocol segur per accedir a servidors remots.</dd>
+<dt>SX1262</dt>
+<dd>Xip transceiver LoRa de Semtech per a 868/915/923 MHz.</dd>
+<dt>SX1302</dt>
+<dd>Xip concentrador LoRa que pot rebre 8 canals simultàniament.</dd>
+<dt>TLS</dt>
+<dd>Transport Layer Security, protocol de xifrat per a comunicacions.</dd>
+<dt>TTN</dt>
+<dd>The Things Network, network server LoRaWAN comunitari i gratuït.</dd>
+<dt>Tailscale</dt>
+<dd>Xarxa privada basada en WireGuard que permet accedir a dispositius sense obrir ports.</dd>
+<dt>Telegraf</dt>
+<dd>Agent que recull mètriques i les envia a InfluxDB o altres.</dd>
+<dt>Uptime Kuma</dt>
+<dd>Eina de monitoratge autoallotjada amb alertes per Telegram, correu, etc.</dd>
+<dt>Web</dt>
+<dd>Veure World Wide Web (WWW).</dd>
+<dt>branch</dt>
+<dd>Línia de desenvolupament independent en Git.</dd>
+<dt>commit</dt>
+<dd>Instantània dels canvis en un repositori Git.</dd>
+<dt>firewall</dt>
+<dd>Sistema que filtra el tràfic de xarxa segons regles.</dd>
+<dt>merge</dt>
+<dd>Combinar canvis d&#x27;una branca a una altra.</dd>
+<dt>pull request</dt>
+<dd>Proposta de canvis per revisar i fusionar en una branca.</dd>
+<dt>reverse proxy</dt>
+<dd>Servidor que rep peticions i les redirigeix a altres servidors.</dd>
+<dt>systemctl</dt>
+<dd>Eina de línia d&#x27;ordres per gestionar serveis systemd.</dd>
+<dt>systemd</dt>
+<dd>Sistema d&#x27;inicialització i gestió de serveis en Linux modern.</dd>
+</dl>
+</main>
+</div>
+<footer>
+    BernatLab Wiki · Generada automàticament a partir dels capítols Markdown.
+</footer>
+</body>
+</html>

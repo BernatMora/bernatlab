@@ -1,0 +1,65 @@
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: #222;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+    background: #fafafa;
+}
+.layout { display: flex; gap: 30px; }
+nav {
+    flex: 0 0 260px;
+    background: #fff;
+    padding: 20px;
+    border-right: 1px solid #e0e0e0;
+    height: 100vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+}
+nav h2 {
+    font-size: 1.1em;
+    margin-top: 1.5em;
+    color: #1F3A5F;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 4px;
+}
+nav h2:first-child { margin-top: 0; }
+nav a {
+    display: block;
+    padding: 4px 0;
+    color: #333;
+    text-decoration: none;
+    font-size: 0.95em;
+}
+nav a:hover { color: #1F3A5F; text-decoration: underline; }
+nav .toc-num { color: #888; margin-right: 6px; }
+main { flex: 1; padding: 20px 0; max-width: 800px; background: #fff; padding: 30px; }
+h1, h2, h3 { color: #1F3A5F; }
+h1 { border-bottom: 2px solid #1F3A5F; padding-bottom: 8px; }
+h2 { border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-top: 2em; }
+h3 { margin-top: 1.5em; }
+pre.code, pre.mermaid {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 0.9em;
+}
+pre.mermaid { background: #f6f8fa; color: #333; }
+code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+blockquote { border-left: 4px solid #1F3A5F; margin: 1em 0; padding: 0.5em 1em; color: #555; background: #f8f8f8; }
+table { border-collapse: collapse; margin: 1em 0; }
+th, td { border: 1px solid #ddd; padding: 6px 10px; }
+th { background: #f0f0f0; }
+hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+ul, ol { padding-left: 1.5em; }
+a { color: #1F3A5F; }
+.glossary { font-size: 0.95em; }
+.glossary dt { font-weight: bold; color: #1F3A5F; margin-top: 0.5em; }
+.glossary dd { margin-left: 1em; color: #444; }
+footer { color: #888; font-size: 0.9em; text-align: center; padding: 20px; }

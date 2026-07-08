@@ -1,114 +1,118 @@
 # BernatLab — Llibre tècnic pràctic
 
-Llibre d'autoformació i consulta per al projecte BernatLab. S'escriu en Markdown, es publica en PDF i DOCX, i es versiona amb Git.
+Llibre d'autoformació i consulta per al projecte BernatLab. S'escriu en
+**Markdown** (font de la veritat), es publica en **PDF** i **DOCX** (artefactes
+generats), i es pot consultar com a **wiki HTML estàtica** (navegable, allotjable
+a GitHub Pages).
 
 ## Estructura
 
 ```
 book/
-├── chapters/            Capítols en Markdown (01-..., 02-..., ...)
-├── images/              Imatges (per a futures il·lustracions)
-├── output/              PDF i DOCX generats (sí, es versionen!)
-├── index.md             Índex general del llibre
-├── README.md            Aquest fitxer
-├── README_M2.md         Descripció específica del Mòdul 2
-└── make_book.py         Generador de PDF i DOCX
+├── chapters/        ← Markdown (font de la veritat)
+│   ├── 01-que-es-bernatlab.md
+│   ├── 02-raspberry-pi.md
+│   ├── ...
+│   ├── 23-que-es-lora.md
+│   ├── ...
+│   └── 32-proves-camp.md
+├── output/          ← PDF i DOCX generats
+│   ├── BernatLab_Manual_Modul_1.pdf
+│   ├── BernatLab_Manual_Modul_1.docx
+│   ├── BernatLab_Manual_Modul_2.pdf
+│   ├── BernatLab_Manual_Modul_2.docx
+│   ├── BernatLab_Manual_Modul_3.pdf
+│   └── BernatLab_Manual_Modul_3.docx
+├── templates/       ← Plantilles Markdown per a nous capítols
+├── diagrams/        ← Esquemes Mermaid i imatges
+├── assets/          ← Recursos compartits (CSS, JS, icones)
+├── images/          ← Captures i il·lustracions
+├── wiki/            ← Wiki HTML estàtica (generada)
+│   ├── index.html
+│   ├── modul-1.html
+│   ├── modul-2.html
+│   └── modul-3.html
+├── make_book.py     ← Genera PDF i DOCX
+├── build_wiki.py    ← Genera la wiki HTML
+├── index.md         ← Índex general del llibre
+└── README.md        ← Aquest fitxer
 ```
 
-## Per què versionem els PDF/DOCX
+## Mòduls
 
-A diferència d'un projecte de programari, els artefactes del llibre (PDF, DOCX) són la **forma final de consum**. Versionar-los permet:
+- **Mòdul 1 — Fonaments, contenidors i pràctica** (10 capítols, 84 pàgines)
+- **Mòdul 2 — Sensors, dades i visualització** (12 capítols, 122 pàgines)
+- **Mòdul 3 — LoRa, sensors remots i xarxa de camp** (10 capítols, 84 pàgines)
 
-- Accedir a qualsevol versió publicada des de GitHub Releases.
-- Comparar canvis visuals entre versions.
-- Evitar que tothom hagi de regenerar el llibre per llegir-lo.
+Total: **32 capítols · 290 pàgines · 522 KB de text font**.
 
-Si en algun moment volem deixar de versionar-los (per exemple, si el repo creix massa), només cal comentar les dues línies del `.gitignore` que exclouen `book/output/*.pdf` i `book/output/*.docx`.
+## Com regenerar els artefactes
 
-## Mòduls actuals
-
-### Mòdul 1 — Fonaments, contenidors i pràctica
-
-10 capítols (84 pàgines):
-
-1. Què és BernatLab
-2. La Raspberry Pi 4 per dins
-3. Linux per administrar un servidor
-4. Xarxa, SSH i Tailscale
-5. Docker des de zero
-6. Portainer
-7. Uptime Kuma
-8. Homepage
-9. Git i documentació
-10. Full de ruta del BernatLab
-
-### Mòdul 2 — Sensors, dades i visualització
-
-12 capítols (122 pàgines):
-
-11. Del Mòdul 1 al M2: què construïm
-12. MQTT des de zero
-13. Mosquitto al BernatLab
-14. Publicar dades: els sensors
-15. InfluxDB: base de dades de sèries temporals
-16. Telegraf: el pont
-17. Node-RED: programació visual
-18. Fluxos pràctics
-19. Grafana: visualitzar les dades
-20. API pública: servir les dades al món
-21. Integració amb Hort Osona
-22. Operativa: còpies, alertes, escalat
-
-**Total actual: 22 capítols, 206 pàgines.**
-
-## Generar el llibre
-
-### Requisits
+### PDF i DOCX
 
 ```bash
-# Crear un entorn virtual a la carpeta pare del projecte
-cd ~/bernatlab
-python -m venv ../.venv
-source ../.venv/bin/activate   # Linux/Mac
-# o
-../.venv/Scripts/activate      # Windows
+# Tots tres mòduls
+.venv/Scripts/python.exe book/make_book.py all
 
-# Instal·lar dependències
-pip install reportlab python-docx
+# Un sol mòdul
+.venv/Scripts/python.exe book/make_book.py 3
+
+# Mòduls 1 i 2 (per compatibilitat)
+.venv/Scripts/python.exe book/make_book.py both
 ```
 
-### Generar
+El script llegeix els capítols de `book/chapters/`, els processa amb un parser
+Markdown propi, i genera PDF (amb reportlab) i DOCX (amb python-docx).
+
+### Wiki HTML
 
 ```bash
-cd book
-python make_book.py            # Tots dos mòduls
-python make_book.py 1          # Només M1
-python make_book.py 2          # Només M2
+.venv/Scripts/python.exe book/build_wiki.py
+.venv/Scripts/python.exe book/build_wiki.py --open  # obre al navegador
 ```
 
-Tarda 1-2 minuts per mòdul. La sortida va a `book/output/`.
+Genera un site HTML estàtic amb:
 
-## Pròxims mòduls previstos
+- Portada amb índex dels tres mòduls.
+- Glossari de 47 termes clau (Docker, MQTT, LoRaWAN, etc.).
+- Un fitxer per mòdul amb tots els capítols.
+- Navegació lateral amb TOC.
+- CSS lleuger, sense JavaScript, allotjable a GitHub Pages.
 
-- **Mòdul 3** — IoT i LoRa SX1262 868 MHz
-- **Mòdul 4** — IA local amb Ollama i RAG
+## Workflow de publicació
 
-## Convencions d'escriptura
-
-- Català, amb normalització Bàsic/General.
-- Capítols numerats amb dos dígims: `01-`, `02-`, ..., `22-`.
-- Primera capçalera de cada capítol és el títol (`# Capítol N — ...`).
-- Cada capítol té 8 seccions: teoria, aplicació al BernatLab, esquemes, comandes, "què passa realment", errors habituals, exercicis pràctics, resum.
-- Mermaid: s'escriu com a text dins d'un bloc de codi `mermaid` (la generació gràfica és per a una versió futura).
-
-## Edició
-
-Per afegir o corregir un capítol:
+Després d'editar o afegir capítols:
 
 ```bash
-$EDITOR chapters/12-mqtt-des-de-zero.md
-python make_book.py 2          # regenera només el M2
-git add chapters/12-mqtt-des-de-zero.md book/output/
-git commit -m "Corregeix capítol 12: afeg exemple de wildcard +"
-git push
+# 1. Validar i generar
+.venv/Scripts/python.exe book/make_book.py all
+.venv/Scripts/python.exe book/build_wiki.py
+
+# 2. Publicar a GitHub
+git add book/
+git commit -m "Actualitza capítols i artefactes"
+git push origin main
 ```
+
+També tenim el script `homelab/scripts/publish.py` que automatitza tot el cicle.
+
+## Estil dels capítols
+
+Cada capítol segueix una estructura comuna:
+
+1. Explicació teòrica.
+2. Aplicació concreta al BernatLab.
+3. Esquemes en text o Mermaid.
+4. Comandes útils.
+5. Què està passant realment.
+6. Errors habituals.
+7. Exercicis pràctics.
+8. Resum final.
+
+Tots els capítols comencen amb una cita breu (en format Markdown blockquote)
+que resumeix l'esperit del capítol, i acaben amb un llistat de "Paraules clau".
+
+## Llicència
+
+Aquest llibre és un projecte personal de Bernat Mora. Si vols reutilitzar
+parts, cita la font.

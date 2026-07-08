@@ -78,6 +78,19 @@ CHAPTERS_M2 = [
     ("22-operativa.md", "Capítol 22 — Operativa: còpies, alertes, escalat"),
 ]
 
+CHAPTERS_M3 = [
+    ("23-que-es-lora.md", "Capítol 23 — Què és LoRa i per què per a Hort Osona"),
+    ("24-fisica-radio.md", "Capítol 24 — Física de ràdio: els paràmetres que importen"),
+    ("25-lorawan-vs-p2p.md", "Capitol 25 — LoRaWAN vs LoRa P2P: l'arbre de decisió"),
+    ("26-lorawan-ttn.md", "Capitol 26 — La capa LoRaWAN: TTN, device profiles, payloads"),
+    ("27-gateway-raspberry.md", "Capitol 27 — Gateway LoRaWAN a la Raspberry amb Concentratord"),
+    ("28-node-hardware.md", "Capitol 28 — El node: ESP32 + SX1262, hardware i esquemes"),
+    ("29-programacio-node.md", "Capitol 29 — Programació del node: ESP32 + LoRaWAN"),
+    ("30-recepcio-bernatlab.md", "Capitol 30 — Recepció al BernatLab: de TTN a InfluxDB"),
+    ("31-lora-p2p.md", "Capitol 31 — LoRa P2P amb SX1262: xarxes privades sense TTN"),
+    ("32-proves-camp.md", "Capitol 32 — Proves de camp, cobertura i resolució de problemes"),
+]
+
 # Mòdul actiu per defecte. Es pot canviar amb --module {1|2|both}
 DEFAULT_MODULE = "both"
 
@@ -967,25 +980,31 @@ def main():
         print(f"ERROR: no trobo la carpeta {CAP_DIR}")
         sys.exit(1)
 
-    # Argument --module {1|2|both}
+    # Argument --module {1|2|3|both|all}
     module = DEFAULT_MODULE
     if len(sys.argv) > 1:
         module = sys.argv[1]
-        if module not in ("1", "2", "both"):
-            print(f"ERROR: --module ha de ser 1, 2 o both (rebut: {module})")
+        if module not in ("1", "2", "3", "both", "all"):
+            print(f"ERROR: --module ha de ser 1, 2, 3, both o all (rebut: {module})")
             sys.exit(1)
 
-    if module in ("1", "both"):
+    if module in ("1", "both", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_1.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_1.docx"
         build_pdf(CHAPTERS_M1, out_pdf, "Mòdul 1", "Fonaments, contenidors i pràctica")
         build_docx(CHAPTERS_M1, out_docx, "Mòdul 1", "Fonaments, contenidors i pràctica")
 
-    if module in ("2", "both"):
+    if module in ("2", "both", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_2.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_2.docx"
         build_pdf(CHAPTERS_M2, out_pdf, "Mòdul 2", "Sensors, dades i visualització")
         build_docx(CHAPTERS_M2, out_docx, "Mòdul 2", "Sensors, dades i visualització")
+
+    if module in ("3", "all"):
+        out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_3.pdf"
+        out_docx = ROOT / "output" / "BernatLab_Manual_Modul_3.docx"
+        build_pdf(CHAPTERS_M3, out_pdf, "Mòdul 3", "LoRa, sensors remots i xarxa de camp")
+        build_docx(CHAPTERS_M3, out_docx, "Mòdul 3", "LoRa, sensors remots i xarxa de camp")
 
     print("[fet] Generació completada.")
 

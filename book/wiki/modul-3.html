@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Mòdul 3 — BernatLab Wiki</title>
+    <link rel="stylesheet" href="css/wiki.css">
+</head>
+<body>
+<div class="layout">
+<nav>
+<h2>BernatLab</h2>
+<p style="color: #888; font-size: 0.9em;">Wiki del manual tècnic</p>
+<a href="modul-1.html">Mòdul 1</a>
+<a href="modul-2.html">Mòdul 2</a>
+<a href="modul-3.html">Mòdul 3</a>
+<h2>Capítols</h2>
+<a href="#23-que-es-lora"><span class="toc-num">23</span>Capítol 23 — Què és LoRa i per què per a Hort Osona</a>
+<a href="#24-fisica-radio"><span class="toc-num">24</span>Capítol 24 — Física de ràdio: els paràmetres que importen</a>
+<a href="#25-lorawan-vs-p2p"><span class="toc-num">25</span>Capitol 25 — LoRaWAN vs LoRa P2P: l'arbre de decisió</a>
+<a href="#26-lorawan-ttn"><span class="toc-num">26</span>Capitol 26 — La capa LoRaWAN: TTN, device profiles, payloads</a>
+<a href="#27-gateway-raspberry"><span class="toc-num">27</span>Capitol 27 — Gateway LoRaWAN a la Raspberry amb Concentratord</a>
+<a href="#28-node-hardware"><span class="toc-num">28</span>Capitol 28 — El node: ESP32 + SX1262, hardware i esquemes</a>
+<a href="#29-programacio-node"><span class="toc-num">29</span>Capitol 29 — Programació del node: ESP32 + LoRaWAN</a>
+<a href="#30-recepcio-bernatlab"><span class="toc-num">30</span>Capitol 30 — Recepció al BernatLab: de TTN a InfluxDB</a>
+<a href="#31-lora-p2p"><span class="toc-num">31</span>Capitol 31 — LoRa P2P amb SX1262: xarxes privades sense TTN</a>
+<a href="#32-proves-camp"><span class="toc-num">32</span>Capitol 32 — Proves de camp, cobertura i resolució de problemes</a>
+</nav>
+<main>
+<h1>Mòdul 3</h1>
+<p><em>LoRa, sensors remots i xarxa de camp</em></p>
+<hr>
+<h2 id="23-que-es-lora">Capítol 23 — Què és LoRa i per què per a Hort Osona</h2>
+<p>> <em>"245 metres, arbres al mig, cases al voltant, Wi-Fi de veïns. Si vols que un sensor al camp parli amb la Raspberry, la resposta pràctica és LoRa."</em></p>
+<h2>23.1 El problema: distància i obstacles</h2>
+<p>Al BernatLab, tenim sensors al camp (l'hort és a uns 245 metres de casa) que han de comunicar-se amb la Raspberry. Les opcions "naturals" fallen totes:</p>
+<ul>
+<li><strong>Wi-Fi domèstica</strong>: té un abast útil de 30-50 metres a l'aire lliure, menys a través de parets i arbres. A 245 metres, amb vegetació al mig, és pràcticament impossible sense repetidors o antenes directives.</li>
+<li><strong>Bluetooth/BLE</strong>: 10-30 metres, insuficient.</li>
+<li><strong>Zigbee</strong>: 100 metres en exterior, depèn molt del terreny. Millor que Wi-Fi, però encara just.</li>
+<li><strong>4G/cel·lular</strong>: funciona, però requereix una SIM, una subscripció, i un mòdem. És car, depèn de cobertura, i afegeix un component de xarxa mòbil que complica el projecte.</li>
+</ul>
+<p>Cap d'aquests encaixa bé. I aquí és on entra <strong>LoRa</strong>: una tecnologia de ràdio dissenyada exactament per cobrir distàncies d'uns quants quilòmetres amb un consum d'energia molt baix. LoRa no és una novetat — la tecnologia es remunta al 2015, quan Semtech va obrir les patents per a ús civil a la banda sub-GHz — però en els últims anys s'ha convertit en l'estàndard de facto per a IoT de llarg abast i baix consum.</p>
+<h2>23.2 Què és LoRa, exactament</h2>
+<p><strong>LoRa</strong> (de <strong>Lo</strong>ng <strong>Ra</strong>nge) és una tècnica de <strong>modulació de ràdio</strong> propietat de Semtech, que opera a les bandes ISM (Industrial, Scientific, Medical) — bandes de freqüència lliures, sense necessitat de llicència, però subjectes a normatives locals de potència i ocupació.</p>
+<p>Concretament, al BernatLab i a la majoria d'Europa, LoRa opera a la <strong>banda dels 868 MHz</strong> (de 863 a 870 MHz, amb sub-bandes específiques per a diferents usos). Aquesta banda té tres propietats excel·lents per al nostre cas:</p>
+<p>1. <strong>Penetra obstacles</strong> molt millor que les freqüències altes (2,4 GHz del Wi-Fi, per exemple). Una ona a 868 MHz travessa arbres, parets de maó, i fins i tot edificis lleugers amb molta menys pèrdua.
+2. <strong>Consum molt baix</strong>: la modulació és eficient, cosa que permet transmissions amb pocs mil·liwatts de potència.
+3. <strong>Lliure d'ús</strong>: no cal pagar llicència, només respectar la normativa de duty cycle (percentatge de temps que podem transmetre).</p>
+<p>LoRa, per si sol, és només una <strong>modulació física</strong> (PHY). Defineix com es modula el senyal, però no com s'organitzen les dades, com es xifra, com es gestiona l'accés al canal, com es connecten múltiples nodes. Per a tot això, necessitem una <strong>capa superior</strong> — i aquí és on apareix <strong>LoRaWAN</strong>.</p>
+<h2>23.3 LoRaWAN: la xarxa sobre LoRa</h2>
+<p><strong>LoRaWAN</strong> és un protocol de xarxa (MAC + aplicació) definit per la LoRa Alliance, una associació industrial que aplega empreses com Semtech, IBM, Cisco, i centenars d'altres. Defineix:</p>
+<ul>
+<li>Com es <strong>adreça</strong> un node.</li>
+<li>Com s'<strong>autentica</strong> un node a la xarxa.</li>
+<li>Com es <strong>xifra</strong> la comunicació.</li>
+<li>Com es <strong>gestiona</strong> el canal quan múltiples nodes volen parlar alhora.</li>
+<li>Com les dades arriben al <strong>servidor d'aplicació</strong> (el "application server").</li>
+</ul>
+<p>LoRaWAN defineix tres classes de dispositius (A, B, C) segons quan poden rebre. Per a sensors amb piles, la classe A és l'estàndard: el node només escolta durant uns segons després d'haver transmès. Això permet anys de vida útil amb una pila tipus AA o una LiPo petita.</p>
+<p>L'arquitectura típica de LoRaWAN té quatre elements:</p>
+<pre class="code"><code class="language-">[NODES]  →  [GATEWAY]  →  [NETWORK SERVER]  →  [APPLICATION SERVER]
+   ↑            ↓               ↓                    ↓
+   └──── resposta ←─────────────┴────────────────────┘</code></pre>
+<ul>
+<li><strong>Node</strong> (End Device): el sensor, amb un microcontrolador i un mòdul LoRa.</li>
+<li><strong>Gateway</strong>: un aparell que rep els paquets de ràdio dels nodes i els reenvia al network server per Internet. Pot servir molts nodes simultàniament.</li>
+<li><strong>Network Server</strong> (NS): el cervell de la xarxa. Gestiona l'autenticació, el encaminament, les taxes de dades adaptatives (ADR), i desduplica missatges de múltiples gateways. N'hi ha de comercials (TTN, Helium, Loriot) i d'open source (ChirpStack).</li>
+<li><strong>Application Server</strong> (AS): on aterren les dades ja desxifrades, normalment amb una API REST o un broker MQTT.</li>
+</ul>
+<p>La part important: <strong>un node LoRaWAN no parla directament amb un gateway concret</strong>. Emet a l'aire, i qualsevol gateway que el senti redirigeix el missatge al network server. Això vol dir que podem moure'ns amb el node i continuar funcionant, i que un sol gateway pot cobrir tot un barri si té bona posició.</p>
+<h2>23.4 The Things Network (TTN): el network server gratuït</h2>
+<p><strong>The Things Network</strong> (ara <strong>The Things Stack</strong>, o TTS) és un network server LoRaWAN <strong>comunitari i gratuït</strong>, mantingut per la fundació The Things Network. Té servidors a tot el món, una consola web per gestionar dispositius, i integracions natives amb MQTT, webhooks, i molts altres serveis.</p>
+<p>Per a un homelab com el BernatLab, TTN és la millor opció per començar amb LoRaWAN perquè:</p>
+<ul>
+<li><strong>No cal mantenir infraestructura pròpia</strong>: el network server el gestiona ells.</li>
+<li><strong>És gratuït</strong> per a ús no comercial i amb un volum raonable (uns quants milers de missatges al dia, perfecte per a sensors ambientals).</li>
+<li><strong>Comunitat gran</strong>: milers de tutorials, fòrums actius, documentació en diversos idiomes.</li>
+<li><strong>Integracions fàcils</strong>: podem rebre les dades a la Raspberry per MQTT, HTTP webhook, o altres mecanismes.</li>
+</ul>
+<p>L'alternativa open source és <strong>ChirpStack</strong>, que podem autoallotjar a la Raspberry o a un servidor propi. Té avantatges (control total, sense limits de la comunitat) i inconvenients (més feina de manteniment, hem de gestionar la seguretat nosaltres mateixos).</p>
+<h2>23.5 LoRa P2P: l'alternativa sense infraestructura</h2>
+<p>Hi ha una tercera via: usar la <strong>modulació LoRa directament, sense LoRaWAN</strong>. Això es coneix com a <strong>LoRa punt a punt</strong> (P2P) o <strong>LoRa raw</strong>. En aquest model:</p>
+<ul>
+<li>Dos mòduls SX1262 parlen directament entre ells, sense gateway, sense network server.</li>
+<li>Nosaltres definim el protocol: la longitud del payload, la freqüència, el spreading factor, si hi ha ACK o no.</li>
+<li>És més simple, però perdem tota la infraestructura de xarxa de LoRaWAN: no podem afegir un segon node fàcilment, no tenim desduplicació, no tenim xifratge estandarditzat.</li>
+</ul>
+<p><strong>Quan té sentit LoRa P2P?</strong></p>
+<ul>
+<li>Quan tenim un sol node i un sol gateway casolà, i no volem la complexitat de TTN.</li>
+<li>Quan estem experimental i volem veure "com rau" LoRa abans d'introduir cap capa superior.</li>
+<li>Quan tenim limitacions de volum o privacitat que no ens permeten usar TTN.</li>
+</ul>
+<p><strong>Quan NO té sentit LoRa P2P?</strong></p>
+<ul>
+<li>Quan volem afegir més d'un node.</li>
+<li>Quan volem un sistema escalable.</li>
+<li>Quan volem compatibilitat amb estàndards.</li>
+</ul>
+<p>Al BernatLab, tenim clar que voldrem diversos nodes a l'hort (temperatura, humitat del sòl, llum, pluja...) i potser un node extra al camp del veí. Per tant, <strong>LoRaWAN és la via natural</strong>.</p>
+<p>Dit això, durant el capítol 31 veurem un exemple de LoRa P2P, per si mai el necessites per a una situació específica o simplement per aprendre els fonaments de la capa física.</p>
+<h2>23.6 Quin model triem per a Hort Osona</h2>
+<p>L'arbre de decisió:</p>
+<pre class="code"><code class="language-">Estàs disposat a usar serveis de tercers (TTN, Helium)?
+├── Sí → LoRaWAN amb TTN
+│        ├── Tens cobertura d&#x27;un gateway TTN comunitari a menys de 5 km?
+│        │   ├── Sí → Usa el gateway comunitari, no cal comprar res
+│        │   └── No → Compra o munta un gateway propi
+│        └── Tens cobertura d&#x27;un gateway comercial (Loriot, Actility)?
+│            ├── Sí → Considera aquesta opció (pot ser de pagament)
+│            └── No → Mateixa resposta: gateway propi
+└── No → LoRa P2P amb SX1262
+         └── Tens 1 o 2 nodes i poca escalabilitat</code></pre>
+<p>Per a Hort Osona, la recomanació és:</p>
+<p>1. <strong>Comprovar si hi ha cobertura TTN</strong> a la zona. Pots fer-ho a https://ttnmapper.org/ o obrint la consola de TTN i mirant els gateways propers. A Osona (Vic, Manresa, àmbit rural català), la cobertura TTN comunitària és <strong>decent però no omnipresent</strong>. Si n'hi ha un a 3-5 km amb visió directa, podem començar a usar-lo.
+2. <strong>Si no n'hi ha</strong>, muntem un gateway propi a la Raspberry. El programari estàndard és <strong>Concentratord</strong> (abans anomenat lora-packet-forwarder), de xdegaye, i és el que recomanarem al capítol 27.
+3. <strong>Els nodes</strong> seran ESP32 + SX1262, amb la llibreria <strong>LMIC</strong> (IBM's LoRa MAC in C) o <strong>MCCI LoRaWAN LMIC</strong> per a LoRaWAN. Per a P2P, la llibreria <strong>RadioLib</strong> de jgromes.</p>
+<h2>23.7 Components que necessitarem</h2>
+<p>A grans trets, la llista de la compra per a Hort Osona:</p>
+<h3>Per al gateway (a la Raspberry)</h3>
+<ul>
+<li>Un <strong>mòdul concentrador LoRa</strong>: pot ser un <strong>RAK2287</strong> (USB, amb un SPI intern), un <strong>Waveshare SX1302 LoRaWAN Gateway HAT</strong> (per a Raspberry, molt popular), o un <strong>Dragino LPS8</strong> (gateway comercial, més car però robust).</li>
+<li>Una <strong>antena 868 MHz</strong> amb connector compatible.</li>
+<li>Un <strong>cable pigtail</strong> SMA si la distància entre el mòdul i l'antena és gran.</li>
+</ul>
+<h3>Per als nodes (al camp)</h3>
+<ul>
+<li>Un <strong>ESP32</strong> (molta varietat: WROOM, WROVER, DevKit, etc.).</li>
+<li>Un <strong>mòdul SX1262</strong>: pot ser en forma de <strong>breakout board</strong> (per a prototipatge en protoboard) o integrat en plaques com <strong>Heltec LoRa 32</strong> o <strong>TTGO LoRa</strong>.</li>
+<li><strong>Sensors</strong> específics del que vulguem mesurar.</li>
+<li>Una <strong>antena 868 MHz</strong> adequada per a la banda.</li>
+<li><strong>Bateria o placa solar</strong> per a ús autònom.</li>
+</ul>
+<h3>Per al programari</h3>
+<ul>
+<li><strong>The Things Stack</strong> (consola web, gratuït).</li>
+<li><strong>Concentratord</strong> (a la Raspberry) si no hi ha gateway TTN proper.</li>
+<li><strong>Node-RED</strong> o un script Python per rebre els missatges via MQTT.</li>
+</ul>
+<h2>23.8 Com connecta amb la resta del BernatLab</h2>
+<p>El pipeline complet, un cop LoRa estigui en marxa:</p>
+<pre class="code"><code class="language-">Sensor al camp (ESP32 + SX1262)
+    │ (LoRaWAN o LoRa P2P)
+    ▼
+Gateway (Concentratord a la Raspberry o TTN)
+    │ (MQTT sobre TLS)
+    ▼
+Network Server (TTN o autoallotjat)
+    │ (MQTT, o webhook, o directament a Telegraf)
+    ▼
+BernatLab (Raspberry)
+├── Mosquitto (broker MQTT)
+├── Telegraf (recol·lector)
+├── InfluxDB (base de dades)
+├── Node-RED (processament)
+├── Grafana (visualització)
+└── API FastAPI (per a la web Hort Osona)</code></pre>
+<p>Cada element ja està cobert als mòduls anteriors. El Mòdul 3 afegeix només la primera peça: <strong>el node i el gateway LoRa</strong>, i la integració amb el broker MQTT que ja tenim.</p>
+<h2>23.9 Esquema conceptual</h2>
+<pre class="code"><code class="language-mermaid">graph TB
+    subgraph Hort[&quot;Hort Osona (245 m)&quot;]
+        N1[&quot;Node 1: T/H/llum&lt;br/&gt;(ESP32 + SX1262)&quot;]
+        N2[&quot;Node 2: humitat sòl&quot;]
+        N3[&quot;[futur: altres nodes]&quot;]
+    end
+<p>subgraph Radio[&quot;Capa ràdio (868 MHz)&quot;]
+        SIG[&quot;Senyal LoRa&lt;br/&gt;SF7-SF12&quot;]
+    end</p>
+<p>subgraph Casa[&quot;Casa (Raspberry Pi 4)&quot;]
+        GW[&quot;Gateway&lt;br/&gt;(Concentratord)&quot;]
+        MOSQ[&quot;Mosquitto&quot;]
+        TEL[&quot;Telegraf&quot;]
+        INF[&quot;InfluxDB&quot;]
+    end</p>
+<p>subgraph NS[&quot;Network Server&quot;]
+        TTN[&quot;The Things Stack&lt;br/&gt;(o ChirpStack local)&quot;]
+    end</p>
+<p>N1 --&gt; SIG
+    N2 --&gt; SIG
+    N3 -.-&gt; SIG
+    SIG --&gt; GW
+    GW --&gt; TTN
+    TTN --&gt;|MQTT| MOSQ
+    MOSQ --&gt; TEL
+    TEL --&gt; INF</code></pre></p>
+<h2>23.10 Glossari de termes LoRa</h2>
+<p>Abans de continuar, fixem els termes que farem servir:</p>
+<ul>
+<li><strong>LoRa</strong>: tècnica de modulació de ràdio (PHY).</li>
+<li><strong>LoRaWAN</strong>: protocol de xarxa sobre LoRa (MAC + aplicació).</li>
+<li><strong>End Device / Node</strong>: el sensor, amb ràdio LoRa.</li>
+<li><strong>Gateway</strong>: aparell que rep transmissions LoRa i les passa al network server.</li>
+<li><strong>Network Server (NS)</strong>: gestiona la xarxa LoRaWAN.</li>
+<li><strong>Application Server (AS)</strong>: rep les dades ja desxifrades.</li>
+<li><strong>DevEUI / AppEUI / AppKey</strong>: identificadors del node (veure capítols següents).</li>
+<li><strong>OTAA / ABP</strong>: els dos mètodes d'unió d'un node a la xarxa.</li>
+<li><strong>SF (Spreading Factor)</strong>: paràmetre de la modulació, de SF7 (ràpid, curt abast) a SF12 (lent, llarg abast).</li>
+<li><strong>BW (Bandwidth)</strong>: amplada de banda del canal (125, 250, 500 kHz típicament).</li>
+<li><strong>RSSI / SNR</strong>: indicadors de qualitat del senyal.</li>
+<li><strong>TTN / TTS</strong>: The Things Network / The Things Stack.</li>
+<li><strong>ADR (Adaptive Data Rate)</strong>: mecanisme pel qual el network server ajusta els paràmetres de transmissió segons la qualitat del senyal.</li>
+</ul>
+<h2>23.11 Què aprendrem en aquest mòdul</h2>
+<p>Aquest mòdul cobreix, en 10 capítols:</p>
+<ul>
+<li><strong>Cap 24</strong> — Física de ràdio: freqüència, amplada de banda, spreading factor, RSSI, SNR, duty cycle, normativa.</li>
+<li><strong>Cap 25</strong> — LoRaWAN vs LoRa P2P: avantatges, inconvenients, decisió.</li>
+<li><strong>Cap 26</strong> — La capa LoRaWAN: TTN, device profiles, formats de payload, decoders.</li>
+<li><strong>Cap 27</strong> — Muntar un gateway LoRaWAN a la Raspberry amb Concentratord.</li>
+<li><strong>Cap 28</strong> — Hardware del node: ESP32 + SX1262, esquema elèctric, antena, alimentació.</li>
+<li><strong>Cap 29</strong> — Programar el node: ESP32 amb Arduino, codi complet d'un sensor LoRaWAN.</li>
+<li><strong>Cap 30</strong> — Recepció al BernatLab: TTN → Mosquitto → Telegraf → InfluxDB.</li>
+<li><strong>Cap 31</strong> — LoRa P2P: cas alternatiu per a un sol node, exemple complet amb RadioLib.</li>
+<li><strong>Cap 32</strong> — Proves de camp, cobertura, calibratge, resolució de problemes.</li>
+<li><strong>Cap 33</strong> — Mòdul 3 a la pràctica: el teu primer node LoRa en producció.</li>
+</ul>
+<h2>23.12 Resum</h2>
+<p>En aquest capítol hem vist què és LoRa (modulació de ràdio de llarg abast a 868 MHz) i per què és la tecnologia adequada per a Hort Osona: distància, penetració d'obstacles, baix consum, sense llicència. Hem après l'arquitectura de LoRaWAN (node → gateway → network server → application server) i hem decidit que la millor opció per al nostre cas és <strong>LoRaWAN amb The Things Stack</strong>, amb un gateway propi si no n'hi ha cap comunitari a prop. Hem vist quin hardware cal i com es connecta amb la resta del BernatLab. En el proper capítol ens endinsarem en la física de ràdio: freqüència, amplada de banda, spreading factor, i la resta de paràmetres que defineixen una transmissió LoRa.</p>
+<h2>23.13 Exercicis pràctics</h2>
+<p>1. Comprova si hi ha cobertura TTN a la teva zona: https://ttnmapper.org/
+2. Crea un compte a The Things Network: https://console.thingsnetwork.org/
+3. Comprova si tens visió directa entre casa i l'hort. Si no, identifica on podries posar el gateway.
+4. Fes una llista del hardware que necessitaries comprar: gateway, nodes, antenes, sensors, bateries.
+5. Comprova el preu de:
+<ul>
+<li>Un gateway Waveshare SX1302 per a Raspberry Pi (~50-80 €).</li>
+<li>Un node Heltec LoRa 32 V3 (~25 €).</li>
+<li>Un node ESP32-DevKit + SX1262 breakout (~15-25 €).</li>
+</ul>
+6. Documenta al README del projecte quina estratègia has decidit (TTN + gateway propi, P2P, etc.).</p>
+<p>Paraules clau: <strong>LoRa, LoRaWAN, 868 MHz, ISM, gateway, network server, application server, The Things Network, TTN, ChirpStack, Concentratord, packet forwarder, SX1262, ESP32, RSSI, SNR, spreading factor, bandwidth, node, end device, OTAA, ABP, ADR, duty cycle, EU868, MQTT, Telegraf, InfluxDB, BernatLab, Hort Osona, RPi 4, cobertura, visió directa, antena, pigtail, breakout, dev kit, Heltec, TTGO, LMIC, RadioLib, Arduino, MicroPython, ESP-IDF</strong>.</p>
+<hr>
+<h2 id="24-fisica-radio">Capítol 24 — Física de ràdio: els paràmetres que importen</h2>
+<p>> <em>"LoRa és com una guitarra: amb els mateixos materials pots fer un concert o un mal so. La diferència està en com toques les cordes."</em></p>
+<h2>24.1 Què passa quan un mòdul LoRa transmet</h2>
+<p>Abans d'entendre els paràmetres, cal entendre què està passant realment a nivell físic. Quan un SX1262 transmet, fa el següent:</p>
+<p>1. <strong>Codifica les dades</strong> en bits.
+2. <strong>Aplica un codi de correcció d'errors</strong> (FEC, Forward Error Correction). LoRa usa un codi amb taxa variable (de 4/5 a 4/8) — com més protecció, menys capacitat però més robustesa.
+3. <strong>Intercala els bits</strong> per protegir-se de ràfegues d'errors.
+4. <strong>Modula amb Chirp Spread Spectrum (CSS)</strong>: cada bit es converteix en un "chirp", un senyal que canvia de freqüència al llarg del temps de manera lineal. La freqüència instantània augmenta (up-chirp) o disminueix (down-chirp) contínuament.
+5. <strong>Emet el senyal</strong> a la freqüència portadora (868 MHz típicament) amb una amplada de banda (BW) concreta i un spreading factor (SF) determinat.</p>
+<p>A la recepció, el procés és invers: el receptor correlaciona el senyal rebut amb chirps coneguts i n'extreu els bits originals.</p>
+<p>La bellesa d'aquest esquema és que <strong>com més ample de banda i més spreading factor, més robust</strong> és el senyal davant de soroll, interferències i obstacles — però més <strong>lent</strong> és. La capacitat de transmissió i la sensibilitat del receptor es poden ajustar amb només tres paràmetres: BW, SF i CR.</p>
+<h2>24.2 Amplada de banda (Bandwidth, BW)</h2>
+<p>L'<strong>amplada de banda</strong> és el rang de freqüències que el senyal ocupa. LoRa estandarditza tres valors principals:</p>
+<ul>
+<li><strong>125 kHz</strong>: el més comú, bon equilibri capacitat/abast. Usa la meitat del canal.</li>
+<li><strong>250 kHz</strong>: més capacitat, però ocupa tot un canal i consumeix més energia.</li>
+<li><strong>500 kHz</strong>: el màxim, molt capacitat però poca eficiència energètica.</li>
+</ul>
+<p>A la banda EU868, tenim canals definits a 868.1, 868.3, 868.5, 867.1, 867.3, 867.5, 867.7, 867.9 MHz (8 canals estàndard a 125 kHz). Per a 250 kHz, hi ha canals a 868.5, 867.1, 867.7. Per a 500 kHz, a 868.5 MHz.</p>
+<p><strong>Quan fer servir cada BW?</strong></p>
+<ul>
+<li><strong>125 kHz</strong>: per defecte. Sempre que no necessitem més capacitat.</li>
+<li><strong>250 kHz</strong>: quan volem enviar més dades (firmware updates, payloads grans).</li>
+<li><strong>500 kHz</strong>: només per experiments; rarament útil.</li>
+</ul>
+<h2>24.3 Spreading Factor (SF)</h2>
+<p>El <strong>spreading factor</strong> és el paràmetre més important. Determina quant s'expandeix el senyal en el temps. LoRa defineix SF7 a SF12, amb SF7 el més ràpid i SF12 el més robust:</p>
+<p>| SF | Bits/simbòlic | Temps per byte | Sensibilitat (aprox.) | Abast relatiu |
+|----|---------------|----------------|------------------------|---------------|
+| SF7 | 7 | 41 ms | -123 dBm | 1× (base) |
+| SF8 | 8 | 72 ms | -126 dBm | 1.4× |
+| SF9 | 9 | 144 ms | -129 dBm | 2× |
+| SF10 | 10 | 288 ms | -132 dBm | 2.8× |
+| SF11 | 11 | 577 ms | -134.5 dBm | 4× |
+| SF12 | 12 | 992 ms | -137 dBm | 5.7× |</p>
+<p><strong>Com interpretar-ho?</strong></p>
+<ul>
+<li>A SF7, podem enviar un missatge en 41 ms i el receptor detecta senyals fins a -123 dBm (un nivell molt baix). Però cada byte "costa" poca energia de senyal.</li>
+<li>A SF12, el mateix missatge triga 24 vegades més (992 ms), però el receptor detecta senyals 14 dB més febles, equivalent a 5-6 vegades més distància.</li>
+</ul>
+<p>A la pràctica: per a sensors ambientals amb pocs bytes cada 5-15 minuts, <strong>SF7 o SF8</strong> funcionen perfectament a 245 metres amb bona visió. Si tenim obstacles o volem més marge, <strong>SF9-SF11</strong>. <strong>SF12</strong> és per a casos extrems (quilòmetres) o quan tenim pèrdues molt severes.</p>
+<p><strong>Quin és el cost?</strong> A SF12, <strong>cada transmissió gasta 24 vegades més temps d'aire</strong> que a SF7. A la banda EU868, hi ha un límit de <strong>duty cycle</strong> (1% per defecte): només podem transmetre l'1% del temps. Si un missatge a SF12 dura 1 segon, hem d'esperar 99 segons entre missatges. A SF7, podem enviar un missatge cada ~4 segons.</p>
+<h2>24.4 Coding Rate (CR)</h2>
+<p>El <strong>coding rate</strong> (4/5, 4/6, 4/7, 4/8) defineix la redundància afegida pel codi de correcció d'errors. Com més baix, menys protecció però menys overhead. Per defecte, 4/5 és el valor estàndard. Si tenim molts errors, podem pujar a 4/7 o 4/8.</p>
+<h2>24.5 Cicle de treball (Duty Cycle)</h2>
+<p>A la banda EU868, la normativa ETSI EN 300 220 limita el <strong>duty cycle</strong> (percentatge de temps que podem transmetre) a:</p>
+<ul>
+<li>Sub-banda 868.0-868.6 MHz: <strong>1%</strong> (és a dir, com a molt 36 segons per hora).</li>
+<li>Sub-banda 868.7-869.2 MHz: <strong>0.1%</strong> (12 segons per hora).</li>
+<li>Sub-banda 869.4-869.65 MHz: <strong>10%</strong> (potencia limitada a 500 mW).</li>
+</ul>
+<p>A la pràctica, la majoria de xarxes LoRaWAN usen la sub-banda 868.0-868.6 amb 1% de duty cycle. Això vol dir que si un missatge dura 1 segon, hem d'esperar 99 segons fins al proper. Per a sensors ambientals, és perfecte: publiquem cada 5-15 minuts, molt per sota del límit.</p>
+<p>Però compte: el càlcul és per sub-banda, no per node. Si tenim 5 nodes transmetent a la mateixa sub-banda, tots compten contra el 1% agregat. En sistemes petits, no és un problema. En sistemes grans, cal planificar.</p>
+<h2>24.6 Potència de transmissió (TX Power)</h2>
+<p>LoRa permet ajustar la potència entre <strong>2 dBm (1.6 mW)</strong> i <strong>20 dBm (100 mW)</strong> típicament, segons el mòdul. Com més potència, més abast però més consum de bateria.</p>
+<p>Per a un sensor a 245 metres amb bona visió, <strong>8-10 dBm (6-10 mW)</strong> és més que suficient. Per a distàncies quilomètriques o amb obstacles, pujar a <strong>14-17 dBm (25-50 mW)</strong>.</p>
+<p>A la Raspberry (gateway), solem usar <strong>14-17 dBm</strong>, que és el que solen suportar els mòduls concentradors SX1302.</p>
+<p>Important: la potència màxima legal a EU868 és <strong>25 mW ERP</strong> (14 dBm) per a la majoria de sub-bandes, tot i que el SX1262 pot arribar a 20 dBm. Si anem més enllà del límit legal, podem tenir problemes amb les autoritats de telecomunicacions (a Espanya, la Secretaría de Estado de Telecomunicaciones).</p>
+<h2>24.7 RSSI i SNR</h2>
+<p>Quan el gateway rep un missatge, ens dóna dues mètriques de qualitat:</p>
+<ul>
+<li><strong>RSSI (Received Signal Strength Indicator)</strong>: la potència del senyal rebut, en dBm. Com més proper a 0, millor. Valors típics:</li>
+<li><strong>-30 a -60 dBm</strong>: senyal excel·lent (a pocs metres).</li>
+<li><strong>-60 a -90 dBm</strong>: senyal bo (a desenes de metres).</li>
+<li><strong>-90 a -110 dBm</strong>: senyal acceptable (a cent metres).</li>
+<li><strong>-110 a -120 dBm</strong>: senyal just (a quilòmetres, depèn de l'entorn).</li>
+<li><strong>< -120 dBm</strong>: massa feble per a SF7, pot funcionar a SF12.</li>
+</ul>
+<ul>
+<li><strong>SNR (Signal-to-Noise Ratio)</strong>: la relació senyal-soroll, en dB. Com més alt, millor. Valors típics:</li>
+<li><strong>> 10 dB</strong>: excel·lent.</li>
+<li><strong>5-10 dB</strong>: bo.</li>
+<li><strong>0-5 dB</strong>: acceptable.</li>
+<li><strong>< 0 dB</strong>: el senyal està per sota del soroll; la modulació LoRa encara pot desxifrar-lo gràcies a la seva robustesa, però estem al límit.</li>
+</ul>
+<p><strong>Com usar RSSI i SNR a la pràctica?</strong></p>
+<p>A TTN (i a la majoria de network servers), podem veure RSSI i SNR de cada missatge. Si veiem que RSSI baixa gradualment, pot ser que la bateria del node s'està acabant. Si SNR baixa sobtadament, pot ser que un obstacle nou (una branca, una persona) estigui bloquejant el senyal.</p>
+<h2>24.8 L'equació de la capacitat: bit rate, time on air, payload màxim</h2>
+<p>LoRa té una fórmula per calcular el <strong>bit rate</strong> i el <strong>time on air</strong> d'un missatge. Sense entrar en les matemàtiques completes, les conclusions pràctiques són:</p>
+<ul>
+<li>A <strong>SF7, BW 125 kHz</strong>: el bit rate és ~5.5 kbps, i el temps d'un missatge de 20 bytes és ~60 ms.</li>
+<li>A <strong>SF12, BW 125 kHz</strong>: el bit rate és ~0.3 kbps, i el mateix missatge dura ~1.5 segons.</li>
+</ul>
+<p>El <strong>payload màxim</strong> (mida útil de dades per transmissió) varia amb SF:</p>
+<ul>
+<li>SF7: 222 bytes.</li>
+<li>SF8: 222 bytes.</li>
+<li>SF9: 115 bytes.</li>
+<li>SF10: 51 bytes.</li>
+<li>SF11: 51 bytes.</li>
+<li>SF12: 51 bytes.</li>
+</ul>
+<p>Per a sensors ambientals (temperatura, humitat, etc.), el payload és típicament 5-20 bytes, lluny dels límits.</p>
+<h2>24.9 ADR: Adaptive Data Rate</h2>
+<p><strong>ADR</strong> és un mecanisme pel qual el <strong>network server</strong> ajusta els paràmetres de transmissió (SF, BW, potència) de cada node en funció de la qualitat del senyal que rep. La idea és:</p>
+<ul>
+<li>Si un node s'envia amb SF12 però el gateway el rep a RSSI -50 dBm, el node està gastant molta energia innecessàriament. El NS li pot dir "baixa a SF8 i a 8 dBm".</li>
+<li>Si un node s'envia amb SF7 però el gateway el rep a RSSI -115 dBm, el NS li pot dir "puja a SF10".</li>
+</ul>
+<p>L'ADR és opcional, però molt recomanable. Millora la capacitat de la xarxa i allarga la vida de les bateries. TTN l'implementa per defecte.</p>
+<h2>24.10 Les bandes ISM al món</h2>
+<p>Cada regió té les seves bandes ISM. Les més importants:</p>
+<ul>
+<li><strong>EU868</strong> (Europa, Àfrica, bona part d'Àsia): 863-870 MHz, amb sub-bandes específiques. La que ens afecta.</li>
+<li><strong>US915</strong> (EUA): 902-928 MHz, amb 64 canals a 125 kHz (més canals, però menys temps d'aire per missatge).</li>
+<li><strong>AS923</strong> (Àsia-Pacífic): 915-928 MHz, una mena de pont entre EU868 i US915.</li>
+<li><strong>AU915</strong> (Austràlia): similar a US915.</li>
+<li><strong>CN470</strong> (Xina): 470-510 MHz, diferent de les altres.</li>
+<li><strong>IN865</strong> (Índia): 865-867 MHz.</li>
+<li><strong>KR920</strong> (Corea): 920-925 MHz.</li>
+</ul>
+<p>Al BernatLab, estem a Europa, per tant treballem amb <strong>EU868</strong>.</p>
+<h2>24.11 El concepte de "canal" i "data rate"</h2>
+<p>A LoRaWAN, una combinació de SF + BW es coneix com a <strong>Data Rate (DR)</strong>. Per exemple:</p>
+<ul>
+<li><strong>DR0</strong>: SF12, BW 125 kHz (més lent, més abast).</li>
+<li><strong>DR5</strong>: SF7, BW 125 kHz (més ràpid, menys abast).</li>
+</ul>
+<p>A EU868, els data rates van de DR0 a DR5 (6 valors). La idea és la mateixa que amb SF aïllat: valors baixos = més abast, valors alts = més velocitat.</p>
+<p>Quan parlem de "canal", ens referim a una freqüència concreta dins de la banda. Un missatge concret es transmet en un canal concret amb un data rate concret.</p>
+<h2>24.12 RSSI vs SNR vs Link Budget</h2>
+<p>El <strong>link budget</strong> és la diferència entre la potència transmesa i la sensibilitat del receptor. Per exemple:</p>
+<ul>
+<li>TX Power: 14 dBm.</li>
+<li>Sensibilitat del receptor (a SF7): -123 dBm.</li>
+<li>Link budget: 14 - (-123) = 137 dB.</li>
+</ul>
+<p>Aquest número ens diu quanta "pèrdua" podem tolerar entre l'antena emissora i la receptora. A 868 MHz, la pèrdua en espai lliure segueix la fórmula de Friis:</p>
+<pre class="code"><code class="language-">P_r(dBm) = P_t(dBm) + G_t(dBi) + G_r(dBi) - 20·log10(d) - 20·log10(f) - 32.45</code></pre>
+<p>on `d` és la distància en km i `f` la freqüència en MHz. A 868 MHz, 1 km, 0 dBi d'antenes:</p>
+<pre class="code"><code class="language-">P_r = 0 - 20·log10(1) - 20·log10(868) - 32.45 ≈ -91.2 dBm</code></pre>
+<p>A 245 metres, afegint-hi 0 dBi d'antenes (cas base):</p>
+<pre class="code"><code class="language-">P_r = 0 - 20·log10(0.245) - 20·log10(868) - 32.45 ≈ -66.8 dBm</code></pre>
+<p>Això és molt millor que -123 dBm (sensibilitat a SF7), per tant SF7 funciona bé en espai lliure a 245 metres. Si afegim obstacles (un arbre de 5 metres al mig), la pèrdua pot pujar a 10-20 dB, i estarem a -85 dBm, encara perfectament dins del rang.</p>
+<h2>24.13 Què vol dir "Banda ISM"</h2>
+<p><strong>ISM</strong> (Industrial, Scientific, Medical) són bandes de freqüència reservades per a ús industrial, científic i mèdic sense necessitat de llicència. N'hi ha diverses al món:</p>
+<ul>
+<li>6.78 MHz, 13.56 MHz, 27.12 MHz (ús general).</li>
+<li>433.92 MHz (Europa, Àsia).</li>
+<li>868 MHz (Europa, Àsia).</li>
+<li>915 MHz (Amèrica).</li>
+<li>2.45 GHz (Wi-Fi, Bluetooth, microones).</li>
+<li>5.8 GHz (Wi-Fi, alguns radars).</li>
+</ul>
+<p>Aquestes bandes estan compartides amb molts altres serveis, per la qual cosa la normativa imposa <strong>límits de potència</strong> i <strong>duty cycle</strong> per evitar interferències.</p>
+<h2>24.14 Què passa si comparteixo la banda amb altres</h2>
+<p>A 868 MHz, podem trobar:</p>
+<ul>
+<li>Sistemes d'alarma sense fils.</li>
+<li>Lectors RFID.</li>
+<li>Comandaments a distància de portes de garatge.</li>
+<li>Sensors industrials.</li>
+<li>Altres xarxes LoRa.</li>
+</ul>
+<p>Com que la modulació LoRa és molt robusta (gràcies al spreading factor i al CSS), aguanta bé la coexistència amb altres sistemes. Tanmateix, podem rebre <strong>interferències</strong>, que es manifesten com a SNR baix o paquets perduts.</p>
+<p>Solucions:</p>
+<ul>
+<li>Canviar de canal (si la nostra xarxa ho permet).</li>
+<li>Usar SF més alt (més robust davant d'interferències, però més lent).</li>
+<li>Usar ADR perquè el NS trobi la millor combinació automàticament.</li>
+</ul>
+<h2>24.15 Glossari visual</h2>
+<pre class="code"><code class="language-mermaid">graph TB
+    subgraph Parametres[&quot;Paràmetres de transmissió LoRa&quot;]
+        SF[&quot;Spreading Factor&lt;br/&gt;(SF7 - SF12)&quot;]
+        BW[&quot;Bandwidth&lt;br/&gt;(125/250/500 kHz)&quot;]
+        CR[&quot;Coding Rate&lt;br/&gt;(4/5 - 4/8)&quot;]
+        TX[&quot;TX Power&lt;br/&gt;(2-20 dBm)&quot;]
+    end
+<p>subgraph Sortida[&quot;Resultats&quot;]
+        AIR[&quot;Time on Air&lt;br/&gt;(durada transmissió)&quot;]
+        SENS[&quot;Sensibilitat&lt;br/&gt;(potència mínima detectable)&quot;]
+        BR[&quot;Bit Rate&lt;br/&gt;(kbps)&quot;]
+    end</p>
+<p>subgraph Qualitat[&quot;Qualitat del senyal rebut&quot;]
+        RSSI2[&quot;RSSI (potència)&quot;]
+        SNR2[&quot;SNR (relació senyal/soroll)&quot;]
+        PL[&quot;Packet Loss&lt;br/&gt;(% de paquets perduts)&quot;]
+    end</p>
+<p>SF --&gt; AIR
+    SF --&gt; SENS
+    BW --&gt; AIR
+    BW --&gt; BR
+    CR --&gt; AIR
+    TX --&gt; AIR</p>
+<p>AIR --&gt; PL
+    SENS --&gt; PL
+    BR --&gt; PL</p>
+<p>AIR --&gt; RSSI2
+    SENS --&gt; SNR2</code></pre></p>
+<h2>24.16 Com aplicar-ho a Hort Osona</h2>
+<p>Per a un node a 245 metres de la Raspberry, amb possibles arbres al mig, una bona configuració inicial és:</p>
+<ul>
+<li><strong>BW</strong>: 125 kHz.</li>
+<li><strong>SF</strong>: SF9 (bon equilibri abast/consum/velocitat).</li>
+<li><strong>CR</strong>: 4/5 (per defecte).</li>
+<li><strong>TX Power</strong>: 10 dBm (10 mW) — abundant per a 245 m, deixa marge.</li>
+<li><strong>ADR</strong>: activat (TTN el gestionarà sol).</li>
+</ul>
+<p>Aquesta configuració permet transmissions cada 5-10 minuts, payload de fins a 115 bytes, i una vida útil de bateria de mesos amb piles AA o una LiPo petita.</p>
+<h2>24.17 Resum</h2>
+<p>En aquest capítol hem après la física darrere de LoRa: com la modulació Chirp Spread Spectrum permet transmissions de llarg abast amb poc consum, què significa cada paràmetre (BW, SF, CR, TX Power), com es mesura la qualitat del senyal (RSSI, SNR), quines limitacions normatives tenim (duty cycle, potència màxima), i quines combinacions funcionen bé per a l'escenari de Hort Osona. En el proper capítol veurem les dues grans topologies: LoRaWAN i LoRa P2P, i decidirem quina és la millor per al nostre cas.</p>
+<h2>24.18 Exercicis pràctics</h2>
+<p>1. Calcula el temps on air d'un missatge de 20 bytes a SF7, BW 125 kHz, CR 4/5. Usa una calculadora online com https://www.loratools.nl/#/airtime.
+2. Calcula el temps on air del mateix missatge a SF12. Quantes vegades més llarg és?
+3. Comprova quins canals de 868 MHz estan lliures a la teva zona amb un scanner com https://github.com/cyberman54/LoRa-Scanner.
+4. Si el teu node envia cada 5 minuts (300 segons) un missatge de 100 ms a SF7, quin percentatge de duty cycle uses? (Pista: 100 ms / 300 s = 0,03%.)
+5. Quina seria la durada màxima de missatge a SF12, BW 125 kHz, sense superar el 1% de duty cycle a la sub-banda principal?
+6. Comprova la pèrdua en espai lliure a 245 metres, 868 MHz, amb la fórmula de Friis.
+7. Fes una taula amb les combinacions BW × SF que faries servir per a:
+<ul>
+<li>Sensor a 50 metres (interior de casa).</li>
+<li>Sensor a 245 metres (hort).</li>
+<li>Sensor a 1 km (per si mai).</li>
+</ul></p>
+<p>Paraules clau: <strong>LoRa, modulació, chirp, CSS, spreading factor, SF7, SF8, SF9, SF10, SF11, SF12, bandwidth, BW, 125 kHz, 250 kHz, 500 kHz, coding rate, duty cycle, ETSI EN 300 220, EU868, ISM, RSSI, SNR, packet loss, link budget, Friis, pèrdua en espai lliure, ADR, data rate, canal, payload, time on air, antena, dBi, dBm, mW, potència, normativa, telecomunicacions, 868 MHz, 915 MHz, US915, EU868, AS923, TTN, TTN, xarxa, network server, node, gateway, end device, OTAA, ABP, EU868, EU433, US915, CN470, KR920, IN865, AS923, AU915, ISM, sub-banda, 868.0, 868.3, 868.5, 867.1, 867.3, 867.5, 867.7, 867.9, 869.4, 869.65</strong>.</p>
+<hr>
+<h2 id="25-lorawan-vs-p2p">Capitol 25 — LoRaWAN vs LoRa P2P: l&#x27;arbre de decisió</h2>
+<p>> <em>"Hi ha dues maneres de fer anar un missatge per ràdio: amb un director d'orquestra (LoRaWAN) o tots sols (P2P). Les dues funcionen; només cal saber quan toca cada una."</em></p>
+<h2>25.1 Per què hem de triar</h2>
+<p>Quan vam al capítol 23 ja vam avançar la conclusió: per a Hort Osona, la millor opció és <strong>LoRaWAN</strong>. Però abans d'invertir temps i diners en una direcció, val la pena entendre les dues opcions a fons, per què cadascuna és millor en el seu context, i quines implicacions pràctiques té cadascuna.</p>
+<p>Aquest capítol és una <strong>decisió informada</strong>. Si ja tens clar que vols LoRaWAN, pots saltar al capítol 26. Si tens dubtes, o vols entendre les alternatives, llegeix-lo sencer.</p>
+<h2>25.2 Recapitulació: què és LoRa i què és LoRaWAN</h2>
+<p>Ho vam veure al capítol 23, però ho repassem per tenir-ho fresc:</p>
+<ul>
+<li><strong>LoRa</strong>: tecnologia de <strong>modulació de ràdio</strong> (PHY). Defineix com es modula el senyal a nivell físic. És propietat de Semtech.</li>
+<li><strong>LoRaWAN</strong>: protocol de <strong>xarxa</strong> (MAC + aplicació) definit per la LoRa Alliance. Defineix com s'organitzen les dades, com s'autentiquen els nodes, com es xifra la comunicació, etc.</li>
+</ul>
+<p>Això és similar a la distinció entre <strong>Wi-Fi</strong> (PHY) i <strong>TCP/IP</strong> (xarxa). Tots dos poden existir separadament, però combinats formen una xarxa completa.</p>
+<h2>25.3 LoRaWAN: l'opció "amb infraestructura"</h2>
+<h3>Com funciona</h3>
+<p>Un node LoRaWAN no parla directament amb el gateway. Emet a l'aire, i qualsevol gateway que senti el senyal redirigeix el paquet al <strong>network server</strong>. El network server autentica el node, desxifra el missatge, i l'envia a l'<strong>application server</strong> (que pot ser TTN, ChirpStack, o un altre).</p>
+<pre class="code"><code class="language-">[NODES]  --LoRa--&gt;  [GATEWAY]  --Internet--&gt;  [NETWORK SERVER]  --API/MQTT--&gt;  [APP SERVER]
+   ↑                                                                          ↓
+   └───────────────────── resposta (downlink) ─────────────────────────────┘</code></pre>
+<p>Quan volem enviar una ordre al node (per exemple, "obre la vàlvula de reg"), el flow és invers: app server → network server → gateway → node.</p>
+<h3>Avantatges</h3>
+<p>1. <strong>Estàndard obert mantingut per una aliança industrial</strong>. Compatibilitat entre fabricants, eines comunes, bona documentació.
+2. <strong>Network server gratuït o de baix cost</strong>. TTN (The Things Stack) és gratuït per a ús no comercial. ChirpStack és open source i el podem autoallotjar.
+3. <strong>Escalabilitat</strong>. Podem afegir tants nodes com vulguem, gestionats tots des d'una consola web.
+4. <strong>Seguretat integrada</strong>. Xifratge AES-128, autenticació per DevEUI/AppKey, desduplicació, anti-replay.
+5. <strong>ADR automàtic</strong>. El network server ajusta els paràmetres per optimitzar cada node.
+6. <strong>Downlink</strong>. Podem enviar missatges al node (encara que amb limitacions de duty cycle).
+7. <strong>Mobilitat</strong>. Si un node es mou d'un gateway a un altre, el network server redirigeix automàticament (roaming).
+8. <strong>Comunitat gran</strong>. Milers de tutorials, fòrums, exemples de codi.
+9. <strong>Integracions fàcils</strong>. TTN té integracions natives amb MQTT, webhooks, IFTTT, AWS, Azure, etc.</p>
+<h3>Inconvenients</h3>
+<p>1. <strong>Compleixitat inicial</strong>. Cal entendre DevEUI, AppEUI, AppKey, OTAA vs ABP, classes A/B/C, ADR, etc. La corba d'aprenentatge no és negligible.
+2. <strong>Dependència d'un network server</strong>. Si TTN cau o canvia les seves polítiques, ens quedem penjats (menys problema amb ChirpStack autoallotjat).
+3. <strong>Limits de volum a TTN</strong>. Per a ús gratuït, hi ha un límit de missatges per dia (uns 500-1000, segons la regió).
+4. <strong>Duty cycle europeu</strong>. Només podem transmetre l'1% del temps a la majoria de sub-bandes, cosa que limita la freqüència d'actualitzacions.
+5. <strong>Cost del gateway</strong>. Si no n'hi ha cap comunitari a prop, hem de comprar o muntar un gateway propi (50-300 €).</p>
+<h2>25.4 LoRa P2P: l'opció "sense infraestructura"</h2>
+<h3>Com funciona</h3>
+<p>Dos mòduls SX1262 (o compatibles) es comuniquen directament entre ells, sense gateway, sense network server. Nosaltres definim tot: la freqüència, el SF, el payload, l'estructura del missatge, si hi ha ACK o no, etc.</p>
+<pre class="code"><code class="language-">[NODES]  --LoRa--&gt;  [RX/TX mòdul]  --cable/serial--&gt;  [Raspberry]</code></pre>
+<p>En aquest cas, la Raspberry (o un PC) té un mòdul SX1262 connectat per <strong>SPI</strong> o <strong>USB</strong> (amb un adaptador), i un script Python o C++ escolta els missatges rebuts.</p>
+<h3>Avantatges</h3>
+<p>1. <strong>Simplicitat</strong>. No cal configurar DevEUI, AppEUI, AppKey, ni entendre les classes de LoRaWAN. Tu tries el format del payload.
+2. <strong>Sense dependència de tercers</strong>. Tot és nostre, no hi ha network server extern.
+3. <strong>Sense limits de volum</strong>. Podem transmetre tan sovint com el duty cycle ens permeti.
+4. <strong>Cost inicial més baix</strong>. Només cal el node i un mòdul SX1262 a la Raspberry. No cal gateway separat.
+5. <strong>Aprenentatge</strong>. Codi obert, podem entendre exactament què passa.</p>
+<h3>Inconvenients</h3>
+<p>1. <strong>Sense estandardització</strong>. Cada projecte fa el seu propi protocol, la qual cosa significa més feina de manteniment.
+2. <strong>Sense seguretat per defecte</strong>. Si volem xifrar, l'hem d'implementar nosaltres.
+3. <strong>Sense escalabilitat</strong>. Si volem afegir un segon node, hem de modificar el codi del receptor. Si volem un tercer, igual. Per a més de 2-3 nodes, el P2P esdevé caòtic.
+4. <strong>Sense roaming</strong>. Si un node canvia de posició, ens podem perdre.
+5. <strong>Sense ADR</strong>. Hem de configurar manualment els paràmetres de cada node.
+6. <strong>Sense downlink estandarditzat</strong>. Podem implementar ACK manualment, però no és tan net com el downlink de LoRaWAN.
+7. <strong>Compatibilitat limitada</strong>. Si volem afegir una cosa comercial (un sensor de tercers que parli LoRaWAN), no es comunicarà amb el nostre P2P.</p>
+<h2>25.5 Quin model per a Hort Osona</h2>
+<p>L'arbre de decisió complet:</p>
+<pre class="code"><code class="language-">Comença
+│
+├── Tens previst tenir més d&#x27;un node al camp?
+│   ├── Sí → LoRaWAN (amb TTN o ChirpStack)
+│   └── No (un sol node)
+│       │
+│       ├── Vols afegir nodes en el futur?
+│       │   ├── Sí → LoRaWAN
+│       │   └── No
+│       │       │
+│       │       ├── T&#x27;agrada la idea d&#x27;un estàndard obert?
+│       │       │   ├── Sí → LoRaWAN igualment
+│       │       │   └── No → P2P
+│       │       │
+│       │       └── T&#x27;agrada tenir el control total?
+│       │           ├── Sí → P2P
+│       │           └── No → LoRaWAN
+│   │
+│   └── Sí (ja tenim 1, vindran més) → LoRaWAN</code></pre>
+<p>Per a Hort Osona, la resposta és clara: <strong>LoRaWAN</strong>. Tenim previst diversos nodes, voldrem afegir-ne més en el futur, i la integració amb la resta del BernatLab (via MQTT) és natural.</p>
+<h2>25.6 Quan el P2P és millor</h2>
+<p>Dit això, el P2P té el seu espai. Algunes situacions on és millor:</p>
+<ul>
+<li><strong>Projectes puntuals d'un sol node</strong>: per exemple, un sensor de pluja aïllat que només volem monitorar, sense la complexitat de TTN.</li>
+<li><strong>Educació i aprenentatge</strong>: per entendre LoRa a fons, res millor que un P2P on veiem exactament què passa.</li>
+<li><strong>Xarxes molt privades</strong>: si volem una xarxa totalment aïllada, sense cap servidor extern, P2P és l'única opció.</li>
+<li><strong>Hackatges ràpids</strong>: per a un prototip d'un dia, és més ràpid fer P2P que configurar LoRaWAN.</li>
+</ul>
+<h2>25.7 LoRaWAN: la pila de protocols completa</h2>
+<p>Quan parlem de LoRaWAN, tenim quatre capes:</p>
+<p>1. <strong>Capa física (PHY)</strong>: la modulació LoRa (Semtech).
+2. <strong>Capa MAC</strong>: el protocol LoRaWAN (LoRa Alliance).
+3. <strong>Capa de xarxa</strong>: el network server (TTN, ChirpStack, Loriot).
+4. <strong>Capa d'aplicació</strong>: el application server (pot ser el mateix network server, o un servei extern).</p>
+<p>A més, hi ha components opcionals:</p>
+<ul>
+<li><strong>Servidor de join</strong>: gestiona l'autenticació inicial dels nodes.</li>
+<li><strong>Servidor de dispositius</strong>: emmagatzema l'estat i les claus de cada node.</li>
+<li><strong>Servidor d'aplicació</strong>: processa les dades de cada aplicació.</li>
+</ul>
+<p>TTN integra tot això en una sola consola. ChirpStack els separa en serveis independents, més modular però més complex.</p>
+<h2>25.8 El paper de cada peça</h2>
+<h3>Node (End Device)</h3>
+<p>El node és el sensor. Té un microcontrolador (ESP32, Pico, etc.) i un mòdul ràdio LoRa (SX1262, SX1276, etc.). Executa la pila LoRaWAN (LMIC, per exemple), gestiona les claus, i transmet.</p>
+<h3>Gateway</h3>
+<p>El gateway és el "traductor" entre el món LoRa (ràdio) i el món IP (Internet). Té un mòdul concentrador (SX1302 o SX1303, no pas SX1262 — el SX1302 pot rebre 8 canals simultànis) i una connexió a Internet. La seva feina és: escoltar totes les freqüències a 868 MHz, detectar transmissions LoRa, i enviar-les al network server.</p>
+<p>Quan un gateway rep un missatge, l'envia al network server amb la informació de:
+<ul>
+<li>Freqüència, SF, BW del senyal rebut.</li>
+<li>RSSI, SNR.</li>
+<li>Timestamp (per calcular temps de vol i triangular).</li>
+<li>Payload xifrat (el gateway no el pot desxifrar; només el redirigeix).</li>
+</ul></p>
+<h3>Network Server</h3>
+<p>El network server és el cervell. Funcions:</p>
+<ul>
+<li>Autenticar cada node (verificant DevEUI, AppKey).</li>
+<li>Desxifrar el payload (usant les claus de sessió derivades).</li>
+<li>Desduplicar missatges que arriben de múltiples gateways.</li>
+<li>Gestionar l'ADR.</li>
+<li>Encaminar el payload a l'application server correcte.</li>
+<li>Gestionar downlinks (respostes del node).</li>
+</ul>
+<h3>Application Server</h3>
+<p>L'application server és on aterren les dades ja desxifrades. Pot ser:</p>
+<ul>
+<li>La mateixa consola web de TTN (amb UI per visualitzar).</li>
+<li>Un servei MQTT (TTN publica els payloads a un broker MQTT, i nosaltres ens hi connectem).</li>
+<li>Un webhook HTTP (TTN fa una petició POST a una URL nostra).</li>
+<li>Un servei d'integració (AWS IoT, Azure IoT Hub, etc.).</li>
+</ul>
+<p>Al BernatLab, farem servir <strong>integració MQTT</strong>: TTN publicarà cada missatge rebut a un broker MQTT, i la resta de la cadena (Telegraf, InfluxDB, Node-RED, Grafana) consumirà des d'allà.</p>
+<h2>25.9 Com triar el hardware</h2>
+<h3>Per al gateway</h3>
+<p>Tres opcions principals:</p>
+<p>1. <strong>Waveshare SX1302 LoRaWAN Gateway HAT</strong> (~50-80 €): un mòdul HAT per a Raspberry Pi, amb el chip SX1302. És la opció més comuna per a homelabs. Muntura fàcilment, bona documentació.</p>
+<p>2. <strong>RAK2287</strong> (~70-100 €): un mòdul USB o mini-PCIe, basat en SX1302. Compatible amb moltes plaques (Raspberry, NUC, etc.).</p>
+<p>3. <strong>Dragino LPS8</strong> (~200-300 €): un gateway comercial complet, amb caixa, PoE, antena externa. Més robust però més car.</p>
+<p>4. <strong>Construir amb un SX1302 + Raspberry Pi</strong>: opció DIY, requereix soldar i configurar, però la més barata.</p>
+<p>Per a Hort Osona, recomano la <strong>opció 1 (Waveshare SX1302 HAT)</strong> per la relació preu/facilitat.</p>
+<h3>Per als nodes</h3>
+<p>Tres famílies principals:</p>
+<p>1. <strong>ESP32 + SX1262 breakout</strong>: màxima flexibilitat, però cal muntar a protoboard o PCB.
+2. <strong>Heltec LoRa 32 V3</strong>: ESP32 + SX1262 integrats, amb pantalla OLED, antena, bateria. Molt còmode per a prototips. (~25 €)
+3. <strong>TTGO LoRa</strong>: similar a Heltec, una mica més cara però bona qualitat. (~30 €)
+4. <strong>RAK3172</strong>: només el mòdul (no placa de desenvolupament), pensat per a productes comercials. (~15 €)
+5. <strong>LILYGO T-Beam</strong>: ESP32 + SX1262 + GPS. Per a nodes mòbils o geolocalització. (~40 €)</p>
+<p>Per a Hort Osona, recomano la <strong>Heltec LoRa 32 V3</strong> per començar: tot integrat, fàcil de programar, bona documentació, i barata.</p>
+<h2>25.10 Programari: el que instal·larem</h2>
+<p>A la Raspberry (gateway):</p>
+<ul>
+<li><strong>Concentratord</strong> (programari de gateway, abans lora-packet-forwarder).</li>
+<li><strong>Packet forwarder</strong> (processat de paquets, configurable).</li>
+</ul>
+<p>A l'ordinador o Raspberry (recepció):</p>
+<ul>
+<li><strong>Mosquitto</strong> (broker MQTT, ja instal·lat al M2).</li>
+<li><strong>Telegraf</strong> (recol·lector, ja instal·lat al M2).</li>
+<li><strong>InfluxDB</strong> (base de dades, ja instal·lat al M2).</li>
+<li><strong>Node-RED</strong> (processament, ja instal·lat al M2).</li>
+<li><strong>Grafana</strong> (visualització, ja instal·lat al M2).</li>
+</ul>
+<p>Al node:</p>
+<ul>
+<li><strong>Arduino</strong> + <strong>MCCI LoRaWAN LMIC</strong> o <strong>RadioLib</strong>.</li>
+<li>O <strong>MicroPython</strong> + <strong>RadioLib</strong> o una implementació específica.</li>
+</ul>
+<p>Al network server (TTN, allotjat al núvol):</p>
+<ul>
+<li>Consola web de TTN.</li>
+<li>Integració MQTT.</li>
+</ul>
+<h2>25.11 Estimació de cost total</h2>
+<p>Per a un node LoRaWAN + gateway a Hort Osona, amb 1 node inicial i 1 gateway propi:</p>
+<p>| Component | Preu (EUR) | Notes |
+|---|---|---|
+| Raspberry Pi 4 (4GB) | 60 | Ja la tenim. |
+| Waveshare SX1302 HAT | 70 | Gateway LoRaWAN. |
+| Antena 868 MHz (gateway) | 15 | Externa, amb cable. |
+| Heltec LoRa 32 V3 | 25 | Node. |
+| Antena 868 MHz (node) | 5 | Sol soldar a la Heltec. |
+| Sensor BME280 | 5 | T, H, P. |
+| Placa solar + bateria | 25 | Per a ús autònom. |
+| Caixa estanca | 10 | Per a ús exterior. |
+| Cables, connector, etc. | 10 | |
+| <strong>Total</strong> | <strong>~225 €</strong> | Per a 1 node + 1 gateway. |</p>
+<p>Per afegir nodes addicionals: ~50-60 € per node (Heltec + antena + sensor).</p>
+<h2>25.12 Resum</h2>
+<p>En aquest capítol hem vist les dues grans topologies per a xarxes LoRa: <strong>LoRaWAN</strong> (amb gateway i network server) i <strong>LoRa P2P</strong> (directe entre dos mòduls). Hem après els avantatges i inconvenients de cada una, hem decidit que per a Hort Osona la millor opció és <strong>LoRaWAN amb TTN i un gateway propi</strong> a la Raspberry, hem vist quin hardware cal, i hem estimat el cost. En el proper capítol ens endinsarem a la capa LoRaWAN: TTN, device profiles, formats de payload, i decoders.</p>
+<h2>25.13 Exercicis pràctics</h2>
+<p>1. Crea un compte a The Things Network: https://console.thingsnetwork.org/
+2. Crea una aplicació nova a la consola de TTN. Dona-li un nom identificatiu (per exemple, `hort-osona-bernat`).
+3. Afegeix un dispositiu de prova a l'aplicació. Anota el DevEUI, AppEUI, i AppKey generats.
+4. Mira la documentació de TTN sobre data formats: https://www.thoughts.com/en/docs/concepts/data-formats/
+5. Comprova quin data rate (DR0-DR5) t'ofereix TTN a la teva regió.
+6. Fes una taula amb el cost total estimat del teu projecte LoRa, segons els components que vulguis comprar.
+7. Documenta al README del projecte quina decisió has pres: LoRaWAN, P2P, o un híbrid.</p>
+<p>Paraules clau: <strong>LoRaWAN, LoRa, P2P, gateway, network server, application server, TTN, The Things Stack, ChirpStack, DevEUI, AppEUI, AppKey, OTAA, ABP, classe A, classe B, classe C, ADR, downlink, uplink, payload, decoder, codec, CayenneLPP, JSON, MQTT, Telegraf, InfluxDB, Node-RED, Grafana, Concentratord, packet forwarder, SX1302, SX1303, SX1262, ESP32, Heltec, TTGO, RAK, Waveshare, hardware, cost, comparativa, avantatges, inconvenients, decisió, node, end device, EU868, EU433, US915, 868 MHz, 915 MHz, ISM, duty cycle, ETSI, normativa, LoRa Alliance, Semtech, codi obert, integració, broker, application server, ChirpStack Gateway Bridge, MQTT broker, broker extern, broker intern, seguretat, AES-128, xifratge, autenticació, roaming, ADR, spreading factor, SF, BW, RSSI, SNR, packet loss, link budget, EUI-64, EUI-48, IEEE 802.15.4g, EU868, EU433, US915, AS923, AU915, CN470, KR920, IN865, regions, ISM band, regional parameters, Lora Alliance, regional parameters document, TTN v3, TTN v2, TTS, The Things Stack, LNS, JOIN, OTAA, ABP, session keys, NwkSKey, AppSKey, join procedure, join request, join accept, join server, device address, DevAddr, frame counter, FCnt, FCntUp, FCntDown, FPort, FRMPayload, MAC header, MHDR, Join-Request, Join-Accept, unconfirmed data up, confirmed data up, RX1, RX2, receive windows, transmission timing, hop limit, ADR bit, ADRACKReq, ADRACKCnt, LinkADRReq, LinkADRAns, DutyCycleReq, DutyCycleAns, RXParamSetupReq, RXParamSetupAns, DevStatusReq, DevStatusAns, NewChannelReq, NewChannelAns, RXTimingSetupReq, RXTimingSetupAns, class A, class B, class C, MAC commands, fopts, FOptsLen, payload size, maximum payload size, dwell time, dwell time limitation, EU868 dwell time, 868 MHz dwell time, 400 ms dwell time, 868.0 MHz, 868.6 MHz, 868.7 MHz, 869.2 MHz, 869.4 MHz, 869.65 MHz, ETSI EN 300 220, ERC Recommendation 70-03, duty cycle, 1% duty cycle, 0.1% duty cycle, 10% duty cycle, listen before talk, LBT, polite spectrum access, polite LoRa, polite LoRaWAN, polite protocol, polite stack, polite access</strong>.</p>
+<hr>
+<h2 id="26-lorawan-ttn">Capitol 26 — La capa LoRaWAN: TTN, device profiles, payloads</h2>
+<p>> <em>"LoRaWAN és com parlar una llengua: tens un vocabulari, una gramàtica, i unes normes de cortesia. Un cop les domines, parlar amb un node és natural."</em></p>
+<h2>26.1 Què és The Things Network (TTN)</h2>
+<p><strong>The Things Network</strong> (ara <strong>The Things Stack</strong>, TTS) és un <strong>network server LoRaWAN comunitari i gratuït</strong>, allotjat al núvol per la fundació The Things Network. Va començar el 2015 com un projecte de crowdsourcing per cobrir el món amb gateways comunitaris, i actualment té cobertura a centenars de països, inclosa una bona part de Catalunya i la resta d'Espanya.</p>
+<p>La URL de la consola web és https://console.thingsnetwork.org/. Allà podrem:</p>
+<ul>
+<li>Crear <strong>aplicacions</strong> (agrupacions de dispositius).</li>
+<li>Registrar <strong>dispositius</strong> (nodes).</li>
+<li>Configurar <strong>integracions</strong> (MQTT, webhooks, etc.).</li>
+<li>Veure les <strong>trames rebudes</strong> en temps real.</li>
+<li>Monitorar la salut dels <strong>gateways</strong> propers.</li>
+</ul>
+<p>TTN és la millor opció per començar amb LoRaWAN perquè:</p>
+<ul>
+<li><strong>És gratuït</strong> per a ús no comercial, amb un volum raonable.</li>
+<li><strong>No requereix instal·lar cap servidor</strong> propi.</li>
+<li><strong>Té una documentació excel·lent</strong>.</li>
+<li><strong>Comunitat gran</strong> amb milers de projectes, fòrums actius, tutorials.</li>
+<li><strong>Integracions fàcils</strong> amb MQTT, webhooks, AWS, Azure, etc.</li>
+</ul>
+<h2>26.2 Crear un compte i una aplicació</h2>
+<p>El primer pas és crear un compte a la consola de TTN. Només cal un correu electrònic. Un cop registrats:</p>
+<p>1. <strong>Creem una aplicació</strong> amb un nom identificatiu. Per a Hort Osona, jo faria servir `hort-osona-bernat`.
+2. <strong>Anotem l'Application ID</strong> i l'<strong>Application EUI</strong> (un identificador únic generat per TTN).
+3. <strong>Accedim a la secció "Integrations"</strong> per afegir la integració MQTT.</p>
+<p>La consola web de TTN és intuïtiva. Si tens dubtes, la documentació oficial és a https://www.thoughts.com/en/docs/.</p>
+<h2>26.3 DevEUI, AppEUI, AppKey: els identificadors</h2>
+<p>Cada node LoRaWAN té <strong>tres identificadors</strong> principals:</p>
+<ul>
+<li><strong>DevEUI</strong>: identificador únic del dispositiu, similar a una adreça MAC. 64 bits. Cada node ha de tenir-ne un d'únic.</li>
+<li><strong>AppEUI</strong> (o <strong>JoinEUI</strong>): identificador de l'aplicació. 64 bits. Indica a quin "tenant" pertany el node.</li>
+<li><strong>AppKey</strong>: clau mestra de 128 bits, usada per autenticar el node durant el procés de join.</li>
+</ul>
+<p>A TTN, quan registrem un node, podem:</p>
+<ul>
+<li><strong>Generar automàticament</strong> els identificadors (TTN ens els dona).</li>
+<li><strong>Introduir-los manualment</strong> si el node ja ve amb identificadors preconfigurats (com passa amb molts mòduls comercials).</li>
+</ul>
+<p>Els valors generats per TTN es mostren <strong>una sola vegada</strong>. Cal guardar-los en un lloc segur (per exemple, un fitxer `.env` o un document xifrat).</p>
+<h2>26.4 OTAA vs ABP: els dos mètodes d'unió</h2>
+<p>Quan un node vol connectar-se a la xarxa LoRaWAN, ho pot fer de dues maneres:</p>
+<h3>OTAA (Over-The-Air Activation)</h3>
+<p>Aquest és el <strong>mètode recomanat</strong> i l'estàndard de facto. Funciona així:</p>
+<p>1. El node envia un <strong>Join Request</strong> amb el seu DevEUI, AppEUI, i un nonce.
+2. El network server valida la sol·licitud usant l'AppKey.
+3. Si tot és correcte, el NS envia un <strong>Join Accept</strong> amb un DevAddr (adreça dinàmica) i les claus de sessió (NwkSKey, AppSKey).
+4. A partir d'aquí, el node pot transmetre amb les claus de sessió.</p>
+<p>Avantatges d'OTAA:
+<ul>
+<li>Més segur: les claus de sessió es renegocien cada vegada.</li>
+<li>Permet el roaming: el node pot canviar de network server.</li>
+<li>Permet l'ADR: el NS pot ajustar els paràmetres.</li>
+</ul></p>
+<h3>ABP (Activation By Personalization)</h3>
+<p>En aquest mètode, les claus de sessió (NwkSKey, AppSKey) i el DevAddr es configuren <strong>directament al node</strong>, sense cap handshake. El node ja està "unida" a la xarxa per sempre, amb aquestes claus fixes.</p>
+<p>Inconvenients d'ABP:
+<ul>
+<li>Si les claus es comprometen, cal reprogramar el node.</li>
+<li>No suporta roaming.</li>
+<li>No suporta ADR de manera nativa.</li>
+</ul></p>
+<p>Recomanació: usa <strong>OTAA sempre</strong>, tret que tinguis un motiu específic per usar ABP.</p>
+<h2>26.5 Device profiles</h2>
+<p>TTN permet definir <strong>device profiles</strong> que descriuen les capacitats d'un tipus de dispositiu:</p>
+<ul>
+<li>Versió de LoRaWAN (1.0.2, 1.0.3, 1.0.4, 1.1).</li>
+<li>Versió de la Regional Parameters (RP001-1.0.3, etc.).</li>
+<li>Capacitat de l'ADR.</li>
+<li>Classes suportades (A, B, C).</li>
+<li>Màxima potència de transmissió.</li>
+<li>Fabrique i model.</li>
+</ul>
+<p>Els device profiles ajuden a mantenir la consistència quan tenim molts dispositius similars. Per a Hort Osona, podem crear un device profile comú per a tots els nodes de sensors ambientals.</p>
+<h2>26.6 Payload formats: CayenneLPP i altres</h2>
+<p>Quan un node LoRaWAN transmet, el payload és una seqüència de bytes (típicament 5-50 bytes). Com interpretem aquests bytes?</p>
+<p>Hi ha diversos estàndards i convencions:</p>
+<h3>CayenneLPP (Cayenne Low Power Payload)</h3>
+<p>És el format més popular per a sensors LoRaWAN. Creat per myDevices, està pensat per ser molt eficient en bytes. Cada dada es codifica amb:</p>
+<ul>
+<li>1 byte: tipus de dada (per exemple, 0x67 = temperatura).</li>
+<li>1 byte: canal (per exemple, 0x01 = canal 1).</li>
+<li>N bytes: el valor (per exemple, 2 bytes per a un enter amb signe de 16 bits, o 4 bytes per a un float).</li>
+</ul>
+<p>Exemples de canals CayenneLPP:</p>
+<p>| Tipus | Valor | Bytes |
+|---|---|---|
+| 0x67 (Temperatura) | graus C × 10 (signed 16-bit) | 2 |
+| 0x68 (Humitat) | % × 2 (unsigned 16-bit) | 2 |
+| 0x69 (Acceleròmetre) | tres eixos (3 × signed 16-bit) | 6 |
+| 0x6E (Il·luminació) | lux (unsigned 16-bit) | 2 |
+| 0x75 (Humitat del sòl) | % (unsigned 8-bit) | 1 |
+| 0x02 (Sortida analògica) | valor (float, 4 bytes) | 4 |
+| 0x03 (Sortida analògica) | valor (float, 4 bytes) | 4 |</p>
+<p>Exemple de payload CayenneLPP per a un sensor amb temperatura, humitat i lluminositat:</p>
+<pre class="code"><code class="language-">67 01 00 FF    # Temperatura al canal 1: 0x00FF = 255, /10 = 25.5°C
+68 02 00 B6    # Humitat al canal 2: 0x00B6 = 182, /2 = 91%
+6E 03 0B B8    # Lluminositat al canal 3: 0x0BB8 = 3000 lux</code></pre>
+<p>Total: 12 bytes. Molt eficient.</p>
+<h3>JSON sobre LoRaWAN</h3>
+<p>Una altra opció és enviar JSON com a payload:</p>
+<pre class="code"><code class="language-json">{&quot;t&quot;: 25.5, &quot;h&quot;: 91, &quot;l&quot;: 3000, &quot;id&quot;: &quot;n1&quot;, &quot;v&quot;: 1}</code></pre>
+<p>Avantatges: llegible, fàcil de debugar.
+Inconvenients: ocupa més bytes. Un missatge de 50 bytes amb JSON pot trigar molt més a transmetre que un CayenneLPP equivalent.</p>
+<h3>Binari personalitzat</h3>
+<p>Si tenim moltes dades idèntiques, podem definir el nostre propi format binari. Per exemple, 2 bytes per a la temperatura, 1 byte per a la humitat, 2 bytes per al voltatge de la bateria. Total: 5 bytes per a tres dades. Molt eficient, però menys estàndard.</p>
+<h2>26.7 Payload formatters a TTN</h2>
+<p>TTN permet definir <strong>payload formatters</strong> que interpreten el payload del node:</p>
+<ul>
+<li><strong>Decoder</strong>: converteix el payload binari en JSON per a l'aplicació.</li>
+<li><strong>Converter</strong> (uplink): format JSON que TTN rep i publica.</li>
+<li><strong>Encoder</strong> (downlink): converteix JSON en payload binari per enviar al node.</li>
+</ul>
+<p>Exemple de decoder CayenneLPP en JavaScript:</p>
+<pre class="code"><code class="language-javascript">function decodeUplink(input) {
+    var decoded = {};
+    var i = 0;
+    while (i &lt; input.bytes.length) {
+        var channel = input.bytes[i++];
+        var type = input.bytes[i++];
+        switch (type) {
+            case 0x67:  // Temperatura
+                var t = (input.bytes[i++] &lt;&lt; 8) | input.bytes[i++];
+                if (t &gt; 0x7FFF) t -= 0x10000;
+                decoded.temperatura = t / 10.0;
+                break;
+            case 0x68:  // Humitat
+                var h = (input.bytes[i++] &lt;&lt; 8) | input.bytes[i++];
+                decoded.humitat = h / 2.0;
+                break;
+            // Afegir altres tipus segons calgui
+        }
+    }
+    return {
+        data: decoded,
+        warnings: [],
+        errors: []
+    };
+}</code></pre>
+<p>Aquest codi es pot enganxar directament a la consola de TTN, secció "Payload formatters" del dispositiu.</p>
+<h2>26.8 Integració amb el broker MQTT</h2>
+<p>La integració clau per al BernatLab és <strong>MQTT</strong>. TTN ens permet configurar una integració MQTT on cada vegada que un node transmet, el payload desxifrat (en JSON) es publica a un broker MQTT.</p>
+<p>A TTN, a la secció "Integrations":</p>
+<p>1. <strong>Triem "MQTT"</strong>.
+2. <strong>Configurem el broker</strong>:
+<ul>
+<li><strong>Broker Address</strong>: `mqtt://100.115.134.76:1883` (la Tailscale IP del BernatLab).</li>
+<li><strong>Username</strong>: `ttn-bridge` (o el que hàgim creat a Mosquitto).</li>
+<li><strong>Password</strong>: la contrasenya.</li>
+</ul>
+3. <strong>Triem el topic prefix</strong> (per defecte, `v3/{application_id}@{tenant_id}/devices/{device_id}/`).
+4. <strong>Desem</strong>.</p>
+<p>Un cop configurat, cada vegada que un node transmet, TTN publicarà un missatge JSON al broker MQTT. Aquest missatge el pot consumir Telegraf (per guardar-lo a InfluxDB) o Node-RED (per processar-lo).</p>
+<h3>Format del missatge MQTT</h3>
+<p>El missatge que TTN publica té aquesta estructura:</p>
+<pre class="code"><code class="language-json">{
+  &quot;end_device_ids&quot;: {
+    &quot;device_id&quot;: &quot;eui-70b3d57ed004f1ce&quot;,
+    &quot;application_ids&quot;: {
+      &quot;application_id&quot;: &quot;hort-osona-bernat&quot;
+    },
+    &quot;dev_eui&quot;: &quot;70B3D57ED004F1CE&quot;,
+    &quot;join_eui&quot;: &quot;0000000000000000&quot;
+  },
+  &quot;received_at&quot;: &quot;2026-07-08T12:34:56Z&quot;,
+  &quot;uplink_message&quot;: {
+    &quot;f_port&quot;: 2,
+    &quot;f_cnt&quot;: 42,
+    &quot;frm_payload&quot;: &quot;GAEABbYBmAu4&quot;,
+    &quot;decoded_payload&quot;: {
+      &quot;temperatura&quot;: 25.5,
+      &quot;humitat&quot;: 91,
+      &quot;lux&quot;: 3000
+    },
+    &quot;rx_metadata&quot;: [{
+      &quot;gateway_ids&quot;: {
+        &quot;gateway_id&quot;: &quot;raspi-gw-1&quot;
+      },
+      &quot;rssi&quot;: -67,
+      &quot;snr&quot;: 9.5,
+      &quot;channel_rssi&quot;: -67,
+      &quot;channel_index&quot;: 5
+    }],
+    &quot;settings&quot;: {
+      &quot;data_rate&quot;: {
+        &quot;lora&quot;: {
+          &quot;bandwidth&quot;: 125000,
+          &quot;spreading_factor&quot;: 9
+        }
+      },
+      &quot;frequency&quot;: &quot;868100000&quot;
+    }
+  }
+}</code></pre>
+<p>Com veieu, el payload decodificat ja ve en JSON, juntament amb metadades útils: RSSI, SNR, data rate, etc.</p>
+<h3>Topics MQTT</h3>
+<p>Per defecte, TTN publica a:</p>
+<pre class="code"><code class="language-">v3/{application_id}@{tenant_id}/devices/{device_id}/up</code></pre>
+<p>on `up` indica que és un missatge uplinki (del node al servidor). Els altres tipus de missatge són:</p>
+<ul>
+<li>`up`: uplink del node.</li>
+<li>`down`: downlink (resposta del servidor al node).</li>
+<li>`join`: peticions de join (OTAA).</li>
+<li>`ack`: confirmacions.</li>
+<li>`error`: errors.</li>
+</ul>
+<h2>26.9 Downlink: enviar comandes al node</h2>
+<p>A més de rebre dades dels nodes, podem <strong>enviar ordres</strong> (downlinks). Això és útil per:</p>
+<ul>
+<li>Canviar la configuració d'un node a distància.</li>
+<li>Activar un actuador (per exemple, obrir una vàlvula de reg).</li>
+<li>Fer un "ping" per comprovar si el node està viu.</li>
+</ul>
+<p>Limitacions del downlink:</p>
+<ul>
+<li><strong>Només a classe A</strong>: el node només pot rebre durant les finestres RX1 i RX2, just després d'haver transmès.</li>
+<li><strong>Duty cycle igual</strong>: cada downlink compta contra el duty cycle.</li>
+<li><strong>FPort</strong>: el downlink s'envia en un port concret (1-223).</li>
+</ul>
+<p>A TTN, podem programar un downlink des de la consola web, o via API, o escoltant un topic MQTT específic.</p>
+<h2>26.10 Classes de dispositius</h2>
+<p>LoRaWAN defineix tres classes:</p>
+<ul>
+<li><strong>Classe A</strong>: el node pot rebre <strong>només immediatament</strong> després d'haver transmès. La majoria de sensors són classe A per estalviar energia.</li>
+<li><strong>Classe B</strong>: el node pot rebre en finestres programades (pings del network server). Sincronitza amb el NS periòdicament.</li>
+<li><strong>Classe C</strong>: el node pot rebre <strong>continuament</strong> (excepte quan està transmetent). Consumeix més energia, però permet downlinks immediats. Útil per a actuadors o nodes endollats.</li>
+</ul>
+<p>Per a sensors amb piles, <strong>classe A</strong> és l'estàndard. La Heltec LoRa 32 V3 pot treballar en classe A o C.</p>
+<h2>26.11 Procediment de join: detall tècnic</h2>
+<p>Quan un node OTAA arrenca, segueix aquest procediment:</p>
+<p>1. <strong>Genera un nonce aleatori</strong> (DevNonce).
+2. <strong>Construeix el Join Request</strong> amb DevEUI, AppEUI, DevNonce.
+3. <strong>Xifra el Join Request</strong> amb l'AppKey.
+4. <strong>Envia el Join Request</strong> a un canal aleatori.
+5. <strong>Escolta el Join Accept</strong> a RX1 (al cap de 1 segon ± 20 µs al canal de resposta) o RX2 (al cap de 2 segons al canal i data rate configurats).
+6. Si rep el Join Accept, <strong>deriva les claus de sessió</strong> (NwkSKey, AppSKey) i el DevAddr.
+7. A partir d'aquí, <strong>pot transmetre dades normals</strong> amb aquestes claus.</p>
+<p>Si no rep el Join Accept, torna a provar amb un altre canal i un altre DevNonce. Després de N intents, espera més estona (backoff exponencial).</p>
+<h2>26.12 El paper de l'AppKey</h2>
+<p>L'AppKey és la clau mestra. Està emmagatzemada al node (en memòria no volàtil) i al network server (a la configuració del dispositiu). S'usa per:</p>
+<ul>
+<li><strong>Xifrar el Join Request</strong> (per demostrar que el node és legítim).</li>
+<li><strong>Derivar les claus de sessió</strong> durant el join.</li>
+<li><strong>No s'usa mai per xifrar les dades normals</strong>: això ho fan les claus de sessió derivades.</li>
+</ul>
+<p>Si l'AppKey es compromet, algú podria suplantar el node. Per tant, <strong>cal guardar-la en lloc segur</strong> (fitxer xifrat, gestors de secrets, etc.).</p>
+<h2>26.13 Configurar la integració MQTT a TTN</h2>
+<p>Pas a pas, en detall:</p>
+<p>1. <strong>Crear un usuari MQTT a Mosquitto</strong>:</p>
+<pre class="code"><code class="language-bash">docker exec -it mosquitto mosquitto_passwd -c /mosquitto/config/passwordfile ttn-bridge</code></pre>
+<p>(Per afegir a un fitxer existent, sense `-c`).</p>
+<p>2. <strong>Configurar les ACLs</strong> per a l'usuari `ttn-bridge`:</p>
+<pre class="code"><code class="language-">user ttn-bridge
+topic write v3/+/@/devices/+/up
+topic write v3/+/@/devices/+/join
+topic write v3/+/@/devices/+/down
+topic write v3/+/@/devices/+/ack
+topic read v3/+/@/devices/+/down</code></pre>
+<p>3. <strong>A la consola de TTN</strong>, a la secció "Integrations":</p>
+<ul>
+<li>Clic a "MQTT".</li>
+<li>Clic a "Add integration".</li>
+<li>A la URL del broker: `mqtt://100.115.134.76:1883`.</li>
+<li>Username: `ttn-bridge`.</li>
+<li>Password: la contrasenya.</li>
+<li>Desar.</li>
+</ul>
+<p>4. <strong>Verificar</strong> que TTN es pot connectar al broker. A la consola, a la secció "Integrations", hauria d'aparèixer "Connected".</p>
+<h2>26.14 El paper de l'Application Server</h2>
+<p>Al BernatLab, l'<strong>application server</strong> és el que consumeix les dades de TTN. En el model de TTN, això podem ser:</p>
+<ul>
+<li>La <strong>consola web de TTN</strong> (per visualitzar i debugar).</li>
+<li>Un <strong>broker MQTT</strong> (com el nostre Mosquitto).</li>
+<li>Un <strong>servei extern</strong> (AWS IoT, Azure IoT Hub, etc.).</li>
+</ul>
+<p>Per al nostre cas, l'application server és el <strong>broker Mosquitto del BernatLab</strong>, i els consumidors són Telegraf, Node-RED, i Grafana.</p>
+<h2>26.15 Resum</h2>
+<p>En aquest capítol hem après com funciona la capa LoRaWAN: els identificadors (DevEUI, AppEUI, AppKey), els mètodes d'unió (OTAA recomanat, ABP com a excepció), els formats de payload (CayenneLPP, JSON, binari personalitzat), la integració amb MQTT, els downlinks, les classes de dispositius, i el procediment de join. Hem configurat la integració MQTT a TTN perquè les dades dels nodes arribin al broker del BernatLab. En el proper capítol muntarem un gateway LoRaWAN a la Raspberry amb Concentratord.</p>
+<h2>26.16 Exercicis pràctics</h2>
+<p>1. Crea un compte a TTN: https://console.thingsnetwork.org/
+2. Crea una aplicació anomenada `hort-osona-bernat`.
+3. Afegeix un dispositiu de prova a l'aplicació. Anota DevEUI, AppEUI, AppKey.
+4. Configura la integració MQTT a TTN apuntant al broker del BernatLab.
+5. Prova de subscriure't a `v3/#` al broker Mosquitto. Hauries de veure algun missatge de keepalive.
+6. Escriu un payload formatter (decoder CayenneLPP) per a un node que envia temperatura, humitat, i humitat del sòl.
+7. Documenta al README del projecte els identificadors de cada node, mai en text pla al repositori.</p>
+<p>Comandes útils:</p>
+<pre class="code"><code class="language-bash"># Crear usuari MQTT per a TTN
+docker exec mosquitto mosquitto_passwd -c /mosquitto/config/passwordfile ttn-bridge
+<h1>Provar la connexió</h1>
+mosquitto_sub -h 100.115.134.76 -t &quot;v3/#&quot; -v -u bernat -P CONTRASENYA</code></pre>
+<p>Paraules clau: <strong>TTN, The Things Network, The Things Stack, TTS, consola, aplicació, dispositiu, DevEUI, AppEUI, AppKey, NwkSKey, AppSKey, DevAddr, OTAA, ABP, join, join request, join accept, device profile, payload, CayenneLPP, JSON, binari, decoder, encoder, formatter, MQTT, integració, broker, topic, uplink, downlink, classe A, classe B, classe C, RX1, RX2, duty cycle, dev nonce, app nonce, fcnt, fport, EUI-64, EUI-48, IEEE 802.15.4g, xarxa, network server, application server, MQTT broker, Mosquitto, ACL, usuari, contrasenya, keepalive, packet forwarder, concentratord, xifrat, AES-128, integritat, autenticació, anti-replay, FCntUp, FCntDown, session keys, session context, NwkSKey, AppSKey, derivació, seguretat LoRaWAN, EU868, 868 MHz, EU868, channels, data rates, DR0-DR5, ADR, datr, payload size, maximum payload size, dwell time, ETSI, ISM, sub-banda, normativa</strong>.</p>
+<hr>
+<h2 id="27-gateway-raspberry">Capitol 27 — Gateway LoRaWAN a la Raspberry amb Concentratord</h2>
+<p>> <em>"Un gateway LoRaWAN és com una torre de telefonia, però minúscula: 50 grams, 50 euros, i pot cobrir quilòmetres. La diferència és que el muntes tu."</em></p>
+<h2>27.1 Què és un gateway LoRaWAN</h2>
+<p>Un <strong>gateway</strong> LoRaWAN és un dispositiu que escolta les transmissions LoRa a 868 MHz i les redirigeix al network server (com The Things Stack) per Internet. A diferència d'un node (que és un sensor amb poca potència), un gateway ha de ser capaç de rebre <strong>molts canals simultàniament</strong> i durant <strong>tot el temps</strong>.</p>
+<p>Per fer-ho, els gateways moderns usen un xip <strong>concentrador</strong> que pot rebre 8 o més canals alhora. El més popular actualment és el <strong>SX1302</strong> (o el seu successor, el <strong>SX1303</strong>), de Semtech. Aquest xip no és un transmissor LoRa normal (com el SX1262); és un processador de senyals dedicat que pot rebre transmissions de múltiples nodes alhora.</p>
+<p>El gateway típic té:</p>
+<ul>
+<li>Un <strong>mòdul concentrador</strong> (SX1302).</li>
+<li>Un <strong>microcontrolador</strong> o <strong>ordinador</strong> que gestiona el mòdul i la connexió a Internet.</li>
+<li>Una <strong>antena externa</strong> (per a bon abast).</li>
+<li>Un <strong>programari</strong> (packet forwarder) que envia els paquets rebuts al network server.</li>
+</ul>
+<h2>27.2 Tipus de gateways</h2>
+<p>Hi ha diverses maneres de tenir un gateway LoRaWAN:</p>
+<h3>Gateways comercials</h3>
+<p>Aparells complets, amb caixa, antena, i software preinstal·lat:</p>
+<ul>
+<li><strong>Dragino LPS8</strong>: molt popular, robust, amb PoE. ~200-300 €.</li>
+<li><strong>RAK7268 / RAK7258</strong>: bons, amb Wi-Fi i 4G. ~250-350 €.</li>
+<li><strong>MikroTik LoRa</strong>: barat però limitat. ~100 €.</li>
+</ul>
+<h3>DIY amb Raspberry Pi + mòdul SX1302</h3>
+<p>La opció més comuna per a homelabs. Es compon de:</p>
+<ul>
+<li>Una <strong>Raspberry Pi</strong> (que ja tenim al BernatLab).</li>
+<li>Un <strong>mòdul SX1302</strong> connectat per <strong>SPI</strong> o <strong>USB</strong>.</li>
+<li><strong>Software</strong>: Concentratord (o altres com ChirpStack Gateway Bridge).</li>
+</ul>
+<p>Aquesta opció és la que veurem en detall, perquè és la que farem servir al BernatLab.</p>
+<h3>Gateways virtuals</h3>
+<p>En alguns casos, podem usar un gateway d'un altre (per exemple, un gateway TTN comunitari) sense tenir-ne un de propi. Això és el que passa si hi ha cobertura TTN a menys de 5-10 km amb visió directa.</p>
+<h2>27.3 Hardware: el mòdul SX1302</h2>
+<p>Hi ha diversos mòduls al mercat:</p>
+<p>1. <strong>Waveshare SX1302 LoRaWAN Gateway HAT</strong>: la opció més popular. Es connecta directament als pins GPIO de la Raspberry Pi. ~70 €.</p>
+<p>2. <strong>RAK2287</strong>: mòdul mini-PCIe amb SX1302. Es connecta a una placa base com la RAK2287 PCIe. ~80-100 €.</p>
+<p>3. <strong>Seeed Studio WM1302</strong>: mòdul mini-PCIe similar al RAK. ~70 €.</p>
+<p>4. <strong>SX1302 + Raspberry directament</strong>: mòdul sol + cable, per als més agoserats. ~50 €.</p>
+<p>Al BernatLab, recomanem el <strong>Waveshare SX1302 HAT</strong> per la facilitat d'instal·lació. Només cal encaixar-lo als pins GPIO de la Raspberry, sense cables, sense soldar.</p>
+<h3>Característiques del SX1302</h3>
+<ul>
+<li><strong>8 canals de recepció simultània</strong> (pot rebre transmissions de fins a 8 nodes alhora).</li>
+<li><strong>SF7-SF12</strong> suportat.</li>
+<li><strong>125 / 250 / 500 kHz</strong> de BW.</li>
+<li><strong>868 / 915 / 923 MHz</strong> (multibanda).</li>
+<li><strong>Connexió SPI</strong> (a través dels pins GPIO de la Raspberry).</li>
+<li><strong>Consum</strong>: ~1-2 W en recepció.</li>
+</ul>
+<h2>27.4 Antena</h2>
+<p>L'antena és <strong>tan important com el mòdul</strong>. Una mala antena pot reduir l'abast a la meitat o més.</p>
+<p>Per a 868 MHz, opcions:</p>
+<ul>
+<li><strong>Antena de rubber ducky</strong> (petita, omnidireccional, ~5 dBi): bona per a provar.</li>
+<li><strong>Antena de fibra de vidre</strong> (més llarga, ~5-8 dBi): millor rendiment, bona per a exteriors.</li>
+<li><strong>Antena direccional Yagi</strong> (~8-12 dBi): molt abast en una direcció concreta, útil si el node està en una posició fixa.</li>
+</ul>
+<p>A 868 MHz, una antena de 1/4 d'ona fa ~8.6 cm. Una de 1/2 d'ona, ~17 cm. Una de 5/8 d'ona, ~35 cm.</p>
+<p>Al BernatLab, recomanem una <strong>antena de fibra de vidre omnidireccional</strong> per a ús general. Si tenim una posició fixa del node, podem considerar una Yagi per augmentar l'abast.</p>
+<h3>Cable i connectors</h3>
+<p>El SX1302 HAT de Waveshare porta un <strong>connector U.FL</strong> (IPEX) a la placa. Per connectar una antena externa, cal un <strong>pigtail U.FL a SMA</strong> (un cable petit d'uns 10-15 cm). Un extrem va al HAT, l'altre a l'antena.</p>
+<p>Compte amb els cables massa llargs: a 868 MHz, cada metre de cable perd ~0.5-1 dB. Mantenim el cable el més curt possible.</p>
+<h2>27.5 Software: Concentratord</h2>
+<p><strong>Concentratord</strong> (abans conegut com a <strong>lora-packet-forwarder</strong>) és el programari estàndard per a gateways basats en SX1302. Està desenvolupat per xdegaye (Benjamin}) i mantingut activament.</p>
+<p>Hi ha dues variants:</p>
+<ul>
+<li><strong>Concentratord</strong>: la nova versió, refeta des de zero, modular.</li>
+<li><strong>lora-packet-forwarder</strong>: la versió clàssica, encara funcional però menys activa.</li>
+</ul>
+<p>Recomanem <strong>Concentratord</strong> per a noves instal·lacions.</p>
+<h3>Altres opcions de programari</h3>
+<ul>
+<li><strong>ChirpStack Gateway Bridge</strong>: si volem integrar el gateway amb un ChirpStack autoallotjat.</li>
+<li><strong>TTN Packet Forwarder</strong>: oficial de TTN, però menys flexible.</li>
+</ul>
+<h2>27.6 Instal·lació de Concentratord a la Raspberry</h2>
+<p>Al BernatLab, la Raspberry ja té Docker. Podem executar Concentratord com un contenidor, o com a servei natiu. Recomanem el <strong>contenidor Docker</strong> per la facilitat de gestió.</p>
+<h3>Opció 1: Contenidor Docker (recomanada)</h3>
+<p>Al `docker-compose.yml` del BernatLab, afegim un servei:</p>
+<pre class="code"><code class="language-yaml">services:
+  concentratord:
+    image: chirpstack/chirpstack-concentratord:2
+    container_name: concentratord
+    restart: unless-stopped
+    devices:
+<ul>
+<li>/dev/spidev0.0:/dev/spidev0.0</li>
+</ul>
+    volumes:
+<ul>
+<li>./concentratord:/etc/chirpstack-concentratord</li>
+</ul>
+    ports:
+<ul>
+<li>&quot;3001:3001&quot;</code></pre></li>
+</ul>
+<p>Això munta el dispositiu SPI de la Raspberry al contenidor (perquè pugui parlar amb el SX1302) i munta una carpeta amb la configuració.</p>
+<h3>Opció 2: Instal·lació nativa</h3>
+<pre class="code"><code class="language-bash"># Afegir el repositori
+sudo apt install -y software-properties-common
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1FF3F2DB 
+sudo add-apt-repository ppa:chirpstack/chirpstack-gateway
+sudo apt update
+sudo apt install chirpstack-concentratord</code></pre>
+<h2>27.7 Configuració de Concentratord</h2>
+<p>El fitxer principal és `chirpstack-concentratord.toml`. A `/home/bernat/homelab/concentratord/`:</p>
+<pre class="code"><code class="language-toml"># Configuració del gateway
+[gateway]
+  # Identificador únic del gateway (EUI-64)
+  gateway_id = &quot;AA555A0000000001&quot;
+<p># Servidor TTN
+  server_address = &quot;eu1.cloud.thethings.network:1700&quot;</p>
+<p># Interval en què enviem estadístiques
+  statistics_interval = &quot;30s&quot;</p>
+<p># Ubicació del gateway (per a TTN)
+  latitude = 41.9304
+  longitude = 2.2546
+  altitude = 500</p>
+<h1>Configuració del concentrador</h1>
+[concentrator]
+  # El SX1302 es comunica amb la Raspberry per SPI
+  spi_path = &quot;/dev/spidev0.0&quot;
+  spi_speed_hz = 2000000</code></pre>
+<h3>Gateway ID: el EUI-64</h3>
+<p>Cada gateway ha de tenir un <strong>EUI-64 únic</strong>. Podem generar-lo:</p>
+<pre class="code"><code class="language-bash">echo &quot;AA555A$(openssl rand -hex 5 | tr a-f A-F | cut -c 1-10)&quot;</code></pre>
+<p>O simplement fem servir un valor vàlid que no coincideixi amb cap altre gateway de TTN. El prefix `AA555A` és un prefix reservat per a gateways experimentals.</p>
+<h3>Configurar el servidor TTN</h3>
+<p>El `server_address` ha de ser l'endpoint de TTN. Per a la UE, és `eu1.cloud.thethings.network:1700`. Per a altres regions, TTN té altres servidors (nam1.cloud.thethings.network, au1.cloud.thethings.network, etc.).</p>
+<h2>27.8 Registrar el gateway a TTN</h2>
+<p>Un cop tenim el gateway funcionant, cal registrar-lo a TTN:</p>
+<p>1. A la consola de TTN, anem a la secció <strong>Gateways</strong>.
+2. Clic a <strong>+ Register gateway</strong>.
+3. <strong>Gateway EUI</strong>: introduïm el EUI-64 que hem configurat a `chirpstack-concentratord.toml`.
+4. <strong>Gateway ID</strong>: un nom únic (per exemple, `raspi-hortosona-gw`).
+5. <strong>Gateway name</strong>: un nom descriptiu.
+6. <strong>Frequency plan</strong>: `Europe 868 MHz` (o el que correspongui).
+7. <strong>Router</strong>: el que ens suggereixi TTN (no importa gaire per a un homelab).
+8. <strong>Desem</strong>.</p>
+<p>TTN ens donarà un <strong>Gateway Server Address</strong> (que hem de posar al `server_address` de la nostra configuració) i una clau d'autenticació. A Concentratord 2.x, l'autenticació és per <strong>API key</strong> o per <strong>TLS client certificates</strong>, configurable al `chirpstack-concentratord.toml`.</p>
+<h3>Exemple de configuració amb API key</h3>
+<pre class="code"><code class="language-toml">[gateway]
+  gateway_id = &quot;AA555A0000000001&quot;
+  server_address = &quot;eu1.cloud.thethings.network:1700&quot;
+<p>[gateway.auth]
+    api_key = &quot;NNSXS.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...&quot;</code></pre></p>
+<h2>27.9 Verificar la connexió</h2>
+<p>Un cop en marxa, podem comprovar:</p>
+<p>1. <strong>A la consola de TTN</strong>, a la pàgina del gateway, veure l'estat. Si apareix "Connected" o "Last seen: recent", tot va bé.
+2. <strong>Els logs del contenidor</strong>:</p>
+<pre class="code"><code class="language-bash">docker compose logs -f concentratord</code></pre>
+<p>3. <strong>L'estat del SX1302</strong> amb la comanda `chirpstack-concentratord-ctl`:</p>
+<pre class="code"><code class="language-bash">docker exec concentratord chirpstack-concentratord-ctl gateway status</code></pre>
+<h2>27.10 Proves amb un node</h2>
+<p>Per validar que el gateway funciona, podem fer servir un node comercial o un prototip:</p>
+<p>1. <strong>Configurar un node</strong> (per exemple, una Heltec LoRa 32 V3) amb el nostre DevEUI i AppEUI.
+2. <strong>Programar-lo</strong> per transmetre cada 30 segons.
+3. <strong>Mirar la consola de TTN</strong>: a la secció "Live data" o a la pàgina del node, hauríem de veure els uplink.</p>
+<p>Si veiem els uplink, tenim:
+<ul>
+<li>Gateway LoRaWAN funcionant.</li>
+<li>Concentratord connectat a TTN.</li>
+<li>Node transmettent correctament.</li>
+<li>Xarxa TTN rebent i desxifrant.</li>
+</ul></p>
+<p>Si NO veiem res, caldrà depurar. Aquest és el tema del capítol 32.</p>
+<h2>27.11 Configuració avançada</h2>
+<h3>Múltiples concentradors (no típic)</h3>
+<p>Si volem tenir dos SX1302 a la mateixa Raspberry (per diversitat d'antena, per exemple), cal configurar dos serveis `concentratord` amb pins SPI diferents.</p>
+<h3>Múltiples xarxes (TTN + ChirpStack)</h3>
+<p>Concentratord 2.x pot enviar els mateixos uplink a múltiples network servers. Cal afegir múltiples seccions `[gateway]` o usar la funció de "multi-server".</p>
+<h3>Filtratge de canals</h3>
+<p>Podem configurar quins canals de 868 MHz volem rebre. Per defecte, els 8 canals principals estan actius. Podem desactivar-ne alguns per reduir la càrrega de la CPU.</p>
+<h3>GPS del gateway</h3>
+<p>Si la Raspberry té un mòdul GPS connectat, podem passar la posició exacta a TTN. Això millora la cobertura i permet triangular.</p>
+<h2>27.12 Monitoratge del gateway</h2>
+<p>Com monitorem el gateway?</p>
+<h3>Uptime Kuma</h3>
+<p>Afegim un monitor al port 3001 (el port per defecte de la interfície de debug de Concentratord):</p>
+<ul>
+<li><strong>Tipus</strong>: HTTP(s).</li>
+<li><strong>URL</strong>: `http://100.115.134.76:3001/`.</li>
+<li><strong>Interval</strong>: 60 segons.</li>
+</ul>
+<p>Alternativament, podem monitorar si el procés està viu:</p>
+<pre class="code"><code class="language-bash">docker ps | grep concentratord</code></pre>
+<h3>Logs a Uptime Kuma</h3>
+<p>Si volem centralitzar els logs, podem muntar un volum compartit i configurar logrotate. Però això és opcional per a un homelab.</p>
+<h3>Estadístiques a TTN</h3>
+<p>TTN ensenya estadístiques del gateway: nombre d'uplinks rebuts, RSSI mitjà, SNR mitjà, taxa d'error. Això és molt útil per diagnosticar.</p>
+<h2>27.13 Consum d'energia i alimentació</h2>
+<p>El SX1302 HAT consumeix ~1-2 W. La Raspberry Pi 4 consumeix ~3-7 W segons la càrrega. Total, ~5-9 W.</p>
+<p>Per a ús 24/7, podem:</p>
+<ul>
+<li>Usar l'alimentador oficial de la Raspberry (5.1V, 3A).</li>
+<li>Considerar PoE (Power over Ethernet) si tenim un switch compatible.</li>
+<li>Considerar una font UPS per a talls de llum.</li>
+</ul>
+<p>A llarg termini, una UPS petita (per exemple, un PowerBank amb pass-through) pot evitar reinicis innecessaris.</p>
+<h2>27.14 Posició del gateway</h2>
+<p>La <strong>posició</strong> del gateway és crítica. Un gateway ben col·locat pot cobrir 5-10 km; un mal col·locat, 100 metres.</p>
+<p>Criteris:</p>
+<ul>
+<li><strong>Alçada</strong>: com més amunt, millor. Teulada, torre, arbre alt.</li>
+<li><strong>Visió directa</strong>: sense arbres, edificis, o muntanyes al mig.</li>
+<li><strong>L'allunyament de metalls</strong>: estructures metàl·liques reflecteixen el senyal.</li>
+<li><strong>L'allunyament d'altres antenes</strong>: per evitar interferències.</li>
+<li><strong>Accés a corrent elèctric i xarxa</strong>: evidentment.</li>
+</ul>
+<p>A Hort Osona, el millor lloc per al gateway seria la teulada de la casa, amb l'antena sobresortint. Si no és possible, una finestra alta o un balcó pot servir.</p>
+<h2>27.15 Resum</h2>
+<p>En aquest capítol hem vist com muntar un gateway LoRaWAN a la Raspberry amb un mòdul SX1302 (recomanem el Waveshare HAT) i el programari Concentratord. Hem après a configurar-lo, registrar-lo a TTN, i verificar la connexió. Hem vist com monitorar-lo amb Uptime Kuma i com col·locar-lo correctament. En el proper capítol veurem el hardware del node: ESP32 + SX1262, esquema elèctric, antena, i alimentació.</p>
+<h2>27.16 Exercicis pràctics</h2>
+<p>1. Compra o demana un mòdul SX1302 HAT (Waveshare, RAK2287, o similar).
+2. Connecta'l a la Raspberry Pi 4 (apaga la Raspberry, encén el HAT als pins GPIO, torna a encendre).
+3. Desplega Concentratord amb Docker a la Raspberry.
+4. Configura `chirpstack-concentratord.toml` amb un EUI-64 únic.
+5. Registra el gateway a TTN amb el EUI-64.
+6. Comprova l'estat a la consola de TTN.
+7. Configura un monitor d'Uptime Kuma per al gateway.
+8. Documenta al README del projecte l'estructura del gateway, l'EUI-64, i la configuració.</p>
+<p>Comandes útils:</p>
+<pre class="code"><code class="language-bash"># Verificar que el SX1302 és detectat
+ls -la /dev/spidev*
+<h1>Veure els logs de Concentratord</h1>
+docker compose logs -f concentratord
+<h1>Verificar l&#x27;estat del concentrador</h1>
+docker exec concentratord chirpstack-concentratord-ctl gateway status
+<h1>Monitorar el tràfic</h1>
+docker exec concentratord chirpstack-concentratord-ctl gateway config</code></pre>
+<p>Paraules clau: <strong>gateway, concentratord, SX1302, SX1303, HAT, Waveshare, RAK2287, Seeed, RAK, Mini-PCIe, GPIO, SPI, spidev, packet forwarder, U.FL, IPEX, SMA, pigtail, antena, 868 MHz, omnidireccional, direccional, Yagi, fibbra de vidre, dBi, gateway EUI, gateway ID, EUI-64, TTN, EU1.cloud.thethings.network, NAM1, AU1, router, autenticació, API key, TLS, certificat, server address, last seen, connected, last seen, live data, uplink, downlink, RSSI, SNR, posicionament, latitud, longitud, altitud, location, monitoratge, Uptime Kuma, Docker, contenidor, ChirpStack Gateway Bridge, lora-packet-forwarder, multi-server, filtratge de canals, GPS, PoE, UPS, alimentació, posicionament del gateway, visió directa, cobertura, abast, distancia, alçada, interferències, reflexió, soroll, RSSI mitjà, SNR mitjà, taxa d'error, gateway status, gateway config, chirpstack-concentratord-ctl, SPI speed, 2 MHz, 8 MHz, EU868, 868 MHz, 868.1, 868.3, 868.5, 867.1, 867.3, 867.5, 867.7, 867.9</strong>.</p>
+<hr>
+<h2 id="28-node-hardware">Capitol 28 — El node: ESP32 + SX1262, hardware i esquemes</h2>
+<p>> <em>"Un node LoRa és la combinació d'un cervell, uns sentits i una veu. El cervell és l'ESP32, els sentits són els sensors, i la veu és el SX1262."</em></p>
+<h2>28.1 Què necessita un node</h2>
+<p>Un node LoRaWAN al camp ha de tenir:</p>
+<p>1. <strong>Un microcontrolador</strong> per llegir sensors i prendre decisions.
+2. <strong>Un mòdul ràdio LoRa</strong> per transmetre les dades.
+3. <strong>Un sensor o sensors</strong> (temperatura, humitat, sòl, etc.).
+4. <strong>Una antena</strong> per transmetre.
+5. <strong>Alimentació</strong> (bateria, placa solar, USB, etc.).
+6. <strong>Una caixa estanca</strong> per a ús a l'exterior.</p>
+<p>Això és molt semblant al que ja coneixem de qualsevol sistema encastat (sistema encastat = sistema informàtic integrat en un altre producte). La diferència és que la transmissió és per ràdio, no per Wi-Fi o Bluetooth.</p>
+<h2>28.2 Per què ESP32</h2>
+<p>L'<strong>ESP32</strong> és la millor opció per a un node LoRa perquè:</p>
+<ul>
+<li><strong>Barat</strong>: ~3-5 € una placa de desenvolupament amb Wi-Fi i Bluetooth integrats.</li>
+<li><strong>Potent</strong>: dual-core 240 MHz, 520 KB de RAM, suficient per a la majoria de tasques.</li>
+<li><strong>Comunitat enorme</strong>: llibreries per a gairebé tot, tutorials, fòrums.</li>
+<li><strong>Baix consum</strong>: ~80 mA actiu, ~10 µA en deep sleep.</li>
+<li><strong>Moltes plaques amb LoRa integrat</strong>: Heltec LoRa 32, TTGO LoRa, LILYGO T-Beam, etc.</li>
+</ul>
+<p>Alternatives:</p>
+<ul>
+<li><strong>Raspberry Pi Pico + SX1262</strong>: bona opció, però menys exemples LoRa.</li>
+<li><strong>STM32 + SX1262</strong>: molt baix consum, però més complex de programar.</li>
+<li><strong>Arduino Nano + SX1262</strong>: barat, però poca memòria per a la pila LoRaWAN.</li>
+</ul>
+<h2>28.3 Plaques ESP32 amb LoRa integrat</h2>
+<p>Aquestes plaques combinen ESP32 + SX1262 + antena + (sovint) pantalla OLED i connector de bateria. Són la millor opció per començar:</p>
+<h3>Heltec LoRa 32 V3</h3>
+<ul>
+<li><strong>ESP32-S3FN8</strong> (dual-core 240 MHz, 8 MB flash, 512 KB RAM, 384 KB ROM).</li>
+<li><strong>SX1262</strong> LoRa transceiver.</li>
+<li><strong>Pantalla OLED</strong> de 0,96" (128×64).</li>
+<li><strong>Connector per a bateria LiPo</strong> (amb circuit de càrrega).</li>
+<li><strong>Antena</strong> externa amb IPEX/U.FL connector.</li>
+<li><strong>Preu</strong>: ~25 €.</li>
+</ul>
+<h3>TTGO LoRa (T-Beam, T-HiGrow, etc.)</h3>
+<p>Similar a Heltec, sovint amb GPS afegit en el cas del T-Beam. Una mica més cara (~30 €) però més opcions.</p>
+<h3>LILYGO T3S3 / T-Deck</h3>
+<p>Plaques noves amb pantalles de color, millor consum, suport per a LoRaWAN i Meshtastic.</p>
+<h3>Plaques "nues" (mòdul separat)</h3>
+<p>Si volem més flexibilitat, podem comprar:</p>
+<ul>
+<li>Un <strong>ESP32-DevKit</strong> estàndard (~5 €).</li>
+<li>Un <strong>mòdul SX1262 breakout board</strong> (~10 €).</li>
+<li>Cablejat manual (jumper wires, protoboard, o PCB).</li>
+</ul>
+<p>Aquesta opció és més feina però permet personalitzar al 100 % la disposició.</p>
+<h2>28.4 Sensors</h2>
+<p>Depenent del que vulguem mesurar:</p>
+<h3>BME280</h3>
+<ul>
+<li><strong>Mesura</strong>: temperatura, humitat, pressió.</li>
+<li><strong>Interfície</strong>: I2C o SPI.</li>
+<li><strong>Precisió</strong>: ±0.4 °C, ±3 % HR, ±1 hPa.</li>
+<li><strong>Preu</strong>: ~3-5 €.</li>
+<li><strong>Ús</strong>: un dels més comuns per a estacions meteorològiques.</li>
+</ul>
+<h3>SHT31</h3>
+<ul>
+<li><strong>Mesura</strong>: temperatura, humitat.</li>
+<li><strong>Interfície</strong>: I2C.</li>
+<li><strong>Precisió</strong>: ±0.3 °C, ±2 % HR.</li>
+<li><strong>Preu</strong>: ~3-5 €.</li>
+</ul>
+<h3>DHT22 / AM2302</h3>
+<ul>
+<li><strong>Mesura</strong>: temperatura, humitat.</li>
+<li><strong>Interfície</strong>: GPIO digital.</li>
+<li><strong>Precisió</strong>: ±0.5 °C, ±2-5 % HR.</li>
+<li><strong>Preu</strong>: ~2-3 €.</li>
+<li><strong>Ús</strong>: molt popular, però menys precís i menys fiable que el BME280.</li>
+</ul>
+<h3>Sensor d'humitat del sòl capacitiu</h3>
+<ul>
+<li><strong>Mesura</strong>: humitat del sòl (%).</li>
+<li><strong>Interfície</strong>: analògica (0-3.3 V) o digital.</li>
+<li><strong>Preu</strong>: ~1-3 €.</li>
+<li><strong>Ús</strong>: clau per a Hort Osona.</li>
+</ul>
+<h3>Sensor de llum (LDR o BH1750)</h3>
+<ul>
+<li><strong>LDR</strong> (Light Dependent Resistor): resistència variable segons la llum. Analògica, molt barata, però poc precisa.</li>
+<li><strong>BH1750</strong>: digital, mesura lux. Més car (~2 €) però precís.</li>
+</ul>
+<h3>Pluja (pluviòmetre)</h3>
+<p>Pluviòmetre tipus balancí: genera un impuls cada 0.2 mm de pluja. Es connecta a un pin d'interrupció de l'ESP32.</p>
+<h3>Pressió (si no tenim BME280)</h3>
+<p>BMP280: pressió + temperatura (sense humitat). Més barat que BME280.</p>
+<h2>28.5 Connexió SX1262 a ESP32</h2>
+<p>Si usem una placa amb tot integrat (Heltec, TTGO), les connexions ja estan fetes. Si usem un mòdul separat, cal connectar:</p>
+<p>| SX1262 | ESP32 | Funció |
+|---|---|---|
+| VCC | 3.3V | Alimentació (compte: 3.3V, no 5V) |
+| GND | GND | Terra |
+| SCK | GPIO 18 | SPI Clock |
+| MISO | GPIO 19 | SPI MISO |
+| MOSI | GPIO 23 | SPI MOSI |
+| NSS / CS | GPIO 5 | Chip Select |
+| RST | GPIO 14 | Reset |
+| DIO1 | GPIO 26 | Interrupció |
+| BUSY | GPIO 27 | Busy (opcional) |</p>
+<p>Aquests pins són els valors per defecte a la majoria de llibreries. Es poden canviar per software.</p>
+<h2>28.6 Esquema elèctric</h2>
+<p>Per a una versió amb ESP32-DevKit + SX1262 breakout + BME280:</p>
+<pre class="code"><code class="language-">ESP32          SX1262
+  3.3V  -------  VCC
+  GND   -------  GND
+  GPIO18-------  SCK
+  GPIO19-------  MISO
+  GPIO23-------  MOSI
+  GPIO5 -------  NSS
+  GPIO14-------  RST
+  GPIO26-------  DIO1
+  GPIO27-------  BUSY
+<p>ESP32          BME280
+  3.3V  -------  VCC
+  GND   -------  GND
+  GPIO21-------  SDA  (I2C Data)
+  GPIO22-------  SCL  (I2C Clock)</code></pre></p>
+<p>Això és el bàsic. Si volem afegir un sensor d'humitat del sòl, connectem el seu pin analògic (AO) a un pin ADC de l'ESP32 (per exemple, GPIO34).</p>
+<h2>28.7 Alimentació</h2>
+<p>Per a ús al camp, tenim diverses opcions:</p>
+<h3>Bateria LiPo + placa solar</h3>
+<ul>
+<li><strong>Bateria</strong>: 3.7V LiPo 18650 (3000-3500 mAh) o LiPo petita.</li>
+<li><strong>Placa solar</strong>: 5-6V, 1-2W.</li>
+<li><strong>Carregador</strong>: TP4056 o integrat a la placa (Heltec ja en porta).</li>
+<li><strong>Autonomia</strong>: amb bones pràctiques, mesos o anys.</li>
+</ul>
+<h3>USB</h3>
+<ul>
+<li><strong>Font</strong>: carregador de mòbil, 5V 1A.</li>
+<li><strong>Ús</strong>: interior, prototipatge, proves.</li>
+</ul>
+<h3>4 piles AA</h3>
+<ul>
+<li><strong>Voltatge</strong>: 4 × 1.5V = 6V (necessitem un regulador a 3.3V o 5V).</li>
+<li><strong>Capacitat</strong>: ~2500-3000 mAh.</li>
+<li><strong>Ús</strong>: per a proves a l'hort a curt termini.</li>
+</ul>
+<h3>Bateria fixa (12V, tipus bateria de cotxe o solar)</h3>
+<ul>
+<li>Per a instal·lacions permanents amb consum moderat.</li>
+</ul>
+<h3>Optimització de consum</h3>
+<p>Per allargar la vida de la bateria:</p>
+<ul>
+<li><strong>Deep sleep</strong> entre transmissions: l'ESP32 consumeix ~10 µA en deep sleep.</li>
+<li><strong>Transmetre poc sovint</strong>: cada 5-15 minuts és un bon equilibri.</li>
+<li><strong>Usar SF baixos</strong> quan sigui possible: menys temps de transmissió.</li>
+<li><strong>Llegir sensors només quan calgui</strong>: durant el deep sleep, no caldrà.</li>
+<li><strong>Apagar perifèrics no usats</strong>: Wi-Fi, Bluetooth, etc.</li>
+</ul>
+<h2>28.8 Caixa estanca</h2>
+<p>Per a ús a l'exterior, necessitem una <strong>caixa estanca IP65 o superior</strong>. Opcions:</p>
+<ul>
+<li><strong>Caixa de plàstic ABS</strong>: barata, fàcil de perforar, IP65 si està ben tancada.</li>
+<li><strong>Caixa d'alumini</strong>: més cara, més robusta, millor dissipació de calor.</li>
+<li><strong>Caixa de polièster reforçat amb fibra de vidre</strong>: per a instal·lacions professionals.</li>
+</ul>
+<p>A la caixa, cal:</p>
+<ul>
+<li><strong>Forats per a l'antena</strong>: segellat amb cautxú o silicona.</li>
+<li><strong>Forats per al sensor d'humitat del sòl</strong>: perquè el sensor sobresurti.</li>
+<li><strong>Ventilació</strong>: per evitar condensació a l'interior. Una mena de filtre Gore-Tex ajuda.</li>
+<li><strong>Accés per a la bateria</strong>: per poder-la canviar.</li>
+</ul>
+<h2>28.9 Posada en marxa</h2>
+<p>Quan tinguem tot el hardware:</p>
+<p>1. <strong>Soldar o connectar</strong> l'antena al mòdul SX1262 (o a la placa).
+2. <strong>Carregar el codi</strong> a l'ESP32 (veure capítol 29).
+3. <strong>Configurar DevEUI, AppEUI, AppKey</strong> amb els valors generats per TTN.
+4. <strong>Verificar</strong> que el node es connecta a la xarxa (veure monitor serie).
+5. <strong>Posar-lo a la caixa</strong> estanca.
+6. <strong>Muntar-lo al camp</strong> amb bona posició per a l'antena.</p>
+<h2>28.10 Proves inicials</h2>
+<p>Abans de posar el node al camp, cal validar:</p>
+<p>1. <strong>El node arrenca correctament</strong>: LED encén, missatge al port sèrie.
+2. <strong>L'antena està connectada</strong>: sense antena, podem cremar el mòdul!
+3. <strong>El node es connecta a la xarxa LoRaWAN</strong>: veure missatges "JOINED" al log.
+4. <strong>El node transmet dades</strong>: veure els uplink a la consola de TTN.
+5. <strong>Les dades són correctes</strong>: temperatura, humitat, etc., en els rangs esperats.
+6. <strong>El deep sleep funciona</strong>: deixar-lo una nit, comprovar que la bateria dura.</p>
+<h2>28.11 Errors habituals</h2>
+<p><strong>Error 1: antena no connectada</strong>. Símptoma: el mòdul es queda "penjat" o es crema. Solució: SEMPRE connectar l'antena abans d'encendre.</p>
+<p><strong>Error 2: tensió d'alimentació incorrecta</strong>. Símptoma: el node es reinicia aleatòriament, o no arrenca. Solució: verificar que la font d'alimentació és 3.3V (per al SX1262) i prou potent (almenys 500 mA).</p>
+<p><strong>Error 3: pins SPI mal connectats</strong>. Símptoma: el node no es comunica amb el SX1262. Solució: verificar les connexions amb un multímetre.</p>
+<p><strong>Error 4: deep sleep massa profund</strong>. Símptoma: el node no es desperta. Solució: verificar que la interrupció DIO1 està ben connectada.</p>
+<p><strong>Error 5: freqüència incorrecta</strong>. Símptoma: el node transmet, però el gateway no el sent. Solució: verificar que el node està configurat per a EU868 (no US915 o AS923).</p>
+<h2>28.12 Resum</h2>
+<p>En aquest capítol hem vist el hardware del node LoRa: ESP32 + SX1262 + sensors, amb l'esquema elèctric, les opcions d'alimentació, la caixa estanca, i els passos de posada en marxa. Hem après quins sensors són útils per a Hort Osona i com connectar-los. En el proper capítol programarem el node: codi per a ESP32 amb la llibreria LMIC o RadioLib, transmissió de dades en format CayenneLPP, deep sleep, i bones pràctiques de consum.</p>
+<h2>28.13 Exercicis pràctics</h2>
+<p>1. Compra una placa ESP32 amb LoRa (Heltec LoRa 32 V3 recomanada).
+2. Compra un sensor BME280.
+3. Munta el circuit a una protoboard.
+4. Connecta l'antena.
+5. Carrega un codi d'exemple que llegeixi el BME280 i mostri les dades pel port sèrie.
+6. Mesura el consum de corrent amb un multímetre.
+7. Implementa deep sleep i mesura el consum en sleep.
+8. Documenta al README el hardware del node, els pins, i el consum.</p>
+<p>Paraules clau: <strong>ESP32, ESP32-S3, SX1262, Heltec LoRa 32, TTGO LoRa, LILYGO T-Beam, T-Deck, sensor, BME280, SHT31, DHT22, humitat del sòl, LDR, BH1750, pluja, pluviòmetre, balancí, pinout, SPI, I2C, GPIO, ADC, 3.3V, alimentació, LiPo, 18650, TP4056, placa solar, deep sleep, baix consum, caixa estanca, IP65, ABS, alumini, antena, IPEX, U.FL, SMA, soldar, multímetre, consum, mA, µA, deep sleep, watchdog, RTOS, Arduino, ESP-IDF, MicroPython, PlatformIO, IDE, sketch, port sèrie, monitor, debug, ESP-Prog, ESPtool, flashing, firmware, bootloader, partition table, OTA, update, deep sleep wake-up, GPIO wake-up, timer wake-up, sensor reading, I2C scanning, SPI initialization, GPIO configuration, interrupt, ISR, callback, millis(), micros(), delay, Scheduler, FreeRTOS, task, queue, semaphore, mutex, ESP_LOG, ets_printf, log levels, error handling, watchdog timer, brown-out detector, ESP32-C3, ESP32-S2, ESP32-S3, ESP32-C6, variants, deep sleep modes, RTC memory, ULP, coprocessor, ULP wake-up, ext0, ext1, touch wake-up, ulp wake-up, gpio wake-up, timer wake-up, Wi-Fi, Bluetooth, BLE, ESP-NOW, LoRa, SX1276, SX1278, SX1262, SX1268, RFM95, RFM96, RF69, HopeRF, Ai-Thinker, Ra-02, Semtech, modulation, OOK, FSK, GFSK, MSK, GMSK, LoRa, FSK, OOK, packet, radio, antenna, impedance matching, balun, SAW filter, low-pass filter, matching network, RF path, ground plane, EMI, RFI, EMC, compliance, ETSI, FCC, modular approval, regulatory, certification, IP rating, IP65, IP67, IP68, IP69K, UV resistance, temperature range, operating temperature, storage temperature, humidity, condensation, venting, Gore-Tex, vent plug, desiccant, silica gel, anti-condensation heater, condensation prevention, self-heating, solar heating, heat dissipation, thermal management, sun exposure, black box, white box, UV-stabilized, weatherproof, weather-resistant, outdoor enclosure, junction box, ABS enclosure, polycarbonate enclosure, fiberglass enclosure, stainless steel enclosure, aluminum enclosure, mounting bracket, pole mount, wall mount, ground mount, mast mount, weatherhead, cable gland, strain relief, IP68 cable gland, cable entry, sealing, silicone sealant, hot melt glue, epoxy, potting, conformal coating, PCB protection, marine-grade, salt-spray resistant, anti-corrosion, anodized, powder-coated, paint, primer, mounting hardware, U-bolts, hose clamps, screws, anchors, washers, nuts, security screws, tamper-proof, locking, key, lock, hasp, padlock, security, theft prevention, vandalism, lockable enclosure, locking mechanism, latch, clasp, hinge, gasket, O-ring, rubber gasket, foam gasket, IP-rated, IP65, IP66, IP67, IP68, IP69K, NEMA 4, NEMA 4X, NEMA 6, NEMA 6P, outdoor, indoor, indoor/outdoor, dry location, wet location, damp location, hazardous location, Class I Div 1, Class I Div 2, explosion-proof, intrinsically safe, IS, Ex, ATEX, IECEx, hazardous area, gas group, dust group, temperature class, T1, T2, T3, T4, T5, T6, T-class, surface temperature, maximum temperature, ignition temperature, flammable, combustible, hazardous materials, industrial environment, marine environment, coastal environment, salt water, salt spray, corrosion, rust, oxidation, galvanic corrosion, dissimilar metals, electrolytic, electrical isolation, barrier, isolation, insulation, weatherhead, drip loop, cable loop, condensation drain, weep hole, drainage, ventilation, breather, vent plug, Gore-Tex, Goretex, GORE-TEX, expanded PTFE, ePTFE, hydrophobic, oleophobic, breathable, IP-rated vent, screw-in vent, push-in vent, adhesive vent</strong>.</p>
+<hr>
+<h2 id="29-programacio-node">Capitol 29 — Programació del node: ESP32 + LoRaWAN</h2>
+<p>> <em>"Programar un node LoRa és programació de sistemes encastats amb un extra: el temps d'aire és car i la bateria és finita. Cada byte compta."</em></p>
+<h2>29.1 Què ha de fer el codi del node</h2>
+<p>Un node LoRaWAN complet ha de:</p>
+<p>1. <strong>Inicialitzar</strong> el hardware (SPI per al SX1262, I2C per als sensors).
+2. <strong>Connectar-se a la xarxa LoRaWAN</strong> (procediment de join OTAA).
+3. <strong>Llegir els sensors</strong> periòdicament.
+4. <strong>Codificar les dades</strong> en un payload binari (CayenneLPP recomanat).
+5. <strong>Transmetre</strong> el payload via LoRaWAN.
+6. <strong>Entrar en deep sleep</strong> fins a la propera transmissió.
+7. <strong>Despertar</strong> i repetir.</p>
+<p>Això, en codi, són 100-200 línies d'Arduino o MicroPython. Més del que sembla, menys del que sembla.</p>
+<h2>29.2 Quina llibreria: LMIC o RadioLib</h2>
+<p>Hi ha diverses llibreries per a LoRaWAN en ESP32:</p>
+<h3>MCCI LoRaWAN LMIC (recomanada per a LoRaWAN)</h3>
+<ul>
+<li>La versió moderna de la clàssica LMIC d'IBM.</li>
+<li>Molt estable, ben mantinguda.</li>
+<li>Suporta ESP32, ESP8266, STM32, etc.</li>
+<li>API basada en callbacks (pot ser una mica confosa al principi).</li>
+</ul>
+<h3>RadioLib</h3>
+<ul>
+<li>Llibreria moderna que suporta <strong>LoRaWAN, LoRa P2P, FSK, OOK</strong>, etc.</li>
+<li>API més neta que LMIC.</li>
+<li>Suporta moltes plaques i xips (SX126x, SX127x, RFM9x).</li>
+<li>Ideal si volem fer P2P i LoRaWAN amb la mateixa llibreria.</li>
+</ul>
+<h3>Altres</h3>
+<ul>
+<li><strong>arduino-lmic</strong>: la clàssica, menys mantinguda.</li>
+<li><strong>TinyLoRa</strong>: minimalista, per a nodes molt petits.</li>
+<li><strong>Heltec examples</strong>: específics per a les plaques Heltec.</li>
+</ul>
+<p>Recomanació: per a LoRaWAN amb ESP32, <strong>MCCI LMIC</strong> o <strong>RadioLib</strong>. Per a P2P, <strong>RadioLib</strong>.</p>
+<h2>29.3 Configuració de l'entorn Arduino</h2>
+<p>Si no tens l'entorn Arduino preparat:</p>
+<p>1. <strong>Instal·la Arduino IDE</strong> (https://www.arduino.cc/en/software) o <strong>PlatformIO</strong> (integrat a VSCode).
+2. <strong>Afegeix el suport per a ESP32</strong>:
+<ul>
+<li>Arduino IDE: a `File → Preferences`, afegeix l'URL `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json` a "Additional Board Manager URLs".</li>
+<li>Instal·la "esp32" des del Board Manager.</li>
+</ul>
+3. <strong>Instal·la les llibreries necessàries</strong> des del Library Manager:
+<ul>
+<li><strong>MCCI LoRaWAN LMIC library</strong> (per a LoRaWAN).</li>
+<li><strong>RadioLib</strong> (alternativa).</li>
+<li><strong>Adafruit BME280 Library</strong> (per al sensor).</li>
+<li><strong>Adafruit Unified Sensor</strong> (dependència).</li>
+</ul></p>
+<h2>29.4 Exemple complet: codi per a Heltec LoRa 32 V3 amb BME280</h2>
+<p>Aquí tens un programa complet que llegeix un BME280 i transmet cada 5 minuts via LoRaWAN:</p>
+<pre class="code"><code class="language-cpp">// BernatLab Hort Osona - Node LoRaWAN
+// Hardware: Heltec LoRa 32 V3 + BME280
+// Llibreria: MCCI LoRaWAN LMIC
+// Llicència: CC-BY-SA
+<p>#include &lt;Arduino.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_Sensor.h&gt;
+#include &lt;Adafruit_BME280.h&gt;
+#include &lt;lmic.h&gt;
+#include &lt;hal/hal.h&gt;
+#include &lt;SPI.h&gt;</p>
+<p>// Identificadors LoRaWAN (substituir pels teus propis!)
+static const u1_t PROGMEM DEVEUI[8] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x04, 0xF1, 0xCE };
+static const u1_t PROGMEM APPEUI[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static const u1_t PROGMEM APPKEY[16] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};</p>
+<p>// Pins per a la Heltec LoRa 32 V3
+#define PIN_LMIC_NSS  8
+#define PIN_LMIC_RST  12
+#define PIN_LMIC_DIO0 14
+#define PIN_LMIC_DIO1 35
+#define PIN_LMIC_DIO2 34</p>
+<p>// BME280 (I2C per defecte a la Heltec)
+#define SEALEVELPRESSURE_HPA (1013.25)
+Adafruit_BME280 bme;</p>
+<p>// Configuració de l&#x27;objectiu (TTN)
+static const u4_t NETID = 0x13;  // TTN
+static const u1_t NWKSKEY[16] = { 0 };  // No cal per a OTAA
+static const u1_t APPSKEY[16] = { 0 };  // No cal per a OTAA
+static const u4_t DEVADDR = 0;          // No cal per a OTAA
+static const u1_t FREQ_CHNL_HOP = 0;    // desactivat (TTN gestiona)
+static const u2_t FREQ_HZ_MIN = 868100000;
+static const u2_t FREQ_HZ_MAX = 868500000;</p>
+<p>const lmic_pinmap lmic_pins = {
+    .nss = PIN_LMIC_NSS,
+    .rxtx = LMIC_UNUSED_PIN,
+    .rst = PIN_LMIC_RST,
+    .dio = {PIN_LMIC_DIO0, PIN_LMIC_DIO1, PIN_LMIC_DIO2},
+};</p>
+<p>// Callbacks de LMIC
+void onJoinFailed() {
+    Serial.println(F(&quot;Join failed&quot;));
+}</p>
+<p>void onJoinSuccess() {
+    Serial.println(F(&quot;Join success!&quot;));
+    LMIC_setLinkCheckMode(1);
+}</p>
+<p>void onTransmitted() {
+    Serial.println(F(&quot;Packet transmitted&quot;));
+}</p>
+<p>// Tasca periòdica
+osjob_t sendjob;</p>
+<p>void do_send(osjob_t* j) {
+    if (LMIC.opmode &amp; OP_TXRXPEND) {
+        Serial.println(F(&quot;OP_TXRXPEND, skip&quot;));
+    } else {
+        // Llegir el sensor
+        float temperatura = bme.readTemperature();
+        float humitat = bme.readHumidity();
+        float pressio = bme.readPressure() / 100.0F;  // Pa → hPa</p>
+<p>// Construir el payload CayenneLPP
+        uint8_t payload[16];
+        int idx = 0;
+        // Temperatura (canal 1, valor × 10)
+        int16_t t10 = (int16_t)(temperatura * 10);
+        payload[idx++] = 0x67;  // Tipus: temperatura
+        payload[idx++] = 0x01;  // Canal: 1
+        payload[idx++] = (t10 &gt;&gt; 8) &amp; 0xFF;
+        payload[idx++] = t10 &amp; 0xFF;
+        // Humitat (canal 2, valor × 2)
+        uint16_t h2 = (uint16_t)(humitat * 2);
+        payload[idx++] = 0x68;  // Tipus: humitat
+        payload[idx++] = 0x02;  // Canal: 2
+        payload[idx++] = (h2 &gt;&gt; 8) &amp; 0xFF;
+        payload[idx++] = h2 &amp; 0xFF;
+        // Pressió (canal 3, valor en hPa × 10)
+        uint16_t p10 = (uint16_t)(pressio * 10);
+        payload[idx++] = 0x73;  // Tipus: pressió baromètrica
+        payload[idx++] = 0x03;  // Canal: 3
+        payload[idx++] = (p10 &gt;&gt; 8) &amp; 0xFF;
+        payload[idx++] = p10 &amp; 0xFF;
+        // Voltatge de la bateria (canal 4)
+        // ... llegir amb analogRead() i afegir</p>
+<p>// Preparar i enviar
+        LMIC_setTxData2(1, payload, idx, 0);
+        Serial.print(F(&quot;Enviats &quot;));
+        Serial.print(idx);
+        Serial.println(F(&quot; bytes&quot;));
+    }
+    // Programar la propera transmissió en 5 minuts
+    os_setTimedCallback(&amp;sendjob, os_getTime() + sec2osticks(300), do_send);
+}</p>
+<p>void setup() {
+    Serial.begin(115200);
+    delay(2000);  // Donar temps a que el port sèrie estigui llest</p>
+<p>// Inicialitzar el BME280
+    if (!bme.begin(0x76)) {
+        if (!bme.begin(0x77)) {
+            Serial.println(F(&quot;BME280 no trobat!&quot;));
+            while (1) delay(1000);
+        }
+    }
+    Serial.println(F(&quot;BME280 OK&quot;));</p>
+<p>// Inicialitzar LMIC
+    os_init();
+    LMIC_reset();
+    LMIC_setClockError(MAX_CLOCK_ERROR * 10 / 100);  // Tolerar 10% d&#x27;error</p>
+<p>// Configurar DevEUI, AppEUI, AppKey
+    LMIC_setSession(0x13, DEVEUI, NWKSKEY, APPSKEY);
+    LMIC_startJoin();</p>
+<p>// Programar la primera transmissió
+    do_send(nullptr);
+}</p>
+<p>void loop() {
+    os_runloop_once();
+}</code></pre></p>
+<p>Aquest codi és llarg però estructurat. Repassem les parts importants.</p>
+<h2>29.5 Estructura del codi</h2>
+<p>El codi es compon de:</p>
+<p>1. <strong>Inclusions</strong>: les llibreries.
+2. <strong>Identificadors LoRaWAN</strong>: DevEUI, AppEUI, AppKey.
+3. <strong>Configuració de pins</strong>: definits segons la placa.
+4. <strong>Inicialització del sensor</strong>: BME280 en el nostre cas.
+5. <strong>Inicialització de LMIC</strong>: clau per a LoRaWAN.
+6. <strong>Callback de transmissió</strong>: `do_send` que llegeix, codifica, i envia.
+7. <strong>Setup</strong>: inicialitza tot i programa la primera transmissió.
+8. <strong>Loop</strong>: el bucle principal d'esdeveniments de LMIC.</p>
+<h2>29.6 CayenneLPP: detalls pràctics</h2>
+<p>CayenneLPP és el format recomanat per la seva eficiència. Cada dada és:</p>
+<ul>
+<li>1 byte: <strong>tipus</strong> (0x67 = temperatura, 0x68 = humitat, etc.).</li>
+<li>1 byte: <strong>canal</strong> (1-255, identifica quin sensor).</li>
+<li>N bytes: <strong>valor</strong> (1-4 bytes segons el tipus).</li>
+</ul>
+<p>A la web de CayenneLPP hi ha la llista completa de tipus: https://developers.mydevices.com/cayenne/docs/cayenne-lpp/</p>
+<p>Per als nostres sensors:</p>
+<ul>
+<li><strong>Temperatura (0x67)</strong>: 2 bytes, signed 16-bit, valor × 10. Rang: -3276.7 a +3276.7 °C.</li>
+<li><strong>Humitat (0x68)</strong>: 2 bytes, unsigned 16-bit, valor × 2. Rang: 0-100 %.</li>
+<li><strong>Pressió (0x73)</strong>: 2 bytes, unsigned 16-bit, valor × 10. Rang: 0-6553.5 hPa.</li>
+<li><strong>Llum (0x65)</strong>: 2 bytes, unsigned 16-bit, valor × 1. Rang: 0-65535 lux.</li>
+<li><strong>Humitat del sòl (0x75)</strong>: 1 byte, unsigned 8-bit, valor × 1. Rang: 0-100 %.</li>
+<li><strong>Voltatge de bateria (0x74)</strong>: 2 bytes, unsigned 16-bit, valor × 100. Rang: 0-655.35 V.</li>
+</ul>
+<h2>29.7 El procediment de join OTAA</h2>
+<p>Quan l'ESP32 arrenca, LMIC fa el procediment de join OTAA automàticament. El procediment és:</p>
+<p>1. Genera un <strong>DevNonce</strong> aleatori.
+2. Envia un <strong>Join Request</strong> a un canal aleatori de 868 MHz.
+3. Escolta el <strong>Join Accept</strong> a RX1 (1 segon després) o RX2 (2 segons).
+4. Si rep el Join Accept, deriva les claus de sessió (NwkSKey, AppSKey) i el DevAddr.
+5. Si no, espera 30 segons i torna a provar.</p>
+<p>El join pot trigar uns segons a completar-se. Mentrestant, el node no pot transmetre dades. Això és normal.</p>
+<p>A la consola de TTN, podem veure els join requests a la pàgina del node, secció "Live data".</p>
+<h2>29.8 Deep sleep: la clau de la bateria</h2>
+<p>Per a ús amb piles, el deep sleep és fonamental. L'ESP32 pot entrar en deep sleep i consumir només ~10 µA. Es desperta amb:</p>
+<ul>
+<li><strong>Temporitzador</strong>: cada X segons/minuts.</li>
+<li><strong>Interrupció externa</strong>: canvi d'estat d'un pin (per exemple, un polsador).</li>
+<li><strong>Touchpad</strong>: toc a un pin capacitiu.</li>
+<li><strong>ULP</strong>: coprocessador que pot fer lectures simples.</li>
+</ul>
+<p>Codi per entrar en deep sleep 5 minuts:</p>
+<pre class="code"><code class="language-cpp">esp_sleep_enable_timer_wakeup(5 <em> 60 </em> 1000000);  // 5 minuts en µs
+esp_deep_sleep_start();</code></pre>
+<p>En el nostre cas, podem estructurar el programa així:</p>
+<pre class="code"><code class="language-cpp">void loop() {
+    // Primer cop: setup() ja ha programat do_send()
+    // do_send() transmet i després entra en deep sleep
+}
+<p>// Modificar do_send() per entrar en deep sleep al final:
+void do_send(osjob_t* j) {
+    // ... llegir, codificar, transmetre ...
+    Serial.println(F(&quot;Anant a dormir...&quot;));
+    Serial.flush();
+    esp_sleep_enable_timer_wakeup(5 <em> 60 </em> 1000000);
+    esp_deep_sleep_start();
+}</code></pre></p>
+<p>Així, el cicle és: arrencada → join → llegir → transmetre → dormir 5 min → despertar → llegir → transmetre → dormir → ...</p>
+<p>A la pràctica, l'ESP32 triga ~1-2 segons a despertar-se des de deep sleep, fer el join (que potser ja està fet, sinó fer-lo), llegir sensors, transmetre, i tornar a dormir. La majoria del temps, <strong>el node està dormint</strong>.</p>
+<h2>29.9 Bona gestió de la bateria</h2>
+<p>Algunes pràctiques:</p>
+<ul>
+<li><strong>Llegir el voltatge de la bateria</strong> periòdicament i enviar-lo com a dada addicional.</li>
+<li><strong>Usar el màxim SF possible</strong> quan el node dorm (per a transmissions ràpides).</li>
+<li><strong>Configurar l'ADR activat</strong> (el NS optimitzarà els paràmetres).</li>
+<li><strong>Desactivar Wi-Fi i Bluetooth</strong> si no es fan servir (ja ve per defecte en la majoria de llibreries).</li>
+<li><strong>Usar el mode de baix consum del SX1262</strong> (es desactiva sol quan no transmet).</li>
+<li><strong>Evitar transmissions amb errors</strong> (reintentar inútilment).</li>
+</ul>
+<h2>29.10 Logs i debug</h2>
+<p>Durant el desenvolupament, és important tenir bons logs:</p>
+<pre class="code"><code class="language-cpp">#define LMIC_DEBUG_LEVEL 1  // 0 = silenci, 1 = normal, 2 = molt</code></pre>
+<p>Això ensenya missatges interns de LMIC, útil per veure el procés de join, l'estat de les transmissions, etc.</p>
+<p>També podem afegir un <strong>LED</strong> que indiqui l'estat:</p>
+<pre class="code"><code class="language-cpp">// LED parpelleja durant el join
+// LED fix quan el join és complet
+// LED parpelleja durant la transmissió</code></pre>
+<p>Per a depuració més avançada, podem afegir un <strong>botó</strong> que forci una transmissió immediata.</p>
+<h2>29.11 Primera càrrega del codi</h2>
+<p>Per carregar el codi a l'ESP32:</p>
+<p>1. <strong>Connectar l'ESP32</strong> al PC per USB.
+2. <strong>Seleccionar la placa</strong> a l'Arduino IDE: `Tools → Board → ESP32 Dev Module` (o `Heltec LoRa 32` si tens aquesta opció).
+3. <strong>Seleccionar el port</strong>: `Tools → Port → COMx` (Windows) o `/dev/ttyUSBx` (Linux).
+4. <strong>Pujar el codi</strong>: `Sketch → Upload`.
+5. <strong>Obrir el monitor sèrie</strong>: `Tools → Serial Monitor` a 115200 baud.</p>
+<p>Veurem els missatges del node: arrencada, intent de join, transmissió, etc.</p>
+<h2>29.12 Primera transmissió exitosa</h2>
+<p>Quan tot funciona, veurem a la consola de TTN:</p>
+<p>1. A la pàgina del node, secció "Live data":
+<ul>
+<li>"Join request" → "Join accept"</li>
+<li>Un uplink amb el payload</li>
+</ul></p>
+<p>2. A la pàgina del gateway:
+<ul>
+<li>Un uplink rebut amb RSSI, SNR, etc.</li>
+</ul></p>
+<p>3. A la integració MQTT:
+<ul>
+<li>Un missatge JSON al broker.</li>
+</ul></p>
+<p>Si tot això passa, tenim un node LoRaWAN funcional!</p>
+<h2>29.13 Adaptació a altres sensors</h2>
+<p>Per afegir un sensor nou (per exemple, un sensor d'humitat del sòl), el codi canvia poc:</p>
+<pre class="code"><code class="language-cpp">// Definir el pin
+#define SOIL_PIN 34
+<p>// A do_send():
+int soilValue = analogRead(SOIL_PIN);
+float soilPercent = map(soilValue, 0, 4095, 100, 0);  // Invertir: 0 = sec, 4095 = mullat
+// O una corba de calibratge millor:
+// float soilPercent = 100.0 * (4095 - soilValue) / 4095.0;</p>
+<p>// Codificar CayenneLPP (canal 4)
+uint8_t soil = (uint8_t)soilPercent;
+payload[idx++] = 0x75;  // Tipus: humitat del sòl
+payload[idx++] = 0x04;  // Canal: 4
+payload[idx++] = soil;</code></pre></p>
+<p>I afegir-lo al payload formatter de TTN:</p>
+<pre class="code"><code class="language-javascript">case 0x75:  // Humitat del sòl
+    var soil = input.bytes[i++];
+    decoded.humitat_sol = soil;
+    break;</code></pre>
+<h2>29.14 Versió amb MicroPython</h2>
+<p>Si prefereixes MicroPython a Arduino, la sintaxi canvia però la lògica és similar. La llibreria LoRaWAN en MicroPython no és tan madura com en C, però per a prototips funciona.</p>
+<p>Exemple amb MicroPython i una Heltec LoRa 32 V3:</p>
+<pre class="code"><code class="language-python">from machine import Pin, I2C, deepsleep
+import time
+import bme280
+import ujson
+<h1>Pins</h1>
+PIN_SS = 8
+PIN_RST = 12
+PIN_DIO0 = 14
+<h1>Inicialitzar BME280</h1>
+i2c = I2C(0, scl=Pin(22), sda=Pin(21))
+bme = bme280.BME280(i2c=i2c)
+<h1>Inicialitzar LoRa (amb radio library específica de MicroPython)</h1>
+<h1>... (cal instal·lar la llibreria de MicroPython per a SX126x)</h1>
+<p>while True:
+    temperatura, pressio, humitat = bme.read_compensated_data()
+    temperatura = temperatura / 100
+    humitat = humitat / 1024
+    pressio = pressio / 25600</p>
+<p># Codificar CayenneLPP
+    payload = bytes([
+        0x67, 0x01,  # Temperatura canal 1
+        (int(temperatura <em> 10) &gt;&gt; 8) &amp; 0xFF, int(temperatura </em> 10) &amp; 0xFF,
+        0x68, 0x02,  # Humitat canal 2
+        (int(humitat <em> 2) &gt;&gt; 8) &amp; 0xFF, int(humitat </em> 2) &amp; 0xFF,
+        0x73, 0x03,  # Pressió canal 3
+        (int(pressio <em> 10) &gt;&gt; 8) &amp; 0xFF, int(pressio </em> 10) &amp; 0xFF,
+    ])</p>
+<p># Transmetre
+    lora.send(payload)</p>
+<p># Deep sleep 5 minuts
+    deepsleep(5 <em> 60 </em> 1000)</code></pre></p>
+<p>La versió Arduino és més madura i recomanada per a producció. MicroPython és bona per a prototipatge ràpid.</p>
+<h2>29.15 Errors habituals</h2>
+<p><strong>Error 1: identificadors incorrectes</strong>. Símptoma: el join falla constantment. Solució: verificar DevEUI, AppEUI, AppKey.</p>
+<p><strong>Error 2: pins incorrectes</strong>. Símptoma: el SX1262 no es comunica. Solució: verificar els pins segons la placa.</p>
+<p><strong>Error 3: no configurar la regió</strong>. Símptoma: el node transmet però el gateway no el sent. Solució: afegir `LMIC_setRegion(LMIC_region_eu868)` (o similar per a la teva regió).</p>
+<p><strong>Error 4: consum excessiu</strong>. Símptoma: la bateria dura poc. Solució: entrar en deep sleep correctament, desactivar Wi-Fi i Bluetooth.</p>
+<p><strong>Error 5: payload massa gran</strong>. Símptoma: transmissió falla o es retarda. Solució: CayenneLPP compacte, no enviar JSON.</p>
+<h2>29.16 Resum</h2>
+<p>En aquest capítol hem après a programar un node LoRaWAN amb ESP32 i la llibreria MCCI LMIC. Hem vist el codi complet d'un node que llegeix BME280 i transmet cada 5 minuts en format CayenneLPP. Hem après a configurar el deep sleep per a baix consum, a gestionar la bateria, i a fer el debug amb logs. En el proper capítol veurem com rebre aquestes dades al BernatLab: TTN → Mosquitto → Telegraf → InfluxDB, i com visualitzar-les a Grafana.</p>
+<h2>29.17 Exercicis pràctics</h2>
+<p>1. Munta un circuit amb Heltec LoRa 32 V3 + BME280.
+2. Instal·la Arduino IDE i les llibreries (LMIC, Adafruit BME280).
+3. Configura el codi amb els TEUS DevEUI, AppEUI, AppKey.
+4. Carrega el codi a l'ESP32.
+5. Mira el monitor sèrie. Hauries de veure "Join success!" en uns segons.
+6. A la consola de TTN, comprova que el node apareix com a "Connected".
+7. Espera 5 minuts. Hauries de veure un uplink a "Live data".
+8. Prova d'afegir un sensor d'humitat del sòl al codi.
+9. Mesura el consum de corrent en deep sleep amb un multímetre.
+10. Documenta al README el procés de flashing i el consum.</p>
+<p>Paraules clau: <strong>programació, codi, Arduino, ESP32, Heltec LoRa 32, LMIC, MCCI, RadioLib, CayenneLPP, payload, deep sleep, esp_sleep_enable, esp_deep_sleep, RTC, RAM persistent, timer wake-up, GPIO wake-up, deep sleep modes, ULP, coprocessador, sensor reading, I2C, SPI, GPIO, ADC, DAC, PWM, timer, interrupt, ISR, callback, FreeRTOS, task, queue, semaphore, mutex, ESP-IDF, Arduino framework, sketch, upload, monitor sèrie, port sèrie, COM, ttyUSB, baud, 115200, log, debug, LMIC_DEBUG_LEVEL, OTAA, ABP, DevEUI, AppEUI, AppKey, NWKSKEY, APPSKEY, DevAddr, DevNonce, join procedure, EU868, regió, data rate, SF, BW, TX power, ack, confirmed, unconfirmed, downlink, RX1, RX2, BME280, temperatura, humitat, pressió, sensor, I2C address, 0x76, 0x77, deep sleep wake-up, timer wake-up, low power, low energy, mAh, bateria, LiPo, 18650, TP4056, charging, battery voltage, ADC, analogRead, voltage divider, MOSFET, fuel gauge, INA219, INA260, coulomb counter, battery health, charge cycle, deep discharge, over-discharge, undervoltage, low battery, power management, sleep current, active current, average current, deep sleep current, wake-up time, boot time, startup time, frequency, clock, ESP32 clock, crystal, oscillator, RTC, real-time clock, external RTC, DS3231, PCF8523, time sync, NTP, time server, time protocol, timestamp, log timestamp, debug log, Serial.println, sprintf, format string, buffer, overflow, memory, heap, stack, fragmentation, watchdog, brown-out, panic, error handling, exception, fault, GDB, JTAG, debug, OCD, ESP-Prog, ESPtool, esptool.py, flash tool, firmware, bootloader, partition table, OTA, update over the air, FOTA, firmware update, secure boot, flash encryption, NVS, preferences, ESP32 preferences, LittleFS, SPIFFS, file system, SD card, microSD, data logging, local storage, send to server, queue, batch, retransmission, reliable, MQTT-SN, CoAP, LwM2M, lightweight, IoT protocol, application protocol, network protocol, transport protocol, MAC protocol, modulation, spreading, coding, error correction, FEC, interleaving, whitening, channel coding, source coding, compression, encryption, AES, CCM, integrity, MAC, message authentication, replay attack, sequence number, frame counter, MIC, message integrity code, frame integrity, data integrity, OTAA, ABP, session key, network key, application key, root key, join key, NwkKey, AppKey, MCKE, multicast key, multicast, group, multicast setup, FUOTA, firmware update over the air, multicast firmware update, class B, class C, downlink, RX1, RX2, receive window, RX1 delay, RX2 delay, dwell time, maximum payload, dwell time limitation, EU868 dwell time, ETSI EN 300 220, regional parameters, LoRaWAN regional parameters, RP001, RP002, LoRaWAN specification, LoRaWAN 1.0, LoRaWAN 1.0.2, LoRaWAN 1.0.3, LoRaWAN 1.0.4, LoRaWAN 1.1, MAC specification, regional parameters document, Lora Alliance, TS001, TS002, TS003, TS004, TS005, TS006, TS007, TS008, TS009, TS010, TS011, LoRaWAN L2 specification, layer 2, MAC layer, physical layer, PHY layer, application layer, application server, network server, join server, application session, network session, session context, MAC commands, fopts, FOpts, FOptsLen, FCtrl, frame control, frame header, FPort, FRMPayload, payload, MIC, message integrity check, B0, B1, B2, encryption, decryption, AES-128, AES-CMAC, CMAC, MIC calculation, MIC verification, packet validation, packet filtering, deduplication, desduplicació, replay protection, replay attack, frame counter, FCnt, FCntUp, FCntDown, frm_payload_size, payload size, maximum payload size, dwell time, time on air, airtime, transmission time, duty cycle, EU868 duty cycle, 1% duty cycle, 0.1% duty cycle, 10% duty cycle, sub-banda, 868.0-868.6, 868.7-869.2, 869.4-869.65, ETSI, ERC Recommendation 70-03, EN 300 220, ETSI EN 300 220-1, ETSI EN 300 220-2, regulator, telecom regulator, bandwidth, 125 kHz, 250 kHz, 500 kHz, channel, 868.1, 868.3, 868.5, 867.1, 867.3, 867.5, 867.7, 867.9, frequency plan, EU868 frequency plan, RX2 channel, RX2 data rate, default RX2, network server RX2, second receive window, RX2 frequency, RX2 DR, RX2 SF, RX2 BW, RX1 channel, RX1 DR, RX1 SF, RX1 BW, RX1 data rate, RX1 delay, receive delay, transmission timing, hop limit, MAC command, ADR, ADR bit, ADRACKReq, ADRACKCnt, LinkADRReq, LinkADRAns, DutyCycleReq, DutyCycleAns, RXParamSetupReq, RXParamSetupAns, DevStatusReq, DevStatusAns, NewChannelReq, NewChannelAns, RXTimingSetupReq, RXTimingSetupAns, Class B, ping slot, beacon, BCN, beacon frequency, beacon period, ping slot period, multicast, MCKS, multicast address, group address, FUOTA, fragmentation, file fragmentation, fragIndex, fragCount, MIC, integrity check, signed fragment, signature, EUI-64, EUI-48, dev nonce, join nonce, AppNonce, DevNonce, JoinNonce, LoRaWAN 1.0, LoRaWAN 1.1, LoRaWAN 1.0.4, LoRaWAN 1.0.3, LoRaWAN 1.0.2, application root key, root key, application key, network key, NwkKey, SNwkSIntKey, FNwkSIntKey, NwkSEncKey, AppSKey, root key, derivation, session key derivation, key derivation, KDF, key derivation function, session context, session state, security context, join server, network server, application server, separated AS, separated NS, separated JS, server architecture, distributed, monolithic, integrated, key management, key rotation, root key rotation, secure element, secure storage, hardware secure element, ATECC608, ATECC608A, secure element, ECC, elliptic curve, ECDSA, ECDH, signature, verification, secure boot, secure firmware, hardware root of trust, immutable bootloader, signed firmware, firmware signature, secure firmware update, FOTA, FUOTA, secure FOTA</strong>.</p>
+<hr>
+<h2 id="30-recepcio-bernatlab">Capitol 30 — Recepció al BernatLab: de TTN a InfluxDB</h2>
+<p>> <em>"El node ha transmès, el gateway ha escoltat, TTN ha desxifrat. Ara falta la part que ens interessa: que les dades aterrin al Grafana i a la web."</em></p>
+<h2>30.1 El pipeline complet</h2>
+<p>Quan un node LoRaWAN transmet, les dades fan el següent camí:</p>
+<pre class="code"><code class="language-">[NODES]  ──── LoRa 868 MHz ────►  [GATEWAY]  ── Internet ──►  [TTN]  ── MQTT ──►  [Mosquitto]
+                                                                                       │
+                                                                                       ▼
+                                                                                  [Telegraf]
+                                                                                       │
+                                                                                       ▼
+                                                                                  [InfluxDB]
+                                                                                       │
+                                                                                       ▼
+                                                                                  [Grafana]
+                                                                                       │
+                                                                                       ▼
+                                                                               [Web Hort Osona]
+                                                                                  (via API)</code></pre>
+<p>Aquest pipeline ja el coneixem del Mòdul 2, però ara veurem els detalls específics per a dades LoRa.</p>
+<h2>30.2 El que rep Mosquitto</h2>
+<p>Quan TTN ha desxifrat el payload d'un node, el publica al broker MQTT. El missatge té aquesta estructura JSON:</p>
+<pre class="code"><code class="language-json">{
+  &quot;end_device_ids&quot;: {
+    &quot;device_id&quot;: &quot;eui-70b3d57ed004f1ce&quot;,
+    &quot;application_ids&quot;: {
+      &quot;application_id&quot;: &quot;hort-osona-bernat&quot;
+    },
+    &quot;dev_eui&quot;: &quot;70B3D57ED004F1CE&quot;,
+    &quot;join_eui&quot;: &quot;0000000000000000&quot;
+  },
+  &quot;received_at&quot;: &quot;2026-07-08T12:34:56.789Z&quot;,
+  &quot;uplink_message&quot;: {
+    &quot;f_port&quot;: 2,
+    &quot;f_cnt&quot;: 42,
+    &quot;frm_payload&quot;: &quot;GAEABbYBmAu4&quot;,
+    &quot;decoded_payload&quot;: {
+      &quot;temperatura&quot;: 25.5,
+      &quot;humitat&quot;: 91,
+      &quot;pressio&quot;: 1013
+    },
+    &quot;rx_metadata&quot;: [{
+      &quot;gateway_ids&quot;: {
+        &quot;gateway_id&quot;: &quot;raspi-hortosona-gw&quot;
+      },
+      &quot;rssi&quot;: -67,
+      &quot;snr&quot;: 9.5
+    }],
+    &quot;settings&quot;: {
+      &quot;data_rate&quot;: {
+        &quot;lora&quot;: {
+          &quot;bandwidth&quot;: 125000,
+          &quot;spreading_factor&quot;: 9
+        }
+      },
+      &quot;frequency&quot;: &quot;868100000&quot;
+    }
+  }
+}</code></pre>
+<p>Com veiem, <strong>el payload decodificat ja ve en JSON</strong> (gràcies al payload formatter que hem configurat a TTN). També tenim metadades útils: RSSI, SNR, data rate, etc.</p>
+<h2>30.3 Subscriure's manualment per veure-ho</h2>
+<p>Per veure els missatges en directe, ens podem subscriure al broker:</p>
+<pre class="code"><code class="language-bash">mosquitto_sub -h 100.115.134.76 -t &quot;v3/#&quot; -v -u bernat -P CONTRASENYA</code></pre>
+<p>Això ensenya tots els missatges que arriben. Si veiem alguna cosa, vol dir que TTN s'està connectant correctament al nostre broker.</p>
+<h2>30.4 Configurar Telegraf per rebre dades LoRa</h2>
+<p>Ara ve la part interessant: configurar Telegraf perquè consumeixi els missatges de TTN i els escrigui a InfluxDB.</p>
+<p>A `/home/bernat/homelab/compose/iot/telegraf.conf`:</p>
+<pre class="code"><code class="language-toml">[agent]
+  interval = &quot;30s&quot;
+  flush_interval = &quot;30s&quot;
+<h1>Input: escoltem MQTT per missatges de TTN</h1>
+[[inputs.mqtt_consumer]]
+  servers = [&quot;tcp://mosquitto:1883&quot;]
+  username = &quot;telegraf&quot;
+  password = &quot;${MQTT_PASSWORD}&quot;
+  client_id = &quot;telegraf-ttn-bridge&quot;
+  topics = [&quot;v3/+/@/devices/+/up&quot;]
+  data_format = &quot;json&quot;
+  json_time_key = &quot;received_at&quot;
+  json_time_format = &quot;2006-01-02T15:04:05Z&quot;
+  tag_keys = [&quot;device_id&quot;, &quot;application_id&quot;, &quot;dev_eui&quot;]
+<p># Tag a partir d&#x27;una ruta JSON: el data rate i el SF
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.settings.data_rate.lora.spreading_factor&quot;
+    name = &quot;spreading_factor&quot;
+    type = &quot;integer&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.settings.data_rate.lora.bandwidth&quot;
+    name = &quot;bandwidth&quot;
+    type = &quot;integer&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.rx_metadata[0].rssi&quot;
+    name = &quot;rssi&quot;
+    type = &quot;integer&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.rx_metadata[0].snr&quot;
+    name = &quot;snr&quot;
+    type = &quot;float&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.f_cnt&quot;
+    name = &quot;fcnt&quot;
+    type = &quot;integer&quot;</p>
+<p># Camps de la payload (cayenne LPP ja desxifrat per TTN)
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.decoded_payload.temperatura&quot;
+    name = &quot;temperatura&quot;
+    type = &quot;float&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.decoded_payload.humitat&quot;
+    name = &quot;humitat&quot;
+    type = &quot;float&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.decoded_payload.pressio&quot;
+    name = &quot;pressio&quot;
+    type = &quot;float&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.decoded_payload.humitat_sol&quot;
+    name = &quot;humitat_sol&quot;
+    type = &quot;float&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.decoded_payload.lux&quot;
+    name = &quot;lux&quot;
+    type = &quot;integer&quot;
+  [[inputs.mqtt_consumer.json_fields]]
+    path = &quot;uplink_message.decoded_payload.voltatge_bateria&quot;
+    name = &quot;voltatge_bateria&quot;
+    type = &quot;float&quot;</p>
+<h1>Output: InfluxDB v2</h1>
+[[outputs.influxdb_v2]]
+  urls = [&quot;http://influxdb:8086&quot;]
+  token = &quot;${INFLUX_TOKEN}&quot;
+  org = &quot;bernatlab&quot;
+  bucket = &quot;hort-osona&quot;
+  timeout = &quot;10s&quot;
+  content_encoding = &quot;gzip&quot;
+  # Mesura comuna per a tots els punts
+  measurement = &quot;sensor_lora&quot;</code></pre>
+<p>Aquesta configuració:</p>
+<ul>
+<li>Escolta tots els missatges de TTN (`v3/+/@/devices/+/up`).</li>
+<li>Extreu els tags: device_id, application_id, dev_eui.</li>
+<li>Extreu les metadades: SF, BW, RSSI, SNR, frame counter.</li>
+<li>Extreu les dades: temperatura, humitat, pressió, etc.</li>
+<li>Usa el temps de `received_at` de TTN com a timestamp.</li>
+<li>Escriu a InfluxDB al bucket `hort-osona`, amb mesura `sensor_lora`.</li>
+</ul>
+<h2>30.5 Verificar que Telegraf rep dades</h2>
+<p>Podem mirar els logs:</p>
+<pre class="code"><code class="language-bash">docker compose logs -f telegraf</code></pre>
+<p>Si tot funciona, veurem línies com:</p>
+<pre class="code"><code class="language-">2026-07-08T12:34:56Z I! Loaded inputs: mqtt_consumer
+2026-07-08T12:34:56Z I! Loaded outputs: influxdb_v2
+2026-07-08T12:34:56Z I! [agent] Start: agent started</code></pre>
+<p>I quan arribi una transmissió, veurem l'escriptura a InfluxDB.</p>
+<p>També podem consultar directament a InfluxDB:</p>
+<pre class="code"><code class="language-bash">influx query &#x27;
+from(bucket: &quot;hort-osona&quot;)
+  |&gt; range(start: -1h)
+  |&gt; filter(fn: (r) =&gt; r._measurement == &quot;sensor_lora&quot;)
+  |&gt; filter(fn: (r) =&gt; r._field == &quot;temperatura&quot;)
+&#x27; --org bernatlab --token TOKEN</code></pre>
+<p>Si veiem dades, tot funciona.</p>
+<h2>30.6 Configurar Grafana</h2>
+<p>A Grafana (que ja tenim configurat al M2), creem o importem un dashboard específic per a sensors LoRa.</p>
+<p>Un dashboard bàsic tindria:</p>
+<p>1. <strong>Panell "Temperatura per zona"</strong>: gràfica de línies, últimes 24 h.
+2. <strong>Panell "Humitat per zona"</strong>: similar.
+3. <strong>Panell "Humitat del sòl"</strong>: gràfica específica.
+4. <strong>Panell "RSSI / SNR"</strong>: gràfiques de qualitat del senyal.
+5. <strong>Panell "Bateria"</strong>: gràfica del voltatge de la bateria.
+6. <strong>Panell "Estat del node"</strong>: taula amb l'últim valor, RSSI, SNR, etc.
+7. <strong>Alerta visual</strong>: si la temperatura baixa de 2 °C, el panell es posa vermell.</p>
+<p>Crear el dashboard és similar al que vam fer al Mòdul 2 (Capítol 19). Aquí només afegim les dades específiques de LoRa.</p>
+<h2>30.7 Alertes amb Grafana</h2>
+<p>A més de les alertes visuals, podem configurar alertes reals:</p>
+<ul>
+<li><strong>Temperatura massa baixa</strong> (gelada imminent): alerta per Telegram.</li>
+<li><strong>Bateria baixa</strong>: alerta per Telegram.</li>
+<li><strong>Node inactiu</strong>: si no hem rebut cap uplink en 30 minuts, alerta.</li>
+<li><strong>RSSI massa baix</strong>: indica que alguna cosa ha canviat al camp.</li>
+</ul>
+<p>Aquestes alertes les creem a Grafana → Alerting → Alert rules.</p>
+<h2>30.8 Configurar Node-RED per processar</h2>
+<p>A Node-RED, podem afegir fluxos específics per a LoRa:</p>
+<ul>
+<li><strong>Flux 1: filtre de qualitat</strong>. Si RSSI < -110 dBm, alerta.</li>
+<li><strong>Flux 2: detecció de gelada</strong>. Si temperatura < 2 °C, alerta per Telegram.</li>
+<li><strong>Flux 3: reg automàtic</strong>. Si humitat del sòl < 30 % durant 30 min, enviar comanda a la vàlvula de reg.</li>
+<li><strong>Flux 4: resum diari</strong>. Cada matí, enviar un resum a Telegram amb les últimes lectures.</li>
+</ul>
+<p>Ja tenim Node-RED instal·lat (M2, Capítol 17), només cal afegir els fluxos nous.</p>
+<h2>30.9 Exemple de flux Node-RED per alerta de gelada</h2>
+<p>Un flux senzill a Node-RED que escolta els missatges de TTN i alerta si la temperatura baixa de 2 °C:</p>
+<p>1. <strong>Node `mqtt in`</strong>: subscriu a `v3/+/@/devices/+/up`.
+2. <strong>Node `function`</strong>: filtra els missatges amb temperatura < 2 °C.
+3. <strong>Node `telegram sender`</strong>: envia l'alerta.</p>
+<p>Codi del node function:</p>
+<pre class="code"><code class="language-javascript">// Filtrar missatges amb temperatura baixa
+const payload = msg.payload;
+<p>if (!payload.uplink_message || !payload.uplink_message.decoded_payload) {
+    return null;
+}</p>
+<p>const temp = payload.uplink_message.decoded_payload.temperatura;
+if (typeof temp !== &#x27;number&#x27; || temp &gt;= 2) {
+    return null;
+}</p>
+<p>const deviceId = payload.end_device_ids.device_id;
+const rssi = payload.uplink_message.rx_metadata[0]?.rssi || &#x27;N/A&#x27;;</p>
+<p>msg.payload = `❄️ ALERTA GELADA\n\nNode: ${deviceId}\nTemperatura: ${temp}°C\nRSSI: ${rssi} dBm\nHora: ${new Date().toISOString()}`;
+return msg;</code></pre></p>
+<p>Aquest flux ja s'encarrega de la detecció i l'alerta.</p>
+<h2>30.10 Publicar a la web Hort Osona</h2>
+<p>Per integrar les dades LoRa a la web pública, l'API FastAPI (M2, Capítol 20) ja està preparada. Només cal afegir endpoints específics per a sensors LoRa:</p>
+<pre class="code"><code class="language-python">@router.get(&quot;/lora/zones&quot;, response_model=list[str])
+def llistar_zones_lora():
+    &quot;&quot;&quot;Llista les zones (devices) amb sensors LoRa actius.&quot;&quot;&quot;
+    query = &#x27;&#x27;&#x27;
+    import &quot;influxdata/influxdb/schema&quot;
+    schema.tagValues(bucket: &quot;hort-osona&quot;, tag: &quot;device_id&quot;)
+    &#x27;&#x27;&#x27;
+    result = query_api.query(query)
+    return [table.values[0] for table in result]
+<p>@router.get(&quot;/lora/{device_id}/latest&quot;)
+def ultimes_dades_lora(device_id: str):
+    &quot;&quot;&quot;Retorna les últimes dades d&#x27;un sensor LoRa.&quot;&quot;&quot;
+    query = f&#x27;&#x27;&#x27;
+    from(bucket: &quot;hort-osona&quot;)
+      |&gt; range(start: -1h)
+      |&gt; filter(fn: (r) =&gt; r._measurement == &quot;sensor_lora&quot;)
+      |&gt; filter(fn: (r) =&gt; r.device_id == &quot;{device_id}&quot;)
+      |&gt; last()
+    &#x27;&#x27;&#x27;
+    # ... processar el resultat i retornar JSON</code></pre></p>
+<p>La web Hort Osona pot consumir aquests endpoints per mostrar dades en temps quasi-real.</p>
+<h2>30.11 Còpies de seguretat de les dades LoRa</h2>
+<p>Les dades dels sensors LoRa són valuoses (representen mesos d'observació). Per tant, cal fer-ne còpia de seguretat:</p>
+<ul>
+<li><strong>InfluxDB</strong>: la còpia regular d'InfluxDB (M2, Capítol 22) ja inclou aquestes dades.</li>
+<li><strong>TTN</strong>: TTN ja en té còpia al núvol (gratuït).</li>
+<li><strong>Local</strong>: podem exportar les dades periòdicament amb una tasca programada.</li>
+</ul>
+<h2>30.12 Monitoratge del pipeline complet</h2>
+<p>Per saber que tot funciona, monitorarem:</p>
+<p>1. <strong>Concentratord</strong>: monitor HTTP al port 3001 (M3, Capítol 27).
+2. <strong>Mosquitto</strong>: monitor TCP al port 1883 (M2, Capítol 13).
+3. <strong>Telegraf</strong>: monitor HTTP al port 8086 (no té interfície web, però podem fer un `docker ps`).
+4. <strong>InfluxDB</strong>: monitor HTTP al port 8086 (amb `/health`).
+5. <strong>Grafana</strong>: monitor HTTP al port 3000.</p>
+<p>A Uptime Kuma, afegim tots aquests monitors. Si algun falla, alerta per Telegram.</p>
+<h2>30.13 Proves d'integració</h2>
+<p>Quan tot estigui en marxa, validarem el pipeline amb una prova end-to-end:</p>
+<p>1. <strong>Node transmet</strong>: veure al log del node "Packet transmitted".
+2. <strong>Gateway rep</strong>: veure a la consola de TTN l'uplink.
+3. <strong>TTN publica a MQTT</strong>: veure el missatge amb `mosquitto_sub`.
+4. <strong>Telegraf escriu a InfluxDB</strong>: veure la dada amb `influx query`.
+5. <strong>Grafana mostra</strong>: veure la gràfica actualitzada.
+6. <strong>Web pública</strong>: veure la dada al frontend d'Hort Osona.
+7. <strong>Node-RED alerta</strong>: si la temperatura és baixa, rebre un missatge a Telegram.</p>
+<p>Si tot això funciona, tenim el pipeline complet.</p>
+<h2>30.14 Resum</h2>
+<p>En aquest capítol hem après a connectar el pipeline LoRa amb la resta del BernatLab. Hem vist com configurar Telegraf per rebre els missatges de TTN via MQTT, com guardar les dades a InfluxDB, com visualitzar-les a Grafana, com processar-les amb Node-RED, i com exposar-les a través de l'API per a la web pública. Hem après a monitorar tot el pipeline amb Uptime Kuma. En el proper capítol veurem el cas alternatiu: LoRa P2P amb SX1262, sense LoRaWAN ni TTN, útil per a un sol node o per a xarxes privades.</p>
+<h2>30.15 Exercicis pràctics</h2>
+<p>1. Desplega la nova configuració de Telegraf per rebre dades de TTN.
+2. Configura el payload formatter CayenneLPP a la consola de TTN.
+3. Configura la integració MQTT a TTN apuntant al broker del BernatLab.
+4. Verifica que les dades arriben a InfluxDB amb `influx query`.
+5. Crea un panell a Grafana per visualitzar la temperatura d'un node.
+6. Crea una alerta de Grafana per temperatura baixa.
+7. Afegeix un flux a Node-RED que processi les dades LoRa.
+8. Afegeix un monitor a Uptime Kuma per al gateway LoRa.
+9. Documenta al README el pipeline complet amb un esquema.</p>
+<p>Paraules clau: <strong>TTN, The Things Stack, MQTT, Mosquitto, Telegraf, InfluxDB, Grafana, Node-RED, FastAPI, API, web pública, CayenneLPP, payload formatter, decoder, telemetry, uplink, downlink, RSSI, SNR, frame counter, FCnt, FPort, data rate, spreading factor, bandwidth, time on air, EU868, frequency plan, channels, duty cycle, ADR, device EUI, application EUI, join, OTAA, ABP, session, dev nonce, join nonce, XSS, integració, broker, Mosquitto, publicador, subscriptor, wildcard, v3/, application_id, device_id, end device, application, gateway, concentratord, packet forwarder, server address, EU1, NAM1, AU1, AS923, US915, region, RSSI, SNR, signal quality, monitoring, alerting, Uptime Kuma, Telegram, alert rules, dashboard, panel, gauge, time series, bar chart, table, threshold, alert visual, alert real, contact point, alert evaluation, alert manager, Prometheus, alertmanager, InfluxDB, line protocol, bucket, org, retention, schema, measurements, tags, fields, time series database, TSDB, continuous query, task, aggregate, mean, max, min, last, range filter, tag filter, field filter, group by, window, windowPeriod, timeRangeStart, timeRangeStop, query, InfluxQL, Flux, query builder, Data Explorer, task scheduler, cron, InfluxDB API, InfluxDB CLI, influx command, influx query, influx write, influx bucket, influx auth, influx task, backup, restore, retention policy, downsampling, performance, index, TSI, time series index, cardinality, series cardinality, tag cardinality, series limit, query performance, Flux performance, query optimization, predicate pushdown, predicate, pushdown, caching, query cache, partition, shard, shard duration, shard group, retention enforcement, drop, series, expired series, series expiry, query history, query log, debug, info, error, warning, structured logging, JSON logging, log destination, stderr, stdout, file, syslog, journald, network, log shipping, Loki, Grafana Loki, log aggregation, log query, logQL, alerts, recording rules, alert rules, hot, warm, cold, tier, storage, S3, GCS, Azure, local, disk, memory, RAM, heap, OOM, out of memory, garbage collection, GC, performance, latency, throughput, write throughput, read throughput, queries per second, points per second, series per second, ingestion, ingestion rate, cardinality budget, cardinality, tag values, tag keys, schema, schema exploration, schema management, schema design, tag design, field design, data model, time series data model, time series best practices, naming conventions, tag naming, field naming, measurement naming, bucket naming, retention, downsampling, aggregation, continuous query, Flux task, scheduled task, cron task, InfluxDB tasks, task runs, task history, task options, task configuration, task management, task monitoring, task alerts</strong>.</p>
+<hr>
+<h2 id="31-lora-p2p">Capitol 31 — LoRa P2P amb SX1262: xarxes privades sense TTN</h2>
+<p>> <em>"Hi ha una altra manera de fer anar LoRa: sense servidor, sense TTN, sense ningú al mig. Dos mòduls parlen i punt. Més simple, menys potent, i de vegades exactament el que necessites."</em></p>
+<h2>31.1 Quan té sentit LoRa P2P</h2>
+<p>Al capítol 25 vàrem veure l'arbre de decisió. LoRa P2P (punt a punt) té sentit quan:</p>
+<ul>
+<li>Tens un sol node i un sol receptor.</li>
+<li>Vols privacitat total (cap dada no passa per tercers).</li>
+<li>Estàs fent experiments amb la capa física.</li>
+<li>El volum de dades és tan petit que TTN no val la pena.</li>
+</ul>
+<p>Per a Hort Osona no és la millor opció, però entenem que algunes situacions particulars la fan útil. Aquest capítol cobreix com fer-ho, amb exemples reals.</p>
+<h2>31.2 Què és LoRa P2P</h2>
+<p>En mode P2P, dos mòduls SX1262 es comuniquen directament. Sense gateway, sense network server. Tu defineixes:</p>
+<ul>
+<li>La freqüència (868.1 MHz, 868.3 MHz, etc.).</li>
+<li>El spreading factor (SF7-SF12).</li>
+<li>La amplada de banda (125, 250, 500 kHz).</li>
+<li>La potència de transmissió.</li>
+<li>El format del payload.</li>
+<li>Si hi ha ACK o no.</li>
+<li>Si hi ha xifrat o no.</li>
+</ul>
+<p>Tot és a les teves mans. La llibreria <strong>RadioLib</strong> de jgromes és la millor eina per a P2P: moderna, ben documentada, suporta SX126x, SX127x, RFM9x.</p>
+<h2>31.3 Diferències amb LoRaWAN</h2>
+<p>| Característica | LoRaWAN | LoRa P2P |
+|---|---|---|
+| Network server | Necessari (TTN, ChirpStack) | No cal |
+| Identificadors | DevEUI, AppEUI, AppKey | Cap (o propis) |
+| Autenticació | Xifrada amb AppKey | Opcional, manual |
+| Adreçament | DevAddr, multi-node | Cap (només 1 a 1) |
+| Downlink | Estàndard | Manual, complicat |
+| ADR | Automàtic | Manual |
+| Consum de memòria | ~30-50 KB de codi | ~5-10 KB |
+| Complexitat | Mitjana-alta | Baixa |</p>
+<p>P2P és més simple, però tot el que abans feia el network server, ara ho has de fer tu.</p>
+<h2>31.4 Hardware: el que necessitem</h2>
+<p>Per a P2P, el hardware és exactament el mateix que per a LoRaWAN:</p>
+<ul>
+<li>Dos mòduls SX1262 (un com a node, un com a receptor).</li>
+<li>Un microcontrolador per a cada mòdul (ESP32, per exemple).</li>
+<li>Antenes 868 MHz.</li>
+<li>Alimentació.</li>
+</ul>
+<p>La diferència és al software: amb P2P no cal TTN ni gateway.</p>
+<h2>31.5 Receptor: SX1262 connectat a la Raspberry</h2>
+<p>El receptor és un mòdul SX1262 connectat directament a la Raspberry per SPI. Hi ha diverses opcions:</p>
+<h3>Opció 1: breakout board SX1262 + Raspberry</h3>
+<p>Connectem un breakout SX1262 als pins SPI de la Raspberry. Calen cables (no és tan net com un gateway SX1302).</p>
+<h3>Opció 2: LoRa HAT per a Raspberry</h3>
+<p>Hi ha HATs per a Raspberry amb SX1262, com el Waveshare SX1262 LoRa HAT. Són barats (~15-25 €) i s'instal·len com un gateway però amb menys capacitats.</p>
+<h3>Opció 3: USB LoRa dongle</h3>
+<p>Hi ha dongles USB amb SX1262 que es connecten a un port USB. Es comuniquen per serial. Molt còmode per a prototipatge.</p>
+<p>Al BernatLab, recomanem l'opció 2 (HAT) per simplicitat. Si volem més versatilitat, l'opció 3 (USB dongle) és la més còmoda.</p>
+<h2>31.6 Codi del receptor en Python</h2>
+<p>A la Raspberry, un script Python que escolta els missatges P2P:</p>
+<pre class="code"><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;
+receptor_lora_p2p.py
+Rep missatges d&#x27;un node LoRa P2P amb SX1262 i els publica a MQTT.
+<p>Hardware: Waveshare SX1262 LoRa HAT a la Raspberry Pi 4.
+&quot;&quot;&quot;</p>
+<p>import json
+import time
+import struct
+import paho.mqtt.client as mqtt
+from datetime import datetime
+from SX126x import SX126x</p>
+<h1>Configuració LoRa</h1>
+LORA_FREQ = 868100000  # 868.1 MHz
+LORA_SF = 9            # Spreading Factor
+LORA_BW = 125000       # 125 kHz
+LORA_CR = 5            # Coding Rate 4/5
+LORA_TX_POWER = 14     # dBm
+<h1>MQTT</h1>
+MQTT_BROKER = &quot;localhost&quot;
+MQTT_PORT = 1883
+MQTT_USER = &quot;lora-receptor&quot;
+MQTT_PASS = &quot;password&quot;
+MQTT_TOPIC = &quot;lora/hort/#&quot;
+<h1>Inicialitzar el SX1262</h1>
+lora = SX126x(
+    freq_hz=LORA_FREQ,
+    spreading_factor=LORA_SF,
+    bandwidth=LORA_BW,
+    coding_rate=LORA_CR,
+    tx_power=LORA_TX_POWER,
+)
+<h1>Inicialitzar MQTT</h1>
+client = mqtt.Client()
+client.username_pw_set(MQTT_USER, MQTT_PASS)
+client.connect(MQTT_BROKER, MQTT_PORT, 60)
+client.loop_start()
+<p>def decode_payload(payload: bytes) -&gt; dict:
+    &quot;&quot;&quot;
+    Decodifica un payload CayenneLPP.</p>
+<p>Format esperat:
+<ul>
+<li>0x67 0x01 [2 bytes]   : Temperatura (canal 1, valor × 10, signed)</li>
+<li>0x68 0x02 [2 bytes]   : Humitat (canal 2, valor × 2, unsigned)</li>
+<li>0x73 0x03 [2 bytes]   : Pressió (canal 3, valor × 10, unsigned)</li>
+</ul>
+    &quot;&quot;&quot;
+    decoded = {}
+    i = 0
+    while i &lt; len(payload):
+        if i + 1 &gt;= len(payload):
+            break
+        tipo = payload[i]
+        canal = payload[i + 1]
+        i += 2
+        if tipo == 0x67:  # Temperatura
+            if i + 1 &gt;= len(payload):
+                break
+            valor = struct.unpack(&quot;&gt;h&quot;, payload[i:i + 2])[0]
+            decoded[&quot;temperatura&quot;] = valor / 10.0
+            i += 2
+        elif tipo == 0x68:  # Humitat
+            if i + 1 &gt;= len(payload):
+                break
+            valor = struct.unpack(&quot;&gt;H&quot;, payload[i:i + 2])[0]
+            decoded[&quot;humitat&quot;] = valor / 2.0
+            i += 2
+        elif tipo == 0x73:  # Pressió
+            if i + 1 &gt;= len(payload):
+                break
+            valor = struct.unpack(&quot;&gt;H&quot;, payload[i:i + 2])[0]
+            decoded[&quot;pressio&quot;] = valor / 10.0
+            i += 2
+        elif tipo == 0x75:  # Humitat del sòl
+            if i &gt;= len(payload):
+                break
+            decoded[&quot;humitat_sol&quot;] = payload[i]
+            i += 1
+        else:
+            # Tipus desconegut, aturar
+            break
+    return decoded</p>
+<p>def publicar_a_mqtt(decoded: dict, rssi: int, snr: float):
+    &quot;&quot;&quot;Publica les dades decodificades al broker MQTT.&quot;&quot;&quot;
+    payload = {
+        &quot;timestamp&quot;: datetime.utcnow().isoformat() + &quot;Z&quot;,
+        &quot;rssi&quot;: rssi,
+        &quot;snr&quot;: snr,
+        **decoded,
+    }
+    msg = json.dumps(payload)
+    # Topic basat en el tipus de dada
+    for key in decoded:
+        topic = f&quot;lora/hort/{key}&quot;
+        client.publish(topic, msg, retain=True)
+    # També publiquem el payload complet
+    client.publish(&quot;lora/hort/all&quot;, msg, retain=True)
+    print(f&quot;Publicat: {msg}&quot;)</p>
+<p>def main():
+    print(f&quot;Receptor LoRa P2P a {LORA_FREQ/1e6} MHz, SF{LORA_SF}, BW {LORA_BW/1e3} kHz&quot;)
+    print(&quot;Esperant transmissions...&quot;)</p>
+<p>while True:
+        try:
+            data, rssi, snr = lora.receive(timeout_ms=10000)
+            if data:
+                print(f&quot;Rebut ({len(data)} bytes), RSSI={rssi}, SNR={snr}&quot;)
+                decoded = decode_payload(data)
+                if decoded:
+                    publicar_a_mqtt(decoded, rssi, snr)
+                else:
+                    print(f&quot;Payload no reconegut: {data.hex()}&quot;)
+        except KeyboardInterrupt:
+            print(&quot;\nAturant...&quot;)
+            break
+        except Exception as e:
+            print(f&quot;Error: {e}&quot;)
+            time.sleep(1)</p>
+<p>if __name__ == &quot;__main__&quot;:
+    main()</code></pre></p>
+<p>Aquest codi:</p>
+<ul>
+<li>Inicialitza el SX1262 amb els paràmetres adequats.</li>
+<li>Escolta transmissions en bucle.</li>
+<li>Decodifica payloads CayenneLPP.</li>
+<li>Publica a MQTT per integrar-se amb la resta del BernatLab.</li>
+</ul>
+<h2>31.7 Codi del node en Arduino (ESP32 + SX1262)</h2>
+<p>El node és similar al que vam veure al capítol 29, però usant RadioLib i mode P2P:</p>
+<pre class="code"><code class="language-cpp">// BernatLab Hort Osona - Node LoRa P2P
+// Hardware: Heltec LoRa 32 V3 + BME280
+// Llibreria: RadioLib
+<p>#include &lt;Arduino.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_Sensor.h&gt;
+#include &lt;Adafruit_BME280.h&gt;
+#include &lt;RadioLib.h&gt;</p>
+<p>// Pins per a la Heltec LoRa 32 V3
+#define LORA_NSS  8
+#define LORA_RST  12
+#define LORA_DIO1 14
+#define LORA_BUSY 13</p>
+<p>// SX1262 amb RadioLib
+SX1262 lora = new Module(LORA_NSS, LORA_DIO1, LORA_RST, LORA_BUSY);</p>
+<p>// BME280
+Adafruit_BME280 bme;</p>
+<p>// Paràmetres P2P
+#define LORA_FREQ     868.1
+#define LORA_BW       125.0
+#define LORA_SF       9
+#define LORA_CR       5
+#define LORA_TX_POWER 14</p>
+<p>// Banderes
+bool transmissio_OK = false;
+volatile bool transmisio_completada = false;</p>
+<p>void transmisio_completada_callback() {
+    transmisio_completada = true;
+}</p>
+<p>void setup() {
+    Serial.begin(115200);
+    delay(2000);</p>
+<p>// Inicialitzar BME280
+    if (!bme.begin(0x76) &amp;&amp; !bme.begin(0x77)) {
+        Serial.println(F(&quot;BME280 no trobat&quot;));
+        while (1) delay(1000);
+    }</p>
+<p>// Inicialitzar SX1262 amb RadioLib
+    Serial.print(F(&quot;Inicialitzant SX1262... &quot;));
+    int state = lora.begin();
+    if (state != RADIOLIB_ERR_NONE) {
+        Serial.print(F(&quot;Error: &quot;));
+        Serial.println(state);
+        while (1) delay(1000);
+    }
+    Serial.println(F(&quot;OK&quot;));</p>
+<p>// Configurar paràmetres
+    lora.setFrequency(LORA_FREQ);
+    lora.setSpreadingFactor(LORA_SF);
+    lora.setBandwidth(LORA_BW);
+    lora.setCodingRate(LORA_CR);
+    lora.setOutputPower(LORA_TX_POWER);</p>
+<p>// Callback
+    lora.setPacketSentAction(transmisio_completada_callback);
+}</p>
+<p>void loop() {
+    // Llegir sensor
+    float temperatura = bme.readTemperature();
+    float humitat = bme.readHumidity();
+    float pressio = bme.readPressure() / 100.0;</p>
+<p>// Codificar CayenneLPP
+    uint8_t payload[16];
+    int idx = 0;
+    int16_t t10 = (int16_t)(temperatura * 10);
+    payload[idx++] = 0x67;
+    payload[idx++] = 0x01;
+    payload[idx++] = (t10 &gt;&gt; 8) &amp; 0xFF;
+    payload[idx++] = t10 &amp; 0xFF;
+    uint16_t h2 = (uint16_t)(humitat * 2);
+    payload[idx++] = 0x68;
+    payload[idx++] = 0x02;
+    payload[idx++] = (h2 &gt;&gt; 8) &amp; 0xFF;
+    payload[idx++] = h2 &amp; 0xFF;
+    uint16_t p10 = (uint16_t)(pressio * 10);
+    payload[idx++] = 0x73;
+    payload[idx++] = 0x03;
+    payload[idx++] = (p10 &gt;&gt; 8) &amp; 0xFF;
+    payload[idx++] = p10 &amp; 0xFF;</p>
+<p>// Transmetre
+    Serial.print(F(&quot;Enviant... &quot;));
+    transmisio_completada = false;
+    int state = lora.startTransmit(payload, idx);
+    if (state != RADIOLIB_ERR_NONE) {
+        Serial.print(F(&quot;Error: &quot;));
+        Serial.println(state);
+    } else {
+        // Esperar la transmissió
+        unsigned long start = millis();
+        while (!transmisio_completada &amp;&amp; millis() - start &lt; 5000) {
+            lora.yield();
+        }
+        if (transmisio_completada) {
+            Serial.println(F(&quot;OK&quot;));
+        } else {
+            Serial.println(F(&quot;Timeout&quot;));
+        }
+    }</p>
+<p>// Deep sleep 5 minuts
+    Serial.println(F(&quot;Dormint...&quot;));
+    Serial.flush();
+    esp_sleep_enable_timer_wakeup(5 <em> 60 </em> 1000000);
+    esp_deep_sleep_start();
+}</code></pre></p>
+<h2>31.8 Avantatges i inconvenients del P2P</h2>
+<h3>Avantatges</h3>
+<ul>
+<li><strong>Simplicitat</strong>. No cal configurar TTN, no cal entendre DevEUI, AppEUI, etc.</li>
+<li><strong>Privacitat total</strong>. Cap dada no surt del teu entorn.</li>
+<li><strong>Cost més baix</strong>. No cal gateway SX1302 (més car), un SX1262 a la Raspberry n'hi ha prou.</li>
+<li><strong>Flexibilitat total</strong>. Tu tries el format del payload, les capçaleres, el xifrat.</li>
+</ul>
+<h3>Inconvenients</h3>
+<ul>
+<li><strong>Escalabilitat limitada</strong>. Dos mòduls, no més. Per a més, cal reimplementar la xarxa.</li>
+<li><strong>Sense roaming</strong>. Si el node es mou, cal reconfigurar.</li>
+<li><strong>Sense ADR</strong>. Cal optimitzar manualment.</li>
+<li><strong>Sense eines de monitoratge</strong>. TTN ensenya gràfiques, RSSI, etc. En P2P, cal implementar-ho.</li>
+<li><strong>Cal gestionar errors</strong>. En LoRaWAN, el NS desduplica i retransmet. En P2P, cal fer-ho manualment.</li>
+</ul>
+<h2>31.9 Com afegir reconeixement (ACK) en P2P</h2>
+<p>LoRaWAN té el seu mecanisme d'ACK. En P2P, podem implementar-lo manualment:</p>
+<pre class="code"><code class="language-cpp">// Al node: després de transmetre, escoltar un ACK durant 2 segons
+lora.startTransmit(payload, idx);
+// ... esperar la transmissió ...
+// Escoltar un ACK durant RX1 (1s) i RX2 (2s)
+String ack;
+int state = lora.receive(ack, 0, 0, 2000);
+if (state == RADIOLIB_ERR_NONE) {
+    Serial.println(&quot;ACK rebut&quot;);
+} else {
+    Serial.println(&quot;Sense ACK, retransmetre&quot;);
+}</code></pre>
+<p>Al receptor:</p>
+<pre class="code"><code class="language-python"># Quan rebem un missatge, enviem un ACK
+def enviar_ack(received_payload):
+    ack_payload = bytes([0xFF, 0x00, 0x01])  # Tipus ACK, longitud, OK
+    lora.transmit(ack_payload)</code></pre>
+<p>Això afegeix complexitat, però permet saber si el missatge ha arribat.</p>
+<h2>31.10 Com xifrar en P2P</h2>
+<p>LoRaWAN xifra amb AES-128. En P2P, podem fer el mateix amb qualsevol llibreria AES:</p>
+<pre class="code"><code class="language-cpp">#include &lt;mbedtls/aes.h&gt;
+<p>uint8_t key[16] = { /<em> 16 bytes de clau </em>/ };
+uint8_t iv[16] = { /<em> IV aleatori </em>/ };
+uint8_t plaintext[16];
+uint8_t ciphertext[16];</p>
+<p>mbedtls_aes_context aes;
+mbedtls_aes_setkey_enc(&amp;aes, key, 128);
+mbedtls_aes_crypt_cbc(&amp;aes, MBEDTLS_AES_ENCRYPT, 16, iv, plaintext, ciphertext);</code></pre></p>
+<p>Però compte: en una xarxa P2P, la clau ha d'estar a tots dos extrems. Si volem canviar-la, cal reprogramar tots dos.</p>
+<h2>31.11 Què fer si volem molts nodes</h2>
+<p>P2P no escala. Si volem més de 2-3 nodes, les opcions són:</p>
+<p>1. <strong>P2P amb adreçament manual</strong>: cada node té un ID, el receptor filtra per ID. Funciona per a uns pocs nodes.
+2. <strong>LoRaWAN amb ChirpStack autoallotjat</strong>: la millor opció per a més de 2-3 nodes.
+3. <strong>Mesh amb Meshtastic</strong>: una altra opció interessant, basada en LoRa, que permet mesh routing.</p>
+<p>Per a Hort Osona, si volem créixer, <strong>LoRaWAN amb TTN o ChirpStack</strong> és la millor opció. P2P és per a situacions específiques.</p>
+<h2>31.12 Quan P2P és la millor opció</h2>
+<p>Algunes situacions on P2P és millor que LoRaWAN:</p>
+<ul>
+<li><strong>Hackatges ràpids</strong>. Tens un node, vols transmetre, no tens temps de configurar TTN.</li>
+<li><strong>Educació</strong>. Per aprendre LoRa a fons, res millor que un P2P.</li>
+<li><strong>Privacitat extrema</strong>. Si no vols que cap dada passi per tercers.</li>
+<li><strong>Xarxes molt petites</strong>. 1-2 nodes, no escalable.</li>
+<li><strong>Proves de camp</strong>. Per validar la cobertura abans de muntar la xarxa completa.</li>
+</ul>
+<h2>31.13 Migració de P2P a LoRaWAN</h2>
+<p>Si comences amb P2P i vols migrar a LoRaWAN, la bona notícia és que <strong>el hardware és el mateix</strong>. Només cal canviar el software.</p>
+<p>Concretament:</p>
+<ul>
+<li>El node P2P passa a executar LMIC o RadioLib en mode LoRaWAN.</li>
+<li>El receptor SX1262 a la Raspberry ja no cal; el gateway SX1302 s'hi connecta.</li>
+<li>Afegim un gateway LoRaWAN (Waveshare SX1302 HAT) a la Raspberry.</li>
+<li>Configurem TTN o ChirpStack.</li>
+<li>Adapta el payload a CayenneLPP (o JSON).</li>
+</ul>
+<p>El temps de migració és d'unes hores, no pas setmanes.</p>
+<h2>31.14 Resum</h2>
+<p>En aquest capítol hem après què és LoRa P2P, quan té sentit, i com implementar-lo. Hem vist el codi del node (ESP32 + SX1262 + RadioLib) i del receptor (Python + SX1262 a la Raspberry). Hem après les limitacions d'aquesta arquitectura i quan és millor migrar a LoRaWAN. En el proper capítol veurem les proves de camp: com validar la cobertura, com calibrar el sistema, i com resoldre els problemes habituals.</p>
+<h2>31.15 Exercicis pràptics</h2>
+<p>1. Escriu el codi del node P2P amb RadioLib.
+2. Escriu el codi del receptor en Python per a la Raspberry.
+3. Prova la comunicació a 1 metre. Hauries de rebre el 100% dels missatges.
+4. Prova a 50 metres en exterior.
+5. Prova a 100 metres amb un obstacle al mig.
+6. Mesura el RSSI a diferents distàncies.
+7. Compara el rendiment de SF7 i SF12 a 100 metres.
+8. Documenta al README els resultats de les proves.</p>
+<p>Comandes útils:</p>
+<pre class="code"><code class="language-bash"># Receptor a la Raspberry
+python3 ~/homelab/scripts/lora_p2p/receptor_lora_p2p.py
+<h1>Subscriure&#x27;s a MQTT per veure les dades</h1>
+mosquitto_sub -h 100.115.134.76 -t &quot;lora/hort/#&quot; -v -u bernat -P CONTRASENYA</code></pre>
+<p>Paraules clau: <strong>LoRa P2P, point-to-point, RadioLib, SX1262, Python, receptor, ESP32, node, CayenneLPP, payload, xifrat, AES, ACK, retransmissió, adreçament, mesh, Meshtastic, RSSI, SNR, packet loss, time on air, EU868, SF7-SF12, BW125, Antena, ad-hoc, privat, xarxa privada, TTN alternatiu, ChirpStack</strong>.</p>
+<hr>
+<h2 id="32-proves-camp">Capitol 32 — Proves de camp, cobertura i resolució de problemes</h2>
+<p>> <em>"El dia que posis el node al camp, vindrà una de dues coses: funcionarà o no funcionarà. Aquest capítol és per si no funciona."</em></p>
+<h2>32.1 Per què les proves de camp són essencials</h2>
+<p>En telecomunicacions, hi ha una regla no escrita: <strong>el laboratori menteix, el camp diu la veritat</strong>. Pots tenir el sistema perfectament configurat al taller, amb RSSI de -50 dBm i SNR de 12 dB, i quan el posis al camp amb un arbre al mig, pluja, i un angle d'antena lleugerament diferent, tot canvia.</p>
+<p>Per això, les proves de camp són fonamentals. Hem de validar:</p>
+<p>1. <strong>Cobertura</strong>: el node arriba al gateway?
+2. <strong>Qualitat del senyal</strong>: amb quin RSSI / SNR?
+3. <strong>Fiabilitat</strong>: arriba sempre, o hi ha pèrdues?
+4. <strong>Banda i data rate</strong>: SF7 funciona, o cal SF9?
+5. <strong>Durada de la bateria</strong>: aguanta 1 mes, 3 mesos, 1 any?</p>
+<h2>32.2 Material per a les proves</h2>
+<p>Per fer proves de camp, necessitem:</p>
+<ul>
+<li>Un node LoRa (Heltec LoRa 32 V3, per exemple).</li>
+<li>Un gateway funcionant (la Raspberry amb Concentratord).</li>
+<li>Un portàtil amb el monitor sèrie del node.</li>
+<li>Accés a la consola de TTN.</li>
+<li>Una brúixola (per orientar l'antena).</li>
+<li>Un mapa o paper mil·limetrat (per dibuixar la cobertura).</li>
+<li>Un multímetre (per mesurar el voltatge de la bateria).</li>
+<li>Un cable SMA-SMA curt (per connectar l'antena temporalment).</li>
+<li>Una persona al camp (tu, amb el node).</li>
+<li>Una persona a la Raspberry (tu, mirant la consola).</li>
+<li>O tots dos alhora, amb un telèfon per comunicar-se.</li>
+</ul>
+<h2>32.3 Procediment general de proves</h2>
+<p>Un procediment sistemàtic per validar la cobertura:</p>
+<p>1. <strong>Configura el node</strong> amb un codi que transmet cada 10 segons. Això ens permetrà veure ràpidament si funciona.
+2. <strong>Col·loca el node a la posició final</strong> (o el més a prop possible).
+3. <strong>Mira la consola de TTN</strong>. Hauries de veure els uplink.
+4. <strong>Anota RSSI i SNR</strong> de cada transmissió.
+5. <strong>Espera 5-10 minuts</strong> i compta quantes transmissions has rebut.
+6. <strong>Calcula el percentatge de pèrdua</strong> = (transmissions enviades - transmissions rebudes) / transmissions enviades.
+7. <strong>Mou el node</strong> a una altra posició i repeteix.</p>
+<p>A la pràctica, fes un mapa de la zona amb les lectures:</p>
+<pre class="code"><code class="language-">         Nord
+          ↑
+<p>[Node]    Posició 1: RSSI -65, SNR 9.5, pèrdua 0%</p>
+<p>Posició 2: RSSI -85, SNR 6.0, pèrdua 5%</p>
+<p>[Gateway] Posició 3: RSSI -55, SNR 11.0, pèrdua 0%</code></pre></p>
+<h2>32.4 Mètriques clau</h2>
+<p>A la consola de TTN, podem veure per a cada uplink:</p>
+<ul>
+<li><strong>RSSI</strong>: potència del senyal rebut. Valors típics:</li>
+<li><strong>> -80 dBm</strong>: excel·lent.</li>
+<li><strong>-80 a -100 dBm</strong>: bo.</li>
+<li><strong>-100 a -110 dBm</strong>: acceptable.</li>
+<li><strong>< -110 dBm</strong>: pobre, probablement problemes.</li>
+<li><strong>SNR</strong>: relació senyal-soroll. Valors típics:</li>
+<li><strong>> 10 dB</strong>: excel·lent.</li>
+<li><strong>5-10 dB</strong>: bo.</li>
+<li><strong>0-5 dB</strong>: acceptable.</li>
+<li><strong>< 0 dB</strong>: al límit, problemes.</li>
+<li><strong>Spread Factor</strong>: el data rate usat.</li>
+<li><strong>Bandwidth</strong>: amplada de banda del canal.</li>
+<li><strong>Frequency</strong>: canal usat.</li>
+</ul>
+<p>A més, podem veure la <strong>distribució</strong> al llarg del temps: si RSSI baixa gradualment, pot ser un problema (bateria, antena, obstacle). Si baixa sobtadament, pot ser un canvi a l'entorn (un arbre ha crescut, una persona passa per allà).</p>
+<h2>32.5 Paràmetres a ajustar</h2>
+<p>Si els resultats no són bons, podem ajustar:</p>
+<h3>Spreading Factor (SF)</h3>
+<p>Si volem més abast, pujem SF. Com més alt, més lent però més robust:</p>
+<ul>
+<li><strong>SF7</strong>: ràpid, curt abast. Per a distàncies curtes amb bona visió.</li>
+<li><strong>SF9</strong>: bon equilibri. Recomanat per defecte.</li>
+<li><strong>SF11-SF12</strong>: per a casos extrems. Triga molt i té límit de duty cycle.</li>
+</ul>
+<p>A la pràctica, podem començar amb SF7, i si no arriba, pujar a SF9, SF10, etc.</p>
+<h3>Potència de transmissió</h3>
+<p>A la consola de TTN, podem veure quina potència està fent servir el node. Podem forçar-la:</p>
+<ul>
+<li>A la consola del node, secció "Network Layer → ADR", podem desactivar ADR.</li>
+<li>A la secció "Network Layer → Transmit Power", podem posar un valor fix (per exemple, 14 dBm).</li>
+</ul>
+<p>Si el node té bona visió i està a prop, podem baixar a 8 dBm per estalviar bateria. Si tenim obstacles, pujar a 14 dBm.</p>
+<h3>Posició de l'antena</h3>
+<p>L'antena ha d'estar:</p>
+<ul>
+<li><strong>Vertical</strong> (per a polarització vertical, l'estàndard a EU868).</li>
+<li><strong>Amb visió directa</strong> al gateway (sense arbres, edificis, muntanyes al mig).</li>
+<li><strong>Com més amunt millor</strong> (teulada, torre, pal).</li>
+<li><strong>A 1/4 d'ona del terra</strong> (8.6 cm a 868 MHz) o múltiples d'aquesta distància.</li>
+</ul>
+<p>A la pràctica, una antena a 3 metres d'alçada amb visió directa pot cobrir 5-10 km. Una antena a 1 metre d'alçada al costat d'un edifici, 100 metres.</p>
+<h2>32.6 Optimització de l'antena</h2>
+<p>A vegades, una bona antena marca la diferència. Algunes millores:</p>
+<ul>
+<li><strong>Antena més gran</strong> (1/2 ona en lloc de 1/4 ona): +3 dB de guany.</li>
+<li><strong>Antena de fibra de vidre</strong> amb guany de 5-6 dBi en lloc de 2 dBi: +3 dB.</li>
+<li><strong>Antena Yagi direccional</strong>: 8-10 dBi, però perd l'omnidireccionalitat.</li>
+<li><strong>Posició allunyada de metalls</strong>: les estructures metàl·liques absorbeixen el senyal.</li>
+<li><strong>Cable coaxial de qualitat</strong>: LMR-200 o LMR-400, no RG-58.</li>
+</ul>
+<p>A 868 MHz, cada 6 dB de millora equivalen a doblar la distància. Així que +6 dB d'antena = 2x distància.</p>
+<h2>32.7 Resolució de problemes habituals</h2>
+<h3>El node no es connecta al gateway (no apareix a TTN)</h3>
+<p>Causes possibles:</p>
+<p>1. <strong>Antena no connectada</strong>: revisa-la.
+2. <strong>Identificadors incorrectes</strong> (DevEUI, AppEUI, AppKey): comprova'ls.
+3. <strong>Freqüència incorrecta</strong>: el node ha d'estar a EU868.
+4. <strong>Gateway apagat o no connectat</strong>: revisa la consola de TTN.
+5. <strong>Distància massa gran</strong>: apropa el node temporalment.
+6. <strong>Problema d'alimentació</strong>: el node es reinicia constantment.</p>
+<h3>El node es connecta però perd molts missatges</h3>
+<p>Causes possibles:</p>
+<p>1. <strong>RSSI baix</strong>: problema de cobertura. Mou el node o el gateway.
+2. <strong>SNR baix</strong>: interferències. Canvia de canal o SF.
+3. <strong>Bateria baixa</strong>: el node no pot transmetre amb prou potència.
+4. <strong>Antena mal orientada</strong>: prova altres posicions.</p>
+<h3>El node consumeix massa bateria</h3>
+<p>Causes possibles:</p>
+<p>1. <strong>Deep sleep no funciona</strong>: el node està sempre actiu.
+2. <strong>Transmissions massa sovint</strong>: cada 5 min és poc, cada 10 segons és massa.
+3. <strong>Wi-Fi o Bluetooth activats</strong>: consumeixen molta energia.
+4. <strong>Bateria defectuosa</strong>: canviar-la.
+5. <strong>Temperatura extrema</strong>: la bateria dura menys a temperatures baixes.</p>
+<h3>El gateway no rep transmissions</h3>
+<p>Causes possibles:</p>
+<p>1. <strong>Concentratord no connectat</strong>: revisa els logs.
+2. <strong>SPI mal configurat</strong>: revisa els pins.
+3. <strong>Freqüència del gateway diferent del node</strong>: han de coincidir.
+4. <strong>Antena del gateway mal connectada</strong>: revisa-la.
+5. <strong>Problema d'Internet</strong>: revisa que la Raspberry tingui connectivitat.</p>
+<h2>32.8 Tests automatitzats</h2>
+<p>Per validar el sistema de forma regular, podem fer tests automatitzats:</p>
+<pre class="code"><code class="language-bash"># Test 1: el gateway està connectat?
+curl -s http://100.115.134.76:3001/ | grep -q &quot;concentratord&quot; &amp;&amp; echo &quot;Gateway OK&quot; || echo &quot;Gateway FALL&quot;
+<h1>Test 2: les últimes dades del node</h1>
+influx query &#x27;
+  from(bucket: &quot;hort-osona&quot;)
+  |&gt; range(start: -1h)
+  |&gt; filter(fn: (r) =&gt; r._measurement == &quot;sensor_lora&quot;)
+  |&gt; count()
+&#x27; --org bernatlab --token TOKEN</code></pre>
+<p>A Uptime Kuma, afegim un test que comprova que rebem dades cada 15 minuts. Si no, alerta.</p>
+<h2>32.9 Documents i bitàcoles</h2>
+<p>Cada vegada que anem al camp, val la pena portar una <strong>bitàcola</strong>:</p>
+<ul>
+<li>Data i hora.</li>
+<li>Posició del node (coordenades GPS si és possible).</li>
+<li>RSSI / SNR.</li>
+<li>Pèrdues de paquets.</li>
+<li>Voltatge de la bateria.</li>
+<li>Condicions meteorològiques (pluja, vent, etc.).</li>
+<li>Notes (obstacles nous, arbres que han crescut, etc.).</li>
+</ul>
+<p>Amb el temps, aquesta bitàcola ens permetrà veure patrons i prendre decisions informades (on posar el gateway, quina antena fer servir, etc.).</p>
+<h2>32.10 Quan el problema és l'entorn</h2>
+<p>A vegades, la cobertura no és bona perquè l'entorn és difícil:</p>
+<ul>
+<li><strong>Bosc dens</strong>: els arbres absorbeixen el senyal, sobretot amb fulla (a l'estiu, més pèrdua que a l'hivern).</li>
+<li><strong>Edificis</strong>: formigó, metall, vidre amb revestiment metàl·lic són hostils.</li>
+<li><strong>Muntanyes</strong>: difícil salvar-les sense repetidors.</li>
+<li><strong>Interferències</strong>: altres sistemes a 868 MHz poden molestar.</li>
+</ul>
+<p>Solucions:</p>
+<ul>
+<li><strong>Moure el gateway</strong> a una posició millor (teulada, torre, etc.).</li>
+<li><strong>Afegir un segon gateway</strong> en una posició intermèdia.</li>
+<li><strong>Augmentar l'alçada de l'antena</strong>.</li>
+<li><strong>Canviar a una antena més direccional</strong>.</li>
+<li><strong>Usar SF més alt</strong> per a més robustesa.</li>
+</ul>
+<h2>32.11 Quan afegir un segon gateway</h2>
+<p>Si la zona és gran o hi ha obstacles, un sol gateway pot no ser suficient. Afegir-ne un segon:</p>
+<ul>
+<li><strong>Rep la mateixa transmissió</strong> (LoRaWAN és broadcast, tots els gateways reben).</li>
+<li><strong>Millora la cobertura</strong> (redundància).</li>
+<li><strong>Permet triangular</strong> (a partir del RSSI i temps d'arribada, podem localitzar el node).</li>
+</ul>
+<p>A la pràctica, un segon gateway és útil quan:</p>
+<ul>
+<li>La zona té més de 5 km².</li>
+<li>Hi ha obstacles grans (muntanyes, edificis alts).</li>
+<li>Volem molta fiabilitat (sempre volem cobertura).</li>
+</ul>
+<p>Al BernatLab, podem afegir un segon gateway a la Raspberry del camp, o a casa d'un veí, o a qualsevol punt amb electricitat i Internet.</p>
+<h2>32.12 Pla de proves per a Hort Osona</h2>
+<p>Per validar el sistema a Hort Osona, podem fer aquestes proves en ordre:</p>
+<h3>Dia 1: proves al taller</h3>
+<p>1. Connectar el node amb el sensor.
+2. Verificar que el node arrenca correctament.
+3. Verificar que es connecta a TTN.
+4. Mirar els primers uplinks.
+5. Mesurar el consum en deep sleep.</p>
+<h3>Dia 2: proves a curta distància</h3>
+<p>1. Posar el node a 10 metres del gateway.
+2. Verificar que arriba amb bon RSSI.
+3. Comptar transmissions durant 10 minuts.
+4. Moure el node a 50 metres, 100 metres, etc.</p>
+<h3>Dia 3: proves al camp</h3>
+<p>1. Portar el node a l'hort (245 metres de casa).
+2. Posar-lo a la posició final.
+3. Verificar que arriba al gateway de casa.
+4. Mesurar RSSI / SNR.
+5. Si cal, moure'l fins trobar una bona posició.
+6. Deixar-lo 24 hores i veure com es comporta.</p>
+<h3>Dia 4: proves de bateria</h3>
+<p>1. Carregar la bateria al màxim.
+2. Posar el node a la posició final amb el deep sleep activat.
+3. Cada dia, mirar el voltatge de la bateria.
+4. Estimar quants dies dura.</p>
+<h3>Dia 5: proves de cobertura</h3>
+<p>1. Portar el node a diferents punts de l'hort i del voltant.
+2. Fer un mapa de cobertura.
+3. Identificar zones mortes.
+4. Decidir si cal un segon gateway o una antena millor.</p>
+<h3>Dia 6: proves de llarg termini</h3>
+<p>1. Deixar el node en producció 1 setmana.
+2. Mirar les gràfiques d'estabilitat (RSSI, SNR al llarg del temps).
+3. Documentar el comportament.
+4. Ajustar el que calgui.</p>
+<h2>32.13 Manteniment continu</h2>
+<p>Un cop el sistema estigui en producció, cal mantenir-lo:</p>
+<ul>
+<li><strong>Cada setmana</strong>: mirar les gràfiques d'estabilitat (RSSI, SNR, bateria).</li>
+<li><strong>Cada mes</strong>: netejar l'antena del node (pols, brutícia).</li>
+<li><strong>Cada trimestre</strong>: revisar la bateria, substituir-la si cal.</li>
+<li><strong>Cada any</strong>: revisar l'estat de la caixa estanca, substituir segells si cal.</li>
+</ul>
+<h2>32.14 Quan re-emplaçar</h2>
+<p>De vegades, malgrat tots els esforços, una posició no funciona. Si:</p>
+<ul>
+<li>El node perd > 50% de transmissions malgrat SF alt i antena bona.</li>
+<li>El node consumeix la bateria en menys d'1 setmana.</li>
+<li>El node es desconnecta del gateway aleatòriament.</li>
+</ul>
+<p>Cal:</p>
+<ul>
+<li>Considerar una <strong>altra posició</strong> (a 50 metres hi ha vegades 30 dB de diferència).</li>
+<li>Considerar un <strong>segon gateway</strong> més a prop.</li>
+<li>Considerar <strong>canviar la tecnologia</strong> (per exemple, NB-IoT si tenim cobertura 4G).</li>
+</ul>
+<h2>32.15 Resum</h2>
+<p>En aquest capítol hem après a fer proves de camp: com validar la cobertura, com mesurar la qualitat del senyal, com resoldre problemes, quan afegir un segon gateway, i quin pla de proves seguir. Hem après que el laboratori menteix i el camp diu la veritat, i que cal validar tot amb dades reals.</p>
+<p>Aquest és l'últim capítol del Mòdul 3. Si tens el LoRa a les mans, comença pel pla del dia 1 (taller), segueix amb el dia 2-3 (curta distància i camp), i no passis al dia 4-5 (bateria i cobertura) fins que tot funcioni bé. Quan tinguis el node en producció 24/7, podem començar el <strong>Mòdul 4 (IA local amb Ollama)</strong> o afegir un segon node al camp.</p>
+<h2>32.16 Exercicis pràctics</h2>
+<p>1. Fes un mapa de cobertura a 50, 100, 200, 500 metres del gateway.
+2. Mesura el consum de corrent del node en deep sleep.
+3. Comprova el voltatge de la bateria cada dia durant una setmana.
+4. Documenta els RSSI / SNR a cada posició.
+5. Fes proves amb SF7, SF9, SF11. Compara la cobertura.
+6. Si tens un segon gateway disponible, configura'l i veu com millora la cobertura.
+7. Escriu un runbook de resolució de problemes basat en les teves experiències.
+8. Comparteix les conclusions al README del projecte.</p>
+<p>Paraules clau: <strong>proves de camp, cobertura, RSSI, SNR, packet loss, FSPL, LOS, NLOS, visió directa, antena, polarització, guany, dBi, VSWR, gateway, Concentratord, SX1302, node, deep sleep, bateria, SF, BW, CR, TX power, ADR, propagació, atenuació, interferències, pluja, arbres, edificis, muntanyes, mapa, bitàcola, runbook</strong>.</p>
+<hr>
+</main>
+</div>
+<footer>
+    BernatLab Wiki · Generada automàticament a partir dels capítols Markdown.
+</footer>
+</body>
+</html>
