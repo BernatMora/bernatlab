@@ -6,7 +6,7 @@ Aquest repositori és la **font de la veritat** de tot el projecte. Conté:
 
 ```
 bernatlab/
-├── book/               Llibre/manual tècnic (Mòdul 1 + Mòdul 2)
+├── book/               Llibre/manual tècnic (Mòdul 1 + Mòdul 2, 206 pàgines)
 ├── homelab/            Configuració del servidor (Docker Compose, scripts, docs)
 ├── projects/           Subprojectes (hort-osona com a submodule)
 ├── backups/            Còpies de seguretat manuals
