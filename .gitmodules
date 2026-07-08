@@ -1,0 +1,3 @@
+[submodule "projects/hort-osona"]
+	path = projects/hort-osona
+	url = https://github.com/BernatMora/hort-osona.git
