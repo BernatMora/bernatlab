@@ -43,13 +43,33 @@ def run(cmd, cwd=None, check=True):
 def main():
     # 1. Regenerar PDF i DOCX
     print("=== 1. Regenerant llibre ===")
-    venv_py = ROOT.parent / ".venv" / "Scripts" / "python.exe"
-    if not venv_py.exists():
-        venv_py = ROOT.parent / ".venv" / "bin" / "python"
-    if venv_py.exists():
+    # El venv pot viure a tres llocs, en ordre de preferència:
+    #   1) <repo>/.venv/                  — quan s'ha fet `uv venv` dins del repo
+    #   2) <repo-parent>/.venv/           — quan el venv és a la carpeta mare
+    #   3) <repo-parent>/<repo>/.venv/    — com en aquest repo (bernatlab/.venv)
+    venv_candidates = [
+        ROOT / ".venv" / "Scripts" / "python.exe",       # Windows
+        ROOT / ".venv" / "bin" / "python",                # Linux/Mac
+        ROOT.parent / ".venv" / "Scripts" / "python.exe",
+        ROOT.parent / ".venv" / "bin" / "python",
+    ]
+    venv_py = None
+    for cand in venv_candidates:
+        if cand.exists():
+            venv_py = cand
+            break
+
+    if venv_py is not None:
         run([str(venv_py), str(BOOK / "make_book.py")])
     else:
-        print(f"AVÍS: no trobo el venv a {venv_py}. Executa make_book.py manualment.")
+        # Sense venv, intentem amb el python del sistema
+        print(f"AVÍS: no trobo cap venv. Provo amb python del sistema.")
+        try:
+            run([sys.executable, str(BOOK / "make_book.py")])
+        except SystemExit:
+            print("ERROR: make_book.py ha fallat. Comprova que reportlab i python-docx")
+            print("       estan instal·lats (pip install reportlab python-docx).")
+            raise
 
     # 2. git add
     print("\n=== 2. git add ===")
