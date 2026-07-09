@@ -14,23 +14,25 @@
 <a href="modul-2.html">Mòdul 2</a>
 <a href="modul-3.html">Mòdul 3</a>
 <a href="modul-4.html">Mòdul 4</a>
+<a href="modul-5.html">Mòdul 5</a>
+<a href="modul-6.html">Mòdul 6</a>
 <h2>Capítols</h2>
-<a href="#33-que-es-ia-local"><span class="toc-num">33</span>Capítol 33 — Què és la IA local i per què a Hort Osona</a>
-<a href="#34-ollama-instalacio"><span class="toc-num">34</span>Capítol 34 — Ollama al Mac: instal·lació i primera conversa</a>
-<a href="#35-escollir-model"><span class="toc-num">35</span>Capítol 35 — Com triar el millor model</a>
-<a href="#36-embeddings-vectorstore"><span class="toc-num">36</span>Capítol 36 — Embeddings i bases vectorials</a>
-<a href="#37-rag-pas-a-pas"><span class="toc-num">37</span>Capítol 37 — RAG pas a pas amb les 76 fitxes d'hort</a>
-<a href="#38-client-web"><span class="toc-num">38</span>Capítol 38 — Client web per parlar amb l'assistent</a>
-<a href="#39-api-ollama"><span class="toc-num">39</span>Capítol 39 — API d'Ollama: integrar la IA amb el BernatLab</a>
-<a href="#40-veu"><span class="toc-num">40</span>Capítol 40 — Veu: parlar a l'assistent en lloc d'escriure</a>
-<a href="#41-privadesa"><span class="toc-num">41</span>Capítol 41 — Privadesa i bones pràctiques</a>
+<a href="#33-que-es-ia-local"><span class="toc-num">33</span>Capitol 33 — Què és la IA local i per què a Hort Osona</a>
+<a href="#34-ollama-instalacio"><span class="toc-num">34</span>Capitol 34 — Ollama al Mac: instal·lació i primera conversa</a>
+<a href="#35-escollir-model"><span class="toc-num">35</span>Capitol 35 — Com triar el millor model: mida, velocitat, qualitat, català</a>
+<a href="#36-embeddings-vectorstore"><span class="toc-num">36</span>Capitol 36 — Embeddings i bases vectorials</a>
+<a href="#37-rag-pas-a-pas"><span class="toc-num">37</span>Capitol 37 — RAG pas a pas: carregar les 76 fitxes d'hort a Ollama</a>
+<a href="#38-client-web"><span class="toc-num">38</span>Capitol 38 — Client web</a>
+<a href="#39-api-ollama"><span class="toc-num">39</span>Capitol 39 — API d'Ollama: integrar la IA amb el BernatLab</a>
+<a href="#40-veu"><span class="toc-num">40</span>Capitol 40 — Veu: parlar a l'assistent</a>
+<a href="#41-privadesa"><span class="toc-num">41</span>Capitol 41 — Privadesa i bones pràctiques</a>
 <a href="#42-casos-us"><span class="toc-num">42</span>Capitol 42 — 10 consultes reals a l'assistent Hort Osona</a>
 </nav>
 <main>
 <h1>Mòdul 4</h1>
-<p><em>IA local amb Ollama: RAG, veu i privadesa</em></p>
+<p><em>IA local amb Ollama i RAG</em></p>
 <hr>
-<h2 id="33-que-es-ia-local">Capítol 33 — Què és la IA local i per què a Hort Osona</h2>
+<h2 id="33-que-es-ia-local">Capitol 33 — Què és la IA local i per què a Hort Osona</h2>
 <p>> <em>"L'any 2026, tenir un assistent intel·ligent a casa ja no és qüestió d'enviar les teves dades a una empresa de Califòrnia. Pots tenir el cervell al teu Mac i la saviesa al teu hort."</em></p>
 <h2>33.1 Què és la IA local</h2>
 <p><strong>IA local</strong> (també anomenada <strong>IA on-premise</strong> o <strong>self-hosted AI</strong>) és executar models d'intel·ligència artificial al teu propi ordinador, sense enviar res al núvol. Quan fas una pregunta a ChatGPT, el text viatja a un servidor d'OpenAI, es processa allà, i torna la resposta. Amb IA local, tot el procés passa dins la teva màquina.</p>
@@ -138,7 +140,7 @@
 6. Documenta al README del projecte el teu hardware i les preguntes que tens en ment.</p>
 <p>Paraules clau: <strong>IA local, self-hosted AI, on-premise, Ollama, RAG, embeddings, vectorstore, LLM, model, prompt, privadesa, Apple Silicon, M1, M2, M3, M4, Mac, RAM, 16 GB, 32 GB, català, model de llengua, self-hosted, núvol, subscripció, ChatGPT, Claude, GPT-4, Opus, alternativa, open source, codi obert, transparent</strong>.</p>
 <hr>
-<h2 id="34-ollama-instalacio">Capítol 34 — Ollama al Mac: instal·lació i primera conversa</h2>
+<h2 id="34-ollama-instalacio">Capitol 34 — Ollama al Mac: instal·lació i primera conversa</h2>
 <p>> <em>"Instal·lar Ollama al Mac és com obrir una ampolla de vi: cinc minuts, i ja tens alguna cosa valuosa a la mà."</em></p>
 <h2>34.1 Què és Ollama</h2>
 <p><strong>Ollama</strong> (ollama.com) és una aplicació gratuïta i de codi obert que permet executar models d'IA localment amb una sola comanda. Està disponible per a macOS, Linux i Windows. La va crear Jeffrey Morgan i l'equip d'Ollama, i s'ha convertit en l'estàndard de facto per a IA local.</p>
@@ -284,7 +286,7 @@ curl http://&lt;mac-tailscale-ip&gt;:11434/api/tags</code></pre>
 7. Documenta al README el model que uses, el Modelfile, i les primeres impressions.</p>
 <p>Paraules clau: <strong>Ollama, install, descarregar, model, gemma3, phi3, llama, mistral, terminal, REPL, API, system prompt, Modelfile, temperature, num_ctx, paràmetres, català, Tailscale, 0.0.0.0, 11434, curl, JSON, streaming, Mac, Apple Silicon, M1, M2, M3, M4, Metal, MLX, launchd, dimonis, daemon, xarxa local, pkill, kill, process, foreground, background, model base, custom model, etiqueta, tag, registre, registry, Docker Hub, anàleg, semàntica, token, tokenització, vocabulari, context window, max tokens, longitud màxima, prompt, response, generation, sampling, top-k, top-p, temperature, seed, determinisme, randomness, creatividad, precissió, al·lucinació, inventar, verificar, fact-checking, font fiable, citació, referència</strong>.</p>
 <hr>
-<h2 id="35-escollir-model">Capítol 35 — Com triar el millor model</h2>
+<h2 id="35-escollir-model">Capitol 35 — Com triar el millor model: mida, velocitat, qualitat, català</h2>
 <p>> <em>"Triar un model d'IA és com triar una eina: la clau no és la que té més prestacions, sinó la que s'adapta a la feina."</em></p>
 <h2>35.1 Què mesura un "bon" model</h2>
 <p>Hi ha quatre dimensions que importen:</p>
@@ -465,7 +467,7 @@ EOF
 7. Comparteix les teves impressions al README del projecte.</p>
 <p>Paraules clau: <strong>model, paràmetres, B, mil milions, tokens, tokens per segon, velocitat, qualitat, català, gemma3, qwen2.5, llama3, mistral, mixtral, deepseek, phi3, quantització, Q4_K_M, Q8, 16 bits, 4 bits, 8 bits, GGUF, GPTQ, AWQ, MLX, Apple Silicon, Metal, CUDA, VRAM, RAM, context, num_ctx, temperature, sampling, top-k, top-p, determinisme, seed, MODelfile, alias, registre, registry, benchmark, MMLU, IFEval, MT-Bench, AReQA, pàgina d'avaluació, leaderboard, Open LLM Leaderboard, LMSYS, Hugging Face, comparació, decisió, prova pràctica, benchmark personalitzat, actualització, manteniment</strong>.</p>
 <hr>
-<h2 id="36-embeddings-vectorstore">Capítol 36 — Embeddings i bases vectorials</h2>
+<h2 id="36-embeddings-vectorstore">Capitol 36 — Embeddings i bases vectorials</h2>
 <p>> <em>"Si cerques per paraules exactes, trobaràs documents amb aquestes paraules. Si cerques per significat, trobaràs documents que parlen del que vols saber, encara que no usin les mateixes paraules."</em></p>
 <h2>36.1 El problema: la cerca per paraules clau no és prou</h2>
 <p>Imagina que tens les 76 fitxes d'hort i un dia vols saber <strong>"què fer quan els tomàquets tenen taques grogues a les fulles"</strong>. Si cerques a mà:</p>
@@ -689,7 +691,7 @@ sshfs bernat@&lt;mac-tailscale-ip&gt;:/Users/bernat/vectorstore /home/bernat/vec
 7. Documenta al README la mida de la base vectorial, el model d'embeddings, i les mètriques obtingudes.</p>
 <p>Paraules clau: <strong>embedding, vector, representació vectorial, incrustació, similaritat, cosinus, cosine similarity, distància euclidiana, dot product, base vectorial, vector store, vector database, ChromaDB, FAISS, LanceDB, Qdrant, Milvus, Pinecone, fragmentació, chunking, solapament, overlap, n_results, recall, MRR, mètriques, test set, ground truth, embeddings multilingüe, nomic, bge, e5, mxbai, arctic, multilingual, semàntica, cerca semàntica, cerca per paraules clau, search, full-text search, FTS, BM25, híbrida, reranking, cross-encoder, bi-encoder, contrastive learning, sentence-transformers, Hugging Face, Ollama embedding, API embedding, persistència, SSHFS, NFS, còpia de seguretat, vectorstore, col·lecció, document, fragment, metadata, filtratge, filter, where, where_document, similarity threshold, top-k</strong>.</p>
 <hr>
-<h2 id="37-rag-pas-a-pas">Capítol 37 — RAG pas a pas amb les 76 fitxes d&#x27;hort</h2>
+<h2 id="37-rag-pas-a-pas">Capitol 37 — RAG pas a pas: carregar les 76 fitxes d&#x27;hort a Ollama</h2>
 <p>> <em>"El RAG és la diferència entre una eina que respon coses generals i una eina que respon coses sobre el teu hort."</em></p>
 <h2>37.1 Què és RAG (revisited)</h2>
 <p>Al Cap 36 vàrem veure els embeddings i les bases vectorials. Ara les connectem amb un model de llengua per crear un <strong>RAG</strong> (Retrieval-Augmented Generation, generació augmentada per recuperació): quan l'usuari fa una pregunta, primer busquem els fragments més rellevants als documents, i després donem aquests fragments al model com a context perquè generi una resposta.</p>
@@ -1002,7 +1004,7 @@ print()</code></pre>
 7. Documenta al README la configuració del RAG, el model usat, i les mètriques.</p>
 <p>Paraules clau: <strong>RAG, retrieval-augmented generation, generació augmentada, fragments, top-k, context, prompt, system prompt, streaming, cites, fonts, metadades, ChromaDB, Ollama, embedding, on-premises, self-hosted, private AI, hort Osona, fitxes, guies, re-indexació, actualització, test set, avaluació, mètriques, recall, precision, MRR, reranking, re-ranking, rerank, cross-encoder, bi-encoder, hybrid search, BM25, filtratge, where, chunking, fragmentació, size, overlap, sliding window, semantic chunking, structured chunking, LongLLMLingua, LLMLingua, context compression, summarization, query expansion, HyDE, hypothetical document embeddings, multi-query, fusion, RAG-Fusion, agentic RAG, ReAct, self-RAG, corrective RAG, CRAG, advanced RAG, modular RAG, GraphRAG, knowledge graph</strong>.</p>
 <hr>
-<h2 id="38-client-web">Capítol 38 — Client web per parlar amb l&#x27;assistent</h2>
+<h2 id="38-client-web">Capitol 38 — Client web</h2>
 <p>> <em>"Un assistent potent al terminal és útil. Un assistent al navegador, amb historial, cites i veu, és una altra cosa."</em></p>
 <h2>38.1 Per què un client web</h2>
 <p>Un cop tens el RAG funcionant al terminal (Cap 37), vols alguna cosa més usable:</p>
@@ -1496,7 +1498,7 @@ uvicorn main:app --host 0.0.0.0 --port 8080 --reload</code></pre>
 8. Documenta al README com usar-lo.</p>
 <p>Paraules clau: <strong>FastAPI, uvicorn, streaming, Server-Sent Events, SSE, EventSource, ReadableStream, frontend, HTML, CSS, JavaScript, marked.js, DOMPurify, highlight.js, marked, sanitize, Markdown, renderitzat, historial, persistència, localStorage, SQLite, JSON, feedback, usuari, multi-dispositiu, Tailscale, mòbil, responsive, launchd, plist, dimoni, servei, arrencada automàtica, RunAtLoad, KeepAlive, Mac, deployment, producció, monitor, watchdog, pàgina web, navegador, client, UI, UX, interfície, quadre de text, Enter, enviar, cites, fonts, links, click, enllaços, navegació</strong>.</p>
 <hr>
-<h2 id="39-api-ollama">Capítol 39 — API d&#x27;Ollama: integrar la IA amb el BernatLab</h2>
+<h2 id="39-api-ollama">Capitol 39 — API d&#x27;Ollama: integrar la IA amb el BernatLab</h2>
 <p>> <em>"Ollama al Mac, el BernatLab a la Raspberry. Si parlen entre ells, tens un sistema que pot raonar sobre les dades del teu hort sense sortir de casa."</em></p>
 <h2>39.1 L'API d'Ollama</h2>
 <p>Ollama exposa una <strong>API HTTP local</strong> (a `http://localhost:11434`) que permet:</p>
@@ -1803,7 +1805,7 @@ cp ~/Library/LaunchAgents/com.bernat.asistent.plist &quot;$BACKUP_DIR/$DATE/&quo
 8. Fes un backup programat d'Ollama i la base vectorial.</p>
 <p>Paraules clau: <strong>API, HTTP, REST, Ollama, localhost, 11434, Tailscale, 100.115.134.76, OpenAI compatibility, /v1, /api/generate, /api/chat, /api/embeddings, /api/tags, streaming, JSON, pydantic, FastAPI, uvicorn, async, httpx, timeout, cua, queue, rate limit, autenticació, basicauth, Caddy, Nginx, seguretat, tallafocs, firewall, monitoratge, Uptime Kuma, alerting, backup, recuperació, restore, snapshot, launchd, servei, dimoni, plist, RunAtLoad, KeepAlive, integració, Node-RED, Telegram, Python, script, CLI, command-line, asyncio, future, deque, prometheus, grafana, observabilitat, mètriques, logs, latència, throughput, peticions per segon, RPS, error rate, time series, panell, alert, contact point</strong>.</p>
 <hr>
-<h2 id="40-veu">Capítol 40 — Veu: parlar a l&#x27;assistent en lloc d&#x27;escriure</h2>
+<h2 id="40-veu">Capitol 40 — Veu: parlar a l&#x27;assistent</h2>
 <p>> <em>"Quan tens les mans plenes de terra i el cap ple de preguntes, l'últim que vols és teclejar. Li parles, et contesta. Màgia."</em></p>
 <h2>40.1 Per què veu a Hort Osona</h2>
 <p>A l'hort, les mans estan ocupades (pala, planter, regadora). El mòbil pot estar brut. Però la veu sempre és disponible. Per això, la integració de veu és especialment valuosa per a consultes ràpides mentre treballes.</p>
@@ -2074,7 +2076,7 @@ let chunks = [];
 8. Fes proves amb termes específics d'horticultura.</p>
 <p>Paraules clau: <strong>veu, STT, TTS, speech-to-text, text-to-speech, Whisper, faster-whisper, Piper, XTTS, Coqui, àudio, gravació, micròfon, MediaRecorder, Web Audio API, Web Speech API, SpeechRecognition, SpeechSynthesis, frontend, mic permission, getUserMedia, FormData, multipart, blob, webm, mp3, wav, format, codificació, privacy, GDPR, LOPDGDD, biometria, opt-out, offline, PWA, Service Worker, install, Add to Home Screen, manifest, model de veu, clonar veu, veu sintètica, idioma, català, ca-ES, optimització, transcripció, vocabulari, initial_prompt, hotwords, language detection, vad, voice activity detection, silenci, gravació, 5 segons, parlar, escoltar, streaming audio, WebSocket, àudio, format, opus, codec, compressió, qualitat, sample rate, 16kHz, 44.1kHz, micròfon, noise reduction, filtre, pre-processament, post-processament, diacritics, accent, dialecte, pronunciació</strong>.</p>
 <hr>
-<h2 id="41-privadesa">Capítol 41 — Privadesa i bones pràctiques</h2>
+<h2 id="41-privadesa">Capitol 41 — Privadesa i bones pràctiques</h2>
 <p>> <em>"La privadesa no és una opció, és una responsabilitat. Quan l'IA és al núvol, no saps on van les teves dades. Quan és a casa, saps exactament què passa."</em></p>
 <h2>41.1 Per què la privadesa importa, fins i tot en local</h2>
 <p>Pot semblar que si tens un model local, la privadesa està garantida. Però hi ha paranys:</p>

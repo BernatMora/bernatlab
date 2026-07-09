@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Mòdul 5 — BernatLab Wiki</title>
+    <link rel="stylesheet" href="css/wiki.css">
+</head>
+<body>
+<div class="layout">
+<nav>
+<h2>BernatLab</h2>
+<p style="color: #888; font-size: 0.9em;">Wiki del manual tècnic</p>
+<a href="modul-1.html">Mòdul 1</a>
+<a href="modul-2.html">Mòdul 2</a>
+<a href="modul-3.html">Mòdul 3</a>
+<a href="modul-4.html">Mòdul 4</a>
+<a href="modul-5.html">Mòdul 5</a>
+<a href="modul-6.html">Mòdul 6</a>
+<h2>Capítols</h2>
+<a href="#43-filosofia-seguretat"><span class="toc-num">43</span>Capitol 43 — Filosofia de seguretat al BernatLab</a>
+<a href="#44-tailscale-acls"><span class="toc-num">44</span>Capitol 44 — Tailscale ACLs i segmentació de xarxa</a>
+<a href="#45-copies-seguretat"><span class="toc-num">45</span>Capitol 45 — Còpies de seguretat amb restic i BorgBackup</a>
+<a href="#46-2fa-secrets"><span class="toc-num">46</span>Capitol 46 — 2FA, secrets i gestió de claus</a>
+<a href="#47-fail2ban-tallafocs"><span class="toc-num">47</span>Capitol 47 — fail2ban, rate limiting i tallafocs aplicat</a>
+<a href="#48-hardening-so"><span class="toc-num">48</span>Capitol 48 — Hardening del sistema operatiu</a>
+<a href="#49-auditoria-logs"><span class="toc-num">49</span>Capitol 49 — Auditoria, logs de seguretat i resposta a incidents</a>
+<a href="#50-drp-recuperacio"><span class="toc-num">50</span>Capitol 50 — DRP: pla de recuperació davant desastres</a>
+</nav>
+<main>
+<h1>Mòdul 5</h1>
+<p><em>Seguretat i còpies de seguretat</em></p>
+<hr>
+<h2 id="43-filosofia-seguretat">Capitol 43 — Filosofia de seguretat al BernatLab</h2>
+<p>> <em>"La seguretat no és un producte que compres, és un procés que mantens."</em></p>
+<h2>43.1 Per què la seguretat importa, fins i tot a casa</h2>
+<p>Un homelab no és una empresa amb auditors i equips de seguretat. Però té un risc semblant: dades personals, informació de sensors, possibles accessos externs. La diferència és que <strong>a casa estàs sol</strong> — no tens un departament d'IT que t'avisi.</p>
+<p>Arguments per prendre's la seguretat seriosament:</p>
+<p>1. <strong>Les dades s'acumulen</strong>. Un cop tens InfluxDB amb mesos de dades, Ollama amb documents personals, i un bot de Telegram, tens molt a perdre.
+2. <strong>Els atacs són automatitzats</strong>. Internet és ple de bots que escanen IPs i busquen serveis exposats. No és qüestió de "si et troben", sinó de "quan".
+3. <strong>El temps de recuperació pot ser llarg</strong>. Si perds les dades i no tens còpies, trigaràs setmanes a refer-ho.
+4. <strong>La reputació importa</strong>. Si tens serveis exposats a Internet, una bretxa pot afectar terceres persones.</p>
+<h2>43.2 Els tres pilars de la seguretat</h2>
+<p>La seguretat informàtica es basa en tres pilars:</p>
+<p>1. <strong>Confidencialitat</strong>. Les dades només les veuen les persones autoritzades.
+2. <strong>Integritat</strong>. Les dades no es modifiquen sense permís.
+3. <strong>Disponibilitat</strong>. Els serveis funcionen quan toca.</p>
+<p>Això s'anomena <strong>triada CIA</strong> (Confidentiality, Integrity, Availability).</p>
+<p>Per al BernatLab:</p>
+<ul>
+<li><strong>Confidencialitat</strong>: Tailscale, autenticació, xifratge.</li>
+<li><strong>Integritat</strong>: còpies de seguretat, verificació de fitxers, signatures.</li>
+<li><strong>Disponibilitat</strong>: monitoratge, alertes, redundància.</li>
+</ul>
+<h2>43.3 El model de defenses en profunditat</h2>
+<p>Una sola capa de seguretat no és prou. Cal aplicar <strong>defenses en profunditat</strong>: múltiples capes que, si una falla, les altres protegeixen.</p>
+<p>Per al BernatLab, les capes són:</p>
+<p>1. <strong>Xarxa</strong>: Tailscale, tallafocs, segmentació.
+2. <strong>Sistema operatiu</strong>: actualitzacions, permisos, audit.
+3. <strong>Autenticació</strong>: 2FA, claus SSH, contrasenyes llargues.
+4. <strong>Aplicacions</strong>: configuració segura, secrets.
+5. <strong>Dades</strong>: xifratge en repòs i en trànsit, còpies.
+6. <strong>Monitoratge</strong>: alertes, logs, resposta.</p>
+<p>Si un atacant passa la primera capa (per exemple, troba una contrasenya feble), les altres capes l'aturen.</p>
+<h2>43.4 El principi de mínim privilegi</h2>
+<p>Aplica'l sempre:</p>
+<p>> Cada usuari, procés, o sistema ha de tenir <strong>només els permisos que necessita per fer la seva feina</strong>, ni més ni menys.</p>
+<p>Exemples:</p>
+<ul>
+<li>El node LoRa no necessita accedir a la base de dades. Només publica a MQTT.</li>
+<li>El bot de Telegram no necessita llegir tots els fitxers. Només la base de dades.</li>
+<li>L'usuari `bernat` no necessita `sudo` per tot. Només per coses específiques.</li>
+</ul>
+<p>Al Linux, això es tradueix en:</p>
+<ul>
+<li>Usuaris separats per servei.</li>
+<li>Grups amb permisos mínims.</li>
+<li>`sudo` limitat amb sudoers.</li>
+<li>Capabilities en lloc de root.</li>
+<li>SELinux o AppArmor per confinar processos.</li>
+</ul>
+<h2>43.5 El principi de "no confiïs en ningú"</h2>
+<p><strong>Zero Trust</strong> és la filosofia moderna de seguretat:</p>
+<p>> No confiïs en cap usuari, dispositiu, o xarxa per defecte. Verifica sempre.</p>
+<p>A la pràctica:</p>
+<ul>
+<li>Cada dispositiu ha d'autenticar-se.</li>
+<li>Cada accés ha de ser autoritzat explícitament.</li>
+<li>Totes les comunicacions han d'estar xifrades.</li>
+<li>No hi ha xarxes "de confiança" implícites.</li>
+</ul>
+<p>Tailscale implementa Zero Trust de manera natural: cap dispositiu no pot accedir a un altre sense ACL explícita.</p>
+<h2>43.6 Les amenaces més comunes al BernatLab</h2>
+<p>Vull enumerar les amenaces reals:</p>
+<p>1. <strong>Bots d'escaneig</strong>. Escanejen tot Internet buscant serveis oberts. Si tens un port obert amb una versió vulnerable, t'atacaran en qüestió d'hores.</p>
+<p>2. <strong>Credencials febles</strong>. Contrasenyes curtes, reutilitzades, o per defecte (admin/admin, root/root).</p>
+<p>3. <strong>Software desactualitzat</strong>. Cada aplicació té vulnerabilitats que es corregeixen en actualitzacions. Si no actualitzes, estàs exposat.</p>
+<p>4. <strong>Phishing i enginyeria social</strong>. Si tens un correu de contacte públic, rebràs intents de phishing.</p>
+<p>5. <strong>Dispositius perduts o robats</strong>. Un portàtil amb cookies i sense xifratge pot comprometre tota la xarxa Tailscale.</p>
+<p>6. <strong>Insiders</strong>. Família, amics, o convidats que accedeixen al sistema poden fer mal sense voler.</p>
+<p>7. <strong>Atacs físics</strong>. Alguien que accedeixi a la Raspberry pot connectar un USB maliciós o robar la microSD.</p>
+<p>8. <strong>Atacs a la cadena de subministrament</strong>. Programari maliciós disfressat d'actualització legítima.</p>
+<h2>43.7 Què NO cal fer</h2>
+<p>També val la pena enumerar les coses innecessàries:</p>
+<p>1. <strong>Antivirus al Linux</strong>. No aporta gaire. Millor configurar bé el sistema.
+2. <strong>Auditories externes</strong>. Per a un homelab, és excessiu.
+3. <strong>Certificacions (ISO 27001, etc.)</strong>. No apliquen.
+4. <strong>VPNs comercials</strong>. Tailscale ja és una VPN bona.
+5. <strong>Eines avançades (SIEM, IDS professional)</strong>. Són per a empreses.</p>
+<h2>43.8 Bones pràctiques generals</h2>
+<p>Aquestes són les 10 regles d'or per al BernatLab:</p>
+<p>1. <strong>Actualitza el sistema</strong> cada setmana.
+2. <strong>Contrasenyes llargues</strong> (mínim 16 caràcters) i úniques.
+3. <strong>Activa 2FA</strong> allà on puguis.
+4. <strong>Fes còpies</strong> de tot, xifrades, fora del sistema.
+5. <strong>Monitora</strong> els serveis 24/7.
+6. <strong>Limita</strong> l'accés: només el que cal, a qui cal.
+7. <strong>Xifra</strong> les comunicacions (TLS) i les dades en repòs.
+8. <strong>Revisa els logs</strong> periòdicament.
+9. <strong>Documenta</strong> el que tens i com està configurat.
+10. <strong>Practica</strong> la recuperació: simula una pèrdua de dades.</p>
+<h2>43.9 Quin és el risc acceptable</h2>
+<p>No tots els sistemes necessiten la mateixa seguretat. Per al BernatLab:</p>
+<ul>
+<li><strong>Risc acceptable</strong>: que algú accedeixi a les dades dels sensors i les publicacions d'Hort Osona. Són públiques o gairebé.</li>
+<li><strong>Risc no acceptable</strong>: que algú accedeixi a les credencials de Tailscale, al bot de Telegram, o a les còpies de seguretat. Això donaria accés a tot.</li>
+</ul>
+<p>Per tant, les prioritats són:</p>
+<p>1. <strong>Credencials</strong> (la porta d'entrada).
+2. <strong>Còpies</strong> (per si tot falla).
+3. <strong>Dades personals</strong> (que no es perdin ni es filtrin).
+4. <strong>Integritat dels serveis</strong> (que no es manipulin).</p>
+<h2>43.10 El factor humà</h2>
+<p>La part més feble de la seguretat sempre és humana. Al BernatLab:</p>
+<ul>
+<li><strong>Contrasenyes</strong>: utilitza un gestor (Bitwarden, KeePass).</li>
+<li><strong>Formació</strong>: aprèn a detectar phishing.</li>
+<li><strong>Confiança</strong>: no comparteixis contrasenyes per canals no xifrats.</li>
+<li><strong>Descans</strong>: no configuris coses crítiques quan estàs cansat.</li>
+</ul>
+<h2>43.11 Com aprendràs al llarg del mòdul</h2>
+<p>El M5 segueix un ordre pràctic:</p>
+<p>1. <strong>Cap 44</strong>: Tailscale ACLs i segmentació de xarxa.
+2. <strong>Cap 45</strong>: Còpies de seguretat amb restic i BorgBackup.
+3. <strong>Cap 46</strong>: 2FA, secrets i gestió de claus.
+4. <strong>Cap 47</strong>: fail2ban, rate limiting i tallafocs aplicat.
+5. <strong>Cap 48</strong>: Hardening del sistema operatiu.
+6. <strong>Cap 49</strong>: Auditoria, logs de seguretat i resposta a incidents.
+7. <strong>Cap 50</strong>: Pla de recuperació davant desastres (DRP).</p>
+<h2>43.12 Resum</h2>
+<p>La seguretat al BernatLab és un procés continu, basat en la defensa en profunditat i el principi de mínim privilegi. Les amenaces principals són externes (bots, credencials febles) i el factor humà és sovint el punt feble. Les prioritats són credencials, còpies, dades personals, i integritat. En els propers capítols veurem com implementar cadascuna d'aquestes capes de manera pràctica.</p>
+<h2>43.13 Exercicis pràctics</h2>
+<p>1. Inventaria tots els serveis que exposen algun port al BernatLab.
+2. Inventaria tots els usuaris i les seves credencials.
+3. Inventaria totes les dades emmagatzemades (tipus, mida, ubicació).
+4. Fes una llista de les 3 amenaces més probables.
+5. Avalua quin és el temps de recuperació si perds cada component.
+6. Documenta al README l'estat actual de seguretat.</p>
+<p>Paraules clau: <strong>seguretat, security, CIA, confidencialitat, integritat, disponibilitat, defensa en profunditat, defense in depth, mínim privilegi, least privilege, Zero Trust, no confiïs, verificar, autenticació, autorització, comptabilitat, accountability, no-repudiation, threat model, amenaces, atacs, vulnerabilitats, CVE, CVSS, explotació, exposició, superfície d'atac, attack surface, harde ning, bastió, jump box, segmentació, microsegmentation, VLAN, subnet, tallafocs, firewall, ACL, WAF, IDS, IPS, SIEM, monitorització, alertes, detecció, resposta, incident, playbook, runbook, recovery, backup, restore, BC, DR, business continuity, disaster recovery, RTO, RPO, SLA, SLO, error budget, post-mortem, blameless, lessons learned, millora contínua, security awareness, formació, phishing, social engineering, tailgating, dumpster diving, shoulder surfing, pretexting, baiting, spear phishing, whaling, smishing, vishing, MFA, 2FA, TOTP, HOTP, FIDO2, WebAuthn, passkey, password manager, secret manager, hash, bcrypt, Argon2, salt, pepper, key stretching, PBKDF2, scrypt, rendiment, GPU, ASIC, side-channel, timing, power, EM, acoustic, fault injection, glitching, rowhammer, spectre, meltdown, Foreshadow, RIDL, Zombieload, cache, branch prediction, microarchitectural, hardening, benchmark, audit, compliance, GDPR, LOPDGDD, ISO 27001, NIST 800-53, CIS Controls, OWASP, top 10, ASVS, MASVS, SAMM, secure SDLC, dev sec ops, shift left, security by design, privacy by design, fail safe, fail secure, defense, response, mitigation, risk, likelihood, impact, exposure, treatment, accept, mitigate, transfer, avoid, residual risk, risk register, heat map, RAG, red, amber, green, critical, high, medium, low, score, qualitative, quantitative, ALE, annual loss expectancy, asset, valuation, threat intelligence, CTI, IOC, indicator of compromise, TTP, tactics, techniques, procedures, MITRE ATT&CK, kill chain, Lockheed, cyber, kill chain, reconnaissance, weaponization, delivery, exploitation, installation, command and control, actions on objectives, persistence, lateral movement, defense evasion, credential access, discovery, collection, exfiltration, impact, MITRE D3FEND, detect, deny, disrupt, degrade, deceive, contain, harden, isolate, restore, recover, analytics, log, monitoring, alerting, response, automation, orchestration, SOAR, runbook, playbook, integration, threat hunting, hypothesis, anomaly, baseline, deviation, statistical, ML, AI, UEBA, user entity behavior, EDR, XDR, NDR, network detection, response, IOC, YARA, Sigma, Snort, Suricata, Zeek, Wireshark, tcpdump, pcap, NetFlow, sFlow, IPFIX, telemetry, sensor, agent, collector, forwarder, syslog, journald, fluentd, logstash, promtail, vector, parse, normalize, enrich, index, search, query, alert, dashboard, visualization, SIEM, XDR, log management, retention, archive, cold, warm, hot, tier, storage, S3, GCS, Azure, Glacier, S3 IA, intelligent, infrequent, frequent, Glacier Deep Archive, durable, available, consistent, eventual, strong, consistency, ACID, BASE, CAP theorem, partition tolerance, eventual consistency, vector clock, lamport, distributed, system, micro service, kubernetes, docker, container, runtime, vulnerability, CVE-2024-XXXX, exploit, patch, zero day, mitigation, workaround, compensating, control, layered, defense, kill, chain, response, cycle, NIST IR, incident response, lifecycle, preparation, detection, analysis, containment, eradication, recovery, post-incident, lessons learned, blameless, after action, AAR, after action review, improvement, plan, action, track, complete, status, OK, blocked, in progress, todo, done</strong>.</p>
+<hr>
+<h2 id="44-tailscale-acls">Capitol 44 — Tailscale ACLs i segmentació de xarxa</h2>
+<p>> <em>"El tallafocs més segur és el que no deixa passar res. Però llavors no tens xarxa. La gràcia és trobar l'equilibri."</em></p>
+<h2>44.1 Què són les ACLs de Tailscale</h2>
+<p><strong>ACLs</strong> (Access Control Lists, llistes de control d'accés) són regles que defineixen <strong>qui pot accedir a què</strong> dins del teu tailnet. S'apliquen a Tailscale i permeten una segmentació fina.</p>
+<p>Per defecte, Tailscale permet que <strong>tots els dispositius del tailnet es comuniquin entre ells</strong>. Això és convenient però no segur. Les ACLs permeten canviar-ho.</p>
+<p>Exemple d'ACL:</p>
+<pre class="code"><code class="language-json">{
+  &quot;acls&quot;: [
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:admin&quot;],
+      &quot;dst&quot;: [&quot;tag:admin:<em>&quot;, &quot;tag:server:</em>&quot;, &quot;tag:iot:*&quot;]
+    },
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:server&quot;],
+      &quot;dst&quot;: [&quot;tag:server:*&quot;, &quot;tag:iot:1883&quot;]
+    },
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:iot&quot;],
+      &quot;dst&quot;: [&quot;tag:server:1883&quot;]
+    }
+  ]
+}</code></pre>
+<p>Aquesta ACL diu:</p>
+<ul>
+<li>Els administradors (tag admin) poden accedir a tot.</li>
+<li>Els servidors poden accedir a altres servidors i al port 1883 (MQTT) dels dispositius IoT.</li>
+<li>Els dispositius IoT només poden accedir al port 1883 dels servidors.</li>
+</ul>
+<h2>44.2 Com s'apliquen les ACLs</h2>
+<p>Les ACLs s'apliquen a tots els dispositius del tailnet des de la consola d'administració de Tailscale:</p>
+<p>1. Vés a https://login.tailscale.com/admin/acls.
+2. Edita el JSON de les ACLs.
+3. Desa.</p>
+<p>Els canvis s'apliquen automàticament en qüestió de segons.</p>
+<h2>44.3 Tags: organitzar els dispositius</h2>
+<p>Els <strong>tags</strong> són etiquetes que pots posar als dispositius. Serveixen per agrupar-los en les ACLs.</p>
+<p>Per assignar un tag, edita el dispositiu a la consola i afegeix el tag:</p>
+<ul>
+<li>`tag:server`: servidors (Raspberry, Mac).</li>
+<li>`tag:iot`: dispositius IoT (Raspberry, nodes ESP32).</li>
+<li>`tag:admin`: dispositius d'administració (el teu portàtil).</li>
+<li>`tag:guest`: dispositius de convidats.</li>
+</ul>
+<p>També pots usar tags per funcionalitat:</p>
+<ul>
+<li>`tag:db`: bases de dades.</li>
+<li>`tag:web`: servidors web.</li>
+<li>`tag:monitor`: monitoratge.</li>
+</ul>
+<h2>44.4 L'estructura del BernatLab amb ACLs</h2>
+<p>Aplica aquesta estructura al teu tailnet:</p>
+<pre class="code"><code class="language-">tag:admin (bernat@windows, bernat@mac)
+   │
+   ↓ pot accedir a tot
+   │
+tag:server (hortosona@linux, portainer@server)
+   │
+   ├──&gt; tag:iot (port 1883, MQTT)
+   └──&gt; tag:monitor (port 3001, Uptime Kuma)
+<p>tag:iot (cap pot accedir a res per defecte)
+   │
+   └──&gt; tag:server:1883 (pot publicar a MQTT)</p>
+<p>tag:guest (visitants)
+   │
+   └──&gt; (sense accés per defecte)</code></pre></p>
+<h2>44.5 Exemple complet d'ACLs</h2>
+<p>Aquí tens una configuració completa per al BernatLab:</p>
+<pre class="code"><code class="language-json">{
+  // ACLs principals
+  &quot;acls&quot;: [
+    // L&#x27;administrador pot accedir a tot
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:admin&quot;],
+      &quot;dst&quot;: [&quot;<em>:</em>&quot;]
+    },
+    // Els servidors poden parlar entre ells
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:server&quot;],
+      &quot;dst&quot;: [&quot;tag:server:*&quot;]
+    },
+    // Els servidors poden llegir d&#x27;IoT
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:server&quot;],
+      &quot;dst&quot;: [&quot;tag:iot:80&quot;, &quot;tag:iot:1883&quot;]
+    },
+    // Els dispositius IoT poden publicar a MQTT
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:iot&quot;],
+      &quot;dst&quot;: [&quot;tag:server:1883&quot;]
+    },
+    // El monitor pot accedir als serveis
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:monitor&quot;],
+      &quot;dst&quot;: [&quot;tag:server:80&quot;, &quot;tag:server:443&quot;, &quot;tag:server:3000&quot;,
+              &quot;tag:server:3001&quot;, &quot;tag:server:8080&quot;, &quot;tag:server:9443&quot;]
+    }
+  ],
+<p>// Regles SSH: només admin pot accedir per SSH
+  &quot;ssh&quot;: [
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;tag:admin&quot;],
+      &quot;dst&quot;: [&quot;tag:server&quot;, &quot;tag:iot&quot;],
+      &quot;users&quot;: [&quot;autogroup:nonroot&quot;]
+    }
+  ],</p>
+<p>// Tests: l&#x27;administrador pot fer tests
+  &quot;tests&quot;: [
+    {
+      &quot;src&quot;: [&quot;tag:admin&quot;],
+      &quot;dst&quot;: [&quot;tag:server&quot;, &quot;tag:iot&quot;, &quot;tag:monitor&quot;],
+      &quot;accept&quot;: [&quot;<em>:</em>&quot;]
+    }
+  ],</p>
+<p>// Tag dels dispositius
+  &quot;tagOwners&quot;: {
+    &quot;tag:admin&quot;: [&quot;autogroup:members&quot;],
+    &quot;tag:server&quot;: [&quot;tag:admin&quot;],
+    &quot;tag:iot&quot;: [&quot;tag:admin&quot;],
+    &quot;tag:monitor&quot;: [&quot;tag:server&quot;],
+    &quot;tag:guest&quot;: [&quot;tag:admin&quot;]
+  },</p>
+<p>// Per defecte, denega tot
+  &quot;defaultPolicy&quot;: {
+    &quot;action&quot;: &quot;deny&quot;
+  }
+}</code></pre></p>
+<p>Aquesta configuració:</p>
+<ul>
+<li>Defineix clarament qui pot accedir a què.</li>
+<li>Denega tot per defecte.</li>
+<li>Permet SSH només a l'administrador.</li>
+<li>Permet que els dispositius IoT només publiquin a MQTT.</li>
+</ul>
+<h2>44.6 Com verificar les ACLs</h2>
+<p>Després d'aplicar les ACLs, verifica que funcionen:</p>
+<p>1. <strong>Des d'un dispositiu admin</strong>, intenta accedir a un servei. Hauria de funcionar.
+2. <strong>Des d'un dispositiu IoT</strong>, intenta accedir a un servei que no toca. Hauria de fallar.
+3. <strong>Des d'un dispositiu guest</strong>, intenta accedir a qualsevol cosa. Hauria de fallar.</p>
+<p>Exemple de prova:</p>
+<pre class="code"><code class="language-bash"># Des d&#x27;un admin
+ssh bernat@hortosona
+<h1>Hauria de funcionar</h1>
+<h1>Des d&#x27;un IoT (com un ESP32)</h1>
+curl http://100.115.134.76:8080
+<h1>Hauria de fallar (denegat)</code></pre></h1>
+<h2>44.7 Polítiques per defecte</h2>
+<p>A Tailscale pots triar entre dues polítiques per defecte:</p>
+<p>1. <strong>allow-all</strong> (per defecte): tothom pot accedir a tot.
+2. <strong>deny</strong>: ningú pot accedir a res sense regla explícita.</p>
+<p>Recomanació: <strong>deny per defecte</strong>, i anar afegint regles específiques. Això és la postura Zero Trust.</p>
+<h2>44.8 ACLs avançades</h2>
+<h3>Limitar per usuari</h3>
+<pre class="code"><code class="language-json">{
+  &quot;action&quot;: &quot;accept&quot;,
+  &quot;src&quot;: [&quot;bernat@&quot;],
+  &quot;dst&quot;: [&quot;tag:server:22&quot;]
+}</code></pre>
+<p>Així, només l'usuari "bernat" pot accedir al port 22 (SSH), no altres usuaris del tailnet.</p>
+<h3>Limitar per temps</h3>
+<p>Tailscale no suporta ACLs basades en temps directament, però pots combinar amb eines externes com <strong>cron + iptables</strong> a la Raspberry.</p>
+<h3>Limitar per geolocalització</h3>
+<p>Tailscale admet localització geogràfica. Pots crear regles que només permetin accessos des de Catalunya:</p>
+<pre class="code"><code class="language-json">{
+  &quot;acls&quot;: [
+    {
+      &quot;action&quot;: &quot;accept&quot;,
+      &quot;src&quot;: [&quot;bernat@&quot;, &quot;bernatmora@&quot;],
+      &quot;dst&quot;: [&quot;tag:server:*&quot;]
+    }
+  ]
+}</code></pre>
+<p>Això és per usuari, no per geolocalització. Per geolocalització, cal Tailscale Enterprise o eines externes.</p>
+<h2>44.9 Segmentació més fina: sub-xarxes</h2>
+<p>Si tens molts dispositius, pots crear <strong>sub-xarxes</strong> dins del tailnet. Tailscale admet <strong>subnet routers</strong>: un dispositiu del tailnet pot exposar una xarxa sencera.</p>
+<p>Exemple: la Raspberry del camp (hortosona) té un node ESP32 connectat per Wi-Fi. Pots fer que la Raspberry comparteixi la xarxa 192.168.1.0/24 amb el tailnet:</p>
+<pre class="code"><code class="language-bash"># A la Raspberry
+sudo tailscale up --advertise-routes=192.168.1.0/24</code></pre>
+<p>A la consola de Tailscale, aprova la ruta. Ara pots accedir a 192.168.1.10 (l'ESP32) des del teu portàtil.</p>
+<p>Això és útil per accedir a dispositius que no poden executar Tailscale directament.</p>
+<h2>44.10 Gestió de secrets amb Tailscale</h2>
+<p>Tailscale té un <strong>gestor de secrets</strong> integrat (des de 2024) per desar variables d'entorn de manera xifrada:</p>
+<pre class="code"><code class="language-bash"># Desa un secret
+tailscale env set DATABASE_URL &quot;postgres://user:pass@db:5432/bernatlab&quot;
+<h1>Llegeix un secret</h1>
+tailscale env get DATABASE_URL</code></pre>
+<p>Això és útil per desar credencials que necessiten múltiples dispositius.</p>
+<h2>44.11 Logs i visibilitat</h2>
+<p>Tailscale té un panell d'<strong>administració</strong> on pots veure:</p>
+<ul>
+<li>Tots els dispositius connectats.</li>
+<li>El tràfic per dispositiu.</li>
+<li>Les ACLs aplicades.</li>
+<li>Els intents d'accés denegats.</li>
+</ul>
+<p>Revisa'l periòdicament. Si veus un dispositiu estrany, és una alerta.</p>
+<h2>44.12 Com canviar les ACLs en producció</h2>
+<p>Quan canvies les ACLs en un sistema en producció, cal:</p>
+<p>1. <strong>Provar primer</strong> amb un dispositiu no crític.
+2. <strong>Fer còpia de seguretat</strong> de les ACLs actuals.
+3. <strong>Aplicar els canvis gradualment</strong>.
+4. <strong>Monitorar</strong> els logs per veure si algú queda fora.</p>
+<p>Si t'equivoques, pots tornar a la configuració anterior des de la consola.</p>
+<h2>44.13 Errors habituals</h2>
+<p><strong>Error 1: ficar-se en un lock-out</strong>. Si denegues l'accés a la teva pròpia IP, no podràs accedir. Solució: tenir sempre una porta oberta (port 22, amb autenticació per clau) o un usuari de "break glass" amb permisos amplis.</p>
+<p><strong>Error 2: oblidar els tags</strong>. Sense tags, les ACLs no funcionen. Assegura't que tots els dispositius tenen els tags adequats.</p>
+<p><strong>Error 3: massa permisos</strong>. Si tot és "accept all", no has avançat gaire. Sigues estricte.</p>
+<p><strong>Error 4: no documentar</strong>. Sense documentació, ningú no entendrà per què una regla és com és.</p>
+<h2>44.14 Bones pràctiques</h2>
+<p>1. <strong>Comença amb deny per defecte</strong>.
+2. <strong>Agrupa dispositius</strong> amb tags lògics.
+3. <strong>Dona el mínim</strong> a cada grup.
+4. <strong>Audita cada mes</strong>: les ACLs encara tenen sentit?
+5. <strong>Documenta cada regla</strong> amb comentaris JSON.
+6. <strong>Prova abans d'aplicar</strong>: usa l'eina de test de Tailscale.
+7. <strong>Fes còpies</strong> de les ACLs (exporta el JSON periòdicament).</p>
+<h2>44.15 Resum</h2>
+<p>Les ACLs de Tailscale permeten controlar amb precisió qui pot accedir a què dins del tailnet. Combinades amb tags i el principi de Zero Trust, són la primera línia de defensa del BernatLab. En el proper capítol veurem les còpies de seguretat: la segona línia de defensa quan tot falla.</p>
+<h2>44.16 Exercicis pràctics</h2>
+<p>1. Inventaria tots els teus dispositius Tailscale i els seus tags.
+2. Crea una ACL amb deny per defecte i afegint només el que necessitis.
+3. Afegeix tags almenys a 3 dispositius.
+4. Prova les ACLs des de cada tipus de dispositiu.
+5. Documenta les ACLs al README amb comentaris.
+6. Fes una còpia de seguretat de les ACLs.
+7. Configura un usuari "break glass" per a emergències.</p>
+<p>Paraules clau: <strong>Tailscale, ACL, access control list, llistes de control, JSON, regla, action, accept, deny, src, dst, tag, tags, device, tailnet, subnet router, subnet, route, IP, 100.x, 192.168, ssh, autogroup, members, nonroot, test, defaultPolicy, allow-all, deny, deny-by-default, least privilege, Zero Trust, no confiïs, verificar, autenticació, segmentació, microsegmentation, network, network policy, network segmentation, firewall, tallafocs, port, 22, 80, 443, 1883, 3000, 3001, 8080, 9443, administrador, admin, server, iot, monitor, guest, convidat, convidats, convidada, etiqueta, group, grup, role, rol, permís, permissions, scope, àmbit, project, projecte, account, compte, organization, organització, user, usuari, identity, identitat, principal, subject, claim, scope, role, binding, policy, política, enforcement, aplicació, regla, rule, condition, condició, expression, expressió, match, match, glob, wildcard, pattern, patró, prefix, suffix, contains, contains, exact, exact, regex, regular expression, IPv4, IPv6, CIDR, mask, subnet mask, broadcast, network address, host address, gateway, router, default gateway, route, routing table, FIB, RIB, BGP, OSPF, RIP, static route, dynamic route, distance vector, link state, path vector, convergence, routing domain, autonomous system, AS, AS number, ASN, BGP peer, BGP session, eBGP, iBGP, route reflector, route map, prefix list, community, extended community, large community, AS path, MED, local preference, weight, origin, next hop, IGP, EGP, routing protocol, OSPF, area, backbone, stub, totally stubby, NSSA, summarization, aggregation, summarization, LSA, link state advertisement, hello, dead interval, cost, bandwidth, delay, reliability, load, MTU, path, shortest, cost, Dijkstra, SPF, shortest path first, BFD, bidirectional forwarding detection, LDP, MPLS, label, label distribution, FEC, forwarding equivalence class, LSP, label switched path, VPN, virtual private network, VRF, virtual routing and forwarding, VPLS, virtual private LAN service, VPRN, virtual private routed network, layer 2 VPN, layer 3 VPN, IPsec, AH, ESP, IKE, ISAKMP, SA, security association, transform, encryption, integrity, authentication, key exchange, Diffie-Hellman, RSA, ECDH, PFS, perfect forward secrecy, DH group, lifetime, rekey, replay protection, anti-replay, sequence number, ESP, transport mode, tunnel mode, NAT-T, NAT traversal, IKEv2, MOBIKE, DPD, dead peer detection, keepalive, hello, liveness, MTU, fragmentation, DF, don't fragment, MSS, maximum segment size, PMTU, path MTU, discovery, ICMP, error, message, type, code, checksum, pointer, embedded, packet, header, trailer, payload, padding, authentication, integrity, ESP header, ESP trailer, ESP authentication, ICV, integrity check value, HMAC, keyed hash, SHA, MD5, AES, CBC, CTR, GCM, AEAD, authenticated encryption, associated data, confidentiality, integrity, replay, ordering, sequence, anti-replay, window, sliding window, bitmap, sequence number, 32-bit, 64-bit, ESN, extended sequence number, lifetime, byte, packet, time, kilobytes, seconds, soft, hard, renegotiation, rekey, PFS, forward secrecy, compromise, post-compromise, recovery, agility, cryptographic agility, migration, transition, post-quantum, PQC, hybrid, classical, quantum, ML-KEM, Kyber, ML-DSA, Dilithium, SLH-DSA, SPHINCS, NIST, FIPS 203, FIPS 204, FIPS 205, TLS, 1.2, 1.3, cipher suite, negotiation, handshake, client hello, server hello, certificate, key exchange, finished, change cipher spec, alert, warning, fatal, close notify, renegotiation_info, extended master secret, encrypt-then-MAC, MAC-then-encrypt, padding, padding oracle, Lucky 13, BEAST, POODLE, DROWN, Heartbleed, ROBOT, Logjam, FREAK, SLOTH, Sweet32, Ticketbleed, return of Bleichenbacher, Bleichenbacher, ROBOT, timing, padding, oracle, downgrade, attack, defense, mitigation, countermeasure</strong>.</p>
+<hr>
+<h2 id="45-copies-seguretat">Capitol 45 — Còpies de seguretat amb restic i BorgBackup</h2>
+<p>> <em>"Si les teves dades existeixen en un sol lloc, no existeixen. Les còpies no són opcionals."</em></p>
+<h2>45.1 Per què les còpies són crítiques</h2>
+<p>Un homelab sense còpies és un homelab que <strong>viurà fins al primer incident</strong>. I els incidents passen:</p>
+<ul>
+<li><strong>Disc dur falla</strong> (molt probable amb microSD).</li>
+<li><strong>Esborrament accidental</strong> (més probable del que voldríem).</li>
+<li><strong>Atac informàtic</strong> (ransonware, intrusió).</li>
+<li><strong>Desastre natural</strong> (aigua, foc, llamps).</li>
+<li><strong>Robatori</strong> (portàtil, Raspberry).</li>
+<li><strong>Actualització que falla</strong> (de vegades trenca coses).</li>
+</ul>
+<p>La regla és clara: <strong>3 còpies, 2 suports diferents, 1 fora de casa</strong>. Això s'anomena la <strong>regla 3-2-1</strong>.</p>
+<h2>45.2 La regla 3-2-1</h2>
+<ul>
+<li><strong>3 còpies</strong>: la original més dues còpies.</li>
+<li><strong>2 suports diferents</strong>: per exemple, disc local + núvol.</li>
+<li><strong>1 fora de casa</strong>: per si hi ha un desastre local (incendi, inundació).</li>
+</ul>
+<p>Per al BernatLab, una bona estratègia:</p>
+<p>1. <strong>Original</strong>: a la Raspberry (microSD + possible SSD extern).
+2. <strong>Còpia local</strong>: a un disc USB o NAS a casa.
+3. <strong>Còpia remota</strong>: al núvol (Backblaze B2, Wasabi, AWS S3, Google Drive) o a casa d'un familiar.</p>
+<h2>45.3 Restic: l'eina moderna</h2>
+<p><strong>Restic</strong> (restic.net) és la millor eina per a còpies de seguretat:</p>
+<ul>
+<li><strong>Xifrades</strong> per disseny (AES-256).</li>
+<li><strong>Incrementals</strong> (només canvis des de l'última còpia).</li>
+<li><strong>Comprimides</strong> (estalvia espai).</li>
+<li><strong>Versionades</strong> (pots recuperar versions antigues).</li>
+<li><strong>Ràpides</strong> (gràcies a la deduplicació).</li>
+<li><strong>Multi-destí</strong> (local, S3, B2, SFTP, etc.).</li>
+<li><strong>Scriptable</strong> (perfecte per a cron).</li>
+<li><strong>Open source</strong> (llicència BSD).</li>
+</ul>
+<p>Instal·lació a la Raspberry:</p>
+<pre class="code"><code class="language-bash">sudo apt install restic</code></pre>
+<p>O a macOS:</p>
+<pre class="code"><code class="language-bash">brew install restic</code></pre>
+<h2>45.4 Primeres còpies amb restic</h2>
+<h3>Inicialitzar el repositori</h3>
+<p>Un <strong>repositori</strong> restic és la ubicació on es desen les còpies. Pot ser:</p>
+<ul>
+<li>Una carpeta local.</li>
+<li>Un bucket S3 o compatible.</li>
+<li>Un servidor SFTP.</li>
+</ul>
+<p>Per començar, una carpeta local:</p>
+<pre class="code"><code class="language-bash">mkdir -p /home/bernat/backups/bernatlab
+restic init --repo /home/bernat/backups/bernatlab</code></pre>
+<p>Et demanarà una <strong>contrasenya</strong>. Guarda-la en un gestor de contrasenyes. Si la perds, les dades són irrecuperables.</p>
+<h3>Fer la primera còpia</h3>
+<pre class="code"><code class="language-bash">restic -r /home/bernat/backups/bernatlab backup \
+    /home/bernat/homelab \
+    /home/bernat/bernatlab \
+    /var/lib/docker/volumes</code></pre>
+<p>Això copia les carpetes especificades. Trigarà una estona la primera vegada.</p>
+<h3>Llistar còpies</h3>
+<pre class="code"><code class="language-bash">restic -r /home/bernat/backups/bernatlab snapshots</code></pre>
+<p>Veuràs una llista de còpies amb IDs i dates.</p>
+<h3>Recuperar una còpia</h3>
+<pre class="code"><code class="language-bash"># Restaurar tota la còpia més recent
+restic -r /home/bernat/backups/bernatlab restore latest --target /tmp/restored
+<h1>Restaurar una còpia específica</h1>
+restic -r /home/bernat/backups/bernatlab restore abc1234 --target /tmp/restored
+<h1>Restaurar un sol fitxer</h1>
+restic -r /home/bernat/backups/bernatlab restore latest \
+    --target /tmp/restored \
+    --include /home/bernat/homelab/compose/mosquitto/mosquitto.conf</code></pre>
+<h2>45.5 Automatitzar amb cron</h2>
+<p>Per fer còpies diàries, crea un script:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+<h1>backup_diari.sh - Còpia de seguretat diària amb restic</h1>
+<p>set -euo pipefail</p>
+<h1>Configuració</h1>
+export RESTIC_REPOSITORY=&quot;/home/bernat/backups/bernatlab&quot;
+export RESTIC_PASSWORD_FILE=&quot;$HOME/.restic-password&quot;
+<h1>Què copiem</h1>
+BACKUP_PATHS=(
+    &quot;$HOME/homelab&quot;
+    &quot;$HOME/bernatlab&quot;
+    &quot;/var/lib/docker/volumes&quot;
+    &quot;/etc/docker&quot;
+    &quot;/etc/nginx&quot;
+    &quot;/etc/systemd&quot;
+    &quot;$HOME/.bashrc&quot;
+    &quot;$HOME/.ssh&quot;
+)
+<h1>Excloem</h1>
+EXCLUDE_PATTERNS=(
+    &quot;--exclude=**/node_modules&quot;
+    &quot;--exclude=**/.cache&quot;
+    &quot;--exclude=**/tmp&quot;
+    &quot;--exclude=**/__pycache__&quot;
+    &quot;--exclude=**/venv&quot;
+    &quot;--exclude=**/.venv&quot;
+)
+<h1>Fem la còpia</h1>
+restic backup &quot;${EXCLUDE_PATTERNS[@]}&quot; &quot;${BACKUP_PATHS[@]}&quot;
+<h1>Neteja: conserva 7 diàries, 4 setmanals, 6 mensuals</h1>
+restic forget \
+    --keep-daily 7 \
+    --keep-weekly 4 \
+    --monthly 6 \
+    --prune
+<p>echo &quot;Backup complet: $(date)&quot;</code></pre></p>
+<p>Fes-lo executable i afegix-lo a cron:</p>
+<pre class="code"><code class="language-bash">chmod +x ~/scripts/backup_diari.sh
+<h1>Cada dia a les 3 de la matinada</h1>
+crontab -e
+<h1>Afegeix:</h1>
+0 3 <em> </em> * /home/bernat/scripts/backup_diari.sh &gt;&gt; /var/log/restic.log 2&gt;&amp;1</code></pre>
+<h2>45.6 Còpies al núvol</h2>
+<p>Per complir la regla 3-2-1, cal una còpia fora de casa. Les opcions:</p>
+<h3>Backblaze B2</h3>
+<p>Backblaze B2 és molt econòmic ($0.005/GB/mes). Còpies segures:</p>
+<pre class="code"><code class="language-bash"># Inicialitzar el bucket
+restic -r b2:bernatlab-backups:bernatlab init
+<h1>Fer còpia</h1>
+restic -r b2:bernatlab-backups:bernatlab backup $HOME/bernatlab</code></pre>
+<p>Necessites les credencials de B2:</p>
+<pre class="code"><code class="language-bash">export B2_ACCOUNT_ID=&quot;...&quot;
+export B2_ACCOUNT_KEY=&quot;...&quot;</code></pre>
+<h3>Wasabi</h3>
+<p>Wasabi és similar a S3 però més econòmic per emmagatzematge. Sense cost d'egress (sortida):</p>
+<pre class="code"><code class="language-bash">restic -r s3:https://s3.wasabisys.com/bernatlab-backups init</code></pre>
+<h3>AWS S3 Glacier</h3>
+<p>Si tens compte AWS, Glacier és molt econòmic però la recuperació és lenta. No recomanable per a ús quotidià.</p>
+<h3>Google Drive (via rclone)</h3>
+<p>rclone (rclone.org) és una eina que munta qualsevol núvol com a sistema de fitxers. Combinat amb restic:</p>
+<pre class="code"><code class="language-bash"># Muntar Google Drive
+rclone config  # configurar una vegada
+<h1>Usar rclone com a backend</h1>
+restic -r rclone:gdrive:bernatlab-backups backup $HOME/bernatlab</code></pre>
+<p>Això és útil per a usuaris amb compte de Google.</p>
+<h2>45.7 BorgBackup: una alternativa</h2>
+<p><strong>BorgBackup</strong> (borgbackup.org) és l'altre gran referent:</p>
+<ul>
+<li>Xifrat (AES-256, ChaCha20).</li>
+<li>Compressió (lz4, zstd, zlib, lzma).</li>
+<li>Deduplicació.</li>
+<li>Versionat.</li>
+<li>Multi-destí.</li>
+<li>Open source (BSD).</li>
+</ul>
+<p>Diferències amb restic:</p>
+<ul>
+<li><strong>Borg</strong> és més madur i estable, però menys actiu.</li>
+<li><strong>Restic</strong> té més integracions al núvol (S3, B2, etc.).</li>
+<li><strong>Restic</strong> té millor interfície per a la deduplicació entre còpies.</li>
+</ul>
+<p>Per a un homelab, ambdós serveixen. Tria el que prefereixis.</p>
+<h3>Borg bàsic</h3>
+<pre class="code"><code class="language-bash"># Inicialitzar
+borg init --encryption=repokey /home/bernat/backups/borg-repo
+<h1>Fer còpia</h1>
+borg create --stats --progress \
+    /home/bernat/backups/borg-repo::bernatlab-$(date +%Y%m%d) \
+    $HOME/bernatlab
+<h1>Llistar</h1>
+borg list /home/bernat/backups/borg-repo
+<h1>Recuperar</h1>
+borg extract /home/bernat/backups/borg-repo::bernatlab-20260708</code></pre>
+<h2>45.8 Què copiar</h2>
+<p>No tot s'ha de copiar. Cosa que sí:</p>
+<ul>
+<li><strong>/home/bernat/homelab</strong> — Configuració del BernatLab.</li>
+<li><strong>/home/bernat/bernatlab</strong> — El llibre tècnic.</li>
+<li><strong>/var/lib/docker/volumes</strong> — Volums Docker (InfluxDB, Mosquitto, etc.).</li>
+<li><strong>/etc/docker</strong> — Configuració Docker.</li>
+<li><strong>/etc/nginx</strong> o <strong>/etc/caddy</strong> — Configuració del reverse proxy.</li>
+<li><strong>/etc/systemd</strong> — Serveis personalitzats.</li>
+<li><strong>~/.bashrc, ~/.profile, ~/.ssh</strong> — Configuració personal.</li>
+</ul>
+<p>Cosa que NO:</p>
+<ul>
+<li><strong>/var/log</strong> (logs, es regeneren).</li>
+<li><strong>/tmp</strong> (temporals).</li>
+<li><strong>Caché</strong> (es regenera).</li>
+<li><strong>node_modules, .venv</strong> (es regeneren).</li>
+<li><strong>/proc, /sys</strong> (virtuals).</li>
+</ul>
+<h2>45.9 Com xifrar les còpies</h2>
+<p>Restic i Borg ja xifren per defecte. Però la <strong>contrasenya</strong> és crítica:</p>
+<p>1. <strong>Guarda-la en un gestor de contrasenyes</strong> (Bitwarden, KeePass).
+2. <strong>Imprimeix-la</strong> en paper i guarda-la en un lloc segur (caixa forta).
+3. <strong>No la guardis mai</strong> en el mateix lloc que les dades.</p>
+<p>Si perds la contrasenya, <strong>no hi ha manera de recuperar les dades</strong>.</p>
+<h2>45.10 Còpies de la Raspberry</h2>
+<p>A la Raspberry, algunes coses addicionals:</p>
+<h3>La microSD</h3>
+<p>Les microSD fallen. <strong>Molt</strong>. Per tant:</p>
+<ul>
+<li>Còpia setmanal de tota la microSD.</li>
+<li>Millor encara: usa una SSD externa per al sistema (Raspberry Pi Boot from USB).</li>
+</ul>
+<p>Per fer una còpia de la microSD:</p>
+<pre class="code"><code class="language-bash"># Amb la Raspberry apagada
+sudo dd if=/dev/mmcblk0 of=/home/bernat/backups/sd-card.img bs=4M status=progress</code></pre>
+<p>Això fa una còpia bit a bit. Comprèn-la amb gzip:</p>
+<pre class="code"><code class="language-bash">gzip /home/bernat/backups/sd-card.img</code></pre>
+<h3>Volums Docker</h3>
+<p>Els volums Docker sovint contenen les dades més importants (InfluxDB, Grafana, etc.). Assegura't d'incloure'ls:</p>
+<pre class="code"><code class="language-bash"># Trobar els volums
+docker volume ls
+<h1>Còpia</h1>
+restic backup /var/lib/docker/volumes/</code></pre>
+<p>Alternativament, fes còpia amb `docker exec` per a les dades vives:</p>
+<pre class="code"><code class="language-bash"># Per a InfluxDB
+docker exec influxdb influx backup /tmp/backup
+docker cp influxdb:/tmp/backup ./influxdb-backup</code></pre>
+<h2>45.11 Provar les còpies</h2>
+<p><strong>Una còpia no provada no és una còpia</strong>. Cada mes, dedica una hora a:</p>
+<p>1. <strong>Recuperar</strong> una còpia en un entorn de test.
+2. <strong>Verificar</strong> que els fitxers són correctes.
+3. <strong>Provar serveis</strong> crítics (InfluxDB, Grafana, etc.).</p>
+<p>Restic té una comanda per verificar la integritat:</p>
+<pre class="code"><code class="language-bash">restic -r /home/bernat/backups/bernatlab check</code></pre>
+<p>Borg té una similar:</p>
+<pre class="code"><code class="language-bash">borg check /home/bernat/backups/borg-repo</code></pre>
+<p>Si això falla, les dades estan corruptes i cal refer-les.</p>
+<h2>45.12 Còpies punt a punt: rsync</h2>
+<p>Per a còpies simples, sense versionat, <strong>rsync</strong> és l'eina clàssica:</p>
+<pre class="code"><code class="language-bash">rsync -avz --delete \
+    /home/bernat/homelab/ \
+    /mnt/usb-backup/homelab/</code></pre>
+<p>Avantatges: simple, ràpid, ben conegut.
+Desavantatges: sense xifratge, sense versionat, sense compressió.</p>
+<p>Per a una còpia de seguretat completa, usa restic o Borg. Rsync és per a sincronització.</p>
+<h2>45.13 Monitoratge de les còpies</h2>
+<p>Per saber que les còpies funcionen, monitora-les:</p>
+<p>1. <strong>Uptime Kuma</strong> pot fer ping al repositori.
+2. <strong>Un script</strong> que revisa l'edat de l'última còpia i alerta si és massa antiga.
+3. <strong>Codi de color</strong>: el codi exit 0 = OK, != 0 = problema.</p>
+<p>Exemple de script d'alerta:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+<h1>check_backup.sh - Comprova que hi ha una còpia recent</h1>
+<p>REPO=&quot;/home/bernat/backups/bernatlab&quot;
+MAX_AGE_HOURS=26  # la còpia diària ha de ser de fa menys de 26h</p>
+<h1>Trobar la còpia més recent</h1>
+LATEST=$(restic -r &quot;$REPO&quot; snapshots --json | jq -r &#x27;.[0].time&#x27;)
+<h1>Calcular l&#x27;edat</h1>
+AGE_HOURS=$(( ($(date +%s) - $(date -d &quot;$LATEST&quot; +%s)) / 3600 ))
+<p>if [ $AGE_HOURS -gt $MAX_AGE_HOURS ]; then
+    echo &quot;ALERTA: còpia més antiga de $AGE_HOURS hores!&quot;
+    # Enviar alerta a Telegram
+    curl -X POST &quot;https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage&quot; \
+        -d &quot;chat_id=$CHAT_ID&amp;text=⚠️ Backup BernatLab massa antic ($AGE_HOURS hores)&quot;
+    exit 1
+fi</p>
+<p>echo &quot;Còpia OK ($AGE_HOURS hores)&quot;</code></pre></p>
+<p>Afegeix-lo a Uptime Kuma o a cron cada matí.</p>
+<h2>45.14 Política de retenció</h2>
+<p>Quant de temps guardar cada còpia?</p>
+<ul>
+<li><strong>Diàries</strong>: 7 (una setmana).</li>
+<li><strong>Setmanals</strong>: 4 (un mes).</li>
+<li><strong>Mensuals</strong>: 6 ( mig any).</li>
+<li><strong>Anuals</strong>: 5 (5 anys).</li>
+</ul>
+<p>Això és configurable a restic:</p>
+<pre class="code"><code class="language-bash">restic forget \
+    --keep-daily 7 \
+    --keep-weekly 4 \
+    --keep-monthly 6 \
+    --keep-yearly 5 \
+    --prune</code></pre>
+<p>Això manté un historial raonable sense acumular infinitat de còpies.</p>
+<h2>45.15 Còpies de les dades de sensors</h2>
+<p>Les dades dels sensors LoRa (Mòdul 3) són especialment valuoses perquè representen <strong>mesos o anys d'observació</strong>. Cal còpia específica:</p>
+<pre class="code"><code class="language-bash"># Script específic per a InfluxDB
+#!/bin/bash
+BACKUP_DIR=/home/bernat/backups/influxdb
+DATE=$(date +%Y%m%d)
+<p>mkdir -p &quot;$BACKUP_DIR/$DATE&quot;</p>
+<h1>Còpia lògica amb influx</h1>
+docker exec influxdb influx backup /tmp/backup
+docker cp influxdb:/tmp/backup &quot;$BACKUP_DIR/$DATE/&quot;
+<h1>Comprimir</h1>
+tar -czf &quot;$BACKUP_DIR/$DATE.tar.gz&quot; -C &quot;$BACKUP_DIR&quot; &quot;$DATE&quot;
+rm -rf &quot;$BACKUP_DIR/$DATE&quot;</code></pre>
+<h2>45.16 Resum</h2>
+<p>Les còpies de seguretat són la segona línia de defensa després de les ACLs. La regla 3-2-1 ens diu: 3 còpies, 2 suports, 1 fora de casa. Restic i BorgBackup són les millors eines modernes: xifrades, incrementals, versionades. Cal automatitzar-les amb cron, monitorar-les, i provar-les periòdicament. En el proper capítol veurem 2FA i gestió de secrets.</p>
+<h2>45.17 Exercicis pràctics</h2>
+<p>1. Instal·la restic a la Raspberry i al Mac.
+2. Crea un repositori local.
+3. Fes una primera còpia.
+4. Escriu el script `backup_diari.sh`.
+5. Configura una còpia al núvol (Backblaze B2 o Google Drive via rclone).
+6. Configura la retenció.
+7. Prova la recuperació en un directori temporal.
+8. Afegeix el monitor d'Uptime Kuma.
+9. Documenta al README l'estratègia de còpies.</p>
+<p>Paraules clau: <strong>còpia de seguretat, backup, restic, BorgBackup, rsync, 3-2-1, regla, restauració, recovery, xifratge, AES-256, ChaCha20, deduplicació, compressió, increment, snapshot, version, retenció, daily, weekly, monthly, yearly, prune, forget, check, verify, integritat, microSD, dd, S3, Backblaze B2, Wasabi, Glacier, rclone, Google Drive, OneDrive, Dropbox, SFTP, ssh, rsync.net, local, remot, fora de casa, off-site, BC, DR, business continuity, disaster recovery, RPO, RTO, RTA, RTA, còpia, original, còpia primària, còpia secundària, còpia terciària, cicle de vida, lifecycle, archival, retenció, GDPR, LOPDGDD, dret a l'oblit, esborrat, purga, retenció legal, conservació, normativa, compliance, auditoria, hash, checksum, sha256, MD5, integritat, fingerprint, signatura, GPG, PGP, encryption, key, passphrase, contrasenya, gestor, password manager, Bitwarden, KeePass, 1Password, automàtica, cron, systemd, timer, scheduler, monitoratge, alerting, Uptime Kuma, alerta, Telegram, exit code, log, error, recovery, prova, test, dry-run, simulate, scenario, playbook, runbook</strong>.</p>
+<hr>
+<h2 id="46-2fa-secrets">Capitol 46 — 2FA, secrets i gestió de claus</h2>
+<p>> <em>"Les contrasenyes soles ja no protegeixen res. El 2FA és el nou normal."</em></p>
+<h2>46.1 Per què el 2FA</h2>
+<p>Les contrasenyes tenen un problema: es poden endevinar, filtrar, o robar. Un cop algú té la teva contrasenya, té accés. El <strong>2FA</strong> (Two-Factor Authentication, autenticació de dos factors) afegeix un segon factor que <strong>no es pot robar només amb la contrasenya</strong>.</p>
+<p>Els tres factors possibles:</p>
+<p>1. <strong>Quelcom que saps</strong> (contrasenya, PIN).
+2. <strong>Quelcom que tens</strong> (mòbil, clau USB).
+3. <strong>Quelcom que ets</strong> (empremta, cara, veu).</p>
+<p>El 2FA combina dos d'aquests, normalment <strong>saps + tens</strong>.</p>
+<h2>46.2 Tipus de 2FA</h2>
+<h3>TOTP (Time-based One-Time Password)</h3>
+<p>El mòbil genera codis de 6 dígits que canvien cada 30 segons. Aplicacions: <strong>Google Authenticator</strong>, <strong>Authy</strong>, <strong>1Password</strong>, <strong>Bitwarden</strong>.</p>
+<p>Exemple: 123 456 (canvia cada 30s).</p>
+<h3>Push notifications</h3>
+<p>Una app del mòbil (Duo, Microsoft Authenticator) t'avisa: "Vols iniciar sessió a BernatLab?" Tu acceptes.</p>
+<h3>SMS</h3>
+<p>Rebs un codi per SMS. <strong>Molt poc segur</strong> (SIM swapping), però millor que res.</p>
+<h3>Hardware tokens (claus físiques)</h3>
+<p><strong>YubiKey</strong>, <strong>Titan Key</strong>, <strong>OnlyKey</strong>. Són claus USB que insertes al port. Molt segures.</p>
+<h3>Passkeys (WebAuthn / FIDO2)</h3>
+<p>L'estàndard modern. El mòbil o la clau USB fan d'identitat, sense contrasenya. Adoptat per Apple, Google, Microsoft.</p>
+<p>Recomanació: <strong>TOTP per compatibilitat</strong> (molt acceptat) + <strong>passkey o YubiKey</strong> on estigui disponible.</p>
+<h2>46.3 Aplicar 2FA al BernatLab</h2>
+<h3>2FA a Tailscale</h3>
+<p>Tailscale admet 2FA per accedir a la consola d'administració:</p>
+<p>1. Vés a https://login.tailscale.com/admin/settings/team.
+2. A "Two-factor authentication", configura TOTP.
+3. Escaneja el codi QR amb Google Authenticator.
+4. Desa els codis de recuperació en un lloc segur.</p>
+<p>Cada vegada que accedeixis a la consola, et demanarà un codi.</p>
+<h3>2FA a Portainer</h3>
+<p>Portainer admet 2FA per a usuaris:</p>
+<p>1. Crea un usuari a Portainer.
+2. Activa 2FA a la configuració.
+3. L'usuari escaneja el QR.</p>
+<h3>2FA a Grafana</h3>
+<p>Grafana admet 2FA:</p>
+<p>1. A la configuració de l'usuari, activa 2FA.
+2. Escaneja el QR.</p>
+<h3>2FA a Uptime Kuma</h3>
+<p>Uptime Kuma (versió 1.20+) admet 2FA. Configura'l igualment.</p>
+<h3>2FA a SSH</h3>
+<p>Per a SSH, pots usar:</p>
+<p>1. <strong>Claus SSH</strong> (no és 2FA però és més segur que contrasenyes).
+2. <strong>OATH-TOTP</strong> amb <strong>libpam-google-authenticator</strong>: a més de la clau, cal un codi TOTP.</p>
+<p>Instal·lació:</p>
+<pre class="code"><code class="language-bash">sudo apt install libpam-google-authenticator
+<h1>A cada usuari</h1>
+google-authenticator</code></pre>
+<p>Configura `/etc/ssh/sshd_config`:</p>
+<pre class="code"><code class="language-">ChallengeResponseAuthentication yes
+AuthenticationMethods publickey,keyboard-interactive</code></pre>
+<p>I `/etc/pam.d/sshd`:</p>
+<pre class="code"><code class="language-">auth required pam_google_authenticator.so</code></pre>
+<p>Així, cal clau SSH + codi TOTP. Molt segur.</p>
+<h3>2FA a la Raspberry Pi (consola)</h3>
+<p>A la Raspberry, pots protegir l'inici de sessió local:</p>
+<p>1. Instal·la `libpam-google-authenticator`.
+2. Configura PAM per demanar TOTP a l'inici de sessió.</p>
+<p>Això és útil si la Raspberry és accessible físicament (cosa que pot passar si la poses al camp).</p>
+<h2>46.4 Gestors de contrasenyes</h2>
+<p>El pitjor enemic de la seguretat són les <strong>contrasenyes reutilitzades</strong> i les <strong>contrasenyes curtes</strong>. Solució: un <strong>gestor de contrasenyes</strong> que:</p>
+<ul>
+<li>Genera contrasenyes llargues i úniques.</li>
+<li>Emmagatzema tot xifrat.</li>
+<li>Autocompleta formularis.</li>
+</ul>
+<p>Recomanats:</p>
+<ul>
+<li><strong>Bitwarden</strong> (cloud, gratuït, multi-plataforma).</li>
+<li><strong>1Password</strong> (pagament, excel·lent UX).</li>
+<li><strong>KeePassXC</strong> (local, open source).</li>
+<li><strong>Apple Keychain</strong> (integrat a macOS, bàsic però útil).</li>
+</ul>
+<p>Per al BernatLab, <strong>Bitwarden</strong> és la millor opció:</p>
+<ul>
+<li>Gratuït per a ús personal.</li>
+<li>Multi-plataforma (Mac, Windows, Linux, mòbil).</li>
+<li>Open source (codi auditat).</li>
+<li>2FA integrat.</li>
+<li>Compartició segura amb família.</li>
+</ul>
+<h2>46.5 Secrets al BernatLab</h2>
+<p><strong>Secrets</strong> són credencials, claus d'API, contrasenyes, tokens. Al BernatLab tens molts:</p>
+<ul>
+<li>API keys (Homepage, Grafana, Portainer, InfluxDB).</li>
+<li>Contrasenyes de bases de dades.</li>
+<li>Tokens de Telegram bot.</li>
+<li>Claus Tailscale.</li>
+<li>AppEUI, AppKey dels nodes LoRa.</li>
+<li>API keys TTN (per a integració MQTT).</li>
+</ul>
+<h2>46.6 On guardar els secrets</h2>
+<h3>❌ Pitjor: en text pla al codi</h3>
+<pre class="code"><code class="language-python"># MAI NO!
+TELEGRAM_TOKEN = &quot;1234567890:ABCdefGHIjklMNOpqrsTUVwxyz&quot;</code></pre>
+<p>Això és perillós perquè:</p>
+<ul>
+<li>Si el codi es penja a GitHub (fins i tot privat), queden exposats.</li>
+<li>Si la màquina es compromet, s'obtenen tots els secrets.</li>
+</ul>
+<h3>⚠️ Millor: variables d'entorn</h3>
+<pre class="code"><code class="language-python">import os
+<p>TELEGRAM_TOKEN = os.environ.get(&quot;TELEGRAM_TOKEN&quot;)</code></pre></p>
+<p>Les variables d'entorn <strong>no es guarden al codi</strong>, sinó a la configuració del sistema. Millor, però encara poden ser visibles al procés.</p>
+<h3>✓ Bo: fitxers .env (no versionats)</h3>
+<pre class="code"><code class="language-bash"># .env (a .gitignore!)
+TELEGRAM_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz</code></pre>
+<p>Carrega-les amb `python-dotenv`:</p>
+<pre class="code"><code class="language-python">from dotenv import load_dotenv
+load_dotenv()
+<p>TELEGRAM_TOKEN = os.environ.get(&quot;TELEGRAM_TOKEN&quot;)</code></pre></p>
+<p>Afegeix `.env` a `.gitignore`.</p>
+<h3>✓✓ Molt bo: gestors de secrets</h3>
+<p>Per a sistemes seriosos:</p>
+<ul>
+<li><strong>HashiCorp Vault</strong>: el més professional.</li>
+<li><strong>Bitwarden</strong> (org): per a equips.</li>
+<li><strong>Doppler</strong>: cloud, fàcil d'usar.</li>
+<li><strong>Infisical</strong>: open source, cloud o self-hosted.</li>
+<li><strong>age</strong> o <strong>sops</strong>: xifrar fitxers YAML/JSON.</li>
+</ul>
+<h3>✓✓✓ Excel·lent: Docker secrets</h3>
+<p>Si uses Docker Compose, pots usar <strong>secrets</strong>:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+services:
+  app:
+    image: bernatlab/app
+    secrets:
+<ul>
+<li>telegram_token</li>
+</ul>
+<p>secrets:
+  telegram_token:
+    file: ./secrets/telegram_token.txt</code></pre></p>
+<p>Els secrets es munten a `/run/secrets/` dins del contenidor. No apareixen a les variables d'entorn.</p>
+<h2>46.7 Rotació de secrets</h2>
+<p>Els secrets s'han de <strong>rotar</strong> periòdicament:</p>
+<ul>
+<li><strong>Contrasenyes d'usuari</strong>: cada 6-12 mesos.</li>
+<li><strong>API keys</strong>: cada 12 mesos o quan es sospita compromís.</li>
+<li><strong>Tokens</strong>: cada 3-6 mesos.</li>
+<li><strong>Certificats</strong>: cada 90 dies (Let's Encrypt ho fa automàticament).</li>
+</ul>
+<p>Un calendari de rotació:</p>
+<p>| Secret | Freqüència | Responsable |
+|---|---|---|
+| Contrasenya Mac | 6 mesos | Bernat |
+| Contrasenya Raspberry | 6 mesos | Bernat |
+| Tailscale 2FA | quan cal | Bernat |
+| Tokens Telegram | 12 mesos | Bernat |
+| API keys InfluxDB | 12 mesos | Bernat |
+| Clau SSH | 12 mesos | Bernat |
+| Certificat web | 90 dies (auto) | Caddy/Traefik |</p>
+<h2>46.8 Com generar contrasenyes segures</h2>
+<p>Una bona contrasenya:</p>
+<ul>
+<li>Té <strong>mínim 16 caràcters</strong>.</li>
+<li>Combina <strong>majúscules, minúscules, números i símbols</strong>.</li>
+<li>És <strong>única</strong> per a cada servei.</li>
+<li><strong>No es basa</strong> en paraules de diccionari.</li>
+</ul>
+<p>Exemple de bona contrasenya: `Tr0p1c@l-R@mbl3r-2026!`</p>
+<p>O més fàcil de recordar: `groc-tardor-poma-cullita-245m!` (4 paraules catalanes + número + signe).</p>
+<p>Usa el gestor per generar-les:</p>
+<ul>
+<li>Bitwarden té un generador de contrasenyes.</li>
+<li>KeePassXC idem.</li>
+<li>1Password idem.</li>
+</ul>
+<h2>46.9 Claus SSH</h2>
+<p>Les claus SSH són la millor manera d'autenticar-te a la Raspberry (molt millor que contrasenyes).</p>
+<h3>Generar una clau forta</h3>
+<pre class="code"><code class="language-bash">ssh-keygen -t ed25519 -C &quot;bernat@bernat-mbp&quot; -f ~/.ssh/bernatlab</code></pre>
+<p>Això genera una clau ed25519 (més curta i segura que RSA).</p>
+<h3>Instal·lar-la a la Raspberry</h3>
+<pre class="code"><code class="language-bash">ssh-copy-id -i ~/.ssh/bernatlab.pub bernat@hortosona</code></pre>
+<p>Això afegeix la clau pública a `~/.ssh/authorized_keys`.</p>
+<h3>Desactivar l'accés per contrasenya</h3>
+<p>Edita `/etc/ssh/sshd_config`:</p>
+<pre class="code"><code class="language-">PasswordAuthentication no
+PermitRootLogin no
+PubkeyAuthentication yes</code></pre>
+<p>I reinicia SSH:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart sshd</code></pre>
+<p>Ara només pots accedir amb la clau. Molt més segur.</p>
+<h3>Protegir la clau privada amb passphrase</h3>
+<p>Quan generes la clau, et demana una passphrase. <strong>Sempre posa'n una</strong>. Així, si algú roba la clau, no pot fer-la servir.</p>
+<p>Pots usar `ssh-agent` per no haver d'escriure la passphrase cada vegada:</p>
+<pre class="code"><code class="language-bash">ssh-add ~/.ssh/bernatlab</code></pre>
+<h2>46.10 Gestió de claus a Tailscale</h2>
+<p>Tailscale té un sistema de <strong>pre-auth keys</strong> per afegir dispositius nous:</p>
+<p>1. A la consola, genera una <strong>pre-auth key</strong>.
+2. Fes servir aquesta clau al nou dispositiu: `tailscale up --authkey=tskey-...`.
+3. La clau té una durada limitada (per defecte, un sol ús).</p>
+<p>També pots etiquetar automàticament:</p>
+<pre class="code"><code class="language-bash">tailscale up --authkey=tskey-... --tag=server</code></pre>
+<p>Així, quan s'uneix un dispositiu, ja té el tag correcte.</p>
+<h2>46.11 Pre-shared keys (PSK) per a serveis</h2>
+<p>Alguns serveis (WireGuard, OpenVPN, Wi-Fi WPA3) admeten <strong>pre-shared keys</strong> (PSK). Són claus compartides manualment que xifren el canal.</p>
+<p>Exemple: WPA3-Personal usa una contrasenya com a PSK. Important que sigui forta.</p>
+<h2>46.12 Auditories periòdiques</h2>
+<p>Cada 3-6 mesos, revisa:</p>
+<p>1. <strong>Quins secrets</strong> tens actius.
+2. <strong>Quins serveis</strong> els usen.
+3. <strong>Si cal rotar</strong> algun.
+4. <strong>Si hi ha secrets</strong> antics que ja no es fan servir.
+5. <strong>Si hi ha secrets</strong> exposats en algun lloc.</p>
+<p>Eines útils:</p>
+<ul>
+<li><strong>git-secrets</strong>: evita secrets al Git.</li>
+<li><strong>gitleaks</strong>: cerca secrets en repositoris.</li>
+<li><strong>trufflehog</strong>: cerca secrets en commits antics.</li>
+</ul>
+<pre class="code"><code class="language-bash"># Al repo del BernatLab
+pip install gitleaks
+gitleaks detect --source .</code></pre>
+<p>Si troba secrets, <strong>rota'ls immediatament</strong>.</p>
+<h2>46.13 Política de secrets al BernatLab</h2>
+<p>Documenta una política clara:</p>
+<pre class="code"><code class="language-markdown">## Política de secrets al BernatLab
+<p>1. Tots els secrets s&#x27;emmagatzemen a `.env` (no versionat) o al gestor del sistema.
+2. Les claus SSH tenen passphrase sempre.
+3. 2FA activat a Tots els serveis que ho permetin.
+4. Contrasenyes generades amb Bitwarden, mínim 16 caràcters.
+5. Rotació de secrets cada 6-12 mesos.
+6. Cap secret en text pla al codi o commits.
+7. Auditoria amb gitleaks cada mes.</code></pre></p>
+<h2>46.14 Errors habituals</h2>
+<p><strong>Error 1: desar secrets a GitHub per error</strong>.</p>
+<p>Assegura't que `.env` està a `.gitignore` abans del primer commit. Si ja l'has pujat, <strong>rota els secrets immediatament</strong> (no serveix de res esborrar el fitxer, el commit queda a la història).</p>
+<p><strong>Error 2: usar la mateixa contrasenya a tot arreus</strong>.</p>
+<p>Si un servei es compromet, tots els altres cauen. Usa contrasenyes úniques.</p>
+<p><strong>Error 3: penjar la clau SSH a un sistema sense passphrase</strong>.</p>
+<p>Si perds el portàtil, la clau queda exposada.</p>
+<p><strong>Error 4: desar secrets al README</strong>.</p>
+<p>Els READMEs es comparteixen. Mai posis un secret visible al README.</p>
+<p><strong>Error 5: no rotar mai</strong>.</p>
+<p>Els secrets vells són vectors d'atac. Rota'ls.</p>
+<h2>46.15 Resum</h2>
+<p>El 2FA, una bona gestió de contrasenyes, i una política clara de secrets són la tercera línia de defensa. TOTP i claus SSH amb passphrase són les millors pràctiques. Bitwarden és el millor gestor per a ús personal. Roteu els secrets periòdicament, i mai els poseu a Git. En el proper capítol veurem fail2ban, rate limiting, i tallafocs aplicat.</p>
+<h2>46.16 Exercicis pràctics</h2>
+<p>1. Instal·la Bitwarden (o un altre gestor) i migra les teves contrasenyes.
+2. Activa 2FA a Tailscale, Portainer, Grafana, Uptime Kuma.
+3. Genera claus SSH ed25519 amb passphrase.
+4. Desactiva l'autenticació per contrasenya a la Raspberry.
+5. Configura libpam-google-authenticator a la Raspberry per 2FA a SSH.
+6. Crea un `.env` per a cada servei amb els secrets, i afegeix-lo a `.gitignore`.
+7. Executa gitleaks al repo del BernatLab.
+8. Documenta al README la política de secrets.</p>
+<p>Paraules clau: <strong>2FA, MFA, two-factor, autenticació, dos factors, TOTP, HOTP, Google Authenticator, Authy, 1Password, Bitwarden, passkey, FIDO2, WebAuthn, YubiKey, Titan, hardware token, clau física, SMS, push, push notification, OTP, one-time password, secret, password, contrasenya, passphrase, PIN, biometric, empremta, face ID, veu, iris, retina, smart card, targeta, NFC, RFID, password manager, gestor, vault, autofill, generador, password generator, random, secure random, entropy, PBKDF2, bcrypt, Argon2, scrypt, hash, salt, pepper, key stretching, strength, length, complexity, uniqueness, breach, leak, have i been pwned, HIBP, dictonary, attack, brute force, rainbow table, GPU, ASIC, cracking, rotation, expiry, lifetime, regen, rec, refresh, secret, API key, token, bearer, JWT, OAuth, OIDC, refresh token, access token, ssh-keygen, ed25519, RSA, ECDSA, public key, private key, keypair, fingerprint, authorized_keys, known_hosts, ssh-agent, ssh-add, ssh-copy-id, sshd, PasswordAuthentication, PermitRootLogin, ChallengeResponse, PAM, libpam-google-authenticator, OATH, RFC 6238, HOTP, security audit, gitleaks, git-secrets, trufflehog, detect-secrets, environment variable, .env, dotenv, secrets management, Vault, Infisical, Doppler, SOPS, age, gpg, encrypted file, KMS, HSM, cloud secret, AWS Secrets Manager, GCP Secret Manager, Azure Key Vault, Kubernetes secret, docker secret, compose secret, secret rotation, key rotation, certificate, TLS, x.509, ACME, Let's Encrypt, ZeroSSL, certbot, autorenew, expiry, CRL, OCSP, mTLS, mutual, client cert, server cert, root CA, intermediate CA, chain, trust store, openssl, verification, fingerprint, FQDN, SAN, Subject Alternative Name</strong>.</p>
+<hr>
+<h2 id="47-fail2ban-tallafocs">Capitol 47 — fail2ban, rate limiting i tallafocs aplicat</h2>
+<p>> <em>"El millor tallafocs és el que t'avisa quan algú intenta passar."</em></p>
+<h2>47.1 Què és fail2ban</h2>
+<p><strong>fail2ban</strong> és una eina que monitora els logs del sistema i <strong>bloqueja IPs</strong> que fan massa intents fallits. Per exemple, si una IP intenta accedir per SSH amb 5 contrasenyes errònies, fail2ban la bloqueja durant 10 minuts.</p>
+<p>Combinat amb un tallafocs, és molt efectiu contra:</p>
+<ul>
+<li><strong>Bots d'escaneig</strong> que busquen contrasenyes febles.</li>
+<li><strong>Atacs de força bruta</strong> contra SSH, HTTP, FTP, etc.</li>
+<li><strong>Atacs de diccionari</strong> contra serveis web.</li>
+</ul>
+<h2>47.2 Instal·lació a Debian/Raspberry</h2>
+<pre class="code"><code class="language-bash">sudo apt update
+sudo apt install fail2ban</code></pre>
+<p>Això instal·la fail2ban i l'inicia com a servei systemd.</p>
+<p>Verificar:</p>
+<pre class="code"><code class="language-bash">sudo systemctl status fail2ban</code></pre>
+<h2>47.3 Configuració bàsica</h2>
+<p>La configuració principal és a `/etc/fail2ban/jail.local` (crear-lo per no sobreescriure l'original):</p>
+<pre class="code"><code class="language-ini">[DEFAULT]
+<h1>Temps de bloqueig per defecte (1 hora)</h1>
+bantime = 1h
+<h1>Finestra de temps per comptar intents fallits (10 min)</h1>
+findtime = 10m
+<h1>Nombre d&#x27;intents abans del bloqueig</h1>
+maxretry = 5
+<h1>IPs que mai no es bloquegen (loopback, xarxa local)</h1>
+ignoreip = 127.0.0.1/8 100.64.0.0/10</code></pre>
+<p>El rang `100.64.0.0/10` és la xarxa Tailscale — important no bloquejar-te a tu mateix.</p>
+<h2>47.4 Jails (presons) actius</h2>
+<p>Cada "jail" és un patró de detecció. Els més útils:</p>
+<h3>SSH</h3>
+<pre class="code"><code class="language-ini">[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 24h</code></pre>
+<p>Així, 3 intents fallits = bloqueig durant 24 hores.</p>
+<h3>SSH amb Tailscale</h3>
+<p>Si només vols SSH des de Tailscale:</p>
+<pre class="code"><code class="language-ini">[sshd-tailscale]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 24h
+ignoreip = 100.64.0.0/10</code></pre>
+<p>I configura SSH per escoltar només a Tailscale:</p>
+<pre class="code"><code class="language-bash">sudo systemctl edit sshd
+<h1>A l&#x27;override.conf:</h1>
+[Service]
+ExecStart=
+ExecStart=/usr/sbin/sshd -D -i -e -f /etc/ssh/sshd_config</code></pre>
+<p>I a `/etc/ssh/sshd_config`:</p>
+<pre class="code"><code class="language-">ListenAddress 100.115.134.76</code></pre>
+<h3>HTTP (nginx)</h3>
+<pre class="code"><code class="language-ini">[nginx-http-auth]
+enabled = true
+filter = nginx-http-auth
+port = http,https
+logpath = /var/log/nginx/error.log
+maxretry = 3
+bantime = 1h</code></pre>
+<h3>Grafana, Portainer, etc.</h3>
+<p>Per a serveis web amb autenticació, pots crear jails personalitzats. Exemple per a Portainer:</p>
+<pre class="code"><code class="language-ini">[portainer-auth]
+enabled = true
+filter = portainer-auth
+port = 9443
+logpath = /var/lib/docker/volumes/portainer_data/_data/portainer.log
+maxretry = 5
+bantime = 1h</code></pre>
+<p>I el filtre a `/etc/fail2ban/filter.d/portainer-auth.conf`:</p>
+<pre class="code"><code class="language-">[Definition]
+failregex = ^.<em>Failed login attempt for .</em> from &lt;HOST&gt;.*$
+ignoreregex =</code></pre>
+<h2>47.5 Comandes útils</h2>
+<h3>Estat general</h3>
+<pre class="code"><code class="language-bash">sudo fail2ban-client status</code></pre>
+<h3>Estat d'un jail</h3>
+<pre class="code"><code class="language-bash">sudo fail2ban-client status sshd</code></pre>
+<h3>Veure IPs bloquejades</h3>
+<pre class="code"><code class="language-bash">sudo fail2ban-client status sshd
+<h1>A la sortida:</h1>
+<h1>Banned IP list: 1.2.3.4, 5.6.7.8</code></pre></h1>
+<h3>Desbloquejar una IP</h3>
+<pre class="code"><code class="language-bash">sudo fail2ban-client set sshd unbanip 1.2.3.4</code></pre>
+<h3>Bloquejar una IP manualment</h3>
+<pre class="code"><code class="language-bash">sudo fail2ban-client set sshd banip 1.2.3.4</code></pre>
+<h3>Comprovar els logs</h3>
+<pre class="code"><code class="language-bash">sudo tail -f /var/log/fail2ban.log</code></pre>
+<h2>47.6 Com combinar amb el tallafocs</h2>
+<p>fail2ban usa <strong>iptables</strong> (o <strong>nftables</strong>) per bloquejar. Això és complementari al tallafocs normal.</p>
+<p>Si tens UFW (Uncomplicated Firewall) activat:</p>
+<pre class="code"><code class="language-bash"># Comprovar si UFW està actiu
+sudo ufw status
+<h1>Si no, activar</h1>
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow ssh
+sudo ufw allow in on tailscale0  # permet tot des de Tailscale
+sudo ufw enable</code></pre>
+<p>Ara UFW gestiona el tallafocs base, i fail2ban hi afegeix bloquejos dinàmics.</p>
+<h2>47.7 Rate limiting</h2>
+<p>El <strong>rate limiting</strong> limita el nombre de peticions per IP/segon. Això evita:</p>
+<ul>
+<li><strong>Atacs DoS</strong> (denial of service).</li>
+<li><strong>Abús d'APIs</strong> (excés de peticions).</li>
+<li><strong>Força bruta accelerada</strong> (molts intents per segon).</li>
+</ul>
+<h3>Rate limiting a nginx</h3>
+<p>Exemple de limitació de peticions per IP:</p>
+<pre class="code"><code class="language-nginx">http {
+    # Definir una zona de rate limiting
+    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+<p>server {
+        location /api/ {
+            limit_req zone=api burst=20 nodelay;
+            proxy_pass http://backend;
+        }
+    }
+}</code></pre></p>
+<p>Això permet 10 peticions per segon, amb una ràfega de 20.</p>
+<h3>Rate limiting a Caddy</h3>
+<p>Caddy ho té integrat:</p>
+<pre class="code"><code class="language-caddyfile">api.bernatlab.cat {
+    rate_limit {remote.ip} 10r/s
+    reverse_proxy localhost:8080
+}</code></pre>
+<h3>Rate limiting a Portainer</h3>
+<p>Portainer no té rate limiting natiu, però pots posar-lo darrere d'un reverse proxy (Caddy o nginx) que sí en tingui.</p>
+<h2>47.8 Protecció contra DoS</h2>
+<p>Per a una Raspberry, els atacs DoS són un risc real (la RPi no té gaire potència). Proteccions:</p>
+<p>1. <strong>Tailscale</strong>: com que no exposa ports a Internet, ja està protegit.
+2. <strong>Cloudflare Tunnel</strong>: si exposes serveis, Cloudflare filtra el tràfic.
+3. <strong>fail2ban</strong>: bloqueja IPs sospitoses.
+4. <strong>Rate limiting</strong>: limita peticions per IP.
+5. <strong>nginx amb limit_req</strong>: filtra peticions abans d'arribar al backend.</p>
+<h2>47.9 Tallafocs aplicat a la Raspberry</h2>
+<h3>Política per defecte: deny</h3>
+<pre class="code"><code class="language-bash">sudo ufw default deny incoming
+sudo ufw default allow outgoing</code></pre>
+<h3>Permetre només el necessari</h3>
+<pre class="code"><code class="language-bash"># SSH només des de Tailscale
+sudo ufw allow in on tailscale0 to any port 22
+<h1>Per a la gestió via web (si vols)</h1>
+sudo ufw allow in on tailscale0 to any port 9443  # Portainer
+sudo ufw allow in on tailscale0 to any port 3000  # Homepage
+sudo ufw allow in on tailscale0 to any port 3001  # Uptime Kuma
+<h1>Activar</h1>
+sudo ufw enable
+sudo ufw status verbose</code></pre>
+<h3>Limitar l'accés per IP</h3>
+<pre class="code"><code class="language-bash"># Només tu pots accedir a SSH
+sudo ufw allow from 100.115.134.76 to any port 22</code></pre>
+<h2>47.10 Tallafocs al Mac</h2>
+<p>macOS té un tallafocs integrat (System Settings → Network → Firewall). Però és bàsic. Per a més control, pots usar <strong>Lulu</strong> o <strong>Little Snitch</strong> (gratuïts o de pagament).</p>
+<p>Per configurar el tallafocs per aplicació:</p>
+<p>1. System Settings → Network → Firewall → Options.
+2. Activa "Block all incoming connections".
+3. Permet les aplicacions que necessitin (Ollama, uvicorn, etc.).</p>
+<h2>47.11 Logs del tallafocs</h2>
+<p>Revisar els logs periòdicament:</p>
+<pre class="code"><code class="language-bash"># Logs de UFW
+sudo tail -f /var/log/ufw.log
+<h1>Logs de fail2ban</h1>
+sudo tail -f /var/log/fail2ban.log
+<h1>Logs d&#x27;auth (intents de SSH)</h1>
+sudo tail -f /var/log/auth.log</code></pre>
+<p>Si veus molts intents des d'una IP estrangera, és un bot. fail2ban ja el bloquejarà, però val la pena investigar.</p>
+<h2>47.12 Protegir serveis exposats</h2>
+<p>Si per algun motiu exposes serveis a Internet (per exemple, amb Tailscale Funnel o Cloudflare Tunnel), calen proteccions addicionals:</p>
+<p>1. <strong>Cloudflare</strong> filtra molt tràfic maliciós.
+2. <strong>Cloudflare Turnstile</strong> o <strong>hCaptcha</strong> per a formularis.
+3. <strong>Rate limiting</strong> agressiu.
+4. <strong>WAF</strong> (Web Application Firewall, tallafocs d'aplicació web): Cloudflare, AWS WAF.
+5. <strong>Monitoratge</strong> de peticions sospitoses.</p>
+<h2>47.13 Què fer quan et bloquegen a tu</h2>
+<p>Si t'has equivocat amb les ACLs o el tallafocs, pots quedar fora. Solucions:</p>
+<p>1. <strong>Accés físic</strong> a la Raspberry: teclat + monitor.
+2. <strong>Portàtil amb Tailscale</strong> des d'una altra xarxa.
+3. <strong>Una porta "break glass"</strong> sempre oberta (però amb clau + 2FA).
+4. <strong>Una VPN alternativa</strong> (WireGuard) com a backup.</p>
+<p>Per a la Raspberry, el "break glass" és poder-hi accedir físicament amb un monitor. Configurar una sortida HDMI sempre.</p>
+<h2>47.14 Bones pràctiques</h2>
+<p>1. <strong>Tallafocs per defecte deny</strong>. Permet només el que cal.
+2. <strong>fail2ban</strong> a tots els serveis amb autenticació.
+3. <strong>Rate limiting</strong> a serveis web.
+4. <strong>Logs centralitzats</strong> (Promtail, Loki, o un simple fitxer).
+5. <strong>Revisar setmanalment</strong> els logs.
+6. <strong>Auditar mensualment</strong> les regles del tallafocs.
+7. <strong>Documentar</strong> cada canvi.</p>
+<h2>47.15 Resum</h2>
+<p>El tallafocs i fail2ban són la quarta línia de defensa. fail2ban bloqueja IPs que fan massa intents fallits. El tallafocs permet només el tràfic necessari. El rate limiting evita DoS. La combinació d'aquestes eines amb Tailscale (que ja evita l'exposició a Internet) fa que el BernatLab sigui molt segur. En el proper capítol veurem el hardening del sistema operatiu.</p>
+<h2>47.16 Exercicis pràctics</h2>
+<p>1. Instal·la fail2ban a la Raspberry.
+2. Configura un jail per a SSH amb 3 intents màxim.
+3. Activa UFW amb polítiques restrictives.
+4. Configura rate limiting al reverse proxy.
+5. Prova fail2ban: intenta 5 contrasenyes errònies per SSH.
+6. Comprova les IPs bloquejades amb `fail2ban-client status sshd`.
+7. Configura alertes a Telegram per a nous bloquejos.
+8. Documenta al README l'estratègia de tallafocs.</p>
+<p>Paraules clau: <strong>fail2ban, jail, banned, banned IP, ban, unban, maxretry, findtime, bantime, ignoreip, recidive, jail.local, filter, action, iptables, nftables, UFW, uncomplicated firewall, iptables, nft, firewalld, pf, ipfw, ipfilter, IPFW, netfilter, Linux firewall, eBPF, Cilium, Falco, sysdig, audit, auditd, ausearch, aureport, logs, /var/log, /var/log/auth.log, /var/log/syslog, journald, journalctl, logrotate, centralitzat, Promtail, Loki, Grafana, alerting, Uptime Kuma, Telegram, rate limit, limit_req, limit_req_zone, burst, nodelay, leaky bucket, token bucket, fixed window, sliding window, counter, gauge, histogram, exponential backoff, DoS, DDoS, denial of service, distributed, amplification, reflection, SYN flood, UDP flood, ICMP flood, ping flood, ping of death, smurf, fraggle, teardrop, bonk, land, winnuke, nestea, jolt, OOB, out-of-band, RST, cookie, SYN cookie, tcp_syncookies, ip_no_pmtu_disc, rp_filter, reverse path filtering, martian, log_martians, accept_ra, accept_redirects, send_redirects, secure_redirects, proxy_arp, ip_forward, forwarding, route, gateway, default gateway, network namespace, netns, VRF, table, FIB, RIB, rules, chains, INPUT, OUTPUT, FORWARD, PREROUTING, POSTROUTING, nat, masquerade, SNAT, DNAT, REDIRECT, LOG, REJECT, DROP, ACCEPT, queue, NFQUEUE, conntrack, connection tracking, state, NEW, ESTABLISHED, RELATED, INVALID, UNTRACKED, rate, limit, policer, shaper, tc, traffic control, netem, qdisc, pfifo, fq_codel, CAKE, RED, ECN, explicit congestion notification, ECN, CE, ECT, ect_0, ect_1, ECT(0), ECT(1), Not-ECT, Not-ECT, Low Delay, Low Loss, Low Loss Low Delay, L4S, Prague, dual queue, fq, fair queue, FQ-CoDel, Stochastic Fair Queueing, SFQ, priority, qos, dscp, tos, vlan, 802.1Q, qinq, 802.1ad, bridge, brctl, veth, macvlan, ipvlan, tunnel, GRE, IPIP, GUE, VXLAN, GENEVE, ERSPAN, ERSPAN, Type, ERSPAN, ERSPAN Type II, ERSPAN Type III, ERSPAN Type I, header, payload, encap, decap, geneve, vni, vxlan, segment, ID, encapsulation, tunnel endpoint, VTEP, VTEP, VTEP, distributed, virtual, switch, Open vSwitch, OVS, DPDK, FD.io, VPP, fast data, fast path, kernel bypass, XDP, eXpress Data Path, AF_XDP, busy polling, epoll, io_uring, sendfile, splice, tee, vmsplice, copy avoidance, zero copy, kernel-bypass, user-space networking, networking, layer 2, layer 3, layer 4, layer 7, application, presentation, session, transport, network, data link, physical, MAC, PHY, switch, hub, bridge, router, gateway, firewall, IDS, IPS, NDR, network detection, response, DPI, deep packet inspection, NF, netfilter, iptables, nftables, ebtables, arptables, ip6tables, brctl, ip rule, ip route, ip neigh, ip tunnel, ip link, ip addr, ip maddr, ip mroute, ip xfrm, ip netns, ip l2tp, ip tcp_metrics, ss, netstat, lsof, fuser, lscpu, lspci, lsusb, lsblk, lsscsi, lsraid, dmidecode, lshw, hwinfo, inxi, screenfetch, neofetch, fastfetch, weather, cpu, gpu, ram, rom, bios, uefi, legacy, efivars, secure boot, tpm, measured boot, attested, measured, root of trust, intel TXT, AMD SKINIT, SRTM, DRTM, late launch, dynamic root of trust, trust, attestation, measured, integrity, IMA, EVM, Linux IMA, Integrity Measurement Architecture, Extended Verification Module, appraisal, audit, signed, kernel, signed, modules, signed, dm-verity, dm-integrity, LUKS, LUKS2, cryptsetup, LUKS header, key slot, passphrase, TPM, enrollment, key, binding, PCR, Platform Configuration Register, policy, TPM2, TPM2_CreatePrimary, TPM2_StartAuthSession, TPM2_PolicyPCR, TPM2_PCR_Read, TPM2_NV_Read, TPM2_NV_DefineSpace, TPM2_NV_Write, TPM2_NV_ReadLock, TPM2_NV_WriteLock, TPM2_Clear, TPM2_DictionaryAttackLockReset, TPM2_DictionaryAttackParameters, TPM2_Startup, TPM2_Shutdown, TPM2_GetRandom, TPM2_GetTestResult, TPM2_GetCapability, TPM2_ReadPublic, TPM2_Import, TPM2_Load, TPM2_LoadExternal, TPM2_Seal, TPM2_Unseal, TPM2_Sign, TPM2_VerifySignature, TPM2_RSA_Decrypt, TPM2_ECC_ZGen, TPM2_ECC_Sign, TPM2_ECC_Verify, TPM2_ZGen_2Phase, TPM2_ECC_Point_Z, TPM2_Encrypt, TPM2_Decrypt, TPM2_HMAC, TPM2_HMAC_Start, TPM2_HMAC_Update, TPM2_HMAC_Complete, TPM2_SequenceComplete, TPM2_SequenceUpdate, TPM2_Sign, TPM2_Verify, TPM2_Certify, TPM2_CertifyCreation, TPM2_Quote, TPM2_PCR_Allocate, TPM2_PCR_SetAuthPolicy, TPM2_PCR_SetAuthValue, TPM2_NV_Certify, TPM2_PCR_Reset, TPM2_ChangeAuth, TPM2_NV_ChangeAuth, TPM2_LoadKey, TPM2_Seal, TPM2_Unseal, TPM2_Duplicate, TPM2_Rewrap, TPM2_Import, TPM2_LoadExternal, TPM2_LoadKey, TPM2_LoadKey2, TPM2_ReadPublic, TPM2_RSA_Encrypt, TPM2_RSA_Decrypt, TPM2_ECDH_KeyGen, TPM2_ECDH_ZGen, TPM2_ECC_Parameters, TPM2_FirmwareRead, TPM2_Capability, TPM2_GetRandom, TPM2_GetTestResult, TPM2_Increment, TPM2_ReadClock, TPM2_ReadClock, TPM2_TickStamp, TPM2_Time, TPM2_Verify, TPM2_NV_GlobalWriteLock, TPM2_NV_Increment, TPM2_NV_Extend, TPM2_Vendor_TCG, vendor, defined, commands</strong>.</p>
+<hr>
+<h2 id="48-hardening-so">Capitol 48 — Hardening del sistema operatiu</h2>
+<p>> <em>"El sistema operatiu és la base de tot. Si la base és feble, tot el que hi construeixes és feble."</em></p>
+<h2>48.1 Què és el hardening</h2>
+<p><strong>Hardening</strong> és el procés de fer un sistema operatiu <strong>més segur</strong> reduint la superfície d'atac. Això inclou:</p>
+<ul>
+<li>Desactivar serveis innecessaris.</li>
+<li>Aplicar pegats de seguretat.</li>
+<li>Configurar permisos estrictes.</li>
+<li>Activar proteccions del kernel.</li>
+<li>Limitar capacitats dels processos.</li>
+</ul>
+<h2>48.2 Les 4 fases del hardening</h2>
+<p>1. <strong>Inventari</strong>: què tens instal·lat, què s'executa, quins ports estan oberts.
+2. <strong>Reducció</strong>: elimina tot el que no necessitis.
+3. <strong>Configuració</strong>: aplica configuracions segures.
+4. <strong>Verificació</strong>: comprova que tot funciona i està protegit.</p>
+<h2>48.3 Inventari inicial</h2>
+<p>Abans de fer canvis, cal saber què tens:</p>
+<h3>Quins serveis s'executen</h3>
+<pre class="code"><code class="language-bash">sudo systemctl list-units --type=service --state=running</code></pre>
+<h3>Quins ports escolten</h3>
+<pre class="code"><code class="language-bash">sudo ss -tulnp</code></pre>
+<h3>Quins paquets estan instal·lats</h3>
+<pre class="code"><code class="language-bash">sudo apt list --installed</code></pre>
+<h3>Quins usuaris existeixen</h3>
+<pre class="code"><code class="language-bash">cat /etc/passwd | grep -v nologin | grep -v false</code></pre>
+<h3>Quins grups tenen membres</h3>
+<pre class="code"><code class="language-bash">sudo getent group sudo admin docker</code></pre>
+<h2>48.4 Actualitzacions</h2>
+<p>El primer pas, sempre: <strong>mantenir el sistema actualitzat</strong>.</p>
+<pre class="code"><code class="language-bash"># Actualitza la llista
+sudo apt update
+<h1>Mostra què hi ha pendent</h1>
+sudo apt list --upgradable
+<h1>Actualitza tot</h1>
+sudo apt upgrade
+<h1>Actualitza amb canvis de kernel</h1>
+sudo apt full-upgrade
+<h1>Neteja paquets obsolets</h1>
+sudo apt autoremove</code></pre>
+<h3>Actualitzacions automàtiques</h3>
+<p>Per no oblidar-te'n:</p>
+<pre class="code"><code class="language-bash">sudo apt install unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades</code></pre>
+<p>Edita `/etc/apt/apt.conf.d/50unattended-upgrades`:</p>
+<pre class="code"><code class="language-">Unattended-Upgrade::Allowed-Origins {
+    &quot;Debian bookworm-security&quot;;
+    &quot;Debian bookworm-updates&quot;;
+};
+Unattended-Upgrade::AutoFixInterruptedDpkg &quot;true&quot;;
+Unattended-Upgrade::MinimalSteps &quot;true&quot;;
+Unattended-Upgrade::Remove-Unused-Kernel-Packages &quot;true&quot;;
+Unattended-Upgrade::Remove-Unused-Dependencies &quot;true&quot;;
+Unattended-Upgrade::Automatic-Reboot &quot;false&quot;;</code></pre>
+<p>Ara el sistema s'actualitza sol cada dia.</p>
+<h2>48.5 Desactivar serveis innecessaris</h2>
+<p>Cada servei actiu és una porta potencial. Desactiva tot el que no necessitis.</p>
+<p>A la Raspberry, serveis típics que pots desactivar:</p>
+<pre class="code"><code class="language-bash">sudo systemctl disable --now avahi-daemon  # mDNS
+sudo systemctl disable --now bluetooth     # si no uses
+sudo systemctl disable --now cups          # impressió
+sudo systemctl disable --now ModemManager  # mòdem
+sudo systemctl disable --now wpa_supplicant  # si no uses Wi-Fi</code></pre>
+<p>Per veure què consumeix recursos:</p>
+<pre class="code"><code class="language-bash">sudo systemctl list-units --type=service --state=running --no-pager</code></pre>
+<h2>48.6 Proteccions del kernel (sysctl)</h2>
+<p>`sysctl` permet configurar paràmetres del kernel en temps d'execució. Crea `/etc/sysctl.d/99-security.conf`:</p>
+<pre class="code"><code class="language-ini"># Protecció contra IP spoofing
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.default.rp_filter = 1
+<h1>No acceptar redireccions ICMP</h1>
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv6.conf.default.accept_redirects = 0
+<h1>No enviar redireccions</h1>
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+<h1>No acceptar IP source routing</h1>
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv6.conf.all.accept_source_route = 0
+net.ipv6.conf.default.accept_source_route = 0
+<h1>Habilitar SYN cookies (protecció contra SYN flood)</h1>
+net.ipv4.tcp_syncookies = 1
+<h1>No habilitar IP forwarding (si no ets router)</h1>
+net.ipv4.ip_forward = 0
+net.ipv6.conf.all.forwarding = 0
+<h1>Protecció contra martians</h1>
+net.ipv4.conf.all.log_martians = 1
+<h1>Kernel: randomize memory layout (ASLR)</h1>
+kernel.randomize_va_space = 2
+<h1>No exposar informació del kernel</h1>
+kernel.dmesg_restrict = 1
+kernel.kptr_restrict = 2
+<h1>Restringir accés a /proc</h1>
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1</code></pre>
+<p>Aplica:</p>
+<pre class="code"><code class="language-bash">sudo sysctl -p /etc/sysctl.d/99-security.conf</code></pre>
+<h2>48.7 Permissos dels fitxers crítics</h2>
+<p>Molts fitxers del sistema tenen permisos massa oberts. Assegura't que estiguin correctes:</p>
+<pre class="code"><code class="language-bash"># Permissos estrictes
+sudo chmod 600 /etc/shadow
+sudo chmod 600 /etc/gshadow
+sudo chmod 644 /etc/passwd
+sudo chmod 644 /etc/group
+sudo chmod 600 /etc/ssh/sshd_config
+sudo chmod 600 /boot/grub/grub.cfg  # si tens GRUB
+<h1>Propietaris</h1>
+sudo chown root:root /etc/shadow /etc/gshadow /etc/passwd /etc/group</code></pre>
+<h2>48.8 SSH hardening</h2>
+<p>L'SSH és una porta d'entrada crítica. Configuració segura a `/etc/ssh/sshd_config`:</p>
+<pre class="code"><code class="language-"># Port personalitzat (no és seguretat, però redueix bots)
+Port 22
+<h1>Protocol modern</h1>
+Protocol 2
+<h1>Desactivar root login</h1>
+PermitRootLogin no
+<h1>Només autenticació per clau</h1>
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+<h1>Limitar usuaris</h1>
+AllowUsers bernat
+<h1>Limitar intents</h1>
+MaxAuthTries 3
+MaxSessions 3
+<h1>Desactivar tunneling innecessari</h1>
+AllowTcpForwarding no
+AllowAgentForwarding no
+X11Forwarding no
+<h1>Log verbós</h1>
+LogLevel VERBOSE
+<h1>Banner d&#x27;avís</h1>
+Banner /etc/issue.net</code></pre>
+<p>A `/etc/issue.net`:</p>
+<pre class="code"><code class="language-">ALERTA: Aquest sistema és privat. Accés no autoritzat prohibit.
+Totes les connexions queden registrades.</code></pre>
+<p>Reiniciar SSH:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart sshd</code></pre>
+<h2>48.9 AppArmor o SELinux</h2>
+<p><strong>AppArmor</strong> (Debian/Ubuntu) i <strong>SELinux</strong> (RHEL/Fedora) són sistemes de <strong>control d'accés obligatori</strong> (MAC, Mandatory Access Control). Confinen processos perquè només puguin fer el que han de fer.</p>
+<p>Per al BernatLab, <strong>AppArmor</strong> és la millor opció:</p>
+<pre class="code"><code class="language-bash"># Comprovar si està actiu
+sudo aa-status
+<h1>Instal·lar perfils</h1>
+sudo apt install apparmor apparmor-utils apparmor-profiles</code></pre>
+<p>Activar per defecte:</p>
+<pre class="code"><code class="language-bash">sudo systemctl enable apparmor
+sudo systemctl start apparmur</code></pre>
+<p>Forçar tots els perfils:</p>
+<pre class="code"><code class="language-bash">sudo aa-enforce /etc/apparmor.d/*</code></pre>
+<p>Els perfils estan a `/etc/apparmor.d/`. Cada perfil defineix què pot fer un programa (quins fitxers pot llegir, quines xarxes pot usar, etc.).</p>
+<p>Exemple de perfil per a un servei:</p>
+<pre class="code"><code class="language-apparmor">#include &lt;tunables/global&gt;
+<p>/usr/bin/mosquitto {
+    #include &lt;abstractions/base&gt;
+    #include &lt;abstractions/nameservice&gt;</p>
+<p>capability net_bind_service,
+    capability setgid,
+    capability setuid,</p>
+<p>/etc/mosquitto/mosquitto.conf r,
+    /etc/mosquitto/conf.d/ r,
+    /etc/mosquitto/conf.d/* r,
+    /etc/mosquitto/passwordfile r,
+    /var/lib/mosquitto/ r,
+    /var/lib/mosquitto/* rwk,
+    /var/log/mosquitto/ r,
+    /var/log/mosquitto/* w,</p>
+<p>network tcp,
+    network udp,
+}</code></pre></p>
+<h2>48.10 Desactivar USB automàtic</h2>
+<p>Si la Raspberry és accessible, algú podria connectar un USB maliciós. Desactiva el muntatge automàtic:</p>
+<pre class="code"><code class="language-bash">sudo apt remove udisks2</code></pre>
+<p>O amb regla udev:</p>
+<pre class="code"><code class="language-"># /etc/udev/rules.d/01-block-usb.conf
+ACTION==&quot;add&quot;, SUBSYSTEMS==&quot;usb&quot;, ENV{UDISKS_IGNORE}=&quot;1&quot;</code></pre>
+<h2>48.11 BIOS/UEFI password</h2>
+<p>Si la teva màquina té BIOS/UEFI, posa-hi contrasenya. Això evita que algú pugui canviar la configuració d'arrencada.</p>
+<p>A la Raspberry, no cal (no té BIOS configurable), però al Mac sí:</p>
+<p>1. Reinicia el Mac.
+2. Manté `Cmd+R` per entrar a recovery.
+3. Utilitats → Utilitat de Contrasenyes del Firmware.
+4. Activa la contrasenya.</p>
+<h2>48.12 Protecció física</h2>
+<p>La seguretat física importa:</p>
+<ul>
+<li>La Raspberry ha d'estar en un lloc <strong>tancat</strong> (armari amb clau).</li>
+<li>El Mac ha d'estar en un lloc <strong>segur</strong> (no accessible a convidats).</li>
+<li>Els dispositius extraïbles (USB) han d'estar <strong>guardats</strong>.</li>
+<li>Les còpies externes han d'estar en un <strong>lloc diferent</strong>.</li>
+</ul>
+<h2>48.13 sysctl i el rendiment</h2>
+<p>Algunes configuracions sysctl poden afectar el rendiment:</p>
+<ul>
+<li>`vm.swappiness = 10` (evita intercanvi excessiu, recomanat per a servidors).</li>
+<li>`net.core.somaxconn = 1024` (més connexions entrants).</li>
+<li>`net.ipv4.tcp_tw_reuse = 1` (reutilitza connexions TIME_WAIT).</li>
+</ul>
+<p>Per al BernatLab, el rendiment no és crític (pocs usuaris), però no va malament.</p>
+<h2>48.14 Netdata: monitoratge bàsic</h2>
+<p>Per veure què passa al sistema, instal·la <strong>Netdata</strong>:</p>
+<pre class="code"><code class="language-bash"># A la Raspberry
+sudo apt install netdata</code></pre>
+<p>Això t'ofereix un panell web a `http://localhost:19999` amb gràfiques en temps real de:</p>
+<ul>
+<li>CPU, RAM, disc, xarxa.</li>
+<li>Per procés.</li>
+<li>Per servei.</li>
+</ul>
+<p>Molt útil per entendre el sistema.</p>
+<h2>48.15 Auditories automàtiques amb Lynis</h2>
+<p><strong>Lynis</strong> és una eina d'auditoria de seguretat per a Linux. Escaneja el sistema i proposa millores:</p>
+<pre class="code"><code class="language-bash">sudo apt install lynis
+sudo lynis audit system</code></pre>
+<p>Lynis revisa centenars de controls i et dóna un informe amb advertències i suggeriments. Executa'l mensualment.</p>
+<h2>48.16 Checklist de hardening</h2>
+<p>Un resum del que cal fer:</p>
+<ul>
+<li>[ ] Actualitzar el sistema regularment.</li>
+<li>[ ] Desactivar serveis innecessaris.</li>
+<li>[ ] Configurar sysctl per a proteccions del kernel.</li>
+<li>[ ] Permisos estrictes als fitxers crítics.</li>
+<li>[ ] SSH: només clau, no root, ports limitats.</li>
+<li>[ ] 2FA a SSH (libpam-google-authenticator).</li>
+<li>[ ] AppArmor actiu amb perfils.</li>
+<li>[ ] Tallafocs configurat (UFW).</li>
+<li>[ ] fail2ban actiu.</li>
+<li>[ ] Logs centralitzats i revisats.</li>
+<li>[ ] Lynis o eina similar cada mes.</li>
+<li>[ ] Documentació de tot al README.</li>
+</ul>
+<h2>48.17 Resum</h2>
+<p>El hardening és un procés continu: inventari, reducció, configuració, verificació. Les accions clau són actualitzar, desactivar serveis, configurar el kernel amb sysctl, endurir SSH, activar AppArmor, i auditar regularment amb Lynis. Al proper capítol veurem com auditar, monitorar logs de seguretat, i respondre a incidents.</p>
+<h2>48.18 Exercicis pràctics</h2>
+<p>1. Inventaria serveis, ports, paquets i usuaris de la Raspberry.
+2. Configura `unattended-upgrades` per a actualitzacions automàtiques.
+3. Desactiva 3 serveis innecessaris.
+4. Aplica la configuració sysctl de seguretat.
+5. Endureix la configuració SSH.
+6. Activa AppArmor amb perfils.
+7. Instal·la Lynis i executa'l.
+8. Documenta al README l'estat de hardening.</p>
+<p>Paraules clau: <strong>hardening, endurement, superfície d'atac, attack surface, sysctl, kernel, paràmetres, rp_filter, martian, redirect, source route, SYN cookies, ASLR, kptr_restrict, dmesg_restrict, fs.protected_hardlinks, fs.protected_symlinks, ip_forward, accept_ra, AppArmor, SELinux, MAC, mandatory access control, perfil, profile, enforce, complain, audit, aa-genprof, aa-logprof, apparmor_parser, aa-status, aa-enforce, aa-complain, abstractions, capability, file, network, mount, ptrace, signal, capability, capabilities, Linux capabilities, CAP_NET_BIND_SERVICE, CAP_SYS_ADMIN, CAP_DAC_OVERRIDE, CAP_CHOWN, CAP_FOWNER, CAP_FSETID, CAP_KILL, CAP_SETGID, CAP_SETUID, CAP_SETPCAP, CAP_LINUX_IMMUTABLE, CAP_NET_BIND_SERVICE, CAP_NET_BROADCAST, CAP_NET_ADMIN, CAP_NET_RAW, CAP_IPC_LOCK, CAP_IPC_OWNER, CAP_SYS_MODULE, CAP_SYS_RAWIO, CAP_SYS_CHROOT, CAP_SYS_PTRACE, CAP_SYS_PACCT, CAP_SYS_ADMIN, CAP_SYS_BOOT, CAP_SYS_NICE, CAP_SYS_RESOURCE, CAP_SYS_TIME, CAP_SYS_TTY_CONFIG, CAP_MKNOD, CAP_LEASE, CAP_AUDIT_WRITE, CAP_AUDIT_CONTROL, CAP_SETFCAP, CAP_MAC_OVERRIDE, MAC, mandatory access control, SELinux, AppArmor, TOMOYO, Yama, seccomp, seccomp-bpf, seccomp-filter, filter, sandbox, prctl, PR_SET_NO_NEW_PRIVS, PR_SET_SECCOMP, namespace, mount namespace, PID namespace, network namespace, user namespace, cgroup namespace, cgroup, control group, cgroup v1, cgroup v2, systemd-cgroup, slice, scope, service, unit, unit file, drop-in, override, sysctl, /etc/sysctl.d/, /proc/sys, /proc/sys/net, /proc/sys/kernel, /proc/sys/fs, mount, /etc/fstab, options, nodev, nosuid, noexec, ro, relatime, noatime, securetty, /etc/securetty, login, faillog, faillock, pam, faillock, pam_faillock, pam_tally2, pam_cracklib, pam_pwquality, password quality, complexity, length, history, reuse, dictionary, cracklib, libpam-pwquality, pwquality.conf, /etc/security/pwquality.conf, minlen, dcredit, ucredit, lcredit, ocredit, difok, dictpath, enforce_for_root, retry, remember, sha512, rounds, pam_unix, pam_pwquality, pam_passwdqc, libpam-pkcs11, smart card, certificate, PIV, CAC, Yubikey, U2F, FIDO2, libpam-u2f, libpam-fido2, libpam-yubikey, Yubico PAM, Yubikey, hardware token, libpam-google-authenticator, OATH, TOTP, RFC 6238, RFC 4226, QR code, otpauth, secret, key URI, otpauth-migration, otp, htop, etc, audit, auditd, auditctl, ausearch, aureport, rules, /etc/audit/rules.d/, watch, syscall, file watch, syscall audit, network audit, execve, fork, connect, accept, bind, listen, open, read, write, close, change, profile, snapshot, report, malware, rootkit, chkrootkit, rkhunter, clamav, clamscan, freshclam, signature, update, scan, alert, notification, AIDE, tripwire, integrity, file integrity, baseline, hash, SHA-256, SHA-512, signature, GPG, signed manifest, Tripwire, OSSEC, Wazuh, ELK, Elasticsearch, Logstash, Kibana, SIEM, log management, retention, archive, tier, search, query, dashboard, alert, contact, template, channel, recipient, trigger, threshold, condition, severity, action, suppression, deduplication, correlation, alert, playbook, runbook, incident, response, NIST, SANS, CREST, OWASP, top 10, CWE, CVE, CVSS, EPSS, KEV, catalog, known exploited, vulnerability, scanner, OpenVAS, Nessus, Qualys, Rapid7, InsightVM, Tenable, cloud, security, posture, CSPM, CWPP, CIEM, IAM, least privilege, Zero Trust, ZTNA, SDP, software defined perimeter, BeyondCorp, BeyondCorp Enterprise, identity-aware proxy, IAP, access proxy, OAuth, OIDC, SAML, JWT, mTLS, certificate, x.509, SPIFFE, SPIRE, identity, attestation, workload, mTLS, mesh, service mesh, Istio, Linkerd, Consul, mTLS, automatic, sidecar, ambient, mesh, multi-cluster, multi-region, federation, multi-cloud, hybrid, multitenancy, tenant, isolation, namespace, policy, authorization, OPA, Open Policy Agent, Rego, Cedar, decision, audit, decision log</strong>.</p>
+<hr>
+<h2 id="49-auditoria-logs">Capitol 49 — Auditoria, logs de seguretat i resposta a incidents</h2>
+<p>> <em>"Els logs són la caixa negra del teu sistema. Si no els mires, no tens caixa negra."</em></p>
+<h2>49.1 Què és la auditoria de seguretat</h2>
+<p><strong>Auditoria</strong> és el procés de revisar periòdicament el sistema per:</p>
+<ul>
+<li>Detectar accessos no autoritzats.</li>
+<li>Identificar configuracions errònies.</li>
+<li>Trobar patrons sospitosos.</li>
+<li>Complir normatives (si escau).</li>
+</ul>
+<p>Una bona auditoria és <strong>proactiva</strong>: detecta problemes abans que es converteixin en incidents.</p>
+<h2>49.2 Logs essencials</h2>
+<p>Al BernatLab, els logs clau són:</p>
+<h3>Logs de sistema</h3>
+<ul>
+<li>`/var/log/syslog`: missatges generals del sistema.</li>
+<li>`/var/log/auth.log`: autenticació (intents de SSH, sudo).</li>
+<li>`/var/log/kern.log`: missatges del kernel.</li>
+<li>`/var/log/dpkg.log`: instal·lació de paquets.</li>
+<li>`/var/log/cron.log`: tasques programades.</li>
+</ul>
+<h3>Logs d'aplicacions</h3>
+<ul>
+<li><strong>Docker</strong>: `docker logs <container>`.</li>
+<li><strong>Grafana</strong>: `/var/lib/docker/volumes/grafana-data/_data/log/`.</li>
+<li><strong>InfluxDB</strong>: `docker logs influxdb`.</li>
+<li><strong>fail2ban</strong>: `/var/log/fail2ban.log`.</li>
+<li><strong>Uptime Kuma</strong>: interfície web.</li>
+<li><strong>Tailscale</strong>: `tailscale status`, `tailscale netcheck`.</li>
+</ul>
+<h2>49.3 Comandes bàsiques de logs</h2>
+<h3>journalctl (systemd)</h3>
+<pre class="code"><code class="language-bash"># Tots els logs d&#x27;avui
+journalctl --since today
+<h1>Errors</h1>
+journalctl -p err
+<h1>Per un servei específic</h1>
+journalctl -u sshd
+<h1>En temps real</h1>
+journalctl -f
+<h1>Des d&#x27;una data</h1>
+journalctl --since &quot;2026-07-08 10:00&quot;</code></pre>
+<h3>grep i awk</h3>
+<pre class="code"><code class="language-bash"># Tots els accessos SSH fallits
+grep &quot;Failed password&quot; /var/log/auth.log
+<h1>Tots els accessos SSH amb èxit</h1>
+grep &quot;Accepted&quot; /var/log/auth.log
+<h1>IPs que han intentat accedir</h1>
+awk &#x27;/Failed password/ {print $(NF-3)}&#x27; /var/log/auth.log | sort -u
+<h1>Errors de Docker</h1>
+docker logs --tail 100 bernatlab_grafana_1</code></pre>
+<h2>49.4 Què buscar als logs</h2>
+<p>Senyals d'alerta:</p>
+<p>1. <strong>Molts intents d'autenticació fallits</strong> des d'una IP.
+2. <strong>Accesos exitosos</strong> des d'IPs estranyes.
+3. <strong>Canvis en fitxers crítics</strong> (`/etc/passwd`, `/etc/shadow`, `/etc/ssh/`).
+4. <strong>Serveis nous</strong> que s'han iniciat sense motiu.
+5. <strong>Tràfic de xarxa anormal</strong> (especialment cap a IPs externes).
+6. <strong>Ús elevat de CPU/RAM</strong> en horaris estranys.
+7. <strong>Comandes sospitoses</strong> a l'historial de bash.
+8. <strong>Fitxers nous</strong> a directoris sensibles (`/tmp`, `/var/tmp`).</p>
+<h2>49.5 Logs centralitzats</h2>
+<p>Quan tens múltiples dispositius, els logs centralitzats són clau. Opcions:</p>
+<h3>Loki + Grafana</h3>
+<p>Loki és un sistema de logs de Grafana Labs, lleuger i fàcil d'integrar.</p>
+<p>Instal·lació a la Raspberry:</p>
+<pre class="code"><code class="language-bash"># Loki
+docker run -d --name loki \
+    -v /home/bernat/homelab/loki:/etc/loki \
+    -p 3100:3100 \
+    grafana/loki:2.9.0
+<h1>Promtail (agent que envia logs)</h1>
+docker run -d --name promtail \
+    -v /var/log:/var/log \
+    -v /home/bernat/homelab/promtail:/etc/promtail \
+    grafana/promtail:2.9.0</code></pre>
+<p>Configuració de Promtail (`/etc/promtail/config.yml`):</p>
+<pre class="code"><code class="language-yaml">server:
+  http_listen_port: 9080
+<p>positions:
+  filename: /tmp/positions.yaml</p>
+<p>clients:
+<ul>
+<li>url: http://loki:3100/loki/api/v1/push</li>
+</ul></p>
+<p>scrape_configs:
+<ul>
+<li>job_name: system</li>
+</ul>
+    static_configs:
+<ul>
+<li>targets:</li>
+<li>localhost</li>
+</ul>
+        labels:
+          job: syslog
+          __path__: /var/log/*.log</p>
+<ul>
+<li>job_name: auth</li>
+</ul>
+    static_configs:
+<ul>
+<li>targets:</li>
+<li>localhost</li>
+</ul>
+        labels:
+          job: auth
+          __path__: /var/log/auth.log</code></pre>
+<p>A Grafana, afegeix Loki com a data source i pots fer cerques com:</p>
+<pre class="code"><code class="language-">{job=&quot;auth&quot;} |= &quot;Failed password&quot;</code></pre>
+<h3>Alternatives</h3>
+<ul>
+<li><strong>Graylog</strong>: més pesat, però complet.</li>
+<li><strong>ELK Stack</strong> (Elasticsearch + Logstash + Kibana): el més potent, però molt pesat.</li>
+<li><strong>Netdata</strong>: ja l'hem vist al Cap 48.</li>
+<li><strong>Prometheus + Grafana</strong>: per a mètriques (no logs), però útil per alertes.</li>
+</ul>
+<h2>49.6 Alertes de seguretat</h2>
+<p>Quan els logs mostren alguna cosa sospitosa, cal <strong>actuar ràpid</strong>. Les alertes automatitzades són la millor eina.</p>
+<h3>Alertes amb Grafana + Loki</h3>
+<pre class="code"><code class="language-yaml"># Alerta: més de 10 intents SSH fallits en 5 minuts
+<ul>
+<li>alert: SSHBruteForce</li>
+</ul>
+  expr: |
+    sum by (remote_addr) (
+      rate({job=&quot;auth&quot;} |= &quot;Failed password&quot; [5m])
+    ) &gt; 0.1
+  for: 5m
+  labels:
+    severity: critical
+  annotations:
+    summary: &quot;Possible atac de força bruta SSH des de {{ $labels.remote_addr }}&quot;
+    description: &quot;Més de 10 intents fallits en 5 minuts. IP bloquejada per fail2ban.&quot;</code></pre>
+<h3>Alertes amb Uptime Kuma</h3>
+<p>Uptime Kuma pot monitorar serveis i alertar via Telegram, correu, etc.</p>
+<h3>Alertes amb scripts personalitzats</h3>
+<p>Un script simple que revisa logs i alerta per Telegram:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+<h1>check_security.sh</h1>
+<h1>Comprovar intents SSH fallits en l&#x27;última hora</h1>
+FAILED=$(grep &quot;Failed password&quot; /var/log/auth.log | grep &quot;$(date &#x27;+%b %e %H&#x27; -d &#x27;1 hour ago&#x27;)&quot; | wc -l)
+<p>if [ $FAILED -gt 20 ]; then
+    curl -X POST &quot;https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage&quot; \
+        -d &quot;chat_id=$CHAT_ID&quot; \
+        -d &quot;text=⚠️ Alerta BernatLab: $FAILED intents SSH fallits en 1h!&quot;
+fi</p>
+<h1>Comprovar canvis a fitxers crítics</h1>
+find /etc -name &quot;*.conf&quot; -mtime -1 2&gt;/dev/null | while read f; do
+    curl -X POST &quot;https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage&quot; \
+        -d &quot;chat_id=$CHAT_ID&quot; \
+        -d &quot;text=📝 Fitxer modificat: $f&quot;
+done</code></pre>
+<p>Afegeix a cron cada hora.</p>
+<h2>49.7 IDS (Intrusion Detection System)</h2>
+<p>Un <strong>IDS</strong> detecta intrusions comparant el comportament amb patrons coneguts.</p>
+<h3>AIDE (Advanced Intrusion Detection Environment)</h3>
+<p>AIDE revisa canvis en fitxers del sistema:</p>
+<pre class="code"><code class="language-bash">sudo apt install aide
+<h1>Inicialitzar la base de dades</h1>
+sudo aideinit
+<h1>Això crea /var/lib/aide/aide.db.new</h1>
+<h1>Comparar amb l&#x27;estat actual</h1>
+sudo aide.wrapper --check
+<h1>Actualitzar la base</h1>
+sudo cp /var/lib/aide/aide.db.new /var/lib/aide/aide.db</code></pre>
+<p>Configurar a `/etc/aide/aide.conf`:</p>
+<pre class="code"><code class="language-"># Directoris a monitorar
+/boot Full
+/bin Full
+/sbin Full
+/etc Full
+/usr Full
+/var/log Full</code></pre>
+<p>AIDE revisa atributs, mides, hash, etc. Si algun canvia, t'avisa.</p>
+<h3>OSSEC / Wazuh</h3>
+<p><strong>Wazuh</strong> (abans OSSEC) és un IDS complet amb:</p>
+<ul>
+<li>Monitor de fitxers.</li>
+<li>Detector d'intrusions.</li>
+<li>Anàlisi de logs.</li>
+<li>Alertes.</li>
+</ul>
+<p>Per al BernatLab, és overkill, però útil si vols auditar molt.</p>
+<h2>49.8 Resposta a incidents</h2>
+<p>Quan es detecta un incident, cal un <strong>procediment</strong> clar:</p>
+<h3>Les 6 fases de la resposta</h3>
+<p>1. <strong>Preparació</strong>. Tenim eines, runbooks, contactes.
+2. <strong>Detecció</strong>. Hem vist alguna cosa sospitosa.
+3. <strong>Anàlisi</strong>. Què ha passat exactament?
+4. <strong>Contenció</strong>. Aturar l'atac.
+5. <strong>Erradicació</strong>. Treure l'atacant del sistema.
+6. <strong>Recuperació</strong>. Tornar a la normalitat.
+7. <strong>Post-incident</strong>. Aprendre i millorar.</p>
+<h3>Runbook per a una bretxa</h3>
+<p>Un <strong>runbook</strong> és un procediment pas a pas. Exemple:</p>
+<pre class="code"><code class="language-markdown"># Runbook: bretxa de seguretat al BernatLab
+<h2>Detecció</h2>
+<ul>
+<li>Alerta de Uptime Kuma.</li>
+<li>Logs de fail2ban.</li>
+<li>Canvis a fitxers crítics.</li>
+</ul>
+<h2>Pas 1: Contenció immediata</h2>
+1. Desconnectar la Raspberry de Tailscale.
+2. Apagar serveis sospitosos.
+3. Canviar TOTES les contrasenyes.
+4. Revocar TOTES les claus API.
+<h2>Pas 2: Anàlisi</h2>
+1. Revisar logs d&#x27;autenticació.
+2. Buscar fitxers nous a /tmp, /var/tmp.
+3. Comprovar cron jobs nous.
+4. Mirar tràfic de xarxa amb `ss` o `tcpdump`.
+<h2>Pas 3: Erradicació</h2>
+1. Identificar el vector d&#x27;entrada.
+2. Tancar-lo.
+3. Esborrar qualsevol malware.
+4. Restaurar des de còpies netes.
+<h2>Pas 4: Recuperació</h2>
+1. Tornar a engegar serveis.
+2. Verificar que funcionen correctament.
+3. Monitorar intensivament les primeres 24h.
+<h2>Pas 5: Post-incident</h2>
+1. Documentar què ha passat.
+2. Identificar millores.
+3. Aplicar-les.
+4. Comunicar a les parts afectades.</code></pre>
+<h2>49.9 Comunicació d'incidents</h2>
+<p>Si hi ha dades personals afectades, cal:</p>
+<p>1. <strong>Notificar els afectats</strong> (tu, en aquest cas).
+2. <strong>Si escau, notificar l'APDCAT</strong> (Autoritat Catalana de Protecció de Dades).
+3. <strong>Si escau, notificar els Mossos o la Policia Nacional</strong> (si és delicte).
+4. <strong>Documentar tot</strong> per a l'auditoria.</p>
+<h2>49.10 Evidències forenses</h2>
+<p>Si vols investigar a fons, cal preservar evidències:</p>
+<p>1. <strong>No apagar el sistema</strong> (perdries memòria volàtil).
+2. <strong>Fer còpia del disc</strong> amb `dd` o `ddrescue`.
+3. <strong>Capturar memòria</strong> amb `avml` o `LiME`.
+4. <strong>Copiar logs</strong> abans que roten.
+5. <strong>Documentar l'ordre</strong> de les accions.</p>
+<p>Eines útils:</p>
+<ul>
+<li><strong>The Sleuth Kit</strong> (TSK): anàlisi forense de disc.</li>
+<li><strong>Volatility</strong>: anàlisi de memòria.</li>
+<li><strong>Autopsy</strong>: interfície gràfica per a TSK.</li>
+</ul>
+<h2>49.11 Auditories periòdiques</h2>
+<p>Un calendari d'auditoria recomanat:</p>
+<p>| Freqüència | Què auditar |
+|---|---|
+| <strong>Diàriament</strong> | Alertes de Uptime Kuma, intents SSH. |
+| <strong>Setmanalment</strong> | Logs d'auditoria, canvis de paquets. |
+| <strong>Mensualment</strong> | Lynis, AIDE, revisió d'usuaris. |
+| <strong>Trimestralment</strong> | Auditoria completa, còpies, runbooks. |
+| <strong>Anualment</strong> | Penetració testing (si tens temps), disaster recovery drill. |</p>
+<h2>49.12 Errors habituals</h2>
+<p><strong>Error 1: no mirar mai els logs</strong>.</p>
+<p>Si no mires els logs, els incidents passen sense que te n'adonis. Mira'ls almenys un cop per setmana.</p>
+<p><strong>Error 2: confiar en la seguretat per obscuritat</strong>.</p>
+<p>"Ostres, amago el port SSH al 1234" no és seguretat. Només redueix els bots automatitzats.</p>
+<p><strong>Error 3: no tenir cap runbook</strong>.</p>
+<p>Quan passa un incident, el pànic et porta a cometre errors. Un runbook t'ajuda a actuar correctament.</p>
+<p><strong>Error 4: no comunicar l'incident</strong>.</p>
+<p>Per vergonya o por, alguns ho amaguen. Això és pitjor. Comunica, aprèn, millora.</p>
+<p><strong>Error 5: sobre-reaccionar</strong>.</p>
+<p>Si veus un sol intent fallit, no cal apagar tota la infraestructura. Mantén la calma, avalua, respon.</p>
+<h2>49.13 Resum</h2>
+<p>L'auditoria periòdica i el monitoratge de logs són la cinquena línia de defensa. Logs centralitzats amb Loki + Grafana, alertes automatitzades, IDS com AIDE, i runbooks clars per a la resposta a incidents. La preparació és la clau: quan passa alguna cosa, has de saber què fer sense pensar-ho. En el proper capítol veurem el pla de recuperació davant desastres (DRP), l'última capa de defensa.</p>
+<h2>49.14 Exercicis pràptics</h2>
+<p>1. Configura Loki + Promtail per centralitzar logs.
+2. Crea una alerta a Grafana per a intents SSH fallits.
+3. Configura AIDE per monitorar fitxers crítics.
+4. Escriu un runbook per a una bretxa de seguretat.
+5. Executa Lynis i revisa les advertències.
+6. Configura alertes per Telegram via un script.
+7. Documenta al README l'estratègia de monitoratge.</p>
+<p>Paraules clau: <strong>auditoria, audit, seguretat, security, monitoring, alertes, alerting, detecció, response, incident, runbook, playbook, NIST, SANS, 6 fases, preparació, anàlisi, contenció, erradicació, recuperació, post-incident, post-mortem, blameless, AAR, after action review, lessons learned, millora contínua, logs, syslog, journald, journalctl, rsyslog, syslog-ng, Loki, Promtail, Grafana, alertmanager, alert rules, queries, LogQL, query language, search, filter, regex, parser, label, stream, retention, archive, centralitzat, SIEM, ELK, Elasticsearch, Logstash, Kibana, Graylog, Splunk, Sumo Logic, Datadog, New Relic, Honeycomb, Lightstep, OpenTelemetry, OTLP, span, trace, context, propagator, instrumentation, AIDE, tripwire, file integrity, hash, baseline, compare, scan, update, report, OSSEC, Wazuh, Suricata, Snort, Zeek, Bro, network IDS, host IDS, HIDS, NIDS, malware, virus, rootkit, chkrootkit, rkhunter, ClamAV, clamscan, freshclam, signature, heuristic, anomaly, baseline, deviation, pattern, behavior, signature, IOC, indicator of compromise, TTP, tactics, techniques, procedures, MITRE ATT&CK, kill chain, Lockheed, recon, weaponization, delivery, exploit, install, C2, actions, persist, lateral, evade, cred, discover, collect, exfil, impact, threat hunting, hypothesis, evidence, hunt, analysis, IOC, YARA, Sigma, Elastic rule, detection rule, alert, false positive, true positive, triage, severity, priority, response, escalation, communication, disclosure, GDPR, LOPDGDD, APDCAT, AEPD, notificar, 72h, breach notification, evidence, preservation, chain of custody, forensic, The Sleuth Kit, TSK, Autopsy, Volatility, memory, disk, image, hash, SHA, MD5, integrity, write blocker, bit-stream, dd, ddrescue, dcfldd, Guymager, FTK Imager, EnCase, X-Ways, Magnet AXIOM, Cellebrite, MSAB, mobile, extraction, decoding, analysis, timeline, super timeline, Plaso, log2timeline, reporting, executive summary, technical, findings, recommendations, mitigation, recovery, restore, reimage, rebuild, certificate, rotation, key rotation, secret, password, passphrase, MFA, 2FA, isolation, quarantine, sandbox, containment, eradication, sanitization, secure delete, shred, dd, scrub, NIST 800-88, purge, clear, destroy, degauss, physical destruction, shredder, incinerator, audit trail, log retention, chain of custody, immutable, write once, WORM, S3 Object Lock, Azure Blob Immutable, compliance, GDPR, LOPDGDD, HIPAA, PCI DSS, SOX, ISO 27001, NIST 800-53, NIST CSF, CIS Controls, OWASP, SANS Top 20, PCI, PA-DSS, QSA, auditor, audit report, remediation, gap analysis, maturity model, CMMI, COBIT, ITIL, ISO 27002, ISO 27005, risk management, risk register, risk assessment, likelihood, impact, exposure, residual risk, risk treatment, accept, mitigate, transfer, avoid, control, detective, preventive, corrective, compensating, deterrent, recovery, control objective, statement of applicability, SoA, ISMS, PDCA, plan, do, check, act, continuous improvement, kaizen, lean, agile, dev sec ops, shift left, security by design, secure by default, defense in depth, Zero Trust, least privilege, separation of duties, dual control, two-person integrity, four-eyes, job rotation, mandatory vacation, background check, security awareness, training, education, phishing simulation, tabletop exercise, red team, blue team, purple team, capture the flag, CTF, bug bounty, responsible disclosure, coordinated disclosure, CVE, CNA, vendor, patch, update, fix, hotfix, security advisory, security bulletin, PGP signed, vendor, third-party, supply chain, attack chain, attack vector, attack surface, threat model, STRIDE, PASTA, VAST, LINDDUN, attack tree, misuse case, abuse case, security requirement, security control, security policy, security standard, security procedure, security guideline, security baseline, security architecture, security design, security review, security audit, security assessment, security test, penetration test, pen test, vulnerability assessment, threat assessment, risk assessment, compliance audit, internal audit, external audit, third-party audit, attestation, certification, accreditation, authorization, ATO, IATO, IATT, RMF, NIST 800-37, FedRAMP, DoD, IL, impact level, MAC, classified, secret, top secret, TS, SCI, NOFORN, ORCON, REL TO, ITAR, EAR, export control, dual-use, encryption, ECCN, 5D002, Wassenaar, fundamental research, open publication, dual-use research, DURC, ePPP, export, sanctions, OFAC, BIS, DDTC, foreign person, deemed export, technology transfer, TAA, technical assistance agreement, MLA, manufacturing license agreement</strong>.</p>
+<hr>
+<h2 id="50-drp-recuperacio">Capitol 50 — DRP: pla de recuperació davant desastres</h2>
+<p>> <em>"Les còpies sense un pla de recuperació són diners al calaix. Cal saber com recuperar-se."</em></p>
+<h2>50.1 Què és un DRP</h2>
+<p>Un <strong>DRP</strong> (Disaster Recovery Plan, pla de recuperació davant desastres) és el document que defineix <strong>com recuperar el sistema</strong> després d'un desastre. Inclou:</p>
+<ul>
+<li>Tipus de desastres previstos.</li>
+<li>Procediments de recuperació pas a pas.</li>
+<li>Responsables.</li>
+<li>Temps objectiu de recuperació (RTO).</li>
+<li>Punt objectiu de recuperació (RPO).</li>
+<li>Recursos necessaris.</li>
+<li>Proves periòdiques.</li>
+</ul>
+<h2>50.2 RTO i RPO</h2>
+<p>Dues mètriques clau:</p>
+<ul>
+<li><strong>RTO</strong> (Recovery Time Objective): quant temps pot estar el sistema caigut? Per exemple, 4 h.</li>
+<li><strong>RPO</strong> (Recovery Point Objective): quantes dades podem perdre? Per exemple, 24 h (l'última còpia).</li>
+</ul>
+<p>Per al BernatLab:</p>
+<ul>
+<li><strong>RTO</strong>: 4-8 h. Pots tolerar un parell d'hores sense servei.</li>
+<li><strong>RPO</strong>: 24 h. Còpies diàries amb restic. Si perds 24 h de dades, és acceptable.</li>
+</ul>
+<p>Si necessites RTO de 5 minuts, cal <strong>replicació en temps real</strong> (molt car). Per a un homelab, 4-8 h és raonable.</p>
+<h2>50.3 Tipus de desastres</h2>
+<p>Tipus que cal preveure:</p>
+<p>1. <strong>Disc dur falla</strong>. Més probable del que voldríem. La microSD falla.
+2. <strong>Raspberry robada o danyada</strong>. Possible si està accessible.
+3. <strong>Tall de llum prolongat</strong>. Més probable a la zona rural.
+4. <strong>Incendi, inundació, o desastre natural</strong>. Improbable però devastador.
+5. <strong>Atac informàtic</strong>. Possible si hi ha bretxa.
+6. <strong>Error humà</strong>. Esborrament accidental, mala configuració.
+7. <strong>Actualització que falla</strong>. De vegades passa.</p>
+<h2>50.4 El pla per al BernatLab</h2>
+<p>Defineixo un pla pas a pas per a cada desastre:</p>
+<h3>Escenari 1: la microSD falla</h3>
+<p><strong>Símptomes</strong>: la Raspberry no arrenca, dades corruptes.</p>
+<p><strong>Recuperació</strong>:</p>
+<p>1. <strong>Substituir la microSD</strong> per una de nova (32 GB, classe A2).
+2. <strong>Descarregar la imatge</strong> de Raspberry Pi OS Lite des de raspberrypi.com.
+3. <strong>Flashejar</strong> amb Raspberry Pi Imager o balenaEtcher.
+4. <strong>Configurar la Wi-Fi</strong> i SSH abans d'arrencar.
+5. <strong>Iniciar sessió</strong> via SSH.
+6. <strong>Restaurar la còpia</strong> de restic:</p>
+<pre class="code"><code class="language-bash">sudo apt install restic
+restic -r /mnt/usb/backups/bernatlab restore latest \
+    --target /home/bernat</code></pre>
+<p>7. <strong>Reinstal·lar serveis</strong> (Docker, Tailscale, etc.).
+8. <strong>Restaurar volums Docker</strong> (InfluxDB, Grafana, etc.).
+9. <strong>Verificar</strong> que tot funciona.</p>
+<p><strong>Temps estimat</strong>: 2-3 hores.</p>
+<h3>Escenari 2: la Raspberry robada o cremada</h3>
+<p><strong>Recuperació</strong>:</p>
+<p>1. <strong>Comprar una Raspberry nova</strong> (o una de segona mà).
+2. <strong>Seguir els passos 2-9 de l'escenari 1</strong>.
+3. <strong>Recuperar Tailscale</strong> amb la clau d'autenticació.
+4. <strong>Recuperar la IP</strong> (pot canviar si tens MagicDNS).</p>
+<p><strong>Temps estimat</strong>: 1-2 dies (esperant el hardware).</p>
+<h3>Escenari 3: tall de llum prolongat</h3>
+<p><strong>Recuperació</strong>:</p>
+<p>1. <strong>Esperar</strong> que torni la llum.
+2. <strong>Si tens UPS</strong>, la Raspberry continua funcionant. Verificar que no s'ha apagat.
+3. <strong>Si la Raspberry s'ha apagat</strong>, simplement tornar a engegar.
+4. <strong>Verificar</strong> que els serveis s'han reiniciat correctament.</p>
+<p><strong>Temps estimat</strong>: 5-15 min.</p>
+<h3>Escenari 4: desastre natural (incendi)</h3>
+<p><strong>Recuperació</strong>:</p>
+<p>1. <strong>Acceptar la pèrdua</strong> de l'equip.
+2. <strong>Comprar nou hardware</strong>.
+3. <strong>Restaurar des de còpies al núvol</strong> (Backblaze, Wasabi, etc.).
+4. <strong>Reinstal·lar serveis</strong>.</p>
+<p><strong>Temps estimat</strong>: 1-2 setmanes.</p>
+<h3>Escenari 5: atac informàtic</h3>
+<p><strong>Recuperació</strong>:</p>
+<p>1. <strong>Aïllar</strong> la Raspberry de la xarxa.
+2. <strong>Restaurar des d'una còpia neta</strong> (que sàpigues que no està compromesa).
+3. <strong>Canviar totes les contrasenyes</strong>.
+4. <strong>Aplicar pegats</strong> de seguretat.
+5. <strong>Verificar</strong> que no queda rastre de l'atacant.</p>
+<p><strong>Temps estimat</strong>: 4-24 h.</p>
+<h2>50.5 Llista de coses a recuperar</h2>
+<p>Un <strong>checklist</strong> de recuperació:</p>
+<ul>
+<li>[ ] Còpia de restic del sistema.</li>
+<li>[ ] Còpia de les dades dels volums Docker.</li>
+<li>[ ] Còpia de les configuracions (`/etc`).</li>
+<li>[ ] Còpia de les claus SSH i Tailscale.</li>
+<li>[ ] Còpia dels secrets (`.env`).</li>
+<li>[ ] Còpia del repo del BernatLab.</li>
+<li>[ ] Llista de paquets instal·lats (`apt list --installed > packages.txt`).</li>
+<li>[ ] Documentació de la configuració de xarxa.</li>
+<li>[ ] Claus de Tailscale, 2FA, contrasenyes (a Bitwarden).</li>
+<li>[ ] Notes personals sobre configuracions específiques.</li>
+</ul>
+<h2>50.6 Com provar el DRP</h2>
+<p><strong>Un pla que no es prova, no funciona</strong>. Cal practicar:</p>
+<h3>Prova de taula (tabletop)</h3>
+<p>Assegut a la taula, simules un desastre i tries el procediment. Identifiques buits en el pla.</p>
+<h3>Prova de recuperació</h3>
+<p>Un cop l'any, restaura el sistema en un hardware diferent (una Raspberry vella, un PC amb Debian, una màquina virtual). Això valida que:</p>
+<ul>
+<li>Les còpies funcionen.</li>
+<li>Els temps de recuperació són correctes.</li>
+<li>La documentació és completa.</li>
+</ul>
+<h3>Prova de failover</h3>
+<p>Si tens redundància, prova a fer failover (canviar al sistema de backup). Això valida que el backup funciona realment.</p>
+<h2>50.7 Eines de recuperació</h2>
+<p>Tingues sempre a mà:</p>
+<ul>
+<li>Una <strong>microSD</strong> amb Raspberry Pi OS Lite pre-instal·lada.</li>
+<li>Un <strong>disc USB</strong> amb les còpies de restic/Borg.</li>
+<li>Un <strong>ordinador portàtil</strong> amb què puguis accedir a la Raspberry.</li>
+<li>Les <strong>contrasenyes</strong> a Bitwarden (no només a la memòria).</li>
+<li>La <strong>documentació</strong> impresa (un cop l'any) en paper, en un lloc segur.</li>
+<li>Una <strong>còpia impresa</strong> de les claus de Tailscale (recovery codes).</li>
+</ul>
+<h2>50.8 Redundància</h2>
+<p>Si vols un sistema que <strong>no es pugui caure</strong>, cal <strong>redundància</strong>:</p>
+<ul>
+<li><strong>Dues Raspberry</strong> sincronitzades (una activa, una standby).</li>
+<li><strong>Un NAS</strong> a casa amb còpies automàtiques.</li>
+<li><strong>Un servidor cloud</strong> (VPS petit) per a serveis crítics.</li>
+</ul>
+<p>Això és car i complicat. Per a un homelab, <strong>una bona còpia al núvol</strong> + <strong>RTO de 4-8 h</strong> és prou.</p>
+<h2>50.9 Documentació del DRP</h2>
+<p>Crea un fitxer `DRP.md` al repo amb:</p>
+<ul>
+<li>Tipus de desastres.</li>
+<li>Procediments pas a pas.</li>
+<li>Responsables (Bernat, en aquest cas).</li>
+<li>Contactes d'emergència.</li>
+<li>Recursos externs (cloud, suport, etc.).</li>
+</ul>
+<p>Exemple breu:</p>
+<pre class="code"><code class="language-markdown"># Pla de Recuperació Davant Desastres (DRP) — BernatLab
+<h2>Responsables</h2>
+<ul>
+<li>Tècnic principal: Bernat Mora</li>
+<li>Contacte d&#x27;emergència: [telèfon]</li>
+<li>Cloud: BernatMora a Backblaze B2</li>
+</ul>
+<h2>RTO: 4-8 h</h2>
+<h2>RPO: 24 h</h2>
+<h2>Procediments</h2>
+<h3>Pèrdua de la Raspberry</h3>
+1. Hardware nou: Raspberry Pi 4, microSD 32GB, font d&#x27;alimentació
+2. Imatge: Raspberry Pi OS Lite 64-bit
+3. Restaurar còpia de restic des de /mnt/usb/backups
+4. Reinstal·lar serveis segons el llistat a README
+5. Verificar amb Uptime Kuma
+<h3>Robatori / pèrdua total</h3>
+1. Còpies a Backblaze B2
+2. Còpies a NAS d&#x27;un familiar (configurat)
+3. Hardware nou, restaurar igual que &quot;pèrdua de Raspberry&quot;
+<h3>Bretxa de seguretat</h3>
+1. Veure runbook a SEGURETAT.md
+2. Aïllar el sistema
+3. Restaurar des de còpia neta
+4. Rotar tots els secrets
+<h2>Recursos</h2>
+<ul>
+<li>Còpies al núvol: b2:bernatlab-backups</li>
+<li>Recovery codes Tailscale: a Bitwarden</li>
+<li>Master key Bitwarden: a [adreça física]</code></pre></li>
+</ul>
+<h2>50.10 Eines útils per al DRP</h2>
+<ul>
+<li><strong>Restic / BorgBackup</strong>: còpies (Cap 45).</li>
+<li><strong>Tailscale</strong>: accés remot segur.</li>
+<li><strong>Ansible / NixOS / Docker Compose</strong>: permeten reproduir el sistema fàcilment.</li>
+<li><strong>Bitwarden</strong>: emmagatzematge segur de secrets.</li>
+<li><strong>Backblaze B2 / Wasabi</strong>: còpia al núvol.</li>
+<li><strong>Notion / Obsidian</strong>: documentació.</li>
+<li><strong>GitHub</strong>: repositori de codi i documentació.</li>
+</ul>
+<h2>50.11 Errors habituals</h2>
+<p><strong>Error 1: còpies sense prova de restauració</strong>.</p>
+<p>Si mai has restaurat, no saps si funciona. Prova-ho.</p>
+<p><strong>Error 2: còpies al mateix lloc</strong>.</p>
+<p>Si tens les còpies a la mateixa Raspberry que es pot cremar, no serveixen. Còpia al núvol sempre.</p>
+<p><strong>Error 3: documentació obsoleta</strong>.</p>
+<p>Si el pla no reflecteix l'estat actual del sistema, no serveix. Mantén-lo actualitzat.</p>
+<p><strong>Error 4: no practicar</strong>.</p>
+<p>Si no proves el pla regularment, no funcionarà quan calgui.</p>
+<p><strong>Error 5: secrets al DRP</strong>.</p>
+<p>Si poses contrasenyes al DRP en text pla, són accessibles a tothom. Usa referències ("veure Bitwarden").</p>
+<h2>50.12 Resum</h2>
+<p>Un DRP ben fet és la diferència entre recuperar-se ràpid i perdre-ho tot. Identifica els possibles desastres, escriu procediments pas a pas, defineix RTO i RPO, i practica regularment. La combinació de còpies al núvol + runbooks clars + proves periòdiques és la millor garantia de continuïtat. Això tanca el Mòdul 5. En el Mòdul 6 veurem com mantenir tot això en marxa 24/7.</p>
+<h2>50.13 Exercicis pràctics</h2>
+<p>1. Inventaria tots els actius del BernatLab.
+2. Defineix RTO i RPO raonables.
+3. Escriu un DRP amb els escenaris principals.
+4. Crea una còpia al núvol (Backblaze B2 o similar).
+5. Fes una prova de restauració en un entorn de test.
+6. Documenta el procediment de recuperació.
+7. Crea una còpia impresa de les claus de recuperació.
+8. Programa una revisió anual del DRP.</p>
+<hr>
+</main>
+</div>
+<footer>
+    BernatLab Wiki · Generada automàticament a partir dels capítols Markdown.
+</footer>
+</body>
+</html>

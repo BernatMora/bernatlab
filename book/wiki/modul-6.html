@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Mòdul 6 — BernatLab Wiki</title>
+    <link rel="stylesheet" href="css/wiki.css">
+</head>
+<body>
+<div class="layout">
+<nav>
+<h2>BernatLab</h2>
+<p style="color: #888; font-size: 0.9em;">Wiki del manual tècnic</p>
+<a href="modul-1.html">Mòdul 1</a>
+<a href="modul-2.html">Mòdul 2</a>
+<a href="modul-3.html">Mòdul 3</a>
+<a href="modul-4.html">Mòdul 4</a>
+<a href="modul-5.html">Mòdul 5</a>
+<a href="modul-6.html">Mòdul 6</a>
+<h2>Capítols</h2>
+<a href="#51-filosofia-operativa"><span class="toc-num">51</span>Capitol 51 — Filosofia operativa: del DIY al servei 24/7</a>
+<a href="#52-monitoratge-grafana"><span class="toc-num">52</span>Capitol 52 — Monitoratge avançat amb Grafana i Prometheus</a>
+<a href="#53-alertes-telegram"><span class="toc-num">53</span>Capitol 53 — Alertes intel·ligents amb Grafana i Telegram</a>
+<a href="#54-scripts-manteniment"><span class="toc-num">54</span>Capitol 54 — Scripts de manteniment i actualitzacions</a>
+<a href="#55-runbooks"><span class="toc-num">55</span>Capitol 55 — Runbooks: procediments pas a pas</a>
+<a href="#56-diagnostic-troubleshooting"><span class="toc-num">56</span>Capitol 56 — Diagnòstic i troubleshooting 24/7</a>
+<a href="#57-pujar-hardware"><span class="toc-num">57</span>Capitol 57 — Quan cal pujar de hardware: escenaris reals</a>
+</nav>
+<main>
+<h1>Mòdul 6</h1>
+<p><em>Operativa 24/7, monitoratge i manteniment</em></p>
+<hr>
+<h2 id="51-filosofia-operativa">Capitol 51 — Filosofia operativa: del DIY al servei 24/7</h2>
+<p>> <em>"Un servidor personal no és un experiment: és un servei. I com a tal, cal tractar-lo."</em></p>
+<h2>51.1 El salt mental: de provar a operar</h2>
+<p>Quan comences amb un homelab, estàs en mode <strong>experiment</strong>: proves coses, toques, trenques, repares. Però en algun moment, el servidor comença a allotjar coses que <strong>importen</strong>:</p>
+<ul>
+<li>Dades de sensors.</li>
+<li>Una web pública.</li>
+<li>Un assistent d'IA.</li>
+<li>Còpies de seguretat.</li>
+<li>Un bot de Telegram.</li>
+</ul>
+<p>Llavors cal canviar la mentalitat: ja no estàs experimentant, estàs <strong>operant un servei</strong>. I això implica:</p>
+<ul>
+<li><strong>Fiabilitat</strong>: el servei ha d'estar disponible.</li>
+<li><strong>Recuperabilitat</strong>: si falla, ha de poder tornar-se a aixecar.</li>
+<li><strong>Observabilitat</strong>: has de saber què passa.</li>
+<li><strong>Mantenibilitat</strong>: el sistema ha de ser fàcil d'actualitzar.</li>
+</ul>
+<h2>51.2 SLA personal</h2>
+<p>Un <strong>SLA</strong> (Service Level Agreement) és un contracte sobre la qualitat d'un servei. En un homelab, ets l'<strong>empresa i el client alhora</strong>. Defineix el teu SLA personal:</p>
+<ul>
+<li><strong>Disponibilitat objectiu</strong>: 99% (3.6 dies de caiguda a l'any) o 99.9% (8.8 hores a l'any)?</li>
+<li><strong>Temps de resposta</strong>: 24 h per a incidents crítics.</li>
+<li><strong>Temps de resolució</strong>: 4-8 h per a incidents crítics.</li>
+<li><strong>Manteniment programat</strong>: dilluns de 3 a 5 de la matinada?</li>
+</ul>
+<p>Això és flexible, però cal posar-ho per escrit.</p>
+<h2>51.3 El principi de "boring tech"</h2>
+<p><strong>Boring tech</strong> (tecnologia avorrida) és tecnologia que:</p>
+<ul>
+<li>Funciona sense sorpreses.</li>
+<li>Té anys de maduresa.</li>
+<li>Té bona documentació.</li>
+<li>Té comunitat gran.</li>
+<li>No és la més nova ni la més brillant.</li>
+</ul>
+<p>Per al BernatLab, "boring tech" seria:</p>
+<ul>
+<li><strong>Debian</strong> (no Arch, no NixOS).</li>
+<li><strong>Docker</strong> (no Kubernetes, no Podman).</li>
+<li><strong>Docker Compose</strong> (no Helm, no K8s manifests).</li>
+<li><strong>restic</strong> (no fer la teva pròpia eina de còpies).</li>
+<li><strong>Prometheus + Grafana</strong> (no construir el teu propi sistema de mètriques).</li>
+<li><strong>Tailscale</strong> (no muntar la teva pròpia VPN).</li>
+</ul>
+<p>Això redueix el temps de manteniment i la probabilitat de problemes.</p>
+<h2>51.4 El cicle operatiu</h2>
+<p>Un cop tens el sistema en producció, hi ha un cicle operatiu:</p>
+<p>1. <strong>Monitorar</strong>: veure què passa.
+2. <strong>Alertar</strong>: avisar quan alguna cosa va malament.
+3. <strong>Diagnosticar</strong>: trobar la causa.
+4. <strong>Resoldre</strong>: arreglar el problema.
+5. <strong>Documentar</strong>: registrar què ha passat.
+6. <strong>Aprendre</strong>: millorar per evitar que es repeteixi.</p>
+<p>Això és un bucle continu. Com més madur és el sistema, més ràpid és el cicle.</p>
+<h2>51.5 Què cal monitorar</h2>
+<p>Al BernatLab, monitorem:</p>
+<ul>
+<li><strong>Disponibilitat</strong>: serveis funcionant o caiguts.</li>
+<li><strong>Rendiment</strong>: CPU, RAM, disc, xarxa.</li>
+<li><strong>Salut del sistema</strong>: temperatura, errors de disc, etc.</li>
+<li><strong>Tràfic de xarxa</strong>: ample de banda utilitzat.</li>
+<li><strong>Certificats</strong>: quan caduquen.</li>
+<li><strong>Còpies</strong>: quan es fan i quan fallen.</li>
+<li><strong>Logs de seguretat</strong>: intents d'intrusió.</li>
+<li><strong>Dades específiques</strong>: lectures de sensors, etc.</li>
+</ul>
+<h2>51.6 Cicles d'actualització</h2>
+<p>Defineix una cadència:</p>
+<ul>
+<li><strong>Diàriament</strong>: comprovar alertes.</li>
+<li><strong>Setmanalment</strong>: revisar logs, actualitzar sistema.</li>
+<li><strong>Mensualment</strong>: auditar seguretat, fer neteja.</li>
+<li><strong>Trimestralment</strong>: revisar configuració, planificar canvis.</li>
+<li><strong>Anualment</strong>: revisar el DRP, planificar hardware.</li>
+</ul>
+<p>Si no tens cadència, les coses es degraden. Els discos s'omplen, els registres es caducen, les actualitzacions s'acumulen.</p>
+<h2>51.7 El concepte d'"on-call"</h2>
+<p>En empreses, hi ha un equip d'<strong>on-call</strong> (guàrdia) que respon a incidents 24/7. En un homelab, <strong>tu ets l'on-call</strong>. Però pots ser-ho de manera sostenible:</p>
+<p>1. <strong>Defineix horaris</strong>: no vols rebre alertes a les 3 de la matinada tots els dies.
+2. <strong>Diferencia per severitat</strong>: alertes crítiques (24/7) i no crítiques (horari laboral).
+3. <strong>Automatitza el que puguis</strong>: les alertes que no necessiten acció humana s'han de resoldre soles.
+4. <strong>Tingues un pla B</strong>: si no pots respondre, qui més pot?</p>
+<h2>51.8 Mantenibilitat</h2>
+<p>Un sistema mantenible és:</p>
+<ul>
+<li><strong>Documentat</strong>: cada component té una descripció.</li>
+<li><strong>Reproduïble</strong>: pots muntar-lo de zero amb les instruccions.</li>
+<li><strong>Modular</strong>: cada component es pot canviar sense trencar la resta.</li>
+<li><strong>Testejat</strong>: tens proves que validen que funciona.</li>
+</ul>
+<p>Per al BernatLab, això es tradueix en:</p>
+<ul>
+<li>Un <strong>README complet</strong> amb totes les passes d'instal·lació.</li>
+<li>Un <strong>docker-compose.yml</strong> que defineix tots els serveis.</li>
+<li><strong>Scripts d'instal·lació</strong> idempotents (es poden executar múltiples cops).</li>
+<li><strong>Tests</strong> que validen els components crítics.</li>
+</ul>
+<h2>51.9 El temps com a factor</h2>
+<p>Un dels factors que la gent no considera és el <strong>temps</strong>. Cada decisió tècnica té un cost de temps:</p>
+<ul>
+<li>Triar Kubernetes: 100+ hores d'aprenentatge.</li>
+<li>Triar Docker Compose: 5-10 hores d'aprenentatge.</li>
+<li>Triar una eina de mètriques nova: 20-50 h.</li>
+<li>Aprendre una nova tecnologia: variable.</li>
+</ul>
+<p>Quan planegis, pregunta't: <strong>val la pena el temps invertit?</strong> Si tens 10 hores, és millor:</p>
+<ul>
+<li>5 hores a configurar alerting → beneficis immediats.</li>
+<li>5 hores a provar una tecnologia nova → beneficis dubtosos.</li>
+</ul>
+<h2>51.10 El factor "embarrassment-driven development"</h2>
+<p>A vegades, la millor motivació per fer les coses bé és <strong>la vergonya</strong>:</p>
+<ul>
+<li>Tens una gràfica de pèrdua de dades? No voldràs ensenyar-la.</li>
+<li>Tens una web que es cau cada 2 dies? No la voldràs compartir.</li>
+<li>Tens un sistema que triga 3 dies a recuperar? No voldràs explicar-ho.</li>
+</ul>
+<p>Fes servir la vergonya constructiva. Documenta les coses que <strong>no</strong> vols que es repeteixin.</p>
+<h2>51.11 Filosofia del "menys és més"</h2>
+<p>Al BernatLab, <strong>menys serveis</strong> vol dir:</p>
+<ul>
+<li>Menys coses que poden fallar.</li>
+<li>Menys temps de manteniment.</li>
+<li>Menys dependències.</li>
+<li>Menys complexitat.</li>
+</ul>
+<p>Cada nou servei ha de <strong>justificar el seu cost de temps</strong>. Si no t'aporta valor clar, no l'afegeixis.</p>
+<h2>51.12 Cultura de la documentació</h2>
+<p>Un bon sistema operatiu té bona documentació. La documentació:</p>
+<ul>
+<li><strong>Permet que qualsevol</strong> (inclòs tu del futur) entengui el sistema.</li>
+<li><strong>Redueix errors</strong> en canvis.</li>
+<li><strong>Facilita la recuperació</strong> quan falla.</li>
+<li><strong>Comunica coneixement</strong> a altres persones (família, amics).</li>
+</ul>
+<p>Al BernatLab, documenta:</p>
+<ul>
+<li>L'arquitectura (README).</li>
+<li>Els procediments operatius (DRP, runbooks).</li>
+<li>Els canvis (CHANGELOG).</li>
+<li>Les decisions (ADR - Architecture Decision Records, registres de decisions arquitectòniques).</li>
+</ul>
+<h2>51.13 Indicadors que vas bé</h2>
+<p>Senyals que el sistema és madur:</p>
+<ul>
+<li><strong>Pocs incidents</strong> al mes.</li>
+<li><strong>Recuperació ràpida</strong> quan passa alguna cosa.</li>
+<li><strong>Actualitzacions regulars</strong> sense trencar res.</li>
+<li><strong>Mètriques bones</strong> (latència baixa, disponibilitat alta).</li>
+<li><strong>Documentació actualitzada</strong>.</li>
+</ul>
+<p>Si tot això es compleix, el sistema està sa.</p>
+<h2>51.14 Quan replantejar-se</h2>
+<p>De vegades, cal fer canvis radicals:</p>
+<ul>
+<li>El sistema creix massa per la Raspberry.</li>
+<li>Una tecnologia queda obsoleta.</li>
+<li>Les necessitats canvien (per exemple, l'hort creix i cal més capacitat).</li>
+<li>Apareix una millor alternativa.</li>
+</ul>
+<p>Replantejar-se cada 2-3 anys és sa. No tinguis por de migrar si la nova opció és clarament millor.</p>
+<h2>51.15 Resum</h2>
+<p>L'operativa 24/7 és una mentalitat, no un producte. Boring tech, cicles regulars, observabilitat, mantenibilitat, documentació. Al proper capítol veurem el monitoratge avançat amb Grafana i Prometheus.</p>
+<h2>51.16 Exercicis pràctics</h2>
+<p>1. Defineix el teu SLA personal.
+2. Inventaria tots els serveis i classifica'ls per criticitat.
+3. Defineix els cicles d'actualització (diari, setmanal, mensual).
+4. Crea una checklist de manteniment setmanal.
+5. Documenta l'arquitectura actual al README.
+6. Escriu el primer ADR (per què has triat Docker, per exemple).
+7. Comença un CHANGELOG.md.</p>
+<hr>
+<h2 id="52-monitoratge-grafana">Capitol 52 — Monitoratge avançat amb Grafana i Prometheus</h2>
+<p>> <em>"Si no pots mesurar-ho, no pots millorar-ho. Si no pots veure-ho, no saps què falla."</em></p>
+<h2>52.1 Què és el monitoratge</h2>
+<p><strong>Monitorar</strong> un sistema significa <strong>recollir mètriques contínuament</strong> per entendre què passa. Al BernatLab, això es fa amb tres eines clau:</p>
+<ul>
+<li><strong>Prometheus</strong>: recull mètriques (números) dels serveis.</li>
+<li><strong>Grafana</strong>: visualitza les mètriques en gràfiques i panells.</li>
+<li><strong>Alertmanager</strong>: gestiona les alertes basades en les mètriques.</li>
+</ul>
+<p>Aquesta combinació s'anomena <strong>stack PGE</strong> (Prometheus, Grafana, Exporters).</p>
+<h2>52.2 Com funciona Prometheus</h2>
+<p>Prometheus funciona amb un model <strong>pull</strong> (empènyer vs estirar):</p>
+<p>1. Prometheus <strong>demana</strong> mètriques a cada servei cada pocs segons.
+2. Els serveis exposen les mètriques a `/metrics` en format text.
+3. Prometheus les emmagatzema a la seva base de dades.
+4. Grafana les consulta i les dibuixa.</p>
+<p>Exemple de mètriques d'un contenidor:</p>
+<pre class="code"><code class="language-"># HELP container_cpu_usage_seconds_total CPU usat pel contenidor
+<h1>TYPE container_cpu_usage_seconds_total counter</h1>
+container_cpu_usage_seconds_total{name=&quot;grafana&quot;} 12.5
+<h1>HELP container_memory_usage_bytes Memòria usada pel contenidor</h1>
+<h1>TYPE container_memory_usage_bytes gauge</h1>
+container_memory_usage_bytes{name=&quot;grafana&quot;} 52428800</code></pre>
+<h2>52.3 Instal·lació de Prometheus</h2>
+<h3>A la Raspberry amb Docker Compose</h3>
+<p>Crea `~/homelab/compose/monitoring.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+<ul>
+<li>./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml</li>
+<li>./prometheus/data:/prometheus</li>
+</ul>
+    command:
+<ul>
+<li>&#x27;--config.file=/etc/prometheus/prometheus.yml&#x27;</li>
+<li>&#x27;--storage.tsdb.path=/prometheus&#x27;</li>
+<li>&#x27;--web.console.libraries=/usr/share/prometheus/console_libraries&#x27;</li>
+<li>&#x27;--web.console.templates=/usr/share/prometheus/consoles&#x27;</li>
+</ul>
+    ports:
+<ul>
+<li>&quot;9090:9090&quot;</li>
+</ul>
+    networks:
+<ul>
+<li>monitoring</li>
+</ul></p>
+<p>grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+<ul>
+<li>prometheus</li>
+</ul>
+    volumes:
+<ul>
+<li>./grafana/data:/var/lib/grafana</li>
+<li>./grafana/provisioning:/etc/grafana/provisioning</li>
+</ul>
+    environment:
+<ul>
+<li>GF_SECURITY_ADMIN_USER=admin</li>
+<li>GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}</li>
+<li>GF_USERS_ALLOW_SIGN_UP=false</li>
+</ul>
+    ports:
+<ul>
+<li>&quot;3000:3000&quot;</li>
+</ul>
+    networks:
+<ul>
+<li>monitoring</li>
+</ul></p>
+<p>networks:
+  monitoring:
+    driver: bridge</code></pre></p>
+<p>Crea els volums:</p>
+<pre class="code"><code class="language-bash">mkdir -p ~/homelab/compose/prometheus/data
+mkdir -p ~/homelab/compose/grafana/data
+mkdir -p ~/homelab/compose/grafana/provisioning/datasources
+mkdir -p ~/homelab/compose/grafana/provisioning/dashboards</code></pre>
+<h2>52.4 Configuració de Prometheus</h2>
+<p>Crea `~/homelab/compose/prometheus/prometheus.yml`:</p>
+<pre class="code"><code class="language-yaml">global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: bernatlab
+<p>scrape_configs:
+  # El propi Prometheus
+<ul>
+<li>job_name: prometheus</li>
+</ul>
+    static_configs:
+<ul>
+<li>targets: [&#x27;localhost:9090&#x27;]</li>
+</ul></p>
+<p># Node Exporter (mètriques de la Raspberry)
+<ul>
+<li>job_name: node</li>
+</ul>
+    static_configs:
+<ul>
+<li>targets: [&#x27;node-exporter:9100&#x27;]</li>
+</ul></p>
+<p># cAdvisor (mètriques de Docker)
+<ul>
+<li>job_name: cadvisor</li>
+</ul>
+    static_configs:
+<ul>
+<li>targets: [&#x27;cadvisor:8080&#x27;]</li>
+</ul></p>
+<p># Altres serveis HTTP
+<ul>
+<li>job_name: bernatlab-services</li>
+</ul>
+    metrics_path: /metrics
+    static_configs:
+<ul>
+<li>targets:</li>
+<li>&#x27;mosquitto:9001&#x27;</li>
+<li>&#x27;influxdb:8086&#x27;</li>
+<li>&#x27;uptime-kuma:3001&#x27;</code></pre></li>
+</ul></p>
+<p>Afegeix `node-exporter` i `cadvisor` al compose:</p>
+<pre class="code"><code class="language-yaml">  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    volumes:
+<ul>
+<li>/proc:/host/proc:ro</li>
+<li>/sys:/host/sys:ro</li>
+<li>/:/rootfs:ro</li>
+</ul>
+    command:
+<ul>
+<li>&#x27;--path.procfs=/host/proc&#x27;</li>
+<li>&#x27;--path.sysfs=/host/sys&#x27;</li>
+<li>&#x27;--path.rootfs=/rootfs&#x27;</li>
+<li>&#x27;--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)&#x27;</li>
+</ul>
+    networks:
+<ul>
+<li>monitoring</li>
+</ul>
+<p>cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+<ul>
+<li>/:/rootfs:ro</li>
+<li>/var/run:/var/run:ro</li>
+<li>/sys:/sys:ro</li>
+<li>/var/lib/docker/:/var/lib/docker:ro</li>
+<li>/dev/disk/:/dev/disk:ro</li>
+</ul>
+    privileged: true
+    networks:
+<ul>
+<li>monitoring</code></pre></li>
+</ul></p>
+<p>Engega-ho tot:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f monitoring.yml up -d</code></pre>
+<h2>52.5 Com accedir-hi</h2>
+<ul>
+<li><strong>Prometheus</strong>: http://100.115.134.76:9090</li>
+<li><strong>Grafana</strong>: http://100.115.134.76:3000</li>
+</ul>
+<p>A Grafana, el primer accés et demanarà contrasenya. L'has definit al compose.</p>
+<h2>52.6 Configurar Grafana</h2>
+<h3>Afegir Prometheus com a font de dades</h3>
+<p>Crea `~/homelab/compose/grafana/provisioning/datasources/prometheus.yml`:</p>
+<pre class="code"><code class="language-yaml">apiVersion: 1
+<p>datasources:
+<ul>
+<li>name: Prometheus</li>
+</ul>
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true</code></pre></p>
+<p>Grafana carregarà automàticament aquesta configuració.</p>
+<h3>Crear un dashboard bàsic</h3>
+<p>Al panell, fes clic a <strong>+</strong> → <strong>Dashboard</strong> → <strong>Add visualization</strong>.</p>
+<p>Exemple de panell "Ús de CPU de la Raspberry":</p>
+<ul>
+<li><strong>Data source</strong>: Prometheus</li>
+<li><strong>Metric</strong>: `100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)`</li>
+<li><strong>Visualization</strong>: Time series</li>
+<li><strong>Title</strong>: CPU Raspberry (%)</li>
+</ul>
+<p>Això et mostrarà una gràfica en temps real de l'ús de CPU.</p>
+<h2>52.7 Mètriques útils per al BernatLab</h2>
+<h3>Sistema (Node Exporter)</h3>
+<ul>
+<li><strong>CPU</strong>: `rate(node_cpu_seconds_total[5m])`</li>
+<li><strong>RAM</strong>: `node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes`</li>
+<li><strong>Disc</strong>: `(node_filesystem_size_bytes - node_filesystem_avail_bytes) / node_filesystem_size_bytes`</li>
+<li><strong>Xarxa</strong>: `rate(node_network_receive_bytes_total[5m])`</li>
+<li><strong>Temperatura</strong>: `node_thermal_zone_temp` (si tens el sensor)</li>
+</ul>
+<h3>Docker (cAdvisor)</h3>
+<ul>
+<li><strong>CPU per contenidor</strong>: `rate(container_cpu_usage_seconds_total[5m])`</li>
+<li><strong>RAM per contenidor</strong>: `container_memory_usage_bytes`</li>
+<li><strong>Xarxa per contenidor</strong>: `rate(container_network_receive_bytes_total[5m])`</li>
+</ul>
+<h3>Mosquitto (mètriques natives)</h3>
+<ul>
+<li><strong>Missatges publicats</strong>: `mosquitto_messages_published_total`</li>
+<li><strong>Missatges rebuts</strong>: `mosquitto_messages_received_total`</li>
+<li><strong>Connexions actives</strong>: `mosquitto_clients_connected`</li>
+</ul>
+<h2>52.8 Dashboards prefabricats</h2>
+<p>Grafana té una comunitat amb milers de dashboards. Per trobar-los:</p>
+<p>1. Vés a https://grafana.com/grafana/dashboards.
+2. Busca "Node Exporter Full" (ID: 1860).
+3. Copia l'ID.
+4. A Grafana: <strong>+</strong> → <strong>Import</strong> → enganxa l'ID.</p>
+<p>Altres dashboards útils:</p>
+<ul>
+<li><strong>Docker Container Monitoring</strong> (ID: 893): mètriques dels contenidors.</li>
+<li><strong>Prometheus Stats</strong> (ID: 2): mètriques del propi Prometheus.</li>
+<li><strong>Mosquitto</strong> (ID: 11587): mètriques MQTT.</li>
+</ul>
+<h2>52.9 Retenció de dades</h2>
+<p>Per defecte, Prometheus guarda les dades 15 dies. Per canviar-ho:</p>
+<pre class="code"><code class="language-bash">docker compose -f monitoring.yml down
+<h1>Afegeix a la comanda de prometheus:</h1>
+<ul>
+<li>&#x27;--storage.tsdb.retention.time=30d&#x27;</li>
+</ul>
+docker compose -f monitoring.yml up -d</code></pre>
+<p>Això guarda 30 dies. Més dies = més espai en disc.</p>
+<h2>52.10 Què fer amb les dades</h2>
+<p>Un cop tens gràfiques, pots:</p>
+<ul>
+<li><strong>Detectar patrons</strong>: la CPU puja cada dia a les 15h? Probablement una tasca programada.</li>
+<li><strong>Identificar pics</strong>: la RAM s'ha disparat a les 3 de la matinada? Alguna cosa consumeix molt.</li>
+<li><strong>Comparar períodes</strong>: aquest mes vs. el mes passat.</li>
+<li><strong>Predir necessitats</strong>: si el creixement de dades és X%/mes, quan s'omplirà el disc?</li>
+</ul>
+<h2>52.11 Compartir dashboards</h2>
+<p>Grafana permet exportar i compartir dashboards:</p>
+<p>1. <strong>Exportar JSON</strong>: a la configuració del dashboard, <strong>Share</strong> → <strong>Export</strong> → <strong>Save to file</strong>.
+2. <strong>Importar JSON</strong>: <strong>+</strong> → <strong>Import</strong> → puja el fitxer.
+3. <strong>Compartir URL</strong>: <strong>Share</strong> → <strong>Link</strong>. Qualsevol amb la URL pot veure (si és a la mateixa xarxa).</p>
+<h2>52.12 Limitacions de Prometheus</h2>
+<p>Prometheus és excel·lent, però té limitacions:</p>
+<ul>
+<li><strong>Només numèrics</strong>: no emmagatzema logs ni traces.</li>
+<li><strong>No escal·la horitzontalment</strong> (per a moltes dades, cal Cortex, Thanos, o Mimir).</li>
+<li><strong>No té UI per a alertes avançades</strong> (cal Alertmanager).</li>
+<li><strong>No és bo per a alta cardinalitat</strong> (moltes etiquetes úniques).</li>
+</ul>
+<p>Per al BernatLab, és perfecte. Per a una empresa, caldrien eines més potents.</p>
+<h2>52.13 Com estendre el monitoratge</h2>
+<p>Quan vulguis afegir més mètriques:</p>
+<p>1. <strong>Afegeix exporters</strong>: serveis que exposen mètriques en format Prometheus.
+2. <strong>Usa pushgateway</strong>: per a mètriques de treballs curts (cron, scripts).
+3. <strong>Configura alertes</strong>: per a mètriques crítiques.
+4. <strong>Integra amb Telegram</strong>: per a notificacions.</p>
+<h2>52.14 Què NO monitorar</h2>
+<p>No totes les mètriques aporten valor:</p>
+<ul>
+<li><strong>Mètriques que no canvien mai</strong>: inútils.</li>
+<li><strong>Mètriques massa granulars</strong>: generen molt emmagatzematge sense benefici.</li>
+<li><strong>Mètriques que no pots actuar</strong>: si no hi ha res a fer, no cal saber-ho.</li>
+</ul>
+<p>La regla: <strong>si no saps quina acció prendràs quan vegis aquesta mètrica, no la monitoris</strong>.</p>
+<h2>52.15 Resum</h2>
+<p>El monitoratge és la base de l'operativa. Prometheus recull, Grafana visualitza, i tu pots prendre decisions. Al BernatLab, amb Node Exporter + cAdvisor + exporters dels serveis tens visibilitat completa. Al proper capítol veurem com configurar alertes per Telegram.</p>
+<h2>52.16 Exercicis pràctics</h2>
+<p>1. Desplega Prometheus i Grafana a la Raspberry.
+2. Configura Node Exporter i cAdvisor.
+3. Importa el dashboard "Node Exporter Full".
+4. Crea un panell personalitzat de CPU per contenidor.
+5. Afegeix mètriques de Mosquitto.
+6. Exporta un dashboard i comparteix-lo.
+7. Configura la retenció a 30 dies.
+8. Documenta al README els URLs de Prometheus i Grafana.</p>
+<hr>
+<h2 id="53-alertes-telegram">Capitol 53 — Alertes intel·ligents amb Grafana i Telegram</h2>
+<p>> <em>"Una alerta que no actues és soroll. Una alerta que arriba quan toca, al canal adequat, és or."</em></p>
+<h2>53.1 Què és una alerta útil</h2>
+<p>Una alerta útil té quatre propietats:</p>
+<p>1. <strong>Rellevant</strong>: avisa d'un problema real, no d'una molèstia.
+2. <strong>Accionable</strong>: saps què fer quan la reps.
+3. <strong>Puntual</strong>: arriba quan toca, no més tard ni massa aviat.
+4. <strong>Al canal correcte</strong>: crítiques a Telegram immediatament, informatives al correu en horari laboral.</p>
+<p>Si una alerta no té aquestes quatre propietats, és soroll.</p>
+<h2>53.2 Tipus d'alertes</h2>
+<h3>Alertes de disponibilitat</h3>
+<ul>
+<li>Un servei està caigut.</li>
+<li>Un contenidor ha deixat de respondre.</li>
+<li>La Raspberry no és accessible per SSH.</li>
+</ul>
+<h3>Alertes de rendiment</h3>
+<ul>
+<li>La CPU porta més de 30 minuts al 90%.</li>
+<li>El disc s'omplirà en menys de 24 h.</li>
+<li>La memòria lliure és inferior al 10%.</li>
+</ul>
+<h3>Alertes de seguretat</h3>
+<ul>
+<li>Més de 10 intents SSH fallits en 5 min.</li>
+<li>Un usuari ha accedit des d'una IP nova.</li>
+<li>Una alerta de fail2ban s'ha activat.</li>
+</ul>
+<h3>Alertes de dades</h3>
+<ul>
+<li>Un node LoRa no ha enviat dades en més d'1 hora.</li>
+<li>La còpia de seguretat no s'ha fet.</li>
+<li>InfluxDB té errors de consulta.</li>
+</ul>
+<h2>53.3 Alertmanager: el cervell de les alertes</h2>
+<p><strong>Alertmanager</strong> (integrat a Prometheus) gestiona les alertes:</p>
+<p>1. <strong>Rep</strong> les alertes de Prometheus.
+2. <strong>Agrupa</strong> alertes relacionades.
+3. <strong>Silencia</strong> alertes que saps que estan passant.
+4. <strong>Enruta</strong> a canals diferents segons la severitat.
+5. <strong>Inhibeix</strong> alertes que són conseqüència d'altres.</p>
+<p>Configuració bàsica a `~/homelab/compose/prometheus/alertmanager.yml`:</p>
+<pre class="code"><code class="language-yaml">global:
+  resolve_timeout: 5m
+<p>route:
+  group_by: [&#x27;alertname&#x27;, &#x27;instance&#x27;]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: &#x27;telegram-critiques&#x27;
+  routes:
+<ul>
+<li>match:</li>
+</ul>
+        severity: critical
+      receiver: &#x27;telegram-critiques&#x27;
+<ul>
+<li>match:</li>
+</ul>
+        severity: warning
+      receiver: &#x27;telegram-avís&#x27;</p>
+<p>receivers:
+<ul>
+<li>name: &#x27;telegram-critiques&#x27;</li>
+</ul>
+    webhook_configs:
+<ul>
+<li>url: &#x27;http://alertmanager-webhook:8080/alerts/critical&#x27;</li>
+</ul></p>
+<ul>
+<li>name: &#x27;telegram-avís&#x27;</li>
+</ul>
+    webhook_configs:
+<ul>
+<li>url: &#x27;http://alertmanager-webhook:8080/alerts/warning&#x27;</li>
+</ul>
+<p>inhibit_rules:
+<ul>
+<li>source_match:</li>
+</ul>
+      severity: critical
+    target_match:
+      severity: warning
+    equal: [&#x27;alertname&#x27;, &#x27;instance&#x27;]</code></pre></p>
+<p>Afegeix Alertmanager al compose:</p>
+<pre class="code"><code class="language-yaml">  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    volumes:
+<ul>
+<li>./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml</li>
+</ul>
+    command:
+<ul>
+<li>&#x27;--config.file=/etc/alertmanager/alertmanager.yml&#x27;</li>
+</ul>
+    ports:
+<ul>
+<li>&quot;9093:9093&quot;</li>
+</ul>
+    networks:
+<ul>
+<li>monitoring</code></pre></li>
+</ul>
+<h2>53.4 Regles d'alerta a Prometheus</h2>
+<p>Crea `~/homelab/compose/prometheus/rules.yml`:</p>
+<pre class="code"><code class="language-yaml">groups:
+<ul>
+<li>name: bernatlab</li>
+</ul>
+    interval: 30s
+    rules:
+      # CPU alta durant 5 minuts
+<ul>
+<li>alert: HighCPUUsage</li>
+</ul>
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=&quot;idle&quot;}[5m])) * 100) &gt; 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: &quot;CPU alta a {{ $labels.instance }}&quot;
+          description: &quot;CPU al {{ $value }}% durant més de 5 minuts.&quot;
+<p># RAM baixa
+<ul>
+<li>alert: LowMemory</li>
+</ul>
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 &lt; 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: &quot;RAM baixa a {{ $labels.instance }}&quot;
+          description: &quot;Només queda {{ $value }}% de RAM lliure.&quot;</p>
+<p># Disc gairebé ple
+<ul>
+<li>alert: DiskFull</li>
+</ul>
+        expr: (node_filesystem_avail_bytes{fstype!=&quot;tmpfs&quot;} / node_filesystem_size_bytes) * 100 &lt; 10
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: &quot;Disc ple a {{ $labels.instance }}&quot;
+          description: &quot;Només queda {{ $value }}% d&#x27;espai lliure.&quot;</p>
+<p># Servei caigut (ping)
+<ul>
+<li>alert: ServiceDown</li>
+</ul>
+        expr: up{job=&quot;bernatlab-services&quot;} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: &quot;Servei {{ $labels.instance }} caigut&quot;
+          description: &quot;El servei no respon a ping des de fa 2 minuts.&quot;</p>
+<p># Temperatura alta
+<ul>
+<li>alert: HighTemperature</li>
+</ul>
+        expr: node_thermal_zone_temp &gt; 75
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: &quot;Temperatura alta: {{ $value }}°C&quot;
+          description: &quot;La Raspberry està a {{ $value }}°C, considera netejar-la o millorar la ventilació.&quot;</code></pre></p>
+<p>Carrega les regles a `prometheus.yml`:</p>
+<pre class="code"><code class="language-yaml">rule_files:
+<ul>
+<li>&quot;rules.yml&quot;</li>
+</ul>
+<p>alerting:
+  alertmanagers:
+<ul>
+<li>static_configs:</li>
+<li>targets: [&#x27;alertmanager:9093&#x27;]</code></pre></li>
+</ul></p>
+<h2>53.5 Crear el bot de Telegram</h2>
+<p>Per enviar alertes a Telegram:</p>
+<p>1. Obre Telegram i parla amb <strong>@BotFather</strong>.
+2. Envia `/newbot` i segueix les instruccions.
+3. Guarda el <strong>token</strong> que et dóna (exemple: `1234567890:ABCdefGHI...`).
+4. Crea un grup on el bot i tu sigueu membres.
+5. Afegeix el bot al grup.
+6. Obtenir el <strong>chat_id</strong> del grup: visita `https://api.telegram.org/bot<TOKEN>/getUpdates` i mira el `chat.id`.</p>
+<h2>53.6 Servei de webhook a Telegram</h2>
+<p>Crea un petit servei que rebi alertes d'Alertmanager i les enviï a Telegram. Crea `~/homelab/compose/alert-webhook/`:</p>
+<p><strong>app.py</strong>:</p>
+<pre class="code"><code class="language-python">import os
+import json
+import requests
+from flask import Flask, request
+<p>app = Flask(__name__)</p>
+<p>TELEGRAM_TOKEN = os.environ.get(&quot;TELEGRAM_TOKEN&quot;)
+TELEGRAM_CHAT_ID = os.environ.get(&quot;TELEGRAM_CHAT_ID&quot;)</p>
+<p>def send_telegram(message):
+    url = f&quot;https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage&quot;
+    requests.post(url, json={
+        &quot;chat_id&quot;: TELEGRAM_CHAT_ID,
+        &quot;text&quot;: message,
+        &quot;parse_mode&quot;: &quot;HTML&quot;
+    })</p>
+<p>@app.route(&quot;/alerts/critical&quot;, methods=[&quot;POST&quot;])
+def critical():
+    data = request.json
+    for alert in data.get(&quot;alerts&quot;, []):
+        status = alert.get(&quot;status&quot;, &quot;unknown&quot;)
+        if status == &quot;resolved&quot;:
+            emoji = &quot;✅&quot;
+            text = &quot;RESOLT&quot;
+        else:
+            emoji = &quot;🔴&quot;
+            text = &quot;ALERTA CRÍTICA&quot;
+        summary = alert.get(&quot;annotations&quot;, {}).get(&quot;summary&quot;, &quot;Sense resum&quot;)
+        description = alert.get(&quot;annotations&quot;, {}).get(&quot;description&quot;, &quot;&quot;)
+        message = f&quot;{emoji} &lt;b&gt;{text}&lt;/b&gt;\n\n{summary}\n{description}&quot;
+        send_telegram(message)
+    return &quot;OK&quot;, 200</p>
+<p>@app.route(&quot;/alerts/warning&quot;, methods=[&quot;POST&quot;])
+def warning():
+    data = request.json
+    for alert in data.get(&quot;alerts&quot;, []):
+        status = alert.get(&quot;status&quot;, &quot;unknown&quot;)
+        if status == &quot;resolved&quot;:
+            emoji = &quot;✅&quot;
+            text = &quot;RESOLT&quot;
+        else:
+            emoji = &quot;⚠️&quot;
+            text = &quot;AVÍS&quot;
+        summary = alert.get(&quot;annotations&quot;, {}).get(&quot;summary&quot;, &quot;&quot;)
+        message = f&quot;{emoji} &lt;b&gt;{text}&lt;/b&gt;\n\n{summary}&quot;
+        send_telegram(message)
+    return &quot;OK&quot;, 200</p>
+<p>if __name__ == &quot;__main__&quot;:
+    app.run(host=&quot;0.0.0.0&quot;, port=8080)</code></pre></p>
+<p><strong>Dockerfile</strong>:</p>
+<pre class="code"><code class="language-dockerfile">FROM python:3.11-slim
+WORKDIR /app
+RUN pip install flask requests gunicorn
+COPY app.py .
+CMD [&quot;gunicorn&quot;, &quot;-b&quot;, &quot;0.0.0.0:8080&quot;, &quot;-w&quot;, &quot;2&quot;, &quot;app:app&quot;]</code></pre>
+<p><strong>requirements.txt</strong>:</p>
+<pre class="code"><code class="language-">flask==3.0.0
+requests==2.31.0
+gunicorn==21.2.0</code></pre>
+<p>Crea `.env` (afegit a `.gitignore`):</p>
+<pre class="code"><code class="language-">TELEGRAM_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+TELEGRAM_CHAT_ID=-1001234567890</code></pre>
+<p>I actualitza el compose:</p>
+<pre class="code"><code class="language-yaml">  alertmanager-webhook:
+    build: ./alert-webhook
+    container_name: alertmanager-webhook
+    restart: unless-stopped
+    env_file:
+<ul>
+<li>./alert-webhook/.env</li>
+</ul>
+    networks:
+<ul>
+<li>monitoring</code></pre></li>
+</ul>
+<h2>53.7 Provar les alertes</h2>
+<p>Per forçar una alerta de prova:</p>
+<p>1. Apaga un contenidor temporalment:</p>
+<pre class="code"><code class="language-bash">docker stop grafana</code></pre>
+<p>2. Espera 2-3 minuts.</p>
+<p>3. Hauries de rebre una alerta a Telegram: "Servei caigut: grafana".</p>
+<p>4. Torna a engegar:</p>
+<pre class="code"><code class="language-bash">docker start grafana</code></pre>
+<p>5. Rebràs una alerta "RESOLT".</p>
+<h2>53.8 Alertes intel·ligents</h2>
+<p>Algunes alertes són molt específiques i útils:</p>
+<h3>Alerta: node LoRa no ha enviat dades en 1h</h3>
+<pre class="code"><code class="language-yaml">- alert: LoRaNodeOffline
+  expr: time() - max(temperature_last_seen{node=&quot;hort1&quot;}) &gt; 3600
+  for: 10m
+  labels:
+    severity: warning
+  annotations:
+    summary: &quot;Node LoRa hort1 sense dades des de fa 1h&quot;
+    description: &quot;Comprova la bateria o la cobertura.&quot;</code></pre>
+<h3>Alerta: còpia de seguretat no s'ha fet</h3>
+<p>Pots usar Pushgateway per exposar l'edat de l'última còpia:</p>
+<pre class="code"><code class="language-bash"># Script que actualitza la mètrica
+AGE=$(stat -c %Y /var/lib/bernatlab-backups/latest)
+NOW=$(date +%s)
+HOURS=$(( (NOW - AGE) / 3600 ))
+echo &quot;bernatlab_backup_age_hours $HOURS&quot; | curl --data-binary @- \
+    http://localhost:9091/metrics/job/backup</code></pre>
+<p>I la regla:</p>
+<pre class="code"><code class="language-yaml">- alert: BackupStale
+  expr: bernatlab_backup_age_hours &gt; 26
+  for: 1h
+  labels:
+    severity: warning
+  annotations:
+    summary: &quot;Còpia antiga: {{ $value }} hores&quot;</code></pre>
+<h3>Alerta: certificat a punt de caducar</h3>
+<pre class="code"><code class="language-yaml">- alert: CertificateExpiring
+  expr: (ssl_cert_not_after - time()) / 86400 &lt; 14
+  for: 1h
+  labels:
+    severity: warning
+  annotations:
+    summary: &quot;Certificat expira en menys de 14 dies&quot;</code></pre>
+<p>Cal un exporter com <strong>blackbox_exporter</strong> o <strong>ssl_exporter</strong>.</p>
+<h2>53.9 Silenciació temporal</h2>
+<p>Quan saps que una cosa pot fallar (manteniment programat, canvis), pots silenciar alertes:</p>
+<pre class="code"><code class="language-bash"># Via amtool
+amtool silence add --alertmanager=http://localhost:9093 \
+    --comment=&quot;Manteniment programat&quot; \
+    --duration=2h \
+    --match-label=alertname=HighCPUUsage</code></pre>
+<p>O via interfície web d'Alertmanager: http://localhost:9093.</p>
+<h2>53.10 Evitar el soroll</h2>
+<p>Si reps masses alertes, ajusta:</p>
+<ul>
+<li><strong>for</strong>: augmenta el temps (per exemple, de 5m a 15m).</li>
+<li><strong>threshold</strong>: ajusta el llindar (per exemple, de 90% a 95%).</li>
+<li><strong>group_by</strong>: agrupa alertes relacionades.</li>
+<li><strong>repeat_interval</strong>: augmenta l'interval de repetició.</li>
+</ul>
+<h2>53.11 Errors habituals</h2>
+<p><strong>Error 1: alertes que ningú llegeix</strong>.</p>
+<p>Si tens 50 alertes al dia, deixaràs de mirar-les. Sigues estricte amb què mereix una alerta.</p>
+<p><strong>Error 2: alertes que es disparen massa</strong>.</p>
+<p>Si una alerta es dispara cada hora, no és útil. Ajusta el llindar.</p>
+<p><strong>Error 3: no provar les alertes</strong>.</p>
+<p>Si no has provat mai l'alerta, no saps si funciona. Prova-les periòdicament.</p>
+<p><strong>Error 4: no documentar què fer</strong>.</p>
+<p>Cada alerta hauria d'incloure què fer. Un runbook enllaçat a l'anotació.</p>
+<h2>53.12 Bones pràctiques</h2>
+<p>1. <strong>Meningi's per cada alerta</strong>: quina acció prendré?
+2. <strong>Severitat clara</strong>: critical, warning, info.
+3. <strong>Anotacions útils</strong>: resum + descripció + enllaç al runbook.
+4. <strong>Provar-les periòdicament</strong>: força una alerta cada mes.
+5. <strong>Ajustar el soroll</strong>: si una alerta no és útil, ajusta-la o elimina-la.
+6. <strong>Tenir un canal de "tot OK"</strong>: rebre resolucions és igual d'útil que rebre alertes.</p>
+<h2>53.13 Resum</h2>
+<p>Les alertes són la part més important del monitoratge: t'avis quan alguna cosa va malament. Alertmanager + Telegram és una combinació potent i gratuïta. La clau és evitar el soroll i mantenir alertes accionables. Al proper capítol veurem els scripts de manteniment i actualitzacions.</p>
+<h2>53.14 Exercicis pràctics</h2>
+<p>1. Crea un bot de Telegram i obté el token.
+2. Desplega Alertmanager i el servei de webhook.
+3. Configura 5 regles d'alerta a Prometheus.
+4. Prova les alertes aturant un servei.
+5. Afegeix una alerta específica del teu cas (sensor, còpia, certificat).
+6. Configura un silenci per a manteniment.
+7. Documenta al README les alertes configurades.</p>
+<hr>
+<h2 id="54-scripts-manteniment">Capitol 54 — Scripts de manteniment i actualitzacions</h2>
+<p>> <em>"Si ho has de fer més de dues vegades, automatitza-ho. Si ho has de fer cada setmana, programa-ho."</em></p>
+<h2>54.1 Què automatitzar</h2>
+<p>Al BernatLab, les tasques repetitives que cal automatitzar són:</p>
+<ul>
+<li><strong>Actualitzacions del sistema</strong>: apt update + apt upgrade.</li>
+<li><strong>Actualitzacions de contenidors</strong>: docker compose pull + up.</li>
+<li><strong>Còpies de seguretat</strong>: restic backup.</li>
+<li><strong>Neteja</strong>: esborrar logs antics, imatges obsoletes.</li>
+<li><strong>Rotació de logs</strong>: logrotate.</li>
+<li><strong>Monitoratge</strong>: alertes, comprovacions periòdiques.</li>
+<li><strong>Certificats</strong>: renovació automàtica.</li>
+</ul>
+<h2>54.2 Estructura de scripts</h2>
+<p>Crea una estructura clara:</p>
+<pre class="code"><code class="language-">~/homelab/scripts/
+├── update-system.sh         # Actualitza el SO
+├── update-containers.sh     # Actualitza contenidors
+├── backup-daily.sh          # Còpia diària
+├── cleanup.sh               # Neteja
+├── health-check.sh          # Comprovació de salut
+├── restart-failed.sh        # Reiniciar contenidors caiguts
+├── cert-renew.sh            # Renovació de certificats
+└── lib/
+    ├── colors.sh            # Codis de color
+    └── notify.sh            # Funcions de notificació</code></pre>
+<p>Tots els scripts han de ser:</p>
+<ul>
+<li><strong>Idempotents</strong>: es poden executar múltiples vegades sense efectes secundaris.</li>
+<li><strong>Amb logging</strong>: registren què fan.</li>
+<li><strong>Amb notificació</strong>: avisen si falla.</li>
+<li><strong>Amb cleanup</strong>: netegen recursos temporals.</li>
+</ul>
+<h2>54.3 Plantilla de script</h2>
+<pre class="code"><code class="language-bash">#!/bin/bash
+#
+<h1>update-system.sh - Actualitza el sistema operatiu</h1>
+#
+<h1>Ús: ./update-system.sh [--auto]</h1>
+#
+<h1>Opcions:</h1>
+<h1>  --auto    No demana confirmació</h1>
+<p>set -euo pipefail</p>
+<h1>Colors</h1>
+RED=&#x27;\033[0;31m&#x27;
+GREEN=&#x27;\033[0;32m&#x27;
+YELLOW=&#x27;\033[1;33m&#x27;
+NC=&#x27;\033[0m&#x27;
+<h1>Funcions</h1>
+log() { echo -e &quot;${GREEN}[$(date +&#x27;%Y-%m-%d %H:%M:%S&#x27;)]${NC} $*&quot;; }
+warn() { echo -e &quot;${YELLOW}[WARN]${NC} $*&quot;; }
+err() { echo -e &quot;${RED}[ERROR]${NC} $*&quot; &gt;&amp;2; }
+<h1>Comprovació de root</h1>
+if [ &quot;$(id -u)&quot; -ne 0 ]; then
+    err &quot;Aquest script necessita privilegis de root&quot;
+    exit 1
+fi
+<h1>Paràmetres</h1>
+AUTO=false
+[ &quot;${1:-}&quot; == &quot;--auto&quot; ] &amp;&amp; AUTO=true
+<h1>Lògica</h1>
+log &quot;Actualitzant la llista de paquets...&quot;
+apt update
+<p>log &quot;Comprovant què s&#x27;ha d&#x27;actualitzar...&quot;
+UPDATES=$(apt list --upgradable 2&gt;/dev/null | wc -l)
+if [ &quot;$UPDATES&quot; -le 1 ]; then
+    log &quot;No hi ha actualitzacions pendents.&quot;
+    exit 0
+fi</p>
+<p>log &quot;$UPDATES paquets per actualitzar.&quot;
+if [ &quot;$AUTO&quot; = false ]; then
+    read -p &quot;Continuar? (s/N) &quot; -n 1 -r
+    echo
+    [[ ! $REPLY =~ ^[Ss]$ ]] &amp;&amp; exit 0
+fi</p>
+<p>log &quot;Actualitzant paquets...&quot;
+apt upgrade -y</p>
+<p>log &quot;Esborrant paquets obsolets...&quot;
+apt autoremove -y</p>
+<p>log &quot;Fet!&quot;</code></pre></p>
+<h2>54.4 Script d'actualització de contenidors</h2>
+<p>`update-containers.sh`:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+set -euo pipefail
+<p>cd ~/homelab/compose</p>
+<p>for compose_file in *.yml; do
+    log &quot;Actualitzant $compose_file&quot;
+    docker compose -f &quot;$compose_file&quot; pull
+    docker compose -f &quot;$compose_file&quot; up -d
+done</p>
+<p>log &quot;Esborrant imatges antigues...&quot;
+docker image prune -f</code></pre></p>
+<h2>54.5 Script de comprovació de salut</h2>
+<p>`health-check.sh`:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+set -euo pipefail
+<p>HEALTHY=0
+UNHEALTHY=0
+SERVICES=(
+    &quot;portainer:9443&quot;
+    &quot;uptime-kuma:3001&quot;
+    &quot;homepage:3000&quot;
+    &quot;grafana:3000&quot;
+    &quot;prometheus:9090&quot;
+)</p>
+<p>for service in &quot;${SERVICES[@]}&quot;; do
+    name=&quot;${service%:*}&quot;
+    port=&quot;${service#*:}&quot;
+    if curl -s -o /dev/null -w &quot;%{http_code}&quot; \
+        --connect-timeout 3 \
+        &quot;http://localhost:$port&quot; | grep -q &quot;^[2-4]&quot;; then
+        log &quot;✓ $name&quot;
+        ((HEALTHY++)) || true
+    else
+        err &quot;✗ $name&quot;
+        ((UNHEALTHY++)) || true
+    fi
+done</p>
+<p>log &quot;Resultat: $HEALTHY sans, $UNHEALTHY amb problemes&quot;</p>
+<h1>Notificar si hi ha problemes</h1>
+if [ $UNHEALTHY -gt 0 ]; then
+    send_telegram &quot;⚠️ BernatLab: $UNHEALTHY serveis no responen&quot;
+fi</code></pre>
+<h2>54.6 Reiniciar contenidors caiguts</h2>
+<p>`restart-failed.sh`:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+set -euo pipefail
+<h1>Trobar contenidors en estat exited</h1>
+FAILED=$(docker ps -a --filter &quot;status=exited&quot; --format &quot;{{.Names}}&quot;)
+<p>if [ -z &quot;$FAILED&quot; ]; then
+    log &quot;Cap contenidor caigut.&quot;
+    exit 0
+fi</p>
+<p>for container in $FAILED; do
+    log &quot;Reiniciant $container...&quot;
+    docker restart &quot;$container&quot;
+done</p>
+<p>send_telegram &quot;🔄 BernatLab: contenidors reiniciats: $FAILED&quot;</code></pre></p>
+<h2>54.7 Neteja periòdica</h2>
+<p>`cleanup.sh`:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+set -euo pipefail
+<p>log &quot;Esborrant imatges dangling...&quot;
+docker image prune -f</p>
+<p>log &quot;Esborrant volums no utilitzats...&quot;
+docker volume prune -f</p>
+<p>log &quot;Esborrant xarxes no utilitzades...&quot;
+docker network prune -f</p>
+<p>log &quot;Esborrant contenidors aturats...&quot;
+docker container prune -f</p>
+<p>log &quot;Esborrant logs antics (&gt;30 dies)...&quot;
+find /var/log -name &quot;*.gz&quot; -mtime +30 -delete
+find /var/log -name &quot;<em>.log.</em>&quot; -mtime +30 -delete</p>
+<p>log &quot;Esborrant còpies de seguretat antigues...&quot;
+<h1>Si tens un script de neteja de restic, crida&#x27;l</h1>
+~/homelab/scripts/lib/notify.sh &quot;🧹 BernatLab: neteja setmanal completada&quot;</code></pre></p>
+<h2>54.8 Renovació de certificats</h2>
+<p>Si uses Caddy, els certificats es renoven sols. Si uses Let's Encrypt amb certbot:</p>
+<p>`cert-renew.sh`:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+set -euo pipefail
+<p>log &quot;Renovant certificats...&quot;
+certbot renew --quiet</p>
+<p>log &quot;Recarregant nginx/Caddy...&quot;
+docker exec caddy caddy reload 2&gt;/dev/null || systemctl reload nginx</p>
+<p>log &quot;Certificats renovats.&quot;</code></pre></p>
+<h2>54.9 Ús de cron</h2>
+<p>Edita `crontab -e` (com a root):</p>
+<pre class="code"><code class="language-bash"># Actualització del sistema, diumenge a les 3 AM
+0 3 <em> </em> 0 /home/bernat/homelab/scripts/update-system.sh --auto &gt;&gt; /var/log/bernatlab-update.log 2&gt;&amp;1
+<h1>Actualització de contenidors, dilluns a les 3 AM</h1>
+0 3 <em> </em> 1 /home/bernat/homelab/scripts/update-containers.sh &gt;&gt; /var/log/bernatlab-update.log 2&gt;&amp;1
+<h1>Còpia de seguretat, cada dia a les 2 AM</h1>
+0 2 <em> </em> * /home/bernat/homelab/scripts/backup-daily.sh &gt;&gt; /var/log/bernatlab-backup.log 2&gt;&amp;1
+<h1>Health check, cada 5 minuts</h1>
+<em>/5 </em> <em> </em> * /home/bernat/homelab/scripts/health-check.sh &gt;&gt; /var/log/bernatlab-health.log 2&gt;&amp;1
+<h1>Reiniciar contenidors caiguts, cada hora</h1>
+0 <em> </em> <em> </em> /home/bernat/homelab/scripts/restart-failed.sh &gt;&gt; /var/log/bernatlab-restart.log 2&gt;&amp;1
+<h1>Neteja, dissabte a les 4 AM</h1>
+0 4 <em> </em> 6 /home/bernat/homelab/scripts/cleanup.sh &gt;&gt; /var/log/bernatlab-cleanup.log 2&gt;&amp;1
+<h1>Renovació de certificats, dilluns a les 4 AM</h1>
+0 4 <em> </em> 1 /home/bernat/homelab/scripts/cert-renew.sh &gt;&gt; /var/log/bernatlab-cert.log 2&gt;&amp;1</code></pre>
+<h2>54.10 Ús de systemd timers (alternativa a cron)</h2>
+<p>Systemd timers són més moderns i tenen més funcionalitat:</p>
+<p><strong>`/etc/systemd/system/bernatlab-backup.service`</strong>:</p>
+<pre class="code"><code class="language-ini">[Unit]
+Description=Còpia de seguretat BernatLab
+Wants=bernatlab-backup.timer
+<p>[Service]
+Type=oneshot
+ExecStart=/home/bernat/homelab/scripts/backup-daily.sh
+User=bernat</code></pre></p>
+<p><strong>`/etc/systemd/system/bernatlab-backup.timer`</strong>:</p>
+<pre class="code"><code class="language-ini">[Unit]
+Description=Programació còpia BernatLab
+<p>[Timer]
+OnCalendar=<em>-</em>-* 02:00:00
+Persistent=true</p>
+<p>[Install]
+WantedBy=timers.target</code></pre></p>
+<p>Activar:</p>
+<pre class="code"><code class="language-bash">sudo systemctl daemon-reload
+sudo systemctl enable --now bernatlab-backup.timer</code></pre>
+<p>Avantatges de systemd timers:</p>
+<ul>
+<li>Es poden veure amb `systemctl list-timers`.</li>
+<li>Tenen logging integrat (`journalctl`).</li>
+<li>Dependències entre serveis.</li>
+<li>Més fàcils de testejar.</li>
+</ul>
+<h2>54.11 Notificacions</h2>
+<p>Tots els scripts poden enviar missatges a Telegram. Crea `lib/notify.sh`:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+<h1>notify.sh - Envia missatges a Telegram</h1>
+<h1>Carregar variables del .env</h1>
+if [ -f ~/homelab/.env ]; then
+    source ~/homelab/.env
+fi
+<p>: &quot;${TELEGRAM_TOKEN:?Necessites definir TELEGRAM_TOKEN}&quot;
+: &quot;${TELEGRAM_CHAT_ID:?Necessites definir TELEGRAM_CHAT_ID}&quot;</p>
+<p>send_telegram() {
+    local message=&quot;$1&quot;
+    curl -s -X POST &quot;https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage&quot; \
+        -d chat_id=&quot;$TELEGRAM_CHAT_ID&quot; \
+        -d text=&quot;$message&quot; \
+        -d parse_mode=HTML \
+        &gt; /dev/null
+}</code></pre></p>
+<p>Afegeix als altres scripts:</p>
+<pre class="code"><code class="language-bash">source ~/homelab/scripts/lib/notify.sh
+send_telegram &quot;✅ BernatLab: còpia completada&quot;</code></pre>
+<h2>54.12 Monitoratge de cron</h2>
+<p>Si vols saber que el cron s'executa:</p>
+<pre class="code"><code class="language-bash"># Health check que comprova els logs
+if ! grep -q &quot;$(date &#x27;+%Y-%m-%d&#x27;)&quot; /var/log/bernatlab-backup.log; then
+    send_telegram &quot;⚠️ Còpia no s&#x27;ha executat avui&quot;
+fi</code></pre>
+<h2>54.13 Lockfile: evitar execucions simultànies</h2>
+<p>Si un script pot trigar molt, vols evitar que s'executi dues vegades:</p>
+<pre class="code"><code class="language-bash">LOCKFILE=/tmp/bernatlab-backup.lock
+<p>if [ -e &quot;$LOCKFILE&quot; ]; then
+    err &quot;Ja hi ha una execució en curs&quot;
+    exit 1
+fi
+trap &#x27;rm -f &quot;$LOCKFILE&quot;&#x27; EXIT
+touch &quot;$LOCKFILE&quot;</p>
+<h1>... la teva lògica aquí ...</code></pre></h1>
+<h2>54.14 Comprovació de resultats</h2>
+<p>Un bon script retorna un codi de sortida:</p>
+<ul>
+<li><strong>0</strong>: èxit.</li>
+<li><strong>1</strong>: error genèric.</li>
+<li><strong>2</strong>: error d'arguments.</li>
+<li><strong>3</strong>: error de permisos.</li>
+</ul>
+<p>I usa `set -euo pipefail` per fallar ràpid en errors.</p>
+<h2>54.15 Errors habituals</h2>
+<p><strong>Error 1: scripts que fallen silenciosament</strong>.</p>
+<p>Sense `set -e`, els errors es poden perdre. Usa-lo sempre.</p>
+<p><strong>Error 2: scripts que deixen l'estat inconsistent</strong>.</p>
+<p>Si el script falla a meitat, hauria de netejar. Usa `trap`.</p>
+<p><strong>Error 3: no provar els scripts abans de programar-los</strong>.</p>
+<p>Prova'ls manualment abans de posar-los a cron.</p>
+<p><strong>Error 4: massa automatització</strong>.</p>
+<p>No automatitzis coses que passes un cop. Perd més temps configurant que no pas fent-ho.</p>
+<h2>54.16 Resum</h2>
+<p>Els scripts de manteniment són la base de l'operativa. Plantilles clares, idempotència, logging, notificacions, lockfiles. Cron o systemd timers per programar-los. Telegram per rebre alertes. En el proper capítol veurem els runbooks, que són la cara humana d'aquesta automatització.</p>
+<h2>54.17 Exercicis pràctics</h2>
+<p>1. Crea l'estructura `~/homelab/scripts/`.
+2. Escriu un script d'actualització del sistema.
+3. Programa'l amb cron o systemd timer.
+4. Afegeix notificacions a Telegram.
+5. Crea un health check que s'executi cada 5 min.
+6. Documenta els scripts al README.
+7. Fes una prova amb un script que simuli un error.</p>
+<hr>
+<h2 id="55-runbooks">Capitol 55 — Runbooks: procediments pas a pas</h2>
+<p>> <em>"Un runbook és la diferència entre resoldre un incident en 5 minuts o en 5 hores."</em></p>
+<h2>55.1 Què és un runbook</h2>
+<p>Un <strong>runbook</strong> és un document amb <strong>passes exactes</strong> per resoldre un problema concret. A diferència d'un manual general, és:</p>
+<ul>
+<li><strong>Específic</strong>: per a un problema concret.</li>
+<li><strong>Pas a pas</strong>: cada pas té un número i una acció clara.</li>
+<li><strong>Testejat</strong>: ha estat provat almenys un cop.</li>
+<li><strong>Actualitzat</strong>: reflecteix l'estat actual del sistema.</li>
+</ul>
+<p>Els runbooks són la documentació operativa per excel·lència.</p>
+<h2>55.2 Quan usar un runbook</h2>
+<ul>
+<li><strong>Incidents</strong>: "El Grafana no respon, què faig?"</li>
+<li><strong>Manteniment</strong>: "Com canvio la còpia de B2 a Wasabi?"</li>
+<li><strong>Recuperació</strong>: "Com recupero una còpia concreta?"</li>
+<li><strong>Desplegament</strong>: "Com poso en marxa el node LoRa nou?"</li>
+<li><strong>Auditoria</strong>: "Com listo tots els usuaris actius?"</li>
+</ul>
+<h2>55.3 Estructura d'un runbook</h2>
+<pre class="code"><code class="language-markdown"># Runbook: [Títol del problema]
+<h2>Símptomes</h2>
+<ul>
+<li>Què veus quan passa el problema.</li>
+<li>Com et n&#x27;adones que passa.</li>
+</ul>
+<h2>Diagnòstic</h2>
+<ul>
+<li>Passes per confirmar que és aquest problema.</li>
+<li>Comandes concretes a executar.</li>
+</ul>
+<h2>Solució</h2>
+<ul>
+<li>Passes per resoldre.</li>
+<li>Cada pas amb un número.</li>
+</ul>
+<h2>Verificació</h2>
+<ul>
+<li>Com saber que s&#x27;ha resolt.</li>
+<li>Què fer si no s&#x27;ha resolt.</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>Com evitar que passi de nou.</li>
+<li>Canvis a fer al sistema.</li>
+</ul>
+<h2>Contactes</h2>
+<ul>
+<li>Qui avisar.</li>
+<li>Enllaços útils.</li>
+</ul>
+<h2>Última actualització</h2>
+<ul>
+<li>Data i per què.</code></pre></li>
+</ul>
+<h2>55.4 Exemple 1: runbook "El Grafana no respon"</h2>
+<pre class="code"><code class="language-markdown"># Runbook: Grafana no respon
+<h2>Símptomes</h2>
+<ul>
+<li>El navegador mostra &quot;connexió refusada&quot; a `http://localhost:3000`.</li>
+<li>Les gràfiques no es carreguen.</li>
+<li>Altres serveis poden estar bé.</li>
+</ul>
+<h2>Diagnòstic</h2>
+<p>1. Comprovar si el contenidor està en marxa:
+   ```bash
+   docker ps | grep grafana
+   ```</p>
+<p>2. Si el contenidor està aturat, mirar els logs:
+   ```bash
+   docker logs grafana --tail 100
+   ```</p>
+<p>3. Si el contenidor està en marxa però no respon, comprovar el port:
+   ```bash
+   ss -tulnp | grep 3000
+   ```</p>
+<h2>Solució</h2>
+<p><strong>Cas A: contenidor aturat</strong></p>
+<p>1. Reiniciar:
+   ```bash
+   docker start grafana
+   ```</p>
+<p>2. Esperar 30 segons i comprovar:
+   ```bash
+   docker ps | grep grafana
+   curl -s http://localhost:3000/api/health
+   ```</p>
+<p><strong>Cas B: contenidor en marxa però no respon</strong></p>
+<p>1. Reiniciar:
+   ```bash
+   docker restart grafana
+   ```</p>
+<p>2. Si continua sense respondre, mirar els logs per errors:
+   ```bash
+   docker logs grafana --tail 200
+   ```</p>
+<p>3. Si hi ha error de base de dades, restaurar la còpia:
+   ```bash
+   docker stop grafana
+   cp -r ~/backups/grafana/* /var/lib/docker/volumes/grafana-data/_data/
+   docker start grafana
+   ```</p>
+<h2>Verificació</h2>
+<ul>
+<li>Cridar a `http://localhost:3000` ha de mostrar el login.</li>
+<li>Fer login ha de funcionar.</li>
+<li>Les gràfiques s&#x27;han de carregar.</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>Comprovar espai en disc (Grafana necessita almenys 1 GB lliure).</li>
+<li>Assegurar-se que el contenidor té memòria suficient (mínim 256 MB).</li>
+<li>Configurar auto-restart (`restart: unless-stopped` al compose).</li>
+</ul>
+<h2>Contactes</h2>
+<ul>
+<li>@bernat a Telegram per a dubtes.</li>
+</ul>
+<h2>Última actualització</h2>
+<ul>
+<li>2026-07-09 per Bernat: afegit cas d&#x27;error de base de dades.</code></pre></li>
+</ul>
+<h2>55.5 Exemple 2: runbook "Recuperar una còpia de seguretat"</h2>
+<pre class="code"><code class="language-markdown"># Runbook: Recuperar una còpia amb restic
+<h2>Símptomes</h2>
+<ul>
+<li>Has esborrat un fitxer per error.</li>
+<li>La Raspberry ha perdut dades.</li>
+<li>Vols comparar amb una versió anterior.</li>
+</ul>
+<h2>Diagnòstic</h2>
+<p>1. Comprovar quines còpies tens:
+   ```bash
+   restic -r ~/backups/bernatlab snapshots
+   ```</p>
+<p>2. Trobar la còpia amb el fitxer que vols:
+   ```bash
+   restic -r ~/backups/bernatlab find fitxer.txt
+   ```</p>
+<h2>Solució</h2>
+<p>1. Restaurar un sol fitxer:
+   ```bash
+   restic -r ~/backups/bernatlab restore latest \
+       --target /tmp/restored \
+       --include /path/al/fitxer.txt
+   cp /tmp/restored/path/al/fitxer.txt /path/al/fitxer.txt
+   ```</p>
+<p>2. Restaurar tota la còpia més recent:
+   ```bash
+   restic -r ~/backups/bernatlab restore latest \
+       --target /tmp/restored
+   ```</p>
+<p>3. Restaurar una còpia concreta:
+   ```bash
+   restic -r ~/backups/bernatlab restore abc1234 \
+       --target /tmp/restored
+   ```</p>
+<p>4. Restaurar només el directori homelab:
+   ```bash
+   restic -r ~/backups/bernatlab restore latest \
+       --target /tmp/restored \
+       --include /home/bernat/homelab
+   ```</p>
+<h2>Verificació</h2>
+<ul>
+<li>Comprovar que els fitxers restaurats existeixen.</li>
+<li>Comparar amb l&#x27;original (si encara existeix).</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>No esborrar res fins que no hagis comprovat la còpia.</li>
+<li>Fer còpies abans de canvis importants.</code></pre></li>
+</ul>
+<h2>55.6 Exemple 3: runbook "Afegir un nou node LoRa"</h2>
+<pre class="code"><code class="language-markdown"># Runbook: Afegir un nou node LoRa
+<h2>Símptomes</h2>
+<ul>
+<li>Tens un node ESP32 + SX1262 nou que vols afegir a la xarxa.</li>
+<li>El node ja està programat amb el firmware del Mòdul 3.</li>
+</ul>
+<h2>Diagnòstic</h2>
+<p>1. Comprovar que el node té el firmware correcte:
+   ```bash
+   # Connectar el node per USB i obrir el monitor sèrie
+   screen /dev/ttyUSB0 115200
+   ```</p>
+<p>2. Verificar que apareix a TTN:
+<ul>
+<li>Vés a https://console.thethingsnetwork.org.</li>
+<li>Applications → bernatlab → Devices.</li>
+<li>Hauries de veure el nou node.</li>
+</ul></p>
+<h2>Solució</h2>
+<p>1. Configurar el node a TTN:
+<ul>
+<li>Application → bernatlab → End devices → Add end device.</li>
+<li>Seleccionar &quot;Enter end device specifics manually&quot;.</li>
+<li>Posar DevEUI, AppKey, AppEUI.</li>
+<li>Triar perfil &quot;LoRaWAN 1.0.4 EU868&quot;.</li>
+</ul></p>
+<p>2. Configurar el payload decoder:
+<ul>
+<li>Application → Payload formatters → Uplink.</li>
+<li>Enganxa el decoder CayenneLPP.</li>
+</ul></p>
+<p>3. Configurar l&#x27;integració amb TTN:
+<ul>
+<li>Application → Integrations → MQTT.</li>
+<li>Activar i apuntar a `mqtt://localhost:1883`.</li>
+</ul></p>
+<p>4. Verificar que arriba al broker MQTT:
+   ```bash
+   mosquitto_sub -h localhost -t &quot;ttn/bernatlab/+/up&quot; -v
+   ```</p>
+<p>5. Verificar que arriba a InfluxDB:
+<ul>
+<li>Vés a Grafana.</li>
+<li>Explora → InfluxDB → measurement: `lora_data`.</li>
+<li>Hauries de veure el node nou.</li>
+</ul></p>
+<h2>Verificació</h2>
+<ul>
+<li>El node envia dades cada X minuts.</li>
+<li>Les dades apareixen a Grafana.</li>
+<li>Les alertes funcionen si hi ha valors fora de rang.</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>Documentar el node (nom, ubicació, DevEUI).</li>
+<li>Etiquetar físicament el node.</li>
+<li>Fer una còpia del firmware.</code></pre></li>
+</ul>
+<h2>55.7 On guardar els runbooks</h2>
+<p>Crea una carpeta `~/homelab/runbooks/` amb un fitxer per runbook. La nomenclatura:</p>
+<ul>
+<li>`RB-001-grafana-down.md`</li>
+<li>`RB-002-backup-restore.md`</li>
+<li>`RB-003-add-lora-node.md`</li>
+</ul>
+<p>Index al `README.md`:</p>
+<pre class="code"><code class="language-markdown"># Runbooks del BernatLab
+<h2>Incidents</h2>
+<ul>
+<li><a href="RB-001-grafana-down.md">RB-001</a> - Grafana no respon</li>
+<li><a href="RB-002-backup-restore.md">RB-002</a> - Recuperar còpia</li>
+<li><a href="RB-003-add-lora-node.md">RB-003</a> - Afegir node LoRa</li>
+</ul>
+<h2>Manteniment</h2>
+<ul>
+<li><a href="RB-101-rotate-secrets.md">RB-101</a> - Rotar secrets</li>
+<li><a href="RB-102-update-containers.md">RB-102</a> - Actualitzar contenidors</li>
+</ul>
+<h2>Recuperació</h2>
+<ul>
+<li><a href="RB-201-restore-raspberry.md">RB-201</a> - Restaurar Raspberry</li>
+<li><a href="RB-202-data-loss.md">RB-202</a> - Pèrdua de dades</code></pre></li>
+</ul>
+<h2>55.8 Com crear un bon runbook</h2>
+<h3>Característiques</h3>
+<p>1. <strong>Títol clar</strong>: el problema en 5-10 paraules.
+2. <strong>Símptomes concrets</strong>: què veus exactament.
+3. <strong>Comandes literals</strong>: copy-paste sense errors.
+4. <strong>Branques condicionals</strong>: "si A, fes X. Si B, fes Y."
+5. <strong>Verificació</strong>: com saber que s'ha resolt.
+6. <strong>Prevenció</strong>: com evitar-ho en el futur.</p>
+<h3>Bones pràctiques</h3>
+<ul>
+<li><strong>Escriu'l quan resols un incident</strong>, no abans.</li>
+<li><strong>Un runbook per incident</strong>, no pas un per categoria.</li>
+<li><strong>Actualitza'l</strong> quan canvies el sistema.</li>
+<li><strong>Prova'l</strong> amb un company o tu mateix.</li>
+<li><strong>Inclou captures</strong> si cal.</li>
+</ul>
+<h2>55.9 Runbook vs documentació general</h2>
+<p>| Runbook | Documentació general |
+|---|---|
+| Pas a pas | Explicatiu |
+| Per a un problema concret | Per a un tema general |
+| Resolt ja | Pot ser teòric |
+| Testejat | Pot ser aproximat |
+| Llarg (10-20 passes) | Pot ser curt |</p>
+<h2>55.10 Runbooks a GitHub</h2>
+<p>Al repo del BernatLab, els runbooks són a `homelab/runbooks/`. Això permet:</p>
+<ul>
+<li><strong>Versionat</strong>: cada canvi queda registrat.</li>
+<li><strong>Col·laboració</strong>: altres poden millorar-los.</li>
+<li><strong>Còpia de seguretat</strong>: estan al núvol.</li>
+<li><strong>Historial</strong>: pots veure com era abans.</li>
+</ul>
+<h2>55.11 Plantilla al repo</h2>
+<p>Crea `homelab/runbooks/TEMPLATE.md`:</p>
+<pre class="code"><code class="language-markdown"># Runbook: [Títol]
+<h2>Símptomes</h2>
+-
+<h2>Diagnòstic</h2>
+1. 
+2.
+<h2>Solució</h2>
+1. 
+2.
+<h2>Verificació</h2>
+<ul>
+<li>[ ] </li>
+<li>[ ] </li>
+</ul>
+<h2>Prevenció</h2>
+-
+<h2>Contactes</h2>
+-
+<h2>Última actualització</h2>
+<ul>
+<li>Data: </li>
+<li>Per: </li>
+<li>Canvis: </code></pre></li>
+</ul>
+<h2>55.12 Com millorar els runbooks</h2>
+<p>Cada vegada que resols un incident:</p>
+<p>1. <strong>Escriu el runbook</strong> si no existeix.
+2. <strong>Actualitza'l</strong> si existeix.
+3. <strong>Prova'l</strong> la propera vegada.
+4. <strong>Comparteix-lo</strong> amb la família/amics si pot ajudar.</p>
+<h2>55.13 Errors habituals</h2>
+<p><strong>Error 1: runbooks massa genèrics</strong>.</p>
+<p>"Si tens un problema, mira els logs" no és un runbook. Ha de tenir comandes específiques.</p>
+<p><strong>Error 2: runbooks desactualitzats</strong>.</p>
+<p>Si canvies el sistema, el runbook queda obsolet. Cal revisar-los periòdicament.</p>
+<p><strong>Error 3: runbooks que ningú llegeix</strong>.</p>
+<p>Guarda'ls on es trobin fàcilment. Referencia'ls a les alertes.</p>
+<p><strong>Error 4: runbooks sense prova</strong>.</p>
+<p>Si no l'has provat, pot ser incorrecte. Prova'l!</p>
+<h2>55.14 Resum</h2>
+<p>Els runbooks són la documentació operativa per excel·lència. Pas a pas, específics, testejats. Es creen quan resols un incident, no pas abans. Al repo del BernatLab, a `homelab/runbooks/`. En el proper capítol veurem com diagnosticar i resoldre problemes quan les coses fallen.</p>
+<h2>55.15 Exercicis pràctics</h2>
+<p>1. Crea l'estructura `~/homelab/runbooks/`.
+2. Escriu 3 runbooks per a incidents que ja has tingut.
+3. Crea un README que indexi tots els runbooks.
+4. Prova un runbook amb una situació simulada.
+5. Enllaça els runbooks a les alertes de Grafana.
+6. Fes commit al repo i comparteix-los.</p>
+<hr>
+<h2 id="56-diagnostic-troubleshooting">Capitol 56 — Diagnòstic i troubleshooting 24/7</h2>
+<p>> <em>"El 80% dels problemes es resolen amb 5 comandes. L'objectiu és saber quines 5."</em></p>
+<h2>56.1 El mètode general de diagnòstic</h2>
+<p>Quan alguna cosa falla, segueix aquest mètode:</p>
+<p>1. <strong>Identifica el problema</strong>: què falla exactament? Què esperaves que passés?
+2. <strong>Recull informació</strong>: què diuen els logs? Quines mètriques? Quins missatges d'error?
+3. <strong>Forma una hipòtesi</strong>: quina és la causa més probable?
+4. <strong>Prova la hipòtesi</strong>: un canvi segur per verificar.
+5. <strong>Si no funciona, torna al pas 2</strong>.
+6. <strong>Si funciona, documenta</strong> (runbook) i comparteix.</p>
+<p>No saltar passos. No entrar en pànic. Mantenir la calma.</p>
+<h2>56.2 Les 10 comandes que salven</h2>
+<p>Quan tot falla, aquestes comandes et donen la informació que necessites:</p>
+<h3>1. `htop` o `top`</h3>
+<p>Veure què consumeix CPU/RAM.</p>
+<pre class="code"><code class="language-bash">htop</code></pre>
+<p>Què buscar:</p>
+<ul>
+<li>Processos consumint molt.</li>
+<li>Molts processos zombi.</li>
+<li>Swap ple.</li>
+</ul>
+<h3>2. `df -h`</h3>
+<p>Veure espai en disc.</p>
+<pre class="code"><code class="language-bash">df -h</code></pre>
+<p>Si una partició està al 100%, és el problema.</p>
+<h3>3. `du -sh /*`</h3>
+<p>Trobar què ocupa espai.</p>
+<pre class="code"><code class="language-bash">du -sh /* | sort -h</code></pre>
+<h3>4. `free -h`</h3>
+<p>Veure memòria.</p>
+<pre class="code"><code class="language-bash">free -h</code></pre>
+<h3>5. `ss -tulnp`</h3>
+<p>Veure quins ports escolten.</p>
+<pre class="code"><code class="language-bash">ss -tulnp</code></pre>
+<h3>6. `journalctl -u servei`</h3>
+<p>Logs d'un servei específic.</p>
+<pre class="code"><code class="language-bash">journalctl -u sshd -n 100</code></pre>
+<h3>7. `docker ps -a`</h3>
+<p>Estat de tots els contenidors.</p>
+<pre class="code"><code class="language-bash">docker ps -a</code></pre>
+<h3>8. `docker logs contenidor`</h3>
+<p>Logs d'un contenidor.</p>
+<pre class="code"><code class="language-bash">docker logs grafana --tail 100</code></pre>
+<h3>9. `tail -f /var/log/syslog`</h3>
+<p>Logs del sistema en temps real.</p>
+<pre class="code"><code class="language-bash">tail -f /var/log/syslog</code></pre>
+<h3>10. `ip addr` o `ip route`</h3>
+<p>Configuració de xarxa.</p>
+<pre class="code"><code class="language-bash">ip addr
+ip route</code></pre>
+<h2>56.3 Problemes comuns i solucions</h2>
+<h3>Problema: contenidor reiniciant-se en bucle</h3>
+<p><strong>Símptoma</strong>: `docker ps` mostra el contenidor com a "Restarting".</p>
+<p><strong>Diagnòstic</strong>:</p>
+<pre class="code"><code class="language-bash">docker logs &lt;contenidor&gt; --tail 50</code></pre>
+<p>Cerca errors. Sovint és un problema de:</p>
+<ul>
+<li>Configuració incorrecta.</li>
+<li>Volum no muntat.</li>
+<li>Dependència no disponible.</li>
+</ul>
+<p><strong>Solució</strong>: corregir l'error i tornar a engegar.</p>
+<h3>Problema: el sistema està lent</h3>
+<p><strong>Diagnòstic</strong>:</p>
+<pre class="code"><code class="language-bash">htop
+iostat -x 1
+free -h</code></pre>
+<p><strong>Causes comunes</strong>:</p>
+<ul>
+<li>Un procés consumint massa CPU.</li>
+<li>Swap ple (RAM insuficient).</li>
+<li>Disc al 100% I/O.</li>
+<li>Xarxa saturada.</li>
+</ul>
+<h3>Problema: "No space left on device"</h3>
+<p><strong>Diagnòstic</strong>:</p>
+<pre class="code"><code class="language-bash">df -h
+du -sh /var/lib/docker  # contenidors
+du -sh /var/log          # logs
+du -sh /tmp              # temporals</code></pre>
+<p><strong>Solució</strong>:</p>
+<pre class="code"><code class="language-bash">docker system prune -a  # netejar Docker
+find /var/log -name &quot;*.gz&quot; -delete</code></pre>
+<h3>Problema: servei inaccessible des de la xarxa</h3>
+<p><strong>Diagnòstic</strong>:</p>
+<pre class="code"><code class="language-bash">ss -tulnp | grep &lt;port&gt;
+curl http://localhost:&lt;port&gt;</code></pre>
+<p>Si local funciona però remot no:</p>
+<pre class="code"><code class="language-bash"># Comprovar Tailscale
+tailscale status
+<h1>Comprovar tallafocs</h1>
+sudo ufw status
+sudo iptables -L -n
+<h1>Comprovar ACLs a Tailscale</code></pre></h1>
+<h3>Problema: errors de permisos</h3>
+<p><strong>Diagnòstic</strong>:</p>
+<pre class="code"><code class="language-bash">ls -la /path/fitxer
+id</code></pre>
+<p><strong>Solució</strong>:</p>
+<pre class="code"><code class="language-bash">sudo chown bernat:bernat /path/fitxer
+sudo chmod 644 /path/fitxer</code></pre>
+<h3>Problema: la Raspberry no respon</h3>
+<p><strong>Diagnòstic</strong>:</p>
+<p>1. Comprovar llum LED: vermell fix = problema d'alimentació.
+2. Comprovar temperatura: si està molt calenta, ventilació.
+3. Provar amb un altre cable d'alimentació.
+4. Connectar monitor + teclat.</p>
+<p>Si cap funciona, és problema de hardware (substituir).</p>
+<h2>56.4 Eines avançades</h2>
+<h3>`strace`</h3>
+<p>Veure què fa exactament un procés:</p>
+<pre class="code"><code class="language-bash">strace -p &lt;PID&gt;</code></pre>
+<p>Útil quan un procés es queda penjat.</p>
+<h3>`tcpdump`</h3>
+<p>Capturar tràfic de xarxa:</p>
+<pre class="code"><code class="language-bash">sudo tcpdump -i any -n port 1883</code></pre>
+<p>Útil per veure si els missatges MQTT arriben.</p>
+<h3>`iotop`</h3>
+<p>Veure I/O de disc per procés:</p>
+<pre class="code"><code class="language-bash">sudo iotop</code></pre>
+<h3>`lsof`</h3>
+<p>Veure fitxers oberts per un procés:</p>
+<pre class="code"><code class="language-bash">sudo lsof -p &lt;PID&gt;</code></pre>
+<h3>`nethogs`</h3>
+<p>Veure tràfic de xarxa per procés:</p>
+<pre class="code"><code class="language-bash">sudo nethogs</code></pre>
+<h2>56.5 Logs útils al BernatLab</h2>
+<ul>
+<li><strong>/var/log/syslog</strong>: sistema general.</li>
+<li><strong>/var/log/auth.log</strong>: SSH, sudo.</li>
+<li><strong>/var/log/kern.log</strong>: kernel.</li>
+<li><strong>/var/log/docker.log</strong>: Docker daemon.</li>
+<li><strong>/var/log/fail2ban.log</strong>: bloquejos.</li>
+<li><strong>/var/lib/docker/volumes/<volum>/_data/</strong>: logs dins de contenidors.</li>
+</ul>
+<h2>56.6 El mètode de les 5 preguntes</h2>
+<p>Quan un problema sembla estrany, fes-te aquestes 5 preguntes:</p>
+<p>1. <strong>Què ha canviat recentment?</strong> Sovint el problema ve d'un canvi.
+2. <strong>Què ha funcionat abans?</strong> La configuració anterior és la base.
+3. <strong>Què és diferent ara?</strong> Comparar l'estat anterior amb l'actual.
+4. <strong>Què passa si ho provo amb dades netes?</strong> Sovint un estat net ho resol.
+5. <strong>Què passaria si fos un altre sistema?</strong> Aïllar el problema.</p>
+<h2>56.7 Errors habituals en el diagnòstic</h2>
+<p><strong>Error 1: canviar moltes coses alhora</strong>.</p>
+<p>Si canvies 3 coses i es resol, no saps què ha funcionat. Canvia una cosa a la vegada.</p>
+<p><strong>Error 2: no documentar el que ja has provat</strong>.</p>
+<p>Si proves 5 coses sense anotar, perds el temps repetint. Documenta cada intent.</p>
+<p><strong>Error 3: assumir la causa massa ràpid</strong>.</p>
+<p>"És la memòria, segur". No, comprova-ho.</p>
+<p><strong>Error 4: Google com a primera opció</strong>.</p>
+<p>Si no entens el problema, no busquis solucions. Enten-lo primer.</p>
+<p><strong>Error 5: ignorar els logs</strong>.</p>
+<p>Els logs tenen la resposta. Llegeix-los abans de fer res.</p>
+<h2>56.8 Quan demanar ajuda</h2>
+<p>Si has provat tot i no trobes la solució, és hora de demanar ajuda. Però prepara't bé:</p>
+<p>1. <strong>Descriu el problema</strong> amb detall.
+2. <strong>Mostra els logs</strong> rellevants.
+3. <strong>Mostra què has provat</strong>.
+4. <strong>Mostra la configuració</strong> (sense secrets).
+5. <strong>Dona context</strong>: quan va començar, què ha canviat.</p>
+<p>Com pitjor estigui la descripció, pitjor serà l'ajuda que rebràs.</p>
+<h2>56.9 Post-mortem</h2>
+<p>Un cop resolt l'incident, escriu un <strong>post-mortem</strong> (un informe事后分析):</p>
+<ul>
+<li><strong>Què ha passat</strong>: descripció.</li>
+<li><strong>Quin impacte ha tingut</strong>: temps de caiguda, dades perdudes.</li>
+<li><strong>Quina ha estat la causa arrel</strong>: per què ha passat.</li>
+<li><strong>Què hem fet per resoldre</strong>: com ho hem arreglat.</li>
+<li><strong>Què farem per prevenir</strong>: quins canvis apliquem.</li>
+</ul>
+<p>Exemple:</p>
+<pre class="code"><code class="language-markdown"># Post-mortem: Tall de servei del 2026-07-05
+<h2>Què ha passat</h2>
+El Grafana ha deixat de respondre durant 45 minuts entre les 14:00 i les 14:45.
+<h2>Impacte</h2>
+<ul>
+<li>Usuaris no han pogut veure gràfiques.</li>
+<li>0 dades perdudes (les dades estaven a InfluxDB, no a Grafana).</li>
+</ul>
+<h2>Causa arrel</h2>
+El contenidor Grafana ha omplert la partició /var. La causa: logs antics no rotats.
+<h2>Solució aplicada</h2>
+<ul>
+<li>Netejar logs antics.</li>
+<li>Afegir logrotate.</li>
+<li>Configurar alerta quan /var &gt; 80%.</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>Configurar `logrotate` per a Grafana.</li>
+<li>Moure els logs de Grafana a un volum separat.</li>
+<li>Afegir regla Prometheus: alerta si /var &gt; 80%.</code></pre></li>
+</ul>
+<h2>56.10 Documentació permanent</h2>
+<p>Un bon diagnòstic es converteix en:</p>
+<ul>
+<li><strong>Runbook</strong> (Cap 55): si el problema es repeteix.</li>
+<li><strong>Post-mortem</strong> (a `homelab/postmortems/`): si és greu.</li>
+<li><strong>Actualització del README</strong>: si la solució canvia la configuració.</li>
+<li><strong>Alerta nova</strong>: si vols prevenir-ho en el futur.</li>
+</ul>
+<h2>56.11 Resum</h2>
+<p>El diagnòstic és una habilitat que es millora amb la pràctica. Les 10 comandes bàsiques, el mètode general, els logs, i la calma són les eines. Documenta cada incident per aprendre'n. Al proper capítol veurem quan cal pujar de hardware i com planificar-ho.</p>
+<h2>56.12 Exercicis pràctics</h2>
+<p>1. Memoritza les 10 comandes bàsiques.
+2. Prova cadascuna a la teva Raspberry.
+3. Crea un "diccionari de problemes" amb els incidents que has tingut.
+4. Escriu el teu primer post-mortem.
+5. Configura `logrotate` per als serveis que ho necessitin.
+6. Documenta al README les eines de diagnòstic instal·lades.</p>
+<hr>
+<h2 id="57-pujar-hardware">Capitol 57 — Quan cal pujar de hardware: escenaris reals</h2>
+<p>> <em>"Creixer és sa. Estancar-se no. Però créixer bé requereix planificació."</em></p>
+<h2>57.1 Senyals que cal pujar de hardware</h2>
+<p>Alguns senyals clars que la Raspberry ja no és prou:</p>
+<ul>
+<li><strong>CPU constantment al 80-90%</strong> tot i no tenir pics.</li>
+<li><strong>Swap massa ple</strong> sovint.</li>
+<li><strong>Disc ple</strong> malgrat neteja regular.</li>
+<li><strong>Timeouts</strong> a serveis web.</li>
+<li><strong>Contenidors que es reinicien</strong> per manca de memòria.</li>
+<li><strong>Còpies lentes</strong> que abans eren ràpides.</li>
+<li><strong>Múltiples usuaris concurrents</strong> i el sistema no aguanta.</li>
+</ul>
+<h2>57.2 Quan és bona idea i quan no</h2>
+<p><strong>Bona idea pujar</strong>:</p>
+<ul>
+<li>El sistema té <strong>un paper real</strong> (no és un experiment).</li>
+<li>La caiguda del servidor <strong>té impacte</strong> (pèrdua de dades, temps).</li>
+<li>Estàs <strong>gastant més temps</strong> mantenint el sistema que gaudint-lo.</li>
+<li>Has <strong>assolit els límits</strong> del hardware actual.</li>
+</ul>
+<p><strong>No és bona idea pujar</strong>:</p>
+<ul>
+<li>Per culpa d'<strong>una mala configuració</strong> que es pot millorar.</li>
+<li>Per <strong>un sol servei</strong> puntual que es pot optimitzar.</li>
+<li>Per <strong>moda</strong> o per tenir "el millor hardware".</li>
+<li>Sense <strong>haver entès per què</strong> el sistema actual no és prou.</li>
+</ul>
+<h2>57.3 Escenaris de pujada</h2>
+<h3>Escenari 1: més RAM</h3>
+<p>Si la Raspberry té 4 GB i te'n calen 8, la solució és comprar una Raspberry amb 8 GB. Però:</p>
+<ul>
+<li>8 GB és el màxim de la Raspberry 4.</li>
+<li>Si necessites més, cal canviar de plataforma.</li>
+</ul>
+<p>Alternativa: <strong>afegir swap a una SSD</strong>:</p>
+<pre class="code"><code class="language-bash"># Crear swap a una SSD
+sudo fallocate -l 8G /mnt/ssd/swapfile
+sudo chmod 600 /mnt/ssd/swapfile
+sudo mkswap /mnt/ssd/swapfile
+sudo swapon /mnt/ssd/swapfile</code></pre>
+<p>Això et dóna 8 GB extra de swap. No és tan ràpid com RAM, però ajuda.</p>
+<h3>Escenari 2: més emmagatzematge</h3>
+<p>Si la microSD de 64 GB no és prou:</p>
+<p>1. Afegir una <strong>SSD USB</strong> de 256 GB o més.
+2. Moure els volums Docker a la SSD.
+3. Usar la microSD només per al sistema.</p>
+<p>Exemple de configuració a `docker-compose.yml`:</p>
+<pre class="code"><code class="language-yaml">volumes:
+  grafana-data:
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/ssd/grafana</code></pre>
+<h3>Escenari 3: més potència de CPU</h3>
+<p>Si la CPU no és prou, les opcions són:</p>
+<ul>
+<li><strong>Raspberry Pi 5</strong>: 2-3x més potent que la 4.</li>
+<li><strong>Mini PC amb Intel N100</strong>: 4-8x més potent.</li>
+<li><strong>Servidor dedicat</strong>: car però professional.</li>
+</ul>
+<h3>Escenari 4: alta disponibilitat</h3>
+<p>Si vols que el sistema no caigui mai:</p>
+<ul>
+<li><strong>Dues Raspberry</strong> en failover (una activa, una standby).</li>
+<li><strong>Raspberry + cloud</strong> (Raspberry activa, cloud com a backup).</li>
+<li><strong>Cluster de 3 Raspberry</strong> amb replicació.</li>
+</ul>
+<h2>57.4 Comparació de plataformes</h2>
+<p>| Plataforma | Preu | RAM | CPU | Consum | Per a què |
+|---|---|---|---|---|---|
+| Raspberry Pi 4 (4GB) | 50 € | 4 GB | 4x ARM 1.8 GHz | 5W | Aprenentatge, projectes petits |
+| Raspberry Pi 4 (8GB) | 75 € | 8 GB | 4x ARM 1.8 GHz | 5W | BernatLab actual |
+| Raspberry Pi 5 (8GB) | 90 € | 8 GB | 4x ARM 2.4 GHz | 8W | Més serveis, Més rapidesa |
+| Mini PC N100 | 200-300 € | 16 GB | 4x x86 3.4 GHz | 15-25W | Homelab seriós |
+| Servidor dedicat | 500+ € | 32 GB+ | Xeon / EPYC | 100-300W | Empresa, virtualització |
+| NAS Synology | 300+ € | 4-8 GB | ARM/x86 | 15-40W | Emmagatzematge + serveis |
+| VPS al núvol | 5-50 €/mes | 1-16 GB | Variable | - | Sempre disponible, sense hardware |</p>
+<h2>57.5 Migrar a una Raspberry Pi 5</h2>
+<p>Quan la 4 no és prou, la 5 és el pas natural:</p>
+<p><strong>Avantatges</strong>:
+<ul>
+<li>CPU 2-3x més ràpida.</li>
+<li>Suport oficial per a SSD NVMe.</li>
+<li>Més ample de banda USB.</li>
+<li>Més memòria cau.</li>
+</ul></p>
+<p><strong>Inconvenients</strong>:
+<ul>
+<li>Requereix font d'alimentació USB-C de 27W.</li>
+<li>Alguns contenidors poden tenir problemes amb la nova arquitectura.</li>
+<li>És més cara.</li>
+</ul></p>
+<p><strong>Procés de migració</strong>:</p>
+<p>1. Comprar la Pi 5.
+2. Flashejar la microSD amb Raspberry Pi OS.
+3. Instal·lar Docker, Tailscale, etc.
+4. Restaurar la còpia de restic.
+5. Reactivar els serveis.
+6. Verificar que tot funciona.
+7. Apagar la Pi 4 i posar-la com a backup.</p>
+<h2>57.6 Migrar a un Mini PC</h2>
+<p>Si la Raspberry ja no és prou, un mini PC és el pas següent:</p>
+<p><strong>Avantatges</strong>:
+<ul>
+<li>Molta més potència.</li>
+<li>Suport per a molta RAM (fins a 64 GB).</li>
+<li>Suport per a múltiples discs.</li>
+<li>Compatibilitat amb programari x86 (més ampli).</li>
+</ul></p>
+<p><strong>Inconvenients</strong>:
+<ul>
+<li>Més car.</li>
+<li>Consumeix més energia.</li>
+<li>Més soroll (ventiladors).</li>
+</ul></p>
+<p><strong>Models recomanats</strong>:
+<ul>
+<li>Beelink Mini S12 (N100): 200 €, 16 GB RAM, 500 GB SSD.</li>
+<li>Intel NUC: 300-500 €.</li>
+<li>Lenovo ThinkCentre Tiny: 100-200 € (recondicionat).</li>
+</ul></p>
+<h2>57.7 Migrar al núvol</h2>
+<p>Per a alguns casos, el núvol és la millor opció:</p>
+<p><strong>Avantatges</strong>:
+<ul>
+<li>Sense manteniment de hardware.</li>
+<li>Escalable.</li>
+<li>Accessible des de qualsevol lloc.</li>
+<li>Còpies automàtiques.</li>
+</ul></p>
+<p><strong>Inconvenients</strong>:
+<ul>
+<li>Cost mensual.</li>
+<li>Dades fora de casa (privadesa).</li>
+<li>Depèn d'un proveïdor.</li>
+</ul></p>
+<p><strong>Quan té sentit</strong>:
+<ul>
+<li>Quan vols alta disponibilitat.</li>
+<li>Quan no vols gestionar hardware.</li>
+<li>Quan el sistema és estrictament professional.</li>
+</ul></p>
+<p><strong>Proveïdors</strong>:
+<ul>
+<li>Hetzner: 4 €/mes per un VPS bàsic.</li>
+<li>DigitalOcean: 6 $/mes.</li>
+<li>AWS Lightsail: 5 $/mes.</li>
+<li>Oracle Cloud: capa gratuïta generosa.</li>
+</ul></p>
+<h2>57.8 Estratègies híbrides</h2>
+<p>Pujar no és tot-o-res. Una estratègia híbrida:</p>
+<ul>
+<li><strong>Raspberry a casa</strong>: serveis crítics, privats, dades locals.</li>
+<li><strong>VPS al núvol</strong>: serveis públics, web, bot de Telegram.</li>
+<li><strong>Sincronització</strong>: Tailscale uneix les dues parts.</li>
+<li><strong>Còpies</strong>: el núvol rep còpies xifrades de la Raspberry.</li>
+</ul>
+<p>Això et dona el millor dels dos mons.</p>
+<h2>57.9 Com planificar una migració</h2>
+<p>1. <strong>Avaluar el sistema actual</strong>:
+<ul>
+<li>Què funciona bé?</li>
+<li>Què no funciona?</li>
+<li>Quines són les limitacions?</li>
+</ul></p>
+<p>2. <strong>Definir els requisits</strong>:
+<ul>
+<li>Quanta RAM necessito?</li>
+<li>Quina CPU?</li>
+<li>Quin emmagatzematge?</li>
+</ul></p>
+<p>3. <strong>Escollir la plataforma</strong>:
+<ul>
+<li>Dins del pressupost?</li>
+<li>Compleix els requisits?</li>
+<li>Té el suport de la comunitat?</li>
+</ul></p>
+<p>4. <strong>Preparar la migració</strong>:
+<ul>
+<li>Fer còpia completa.</li>
+<li>Documentar l'estat actual.</li>
+<li>Provar en un entorn separat.</li>
+</ul></p>
+<p>5. <strong>Migrar</strong>:
+<ul>
+<li>En una finestra de manteniment.</li>
+<li>Pas a pas.</li>
+<li>Verificant cada pas.</li>
+</ul></p>
+<p>6. <strong>Verificar</strong>:
+<ul>
+<li>Tots els serveis funcionen?</li>
+<li>Les dades estan intactes?</li>
+<li>El rendiment és l'esperat?</li>
+</ul></p>
+<p>7. <strong>Tancar l'antic sistema</strong>:
+<ul>
+<li>Mantenir durant 1-2 setmanes com a backup.</li>
+<li>Apagar quan tot està estable.</li>
+</ul></p>
+<h2>57.10 Cost total de propietat</h2>
+<p>No miris només el preu d'entrada. Considera:</p>
+<ul>
+<li><strong>Hardware</strong>: preu del dispositiu.</li>
+<li><strong>Energia</strong>: cost anual d'electricitat.</li>
+<li><strong>Manteniment</strong>: temps dedicat.</li>
+<li><strong>Substitució</strong>: cada 5-7 anys.</li>
+<li><strong>Còpies</strong>: emmagatzematge extra al núvol.</li>
+<li><strong>Domini i DNS</strong>: 10-15 €/any.</li>
+</ul>
+<p>Exemple:</p>
+<ul>
+<li>Raspberry 4 4GB: 50 € + 5W × 24h × 365 × 0,15 €/kWh = 6,57 €/any.</li>
+<li>Mini PC: 250 € + 20W × 24h × 365 × 0,15 €/kWh = 26,28 €/any.</li>
+<li>VPS: 60 €/any.</li>
+</ul>
+<p>A 5 anys, el mini PC costa 380 €, el VPS 300 €, la Raspberry 83 € + el teu temps.</p>
+<h2>57.11 Quan NO pujar</h2>
+<p>De vegades, la solució no és pujar de hardware:</p>
+<ul>
+<li><strong>Millor la configuració</strong>: sovint es pot optimitzar.</li>
+<li><strong>Reduir serveis</strong>: menys serveis = menys recursos.</li>
+<li><strong>Moure al núvol</strong>: pot ser més barat.</li>
+<li><strong>Acceptar els límits</strong>: si el sistema funciona per al que el necessites, està bé.</li>
+</ul>
+<h2>57.12 Hardware específic recomanat</h2>
+<p>Per al BernatLab actual i futur:</p>
+<ul>
+<li><strong>SSD USB 3.0 de 500 GB</strong> (Kingston A400, Samsung T7): ~50 €.</li>
+<li><strong>MicroSD A2 de 64 GB</strong> (SanDisk Extreme): ~15 €.</li>
+<li><strong>Font d'alimentació oficial</strong> de Raspberry: ~10 €.</li>
+<li><strong>Carcassa amb ventilador</strong>: ~10-20 €.</li>
+<li><strong>Cables Ethernet Cat 6</strong>: ~5-10 €/u.</li>
+</ul>
+<p>Si escales:</p>
+<ul>
+<li><strong>Raspberry Pi 5 8 GB</strong>: ~90 €.</li>
+<li><strong>Mini PC Intel N100</strong>: ~250-350 €.</li>
+<li><strong>SSD NVMe 1 TB</strong>: ~80 €.</li>
+</ul>
+<h2>57.13 Cicle de vida del hardware</h2>
+<ul>
+<li><strong>Raspberry Pi 4</strong>: llançada 2019, suportada fins ~2030.</li>
+<li><strong>Raspberry Pi 5</strong>: llançada 2023, suportada fins ~2034.</li>
+<li><strong>Mini PC</strong>: depèn del model, 5-7 anys.</li>
+<li><strong>Servidors dedicats</strong>: 5-10 anys amb manteniment.</li>
+<li><strong>VPS</strong>: sense vida física, però el proveïdor pot tancar.</li>
+</ul>
+<h2>57.14 On posar el hardware</h2>
+<p>Si canvies a un mini PC:</p>
+<ul>
+<li><strong>Habitació amb temperatura estable</strong> (no golfes ni garatge).</li>
+<li><strong>Ventilació adequada</strong>.</li>
+<li><strong>Protecció contra pols</strong>.</li>
+<li><strong>UPS</strong> (Sistema d'alimentació ininterrompuda) per a talls de llum.</li>
+<li><strong>Protecció contra sobretensions</strong> (regleta amb protecció).</li>
+</ul>
+<p>Un mini PC pot ser al costat del router, a la sala d'estar, o al despatx. Silenciós i petit.</p>
+<h2>57.15 Resum</h2>
+<p>Pujar de hardware és una decisió que s'ha de prendre amb temps. Avalua els requisits, planifica la migració, i no tinguis por de mantenir la Raspberry més temps del que toca. Al proper mòdul veurem com implementar el domini propi i la web.</p>
+<h2>57.16 Exercicis pràctics</h2>
+<p>1. Monitora el sistema actual durant una setmana. Identifica colls d'ampolla.
+2. Calcula el cost total de propietat de la teva Raspberry.
+3. Escriu un document d'avaluació: "Quan puc necessitar pujar de hardware?"
+4. Compara 2-3 opcions de hardware per al futur.
+5. Documenta un pla de migració pas a pas.
+6. Fes una llista de "què emportar" si canvies de plataforma.
+7. Estableix una data límit per revisar el rendiment.</p>
+<hr>
+</main>
+</div>
+<footer>
+    BernatLab Wiki · Generada automàticament a partir dels capítols Markdown.
+</footer>
+</body>
+</html>

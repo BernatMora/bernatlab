@@ -92,16 +92,37 @@ CHAPTERS_M3 = [
 ]
 
 CHAPTERS_M4 = [
-    ("33-que-es-ia-local.md", "Capítol 33 — Què és la IA local i per què a Hort Osona"),
-    ("34-ollama-instalacio.md", "Capítol 34 — Ollama al Mac: instal·lació i primera conversa"),
-    ("35-escollir-model.md", "Capítol 35 — Com triar el millor model"),
-    ("36-embeddings-vectorstore.md", "Capítol 36 — Embeddings i bases vectorials"),
-    ("37-rag-pas-a-pas.md", "Capítol 37 — RAG pas a pas amb les 76 fitxes d'hort"),
-    ("38-client-web.md", "Capítol 38 — Client web per parlar amb l'assistent"),
-    ("39-api-ollama.md", "Capítol 39 — API d'Ollama: integrar la IA amb el BernatLab"),
-    ("40-veu.md", "Capítol 40 — Veu: parlar a l'assistent en lloc d'escriure"),
-    ("41-privadesa.md", "Capítol 41 — Privadesa i bones pràctiques"),
+    ("33-que-es-ia-local.md", "Capitol 33 — Què és la IA local i per què a Hort Osona"),
+    ("34-ollama-instalacio.md", "Capitol 34 — Ollama al Mac: instal·lació i primera conversa"),
+    ("35-escollir-model.md", "Capitol 35 — Com triar el millor model: mida, velocitat, qualitat, català"),
+    ("36-embeddings-vectorstore.md", "Capitol 36 — Embeddings i bases vectorials"),
+    ("37-rag-pas-a-pas.md", "Capitol 37 — RAG pas a pas: carregar les 76 fitxes d'hort a Ollama"),
+    ("38-client-web.md", "Capitol 38 — Client web"),
+    ("39-api-ollama.md", "Capitol 39 — API d'Ollama: integrar la IA amb el BernatLab"),
+    ("40-veu.md", "Capitol 40 — Veu: parlar a l'assistent"),
+    ("41-privadesa.md", "Capitol 41 — Privadesa i bones pràctiques"),
     ("42-casos-us.md", "Capitol 42 — 10 consultes reals a l'assistent Hort Osona"),
+]
+
+CHAPTERS_M5 = [
+    ("43-filosofia-seguretat.md", "Capitol 43 — Filosofia de seguretat al BernatLab"),
+    ("44-tailscale-acls.md", "Capitol 44 — Tailscale ACLs i segmentació de xarxa"),
+    ("45-copies-seguretat.md", "Capitol 45 — Còpies de seguretat amb restic i BorgBackup"),
+    ("46-2fa-secrets.md", "Capitol 46 — 2FA, secrets i gestió de claus"),
+    ("47-fail2ban-tallafocs.md", "Capitol 47 — fail2ban, rate limiting i tallafocs aplicat"),
+    ("48-hardening-so.md", "Capitol 48 — Hardening del sistema operatiu"),
+    ("49-auditoria-logs.md", "Capitol 49 — Auditoria, logs de seguretat i resposta a incidents"),
+    ("50-drp-recuperacio.md", "Capitol 50 — DRP: pla de recuperació davant desastres"),
+]
+
+CHAPTERS_M6 = [
+    ("51-filosofia-operativa.md", "Capitol 51 — Filosofia operativa: del DIY al servei 24/7"),
+    ("52-monitoratge-grafana.md", "Capitol 52 — Monitoratge avançat amb Grafana i Prometheus"),
+    ("53-alertes-telegram.md", "Capitol 53 — Alertes intel·ligents amb Grafana i Telegram"),
+    ("54-scripts-manteniment.md", "Capitol 54 — Scripts de manteniment i actualitzacions"),
+    ("55-runbooks.md", "Capitol 55 — Runbooks: procediments pas a pas"),
+    ("56-diagnostic-troubleshooting.md", "Capitol 56 — Diagnòstic i troubleshooting 24/7"),
+    ("57-pujar-hardware.md", "Capitol 57 — Quan cal pujar de hardware: escenaris reals"),
 ]
 
 # Mòdul actiu per defecte. Es pot canviar amb --module {1|2|both}
@@ -997,7 +1018,7 @@ def main():
     module = DEFAULT_MODULE
     if len(sys.argv) > 1:
         module = sys.argv[1]
-        if module not in ("1", "2", "3", "4", "both", "all"):
+        if module not in ("1", "2", "3", "4", "5", "6", "both", "all"):
                 print(f"ERROR: --module ha de ser 1, 2, 3, 4, both o all (rebut: {module})")
                 sys.exit(1)
 
@@ -1024,6 +1045,18 @@ def main():
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_4.docx"
         build_pdf(CHAPTERS_M4, out_pdf, "Mòdul 4", "IA local amb Ollama: RAG, veu i privadesa")
         build_docx(CHAPTERS_M4, out_docx, "Mòdul 4", "IA local amb Ollama: RAG, veu i privadesa")
+
+    if module in ("5", "all"):
+        out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_5.pdf"
+        out_docx = ROOT / "output" / "BernatLab_Manual_Modul_5.docx"
+        build_pdf(CHAPTERS_M5, out_pdf, "Mòdul 5", "Seguretat i còpies de seguretat")
+        build_docx(CHAPTERS_M5, out_docx, "Mòdul 5", "Seguretat i còpies de seguretat")
+
+    if module in ("6", "all"):
+        out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_6.pdf"
+        out_docx = ROOT / "output" / "BernatLab_Manual_Modul_6.docx"
+        build_pdf(CHAPTERS_M6, out_pdf, "Mòdul 6", "Operativa 24/7, monitoratge i manteniment")
+        build_docx(CHAPTERS_M6, out_docx, "Mòdul 6", "Operativa 24/7, monitoratge i manteniment")
 
     print("[fet] Generació completada.")
 
