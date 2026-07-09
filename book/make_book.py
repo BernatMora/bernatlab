@@ -91,6 +91,19 @@ CHAPTERS_M3 = [
     ("32-proves-camp.md", "Capitol 32 — Proves de camp, cobertura i resolució de problemes"),
 ]
 
+CHAPTERS_M4 = [
+    ("33-que-es-ia-local.md", "Capítol 33 — Què és la IA local i per què a Hort Osona"),
+    ("34-ollama-instalacio.md", "Capítol 34 — Ollama al Mac: instal·lació i primera conversa"),
+    ("35-escollir-model.md", "Capítol 35 — Com triar el millor model"),
+    ("36-embeddings-vectorstore.md", "Capítol 36 — Embeddings i bases vectorials"),
+    ("37-rag-pas-a-pas.md", "Capítol 37 — RAG pas a pas amb les 76 fitxes d'hort"),
+    ("38-client-web.md", "Capítol 38 — Client web per parlar amb l'assistent"),
+    ("39-api-ollama.md", "Capítol 39 — API d'Ollama: integrar la IA amb el BernatLab"),
+    ("40-veu.md", "Capítol 40 — Veu: parlar a l'assistent en lloc d'escriure"),
+    ("41-privadesa.md", "Capítol 41 — Privadesa i bones pràctiques"),
+    ("42-casos-us.md", "Capitol 42 — 10 consultes reals a l'assistent Hort Osona"),
+]
+
 # Mòdul actiu per defecte. Es pot canviar amb --module {1|2|both}
 DEFAULT_MODULE = "both"
 
@@ -984,9 +997,9 @@ def main():
     module = DEFAULT_MODULE
     if len(sys.argv) > 1:
         module = sys.argv[1]
-        if module not in ("1", "2", "3", "both", "all"):
-            print(f"ERROR: --module ha de ser 1, 2, 3, both o all (rebut: {module})")
-            sys.exit(1)
+        if module not in ("1", "2", "3", "4", "both", "all"):
+                print(f"ERROR: --module ha de ser 1, 2, 3, 4, both o all (rebut: {module})")
+                sys.exit(1)
 
     if module in ("1", "both", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_1.pdf"
@@ -1005,6 +1018,12 @@ def main():
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_3.docx"
         build_pdf(CHAPTERS_M3, out_pdf, "Mòdul 3", "LoRa, sensors remots i xarxa de camp")
         build_docx(CHAPTERS_M3, out_docx, "Mòdul 3", "LoRa, sensors remots i xarxa de camp")
+
+    if module in ("4", "all"):
+        out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_4.pdf"
+        out_docx = ROOT / "output" / "BernatLab_Manual_Modul_4.docx"
+        build_pdf(CHAPTERS_M4, out_pdf, "Mòdul 4", "IA local amb Ollama: RAG, veu i privadesa")
+        build_docx(CHAPTERS_M4, out_docx, "Mòdul 4", "IA local amb Ollama: RAG, veu i privadesa")
 
     print("[fet] Generació completada.")
 

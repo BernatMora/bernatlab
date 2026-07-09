@@ -81,7 +81,17 @@ GLOSSARY = {
     "HTTPS": "HTTP sobre TLS, la versió segura del web.",
     "reverse proxy": "Servidor que rep peticions i les redirigeix a altres servidors.",
     "firewall": "Sistema que filtra el tràfic de xarxa segons regles.",
-    "Web": "Veure World Wide Web (WWW).",
+    "Ollama": "Aplicació de codi obert per executar models d'IA localment al teu Mac o PC.",
+    "LLM": "Large Language Model, model de llengua gran entrenat per generar text.",
+    "RAG": "Retrieval-Augmented Generation, tècnica que combina cerca de documents amb generació de text.",
+    "embedding": "Representació numèrica d'un text que captura el seu significat.",
+    "vectorstore": "Base de dades optimitzada per emmagatzemar i cercar vectors.",
+    "ChromaDB": "Base vectorial de codi obert, simple d'utilitzar, ideal per a homelabs.",
+    "FAISS": "Llibreria de Facebook per a cerca vectorial ràpida.",
+    "Whisper": "Model d'OpenAI per transcriure àudio a text, multilingüe i en local.",
+    "Piper": "Sistema de síntesi de veu local, lleuger i multilingüe.",
+    "FastAPI": "Framework Python modern per construir APIs HTTP, ràpid i amb documentació automàtica.",
+    "Quantització": "Tècnica per reduir la mida d'un model compriments els pesos en menys bits.",
 }
 
 
@@ -378,11 +388,12 @@ def main():
     (WIKI_DIR / "css" / "wiki.css").write_text(CSS, encoding="utf-8")
 
     # Definir mòduls
-    from make_book import CHAPTERS_M1, CHAPTERS_M2, CHAPTERS_M3
+    from make_book import CHAPTERS_M1, CHAPTERS_M2, CHAPTERS_M3, CHAPTERS_M4
     modules = [
         ("Mòdul 1", "modul-1.html", "Fonaments, contenidors i pràctica", CHAPTERS_M1),
         ("Mòdul 2", "modul-2.html", "Sensors, dades i visualització", CHAPTERS_M2),
         ("Mòdul 3", "modul-3.html", "LoRa, sensors remots i xarxa de camp", CHAPTERS_M3),
+        ("Mòdul 4", "modul-4.html", "IA local amb Ollama: RAG, veu i privadesa", CHAPTERS_M4),
     ]
     all_links = {label: fname for label, fname, _, _ in modules}
 

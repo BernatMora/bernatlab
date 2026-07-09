@@ -1,0 +1,2672 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Mòdul 4 — BernatLab Wiki</title>
+    <link rel="stylesheet" href="css/wiki.css">
+</head>
+<body>
+<div class="layout">
+<nav>
+<h2>BernatLab</h2>
+<p style="color: #888; font-size: 0.9em;">Wiki del manual tècnic</p>
+<a href="modul-1.html">Mòdul 1</a>
+<a href="modul-2.html">Mòdul 2</a>
+<a href="modul-3.html">Mòdul 3</a>
+<a href="modul-4.html">Mòdul 4</a>
+<h2>Capítols</h2>
+<a href="#33-que-es-ia-local"><span class="toc-num">33</span>Capítol 33 — Què és la IA local i per què a Hort Osona</a>
+<a href="#34-ollama-instalacio"><span class="toc-num">34</span>Capítol 34 — Ollama al Mac: instal·lació i primera conversa</a>
+<a href="#35-escollir-model"><span class="toc-num">35</span>Capítol 35 — Com triar el millor model</a>
+<a href="#36-embeddings-vectorstore"><span class="toc-num">36</span>Capítol 36 — Embeddings i bases vectorials</a>
+<a href="#37-rag-pas-a-pas"><span class="toc-num">37</span>Capítol 37 — RAG pas a pas amb les 76 fitxes d'hort</a>
+<a href="#38-client-web"><span class="toc-num">38</span>Capítol 38 — Client web per parlar amb l'assistent</a>
+<a href="#39-api-ollama"><span class="toc-num">39</span>Capítol 39 — API d'Ollama: integrar la IA amb el BernatLab</a>
+<a href="#40-veu"><span class="toc-num">40</span>Capítol 40 — Veu: parlar a l'assistent en lloc d'escriure</a>
+<a href="#41-privadesa"><span class="toc-num">41</span>Capítol 41 — Privadesa i bones pràctiques</a>
+<a href="#42-casos-us"><span class="toc-num">42</span>Capitol 42 — 10 consultes reals a l'assistent Hort Osona</a>
+</nav>
+<main>
+<h1>Mòdul 4</h1>
+<p><em>IA local amb Ollama: RAG, veu i privadesa</em></p>
+<hr>
+<h2 id="33-que-es-ia-local">Capítol 33 — Què és la IA local i per què a Hort Osona</h2>
+<p>> <em>"L'any 2026, tenir un assistent intel·ligent a casa ja no és qüestió d'enviar les teves dades a una empresa de Califòrnia. Pots tenir el cervell al teu Mac i la saviesa al teu hort."</em></p>
+<h2>33.1 Què és la IA local</h2>
+<p><strong>IA local</strong> (també anomenada <strong>IA on-premise</strong> o <strong>self-hosted AI</strong>) és executar models d'intel·ligència artificial al teu propi ordinador, sense enviar res al núvol. Quan fas una pregunta a ChatGPT, el text viatja a un servidor d'OpenAI, es processa allà, i torna la resposta. Amb IA local, tot el procés passa dins la teva màquina.</p>
+<p>Això és possible gràcies a dues coses:</p>
+<p>1. <strong>Models petits però capaços</strong>. Fa tres anys, per tenir un model útil calia un servidor amb 100 GB de RAM. Avui, n'hi ha prou amb un MacBook amb 16 GB per fer córrer un model que escriu en català, raona sobre text, i segueix instruccions complexes.</p>
+<p>2. <strong>Eines com Ollama</strong>. Ollama és una aplicació que descarrega models, els posa en marxa amb una sola comanda, i exposa una API local compatible amb la d'OpenAI. Tu li dius `ollama run gemma3:12b` i tens un assistent a la terminal.</p>
+<h2>33.2 Diferència entre IA al núvol i IA local</h2>
+<p>| Aspecte | IA al núvol (ChatGPT, Claude) | IA local (Ollama) |
+|---|---|---|
+| On es processa | Servidors de l'empresa | El teu Mac/RPi |
+| Privadesa | Les dades surten del teu ordinador | Tot es queda a casa |
+| Cost | Subscripció mensual (~20 €/mes) | Gratuït, després de comprar el hardware |
+| Velocitat | Ràpida (cloud potent) | Depèn del model i el hardware |
+| Català | Molt bo | Variable, depèn del model |
+| Disponibilitat | Si tens Internet | Funciona offline |
+| Personalització | Limitada | Pots entrenar amb les teves dades |</p>
+<p>Per a Hort Osona, <strong>la IA local és ideal</strong> perquè:</p>
+<ul>
+<li>Les teves 76 fitxes de cultius, 30+ guies, i el coneixement de l'hort no surten de casa.</li>
+<li>Pots preguntar coses específiques del teu terreny, varietats locals, el clima d'Osona.</li>
+<li>No pagues subscripció.</li>
+<li>Funciona encara que TallCable o el router estiguin caiguts.</li>
+</ul>
+<h2>33.3 Què pots fer amb IA local a Hort Osona</h2>
+<p>Aquestes són les aplicacions reals que veurem al llarg del mòdul:</p>
+<p>1. <strong>Assistent hort Osona</strong>. Li preguntes en català: "Quan he de sembrar les carbasses a la zona d'Osona?" Et contesta basant-se en les 76 fitxes i el calendari lunar d'Osona.</p>
+<p>2. <strong>Resum de documents</strong>. Tens un PDF de 50 pàgines sobre compostatge. Li dius "Fes-me'n un resum d'una pàgina" i te'l fa.</p>
+<p>3. <strong>Cercar informació</strong>. Tens 30+ guies. En lloc de cercar per paraules clau, li preguntes "Què he de fer si el tomàquet té míldiu?" i troba els paràgrafs rellevants.</p>
+<p>4. <strong>Generar textos</strong>. Necessites un correu al veí per demanar permís d'ampliar l'hort? Li dius "Escriu un correu amable" i te l'escriu.</p>
+<p>5. <strong>Veu</strong>. Li parles en lloc d'escriure, mentre treballes a l'hort. Et contesta amb veu.</p>
+<p>6. <strong>Integració amb el BernatLab</strong>. La Raspberry consulta Ollama al Mac via Tailscale. Les dades dels sensors LoRa alimenten un assistent que t'avisa: "El sòl del sector 3 està massa sec; rega'l demà al matí."</p>
+<h2>33.4 Què NO és (i què sí)</h2>
+<p><strong>NO és</strong>:</p>
+<ul>
+<li>Una còpia exacta de ChatGPT. Els models locals són menys capaços que GPT-4 o Claude Opus. Són útils però no miracles.</li>
+<li>Màgia. Necessites bons models, bons prompts, i bons documents.</li>
+<li>Privat per defecte. Si copies les dades a un model al núvol, sí que surten. Cal configurar bé.</li>
+</ul>
+<p><strong>SÍ és</strong>:</p>
+<ul>
+<li>Prou bona per a 90% de les tasques quotidianes.</li>
+<li>Molt personalitzable. Pots afinar-la amb els teus documents.</li>
+<li>Transparent. Saps exactament què fa perquè és al teu ordinador.</li>
+<li>Econòmica. Després del hardware, tot és gratis.</li>
+</ul>
+<h2>33.5 Com aprendràs a usar-la</h2>
+<p>El mòdul segueix un camí pràctic:</p>
+<p>1. <strong>Cap 34</strong>: instal·lar Ollama al Mac i fer les primeres preguntes.
+2. <strong>Cap 35</strong>: com triar el model adequat (català, mida, velocitat).
+3. <strong>Cap 36</strong>: com funciona la cerca semàntica (embeddings, vectorstores).
+4. <strong>Cap 37</strong>: muntar un RAG amb les 76 fitxes d'hort.
+5. <strong>Cap 38</strong>: client web per parlar amb l'assistent des del navegador.
+6. <strong>Cap 39</strong>: integrar Ollama amb l'API del BernatLab.
+7. <strong>Cap 40</strong>: afegir-hi veu.
+8. <strong>Cap 41</strong>: privadesa i seguretat.
+9. <strong>Cap 42</strong>: casos d'ús reals, amb 10 consultes que pots fer ja.</p>
+<h2>33.6 El que necessites</h2>
+<p><strong>Hardware mínim</strong>:</p>
+<ul>
+<li>Mac amb Apple Silicon (M1, M2, M3, M4) i 16 GB de RAM. Recomanable 32 GB per a models grans.</li>
+<li>Alternativa: PC amb targeta gràfica NVIDIA (RTX 3060 o superior) amb 8+ GB VRAM.</li>
+<li>Raspberry Pi 4 amb 8 GB: només per a models molt petits (1B-3B paràmetres).</li>
+</ul>
+<p><strong>Software</strong>:</p>
+<ul>
+<li>macOS, Linux o Windows 10/11.</li>
+<li>10-30 GB d'espai lliure per als models.</li>
+<li>Ollama (gratis, descarregable de ollama.com).</li>
+</ul>
+<p><strong>Coneixements previs</strong>:</p>
+<ul>
+<li>Ús bàsic de la terminal (Cap 3 del Mòdul 1).</li>
+<li>Python intermedi (saber instal·lar llibreries, escriure scripts petits).</li>
+</ul>
+<h2>33.7 Privadesa des del primer dia</h2>
+<p>Una regla d'or:</p>
+<p>> <strong>Si una dada és prou sensible per no explicar-la a un desconegut al carrer, no l'enviïs a cap servei d'IA al núvol.</strong></p>
+<p>Això inclou:</p>
+<ul>
+<li>Dades mèdiques.</li>
+<li>Informació financera personal.</li>
+<li>Correspondència privada.</li>
+<li>Dades d'altres persones sense el seu consentiment.</li>
+<li>Secrets comercials o professionals.</li>
+</ul>
+<p>Amb IA local, aquest problema desapareix: la dada no surt del teu ordinador. Però encara cal configurar-ho bé, cosa que veurem al Cap 41.</p>
+<h2>33.8 El futur a Hort Osona</h2>
+<p>A mesura que escrigui més capítols del llibre i tinguis més dades, l'assistent es fa més savi:</p>
+<ul>
+<li><strong>Fitxes de cultius</strong> (76) → sap tot sobre cada varietat.</li>
+<li><strong>Guies</strong> (30+) → sap sobre compost, plagues, associacions, calendari lunar.</li>
+<li><strong>Dades de sensors</strong> (M3) → sap l'estat real del teu hort en temps real.</li>
+<li><strong>Bitàcoles</strong> → aprèn què funciona i què no al teu terreny.</li>
+<li><strong>Correspondència</strong> (si vols) → recorda el que has après amb cada veí.</li>
+</ul>
+<p>D'aquí un any, el teu Hort Osona serà un dels millor documentats de Catalunya, i el teu assistent podrà respondre qualsevol pregunta que li facis sobre el que has après.</p>
+<h2>33.9 Resum</h2>
+<p>La IA local et permet tenir un assistent potent al teu Mac o Raspberry, sense enviar dades al núvol, sense subscripció, i personalitzable amb els teus propis documents. Per a Hort Osona és una eina natural: 76 fitxes de cultius, 30+ guies, dades de sensors, i tot el coneixement que has anat acumulant. En els propers capítols aprendrem a instal·lar Ollama, triar un bon model, i muntar un sistema RAG complet.</p>
+<h2>33.10 Exercicis pràctics</h2>
+<p>1. Comprova quin Mac tens: Apple Icon → About This Mac. Anota el xip (M1/M2/M3/M4) i la RAM.
+2. Comprova l'espai lliure al disc: `df -h` (a la terminal). Hauries de tenir almenys 30 GB.
+3. Comprova la versió de macOS: Apple Icon → About This Mac. Hauries de tenir macOS 13+ per a la millor compatibilitat.
+4. Fes una llista de les 5 preguntes que t'agradaria poder fer al teu assistent hort Osona.
+5. Comprova que tens Python 3.10+: `python3 --version`.
+6. Documenta al README del projecte el teu hardware i les preguntes que tens en ment.</p>
+<p>Paraules clau: <strong>IA local, self-hosted AI, on-premise, Ollama, RAG, embeddings, vectorstore, LLM, model, prompt, privadesa, Apple Silicon, M1, M2, M3, M4, Mac, RAM, 16 GB, 32 GB, català, model de llengua, self-hosted, núvol, subscripció, ChatGPT, Claude, GPT-4, Opus, alternativa, open source, codi obert, transparent</strong>.</p>
+<hr>
+<h2 id="34-ollama-instalacio">Capítol 34 — Ollama al Mac: instal·lació i primera conversa</h2>
+<p>> <em>"Instal·lar Ollama al Mac és com obrir una ampolla de vi: cinc minuts, i ja tens alguna cosa valuosa a la mà."</em></p>
+<h2>34.1 Què és Ollama</h2>
+<p><strong>Ollama</strong> (ollama.com) és una aplicació gratuïta i de codi obert que permet executar models d'IA localment amb una sola comanda. Està disponible per a macOS, Linux i Windows. La va crear Jeffrey Morgan i l'equip d'Ollama, i s'ha convertit en l'estàndard de facto per a IA local.</p>
+<p>Ollama fa quatre coses:</p>
+<p>1. <strong>Descarrega models</strong> d'un registre central (similar a Docker Hub, però per a models).
+2. <strong>Executa models</strong> al teu hardware, optimitzant per a Apple Silicon (Metal), NVIDIA (CUDA) o CPU.
+3. <strong>Serveix una API local</strong> (a `http://localhost:11434`) compatible amb la d'OpenAI.
+4. <strong>Gestiona la memòria</strong> alliberant RAM quan no uses el model.</p>
+<h2>34.2 Instal·lació al Mac</h2>
+<h3>Mètode 1: descarregar de la web (recomanat)</h3>
+<p>1. Vés a https://ollama.com/download/mac.
+2. Descarrega el `.dmg`.
+3. Obre'l i arrossega Ollama a la carpeta Aplicacions.
+4. Executa Ollama. Apareixerà una icona de camell a la barra de menú.</p>
+<h3>Mètode 2: Homebrew (si el tens)</h3>
+<pre class="code"><code class="language-bash">brew install ollama</code></pre>
+<h3>Mètode 3: comanda directa</h3>
+<pre class="code"><code class="language-bash">curl -fsSL https://ollama.com/install.sh | sh</code></pre>
+<p>Aquest mètode funciona a macOS, Linux i WSL. A Windows, descarrega l'instal·lador de la web.</p>
+<h2>34.3 Verificar la instal·lació</h2>
+<p>Obre un terminal i comprova:</p>
+<pre class="code"><code class="language-bash">ollama --version</code></pre>
+<p>Hauries de veure alguna cosa com `ollama version 0.5.7` (o superior). Si no, afegeix Ollama al PATH:</p>
+<pre class="code"><code class="language-bash"># Si usaves Homebrew:
+export PATH=&quot;/usr/local/bin:$PATH&quot;
+<h1>Si vas instal·lar manualment, crea un enllaç simbòlic:</h1>
+sudo ln -s /Applications/Ollama.app/Contents/Resources/ollama /usr/local/bin/ollama</code></pre>
+<h2>34.4 Descarregar el primer model</h2>
+<p>El primer pas és descarregar un model. Ollama ofereix molts. Per començar, recomano <strong>gemma3:4b</strong> (Google, 4 mil milions de paràmetres, ~3 GB):</p>
+<pre class="code"><code class="language-bash">ollama pull gemma3:4b</code></pre>
+<p>Això descarrega el model. Pot trigar entre 2 i 10 minuts segons la teva connexió.</p>
+<p>Quan acabi, verifica:</p>
+<pre class="code"><code class="language-bash">ollama list</code></pre>
+<p>Hauries de veure:</p>
+<pre class="code"><code class="language-">NAME           ID          SIZE      MODIFIED
+gemma3:4b      ...         3.1 GB    2 minutes ago</code></pre>
+<h2>34.5 Primera conversa</h2>
+<p>Ara pots parlar amb el model. Prova:</p>
+<pre class="code"><code class="language-bash">ollama run gemma3:4b &quot;Hola, qui ets?&quot;</code></pre>
+<p>Hauries de rebre una resposta en qüestió de segons. Si tot funciona, ja tens IA local al Mac.</p>
+<p>Per sortir, escriu `/bye` o prem `Ctrl+D`.</p>
+<h2>34.6 Comandes bàsiques d'Ollama</h2>
+<p>| Comanda | Què fa |
+|---|---|
+| `ollama pull <model>` | Descarrega un model |
+| `ollama run <model>` | Inicia una conversa |
+| `ollama list` | Llista els models descarregats |
+| `ollama rm <model>` | Esborra un model |
+| `ollama ps` | Mostra els models que s'estan executant |
+| `ollama show <model>` | Mostra els detalls d'un model |
+| `ollama cp <src> <dst>` | Copia un model amb un altre nom |
+| `ollama stop <model>` | Atura un model en execució |</p>
+<h2>34.7 Modes d'ús</h2>
+<h3>Mode conversa (REPL)</h3>
+<p>Quan executes `ollama run <model>`, entres en mode conversa. Pots escriure qualsevol cosa i el model et respon. Per mantenir el context (que el model recordi el que has dit), continua en la mateixa sessió.</p>
+<p>Per començar una conversa nova, obre una altra finestra de terminal.</p>
+<h3>Mode script (un sol prompt)</h3>
+<pre class="code"><code class="language-bash">ollama run gemma3:4b &quot;Explica&#x27;m què és un embedding en 3 frases&quot;</code></pre>
+<p>Això envia el prompt, rep la resposta, i surt.</p>
+<h3>Mode API</h3>
+<p>Ollama escolta a `http://localhost:11434` quan està en marxa. Pots enviar peticions HTTP:</p>
+<pre class="code"><code class="language-bash">curl http://localhost:11434/api/generate -d &#x27;{
+  &quot;model&quot;: &quot;gemma3:4b&quot;,
+  &quot;prompt&quot;: &quot;Què és un cogombre?&quot;,
+  &quot;stream&quot;: false
+}&#x27;</code></pre>
+<p>Això retorna JSON amb la resposta. Veurem com integrar-ho al Cap 39.</p>
+<h2>34.8 Com fer bones preguntes</h2>
+<p>La clau per treure profit d'un model local és <strong>fer bones preguntes</strong>. Algunes pautes:</p>
+<p>1. <strong>Sigues específic</strong>. "Explica el compostatge" és vague. "Explica el compostatge en climes humits amb palla i restes de cuina" és millor.</p>
+<p>2. <strong>Dona context</strong>. "Sóc a Osona, tinc un hort de 200 m² amb tomàquets i carbasses. Quina varietat de carbassa em recomanes?" és millor que "Quina carbassa plantar?".</p>
+<p>3. <strong>Demana format concret</strong>. "Fes-me'n una llista de 5 punts" o "Explica-m'ho en 3 paràgrafs".</p>
+<p>4. <strong>Demana verificació</strong>. "Si no saps la resposta, digue-m'ho. No inventis informació." Els models tendeixen a inventar-se coses (les anomenem "al·lucinacions").</p>
+<p>5. <strong>Posa exemples</strong>. "Vull un correu com aquest: 'Benvolgut veí, ...'". El model imitarà l'estil.</p>
+<h2>34.9 Configuració avançada: system prompt</h2>
+<p>Quan executes un model, Ollama permet passar un <strong>system prompt</strong> (instruccions de sistema, missatges inicials que condicionen tot el comportament del model) que canvia el comportament. Per exemple:</p>
+<pre class="code"><code class="language-bash">ollama run gemma3:4b &quot;
+Ets un expert en horticultura ecològica a la comarca d&#x27;Osona.
+Respon sempre en català.
+Sigues pràctic i directe, sense floritures.
+Si no saps una resposta concreta, recomana consultar les fitxes locals.
+&quot;</code></pre>
+<p>El model respondrà seguint aquestes instruccions fins que tanquis la sessió.</p>
+<h2>34.10 Persistència de la configuració: Modelfiles</h2>
+<p>Si vols que el system prompt estigui sempre disponible, pots crear un <strong>Modelfile</strong>:</p>
+<pre class="code"><code class="language-bash"># Crea un fitxer anomenat Modelfile-hort
+cat &gt; Modelfile-hort &lt;&lt; &#x27;EOF&#x27;
+FROM gemma3:4b
+SYSTEM &quot;&quot;&quot;
+Ets l&#x27;assistent Hort Osona. Coneixes les 76 fitxes de cultius del projecte
+BernatLab. Respon sempre en català. Sigues pràctic. Si no saps una resposta,
+digues &quot;Consulta la fitxa corresponent a Hort Osona&quot; i no inventis.
+&quot;&quot;&quot;
+PARAMETER temperature 0.3
+PARAMETER num_ctx 4096
+EOF
+<h1>Crea un model personalitzat</h1>
+ollama create hort-osona -f Modelfile-hort
+<h1>Usa&#x27;l</h1>
+ollama run hort-osona &quot;Quan he de sembrar tomàquets?&quot;</code></pre>
+<p>Això és molt potent: pots tenir múltiples "personalitats" del mateix model base, cadascuna optimitzada per una tasca.</p>
+<h2>34.11 El primer model: què esperar</h2>
+<p>Amb gemma3:4b (4B paràmetres, ~3 GB):</p>
+<ul>
+<li>Velocitat: 20-50 tokens/segon en un Mac M1 amb 16 GB.</li>
+<li>Català: acceptable, no perfecte.</li>
+<li>Raonament: limitat, però útil per a resums i consultes senzilles.</li>
+<li>Memòria: 3-4 GB de RAM ocupats.</li>
+</ul>
+<p>Per a tasques més complexes (raonament llarg, codi, multilingüe avançat), necessitaràs models més grans. Això ho veurem al Cap 35.</p>
+<h2>34.12 Primers problemes i solucions</h2>
+<p><strong>Problema 1: el model no descarrega</strong>.</p>
+<p>Comprova la connexió: `curl -I https://ollama.com`. Si funciona, mira l'espai lliure: `df -h`. Necessites almenys 5 GB.</p>
+<p><strong>Problema 2: el model respon en anglès</strong>.</p>
+<p>El model és multilingüe, però tendeix a l'anglès. Força el català amb un system prompt explícit: "Respon SEMPRE en català, encara que et preguntin en un altre idioma."</p>
+<p><strong>Problema 3: el Mac s'escalfa molt</strong>.</p>
+<p>Els models consumeixen molta CPU/GPU. És normal. Si et molesta, redueix el context (paràmetre `num_ctx`) o usa un model més petit.</p>
+<p><strong>Problema 4: la resposta és molt lenta</strong>.</p>
+<p>Si tens molts programes oberts, tanca'ls. Si el model és massa gran per al teu Mac, descarrega'n un de més petit (gemma3:2b o phi3:mini).</p>
+<p><strong>Problema 5: "address already in use"</strong>.</p>
+<p>El port 11434 està ocupat. Probablement tens una altra instància d'Ollama corrent. Tanca-la i reobre.</p>
+<h2>34.13 Compartir el Mac amb la Raspberry</h2>
+<p>Si vols que la Raspberry accedeixi a Ollama al Mac, cal fer dues coses:</p>
+<p>1. <strong>Permetre connexions externes</strong>. Per defecte, Ollama només escolta a `localhost`. Per canviar-ho:</p>
+<pre class="code"><code class="language-bash"># Atura Ollama
+pkill ollama
+<h1>Inicia&#x27;l escoltant a totes les interfícies</h1>
+OLLAMA_HOST=0.0.0.0:11434 ollama serve &amp;</code></pre>
+<p>2. <strong>Assegurar que la Raspberry pot arribar al Mac</strong>. Si tens Tailscale configurat, simplement:</p>
+<pre class="code"><code class="language-bash"># Des de la Raspberry
+curl http://&lt;mac-tailscale-ip&gt;:11434/api/tags</code></pre>
+<p>Si funciona, veuràs la llista de models.</p>
+<p>Per a ús continu, pots crear un servei launchd (gestor de serveis automàtic de macOS) que mantingui Ollama en marxa i escoltant a la xarxa Tailscale.</p>
+<h2>34.14 Resum</h2>
+<p>Hem après a instal·lar Ollama al Mac, descarregar el primer model (gemma3:4b), mantenir una conversa, configurar system prompts i Modelfiles, i compartir Ollama amb la Raspberry via Tailscale. Al proper capítol veurem com triar el millor model per a les nostres necessitats: mida, velocitat, qualitat, i especialment el català.</p>
+<h2>34.15 Exercicis pràctics</h2>
+<p>1. Instal·la Ollama al Mac seguint els passos.
+2. Descarrega `gemma3:4b` i `gemma3:12b` (si tens RAM).
+3. Fes-li 5 preguntes relacionades amb l'hort i avalua la qualitat de les respostes.
+4. Crea un Modelfile anomenat `hort-osona` amb un system prompt útil.
+5. Configura Ollama per escoltar a `0.0.0.0:11434` i comprova que la Raspberry pot accedir-hi.
+6. Fes una llista de 5 tasques que voldries que l'assistent pogués fer.
+7. Documenta al README el model que uses, el Modelfile, i les primeres impressions.</p>
+<p>Paraules clau: <strong>Ollama, install, descarregar, model, gemma3, phi3, llama, mistral, terminal, REPL, API, system prompt, Modelfile, temperature, num_ctx, paràmetres, català, Tailscale, 0.0.0.0, 11434, curl, JSON, streaming, Mac, Apple Silicon, M1, M2, M3, M4, Metal, MLX, launchd, dimonis, daemon, xarxa local, pkill, kill, process, foreground, background, model base, custom model, etiqueta, tag, registre, registry, Docker Hub, anàleg, semàntica, token, tokenització, vocabulari, context window, max tokens, longitud màxima, prompt, response, generation, sampling, top-k, top-p, temperature, seed, determinisme, randomness, creatividad, precissió, al·lucinació, inventar, verificar, fact-checking, font fiable, citació, referència</strong>.</p>
+<hr>
+<h2 id="35-escollir-model">Capítol 35 — Com triar el millor model</h2>
+<p>> <em>"Triar un model d'IA és com triar una eina: la clau no és la que té més prestacions, sinó la que s'adapta a la feina."</em></p>
+<h2>35.1 Què mesura un "bon" model</h2>
+<p>Hi ha quatre dimensions que importen:</p>
+<p>1. <strong>Mida</strong> (quantitat de paràmetres). Més paràmetres = més savi però més lent i pesat. Es mesura en mil milions de paràmetres (B). Exemples: 1B, 3B, 7B, 13B, 70B.</p>
+<p>2. <strong>Velocitat</strong> (tokens per segon). Quants tokens pot generar per segon. Un Mac M1 amb un model 7B genera ~20-30 tokens/s. Un model 70B genera 2-5 tokens/s.</p>
+<p>3. <strong>Qualitat</strong> (precisió, raonament, coneixement). En general, com més gran el model, millor la qualitat. Però hi ha models petits que són excel·lents en tasques específiques.</p>
+<p>4. <strong>Català</strong> (suport lingüístic). Alguns models parlen millor català que d'altres. Cal validar amb proves reals.</p>
+<h2>35.2 Models recomanats el 2026</h2>
+<p>Aquesta llista canvia cada mes. Però a data de juliol 2026, els models locals més interessants per al BernatLab són:</p>
+<h3>Models petits (1B-4B) — per a Mac amb 8-16 GB de RAM</h3>
+<p>| Model | Mida | Qualitat | Català | Ús recomanat |
+|---|---|---|---|---|
+| <strong>gemma3:2b</strong> | 1.6 GB | Bona per a tasques simples | Acceptable | Comandes ràpides, resums curts |
+| <strong>gemma3:4b</strong> | 3.1 GB | Bona | Bona | Primera opció per a 8-16 GB |
+| <strong>phi3:mini</strong> | 2.3 GB | Excel·lent per a la mida | Acceptable | Raonament, codi |
+| <strong>llama3.2:3b</strong> | 2.0 GB | Bona | Bona | Alternativa a gemma3 |
+| <strong>qwen2.5:3b</strong> | 1.9 GB | Bona | Molt bona | Multilingüe |</p>
+<h3>Models mitjans (7B-14B) — per a Mac amb 24-32 GB de RAM</h3>
+<p>| Model | Mida | Qualitat | Català | Ús recomanat |
+|---|---|---|---|---|
+| <strong>gemma3:12b</strong> | 8.1 GB | Molt bona | Molt bona | Recomanat per a 16-32 GB |
+| <strong>llama3.2:11b</strong> | 6.9 GB | Molt bona | Bona | Alternativa |
+| <strong>mistral:7b</strong> | 4.1 GB | Bona | Bona | Clàssic |
+| <strong>mixtral:8x7b</strong> | 26 GB | Excel·lent | Bona | Si tens 32 GB |
+| <strong>qwen2.5:14b</strong> | 8.7 GB | Molt bona | Excel·lent | El millor en català |</p>
+<h3>Models grans (30B-70B) — per a Mac amb 64+ GB o PC amb GPU</h3>
+<p>| Model | Mida | Qualitat | Català | Ús recomanat |
+|---|---|---|---|---|
+| <strong>llama3.1:70b</strong> | 40 GB | Excel·lent | Molt bona | Si tens molta RAM |
+| <strong>gemma3:27b</strong> | 17 GB | Excel·lent | Excel·lent | Bon equilibri |
+| <strong>qwen2.5:32b</strong> | 19 GB | Excel·lent | Excel·lent | El millor en català |
+| <strong>deepseek-r1:32b</strong> | 19 GB | Excel·lent | Bona | Raonament complex |</p>
+<h2>35.3 Com triar segons el teu hardware</h2>
+<h3>MacBook Air M1/M2 amb 8 GB</h3>
+<ul>
+<li>Limita't a models d'1-3B.</li>
+<li>Recomanació: `gemma3:2b` o `phi3:mini`.</li>
+<li>Compromís: qualitat baixa però usable per a consultes curtes.</li>
+</ul>
+<h3>MacBook Pro M2/M3 amb 16 GB</h3>
+<ul>
+<li>Models de 4-8B funcionen bé.</li>
+<li>Recomanació: `gemma3:4b` per defecte, `llama3.2:11b` si necessites més.</li>
+<li>Bon equilibri velocitat/qualitat.</li>
+</ul>
+<h3>MacBook Pro M3 Max/M4 amb 32-64 GB</h3>
+<ul>
+<li>Models de 14-27B funcionen bé.</li>
+<li>Recomanació: `gemma3:12b` o `qwen2.5:14b` per defecte.</li>
+<li>Qualitat alta, velocitat acceptable.</li>
+</ul>
+<h3>Mac Studio M2 Ultra amb 64-192 GB</h3>
+<ul>
+<li>Models de 30-70B funcionen.</li>
+<li>Recomanació: `gemma3:27b` o `llama3.1:70b`.</li>
+<li>Qualitat màxima.</li>
+</ul>
+<h3>Raspberry Pi 4 amb 4-8 GB</h3>
+<ul>
+<li>Només models d'1-2B.</li>
+<li>Recomanació: `gemma3:2b` o `phi3:mini`.</li>
+<li>Útil només per a comandes molt senzilles.</li>
+</ul>
+<h3>PC amb GPU NVIDIA RTX 3060+ (8 GB VRAM)</h3>
+<ul>
+<li>Models de 7-13B amb quantització (tècnica que redueix la mida del model comprimits els pesos en menys bits, amb pèrdua mínima de qualitat).</li>
+<li>Recomanació: `mistral:7b-q4` (q4 vol dir quantització de 4 bits).</li>
+<li>Molt bona velocitat si tens CUDA ben configurat.</li>
+</ul>
+<h2>35.4 Què és la quantització</h2>
+<p>Els models venen en diverses mides segons la quantització. Per exemple:</p>
+<ul>
+<li>`gemma3:12b` (8.1 GB) — versió completa, 16 bits per paràmetre.</li>
+<li>`gemma3:12b-q4_K_M` (5.5 GB) — quantitzat a 4 bits, qualitat gairebé idèntica.</li>
+<li>`gemma3:12b-q8_0` (7.5 GB) — quantitzat a 8 bits, qualitat excel·lent.</li>
+</ul>
+<p>La regla és senzilla: <strong>amb la quantització Q4_K_M tens el millor equilibri mida/qualitat</strong>. Q8 és lleugerament millor però ocupa més. Q2 i Q3 són massa agressives (perden qualitat notable).</p>
+<p>Per descarregar una versió quantitzada:</p>
+<pre class="code"><code class="language-bash">ollama pull gemma3:12b-q4_K_M</code></pre>
+<h2>35.5 Com avaluar el català</h2>
+<p>El català varia molt entre models. Comprovacions pràctiques:</p>
+<p>1. <strong>Cultura general</strong>. Pregunta: "Qui va escriure 'La plaça del Diamant'?" Si respon "Mercè Rodoreda", perfecte.</p>
+<p>2. <strong>Varietats dialectals</strong>. Pregunta: "Com es diu 'mongeta' a Osona?" Si respon amb termes locals, encara millor.</p>
+<p>3. <strong>Termes tècnics</strong>. Pregunta: "Què és el mildiu del tomàquet?" Si dóna una resposta correcta i completa, endavant.</p>
+<p>4. <strong>Generació de text</strong>. Demana-li que escrigui un correu o una recepta. Mira si l'estil és natural.</p>
+<p>5. <strong>Codi</strong>. Si vols que t'ajudi amb Python o scripts, avalua la qualitat del codi.</p>
+<p>Fes una llista de 10 preguntes representatives i avalua cada model. Al cap de 2-3 dies tindràs clar quin és el millor per a tu.</p>
+<h2>35.6 Com canviar de model fàcilment</h2>
+<p>Pots tenir molts models descarregats alhora i canviar segons la tasca:</p>
+<pre class="code"><code class="language-bash"># Llista els que tens
+ollama list
+<h1>Per defecte usa el millor</h1>
+ollama run qwen2.5:14b &quot;...&quot;
+<h1>Per a resums ràpids, un de més petit</h1>
+ollama run gemma3:4b &quot;Resumeix: ...&quot;</code></pre>
+<p>Si vols que el teu sistema sempre usi un model concret per defecte, crea un alias:</p>
+<pre class="code"><code class="language-bash"># Crea un alias &quot;assistent&quot; apuntant al millor model
+ollama cp gemma3:12b assistent
+<h1>Ara pots fer</h1>
+ollama run assistent &quot;Hola&quot;</code></pre>
+<p>Això és útil quan configures l'API al Cap 39: simplement fas servir el nom de l'alias.</p>
+<h2>35.7 El cas especial: el català</h2>
+<p>El català és un idioma amb menys recursos que l'anglès o el castellà, però la situació ha millorat molt. Al 2026, els millors models en català són:</p>
+<ul>
+<li><strong>qwen2.5</strong> (Alibaba): entrenat explícitament en molts idiomes, català inclòs.</li>
+<li><strong>gemma3</strong> (Google): bon català, sobretot en les versions 12B+.</li>
+<li><strong>llama3.1</strong> (Meta): bon català en versions grans.</li>
+</ul>
+<p>Els pitjors en català solen ser:</p>
+<ul>
+<li>Models antics (llama2, mistral v1).</li>
+<li>Models massa petits (<3B) de qualsevol família.</li>
+<li>Models entrenats només en anglès.</li>
+</ul>
+<p>Si el català és crític (i per a tu ho és), tria `qwen2.5:14b` o `gemma3:12b-q4_K_M`. Són els millors equilibris.</p>
+<h2>35.8 Com optimitzar la velocitat</h2>
+<p>Algunes tècniques per accelerar la resposta:</p>
+<p>1. <strong>Reduir el context</strong>. Per defecte, Ollama carrega 2048 tokens. Si la teva consulta és curta, pots posar `num_ctx 1024`.</p>
+<p>2. <strong>Usar quantització Q4_K_M</strong>. És el punt òptim.</p>
+<p>3. <strong>Tancar altres aplicacions</strong>. El Mac comparteix RAM entre totes les aplicacions. Si tens Chrome amb 50 pestanyes, l'Ollama va més lent.</p>
+<p>4. <strong>Pre-escalfar el model</strong>. La primera resposta és lenta perquè carrega el model a RAM. Després va ràpid.</p>
+<p>5. <strong>Servir vs conversar</strong>. Si vols velocitat màxima, usa l'API HTTP (Cap 39) en lloc del mode conversa.</p>
+<h2>35.9 Les meves recomanacions finals</h2>
+<p>Per al teu cas (Mac, Osona, hort, català):</p>
+<ul>
+<li><strong>Si tens 16 GB</strong>: comença amb `gemma3:4b` per explorar, puja a `gemma3:12b-q4_K_M` quan vulguis més qualitat.</li>
+<li><strong>Si tens 32 GB</strong>: directament `gemma3:12b` o `qwen2.5:14b`.</li>
+<li><strong>Si tens 64 GB</strong>: `qwen2.5:32b` per a la màxima qualitat en català.</li>
+<li><strong>Per a resums ràpids</strong>: `gemma3:4b` sempre va bé.</li>
+<li><strong>Per a tasques complexes</strong>: puja a 12B o 14B.</li>
+</ul>
+<h2>35.10 Prova pràctica: 3 models, 5 preguntes</h2>
+<p>Per comparar models, fes aquesta prova:</p>
+<pre class="code"><code class="language-bash"># Descarrega 3 models
+ollama pull gemma3:4b
+ollama pull gemma3:12b
+ollama pull qwen2.5:14b
+<h1>Crea un script de proves</h1>
+cat &gt; test-models.sh &lt;&lt; &#x27;EOF&#x27;
+#!/bin/bash
+MODELS=(&quot;gemma3:4b&quot; &quot;gemma3:12b&quot; &quot;qwen2.5:14b&quot;)
+QUESTIONS=(
+  &quot;Quan he de sembrar carbasses a la comarca d&#x27;Osona?&quot;
+  &quot;Explica&#x27;m què és el mildiu del tomàquet i com tractar-lo de forma ecològica&quot;
+  &quot;Fes-me&#x27;n un resum de 5 línies sobre el calendari lunar aplicat a l&#x27;hort&quot;
+  &quot;Quines associacions de cultius són bones per a un hort petit de 100 m²?&quot;
+  &quot;Com puc fer compost amb restes de cuina si visc en un pis?&quot;
+)
+for m in &quot;${MODELS[@]}&quot;; do
+  echo &quot;===== $m =====&quot;
+  for q in &quot;${QUESTIONS[@]}&quot;; do
+    echo &quot;Q: $q&quot;
+    ollama run &quot;$m&quot; &quot;$q&quot; 2&gt;/dev/null | head -10
+    echo &quot;---&quot;
+  done
+done
+EOF
+<p>chmod +x test-models.sh
+./test-models.sh &gt; resultats.txt</code></pre></p>
+<p>Llegeix els resultats i tria el model que t'agradi més. No hi ha una resposta única — depèn de les teves prioritats.</p>
+<h2>35.11 Quan actualitzar el model</h2>
+<p>Els models s'actualitzen sovint. Bones pràctiques:</p>
+<ul>
+<li><strong>Cada 3-6 mesos</strong>, mira si n'hi ha un de millor.</li>
+<li><strong>Descarrega'l i prova'l</strong> sense eliminar l'antic.</li>
+<li><strong>Compara</strong> amb les teves 5-10 preguntes representatives.</li>
+<li><strong>Substitueix</strong> quan el nou sigui clarament millor.</li>
+</ul>
+<h2>35.12 Resum</h2>
+<p>Hem après a triar un model segons el hardware, la mida, la velocitat, i el català. Hem vist els millors models del 2026, com quantitzar, com avaluar la qualitat, i hem donat una recomanació concreta per al teu cas. Al proper capítol veurem com funcionen els embeddings i les bases vectorials, la base tècnica del RAG que muntarem al Cap 37.</p>
+<h2>35.13 Exercicis pràctics</h2>
+<p>1. Comprova el teu hardware (xip, RAM).
+2. Descarrega 2-3 models recomanats per al teu hardware.
+3. Fes la prova pràctica de 5 preguntes i avalua les respostes.
+4. Crea un Modelfile "assistent-hort" amb el millor model.
+5. Documenta al README quin model has triat i per què.
+6. Compara el rendiment amb i sense quantització Q4.
+7. Comparteix les teves impressions al README del projecte.</p>
+<p>Paraules clau: <strong>model, paràmetres, B, mil milions, tokens, tokens per segon, velocitat, qualitat, català, gemma3, qwen2.5, llama3, mistral, mixtral, deepseek, phi3, quantització, Q4_K_M, Q8, 16 bits, 4 bits, 8 bits, GGUF, GPTQ, AWQ, MLX, Apple Silicon, Metal, CUDA, VRAM, RAM, context, num_ctx, temperature, sampling, top-k, top-p, determinisme, seed, MODelfile, alias, registre, registry, benchmark, MMLU, IFEval, MT-Bench, AReQA, pàgina d'avaluació, leaderboard, Open LLM Leaderboard, LMSYS, Hugging Face, comparació, decisió, prova pràctica, benchmark personalitzat, actualització, manteniment</strong>.</p>
+<hr>
+<h2 id="36-embeddings-vectorstore">Capítol 36 — Embeddings i bases vectorials</h2>
+<p>> <em>"Si cerques per paraules exactes, trobaràs documents amb aquestes paraules. Si cerques per significat, trobaràs documents que parlen del que vols saber, encara que no usin les mateixes paraules."</em></p>
+<h2>36.1 El problema: la cerca per paraules clau no és prou</h2>
+<p>Imagina que tens les 76 fitxes d'hort i un dia vols saber <strong>"què fer quan els tomàquets tenen taques grogues a les fulles"</strong>. Si cerques a mà:</p>
+<ul>
+<li>"tomaques taca groga fulla" — pot ser que trobis poques coses perquè el text pot dir "fulles groguenques", "clorosi", "deficiència de nitrogen", etc.</li>
+<li>Necessitaries llegir cada fitxa, una per una.</li>
+</ul>
+<p>El que voldries és: "troba'm els paràgrafs que parlen d'això, encara que no usin les mateixes paraules". Això és el que fan els <strong>embeddings</strong> i les <strong>bases vectorials</strong>.</p>
+<h2>36.2 Què és un embedding</h2>
+<p>Un <strong>embedding</strong> (en català, <strong>representació vectorial</strong> o <strong>incrustació</strong>) és una manera de convertir text en una llista de números (un vector) que captura el <strong>significat</strong> del text.</p>
+<p>Per exemple:</p>
+<ul>
+<li>"El gos borda" → [0.12, -0.34, 0.78, ..., 0.45] (384 o 1024 o 4096 números)</li>
+<li>"El ca lladra" → [0.11, -0.33, 0.79, ..., 0.46] (molt similar!)</li>
+<li>"Avui plou" → [0.87, 0.23, -0.45, ..., -0.12] (molt diferent)</li>
+</ul>
+<p>Això és màgia matemàtica: frases amb significat similar tenen vectors propers. Frases amb significat diferent tenen vectors allunyats.</p>
+<p>Aquesta propietat es mesura amb la <strong>similaritat del cosinus</strong> (cosine similarity, mètrica que mesura l'angle entre dos vectors: 1.0 = idèntic, 0.0 = orthogonal, -1.0 = oposat). Dos textos que parlen del mateix tindran una similaritat alta (>0.8). Dos textos no relacionats tindran una similaritat baixa (<0.3).</p>
+<h2>36.3 Com es crea un embedding</h2>
+<p>Hi ha models entrenats específicament per a aquesta tasca. Els més coneguts:</p>
+<ul>
+<li><strong>OpenAI text-embedding-3-small/large</strong> (al núvol, pagament).</li>
+<li><strong>BGE</strong> (BAAI, gratuït, molt bo).</li>
+<li><strong>E5</strong> (Microsoft, gratuït, multilingüe).</li>
+<li><strong>mE5</strong> (multilingüe, inclou català).</li>
+<li><strong>Nomic Embed</strong> (obert, bona qualitat).</li>
+<li><strong>Ollama</strong> (sí, Ollama també pot generar embeddings!).</li>
+</ul>
+<p>A Ollama:</p>
+<pre class="code"><code class="language-bash"># Descarrega un model d&#x27;embeddings
+ollama pull nomic-embed-text
+<h1>Genera l&#x27;embedding d&#x27;un text</h1>
+curl http://localhost:11434/api/embeddings -d &#x27;{
+  &quot;model&quot;: &quot;nomic-embed-text&quot;,
+  &quot;prompt&quot;: &quot;El gos borda fort&quot;
+}&#x27;</code></pre>
+<p>Això retorna un vector de 768 números. Cadascun captura algun aspecte del significat.</p>
+<h2>36.4 Què és una base vectorial</h2>
+<p>Una <strong>base vectorial</strong> (vector store, vector database) és un sistema que:</p>
+<p>1. <strong>Emmagatzema</strong> milions de vectors associats a fragments de text.
+2. <strong>Cerca ràpidament</strong> els vectors més similars a una consulta.</p>
+<p>Les bases vectorials més conegudes:</p>
+<ul>
+<li><strong>ChromaDB</strong> — la més fàcil d'usar, ideal per començar.</li>
+<li><strong>FAISS</strong> (Facebook) — molt ràpida, per a molts vectors.</li>
+<li><strong>LanceDB</strong> — moderna, eficient, bona per a hobby.</li>
+<li><strong>Qdrant</strong> — servidor complet, escalable.</li>
+<li><strong>Milvus</strong> — solucions professionals, molt ràpid.</li>
+<li><strong>Pinecone</strong> — al núvol, pagament.</li>
+</ul>
+<p>Per al BernatLab, recomano <strong>ChromaDB</strong> o <strong>LanceDB</strong> per simplicitat. Si volem alguna cosa més professional, <strong>Qdrant</strong>.</p>
+<h2>36.5 ChromaDB: el primer pas</h2>
+<p>ChromaDB és la base vectorial més fàcil d'utilitzar. S'instal·la amb pip i funciona localment.</p>
+<h3>Instal·lació</h3>
+<pre class="code"><code class="language-bash">pip install chromadb</code></pre>
+<h3>Ús bàsic en Python</h3>
+<pre class="code"><code class="language-python">import chromadb
+<h1>Inicialitzar (per defecte emmagatzema a ~/.chromadb)</h1>
+client = chromadb.PersistentClient(path=&quot;./vectorstore&quot;)
+<h1>Crear o obtenir una col·lecció</h1>
+collection = client.get_or_create_collection(name=&quot;hort_osona&quot;)
+<h1>Afegir documents</h1>
+collection.add(
+    documents=[
+        &quot;El tomàquet de Penedès prefereix sòls ben drenats i assolellats.&quot;,
+        &quot;Les carbasses necessiten molt espai, almenys 2 m² per planta.&quot;,
+        &quot;El mildiu és un fong que apareix amb humitat alta.&quot;
+    ],
+    metadatas=[
+        {&quot;source&quot;: &quot;fitxa-tomaque.md&quot;, &quot;tema&quot;: &quot;tomàquet&quot;},
+        {&quot;source&quot;: &quot;fitxa-carbassa.md&quot;, &quot;tema&quot;: &quot;carbassa&quot;},
+        {&quot;source&quot;: &quot;guia-plagues.md&quot;, &quot;tema&quot;: &quot;malalties&quot;}
+    ],
+    ids=[&quot;doc1&quot;, &quot;doc2&quot;, &quot;doc3&quot;]
+)
+<h1>Cercar per similitud</h1>
+results = collection.query(
+    query_texts=[&quot;Quan he de plantar carbasses?&quot;],
+    n_results=2
+)
+<h1>Mostrar els resultats</h1>
+for doc, meta in zip(results[&#x27;documents&#x27;][0], results[&#x27;metadatas&#x27;][0]):
+    print(f&quot;  {meta[&#x27;source&#x27;]}: {doc}&quot;)</code></pre>
+<p>La cerca retorna els 2 documents més similars a la pregunta, ordenats per rellevància.</p>
+<h2>36.6 Com funciona la cerca per similitud</h2>
+<p>Quan fas una consulta:</p>
+<p>1. <strong>Converteix la consulta en un vector</strong> usant el mateix model d'embeddings.
+2. <strong>Calcula la distància</strong> entre el vector de la consulta i tots els vectors emmagatzemats.
+3. <strong>Retorna els k més propers</strong> (k=2 a l'exemple anterior).</p>
+<p>Això és extremadament ràpid: per a 10.000 vectors, la cerca triga menys d'un segon.</p>
+<h2>36.7 Com fragmentar els documents</h2>
+<p>Un embedding té una mida màxima (normalment 512-2048 tokens, és a dir, unitats de text que el model processa, aproximadament 1 token = 0.75 paraules en català). Si tens un document de 5.000 tokens, no pots fer-ne un sol embedding. Cal <strong>fragmentar</strong> (chunking) en parts més petites.</p>
+<p>Estratègies comunes de fragmentació:</p>
+<p>1. <strong>Per mida fixa</strong>. Trossos de 500 tokens amb solapament de 50. Senzill i efectiu.</p>
+<p>2. <strong>Per paràgrafs o seccions</strong>. Cada secció del document és un chunk. Mantén la coherència.</p>
+<p>3. <strong>Semàntica</strong>. Parteix on hi ha canvis de tema. Més sofisticat.</p>
+<p>4. <strong>Per estructures Markdown</strong>. Capçaleres, llistes, blocs de codi. Molt adequat per a llibres tècnics.</p>
+<p>Per al BernatLab, recomano <strong>per mida fixa (500 tokens) amb solapament (50 tokens)</strong>. Senzill i funciona bé.</p>
+<h2>36.8 Ús pràctic: indexar les 76 fitxes d'hort</h2>
+<p>Un script per indexar totes les fitxes:</p>
+<pre class="code"><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;
+index_hort_osona.py
+Indexa tots els fitxers Markdown de Hort Osona a ChromaDB.
+&quot;&quot;&quot;
+<p>import os
+from pathlib import Path
+import chromadb
+from chromadb.utils import embedding_functions</p>
+<h1>Configuració</h1>
+HORT_DIR = Path(&quot;/home/bernat/bernatlab/projects/hort-osona&quot;)
+VECTORSTORE_DIR = &quot;./vectorstore&quot;
+COLLECTION_NAME = &quot;hort_osona&quot;
+<h1>Model d&#x27;embeddings — cal que estigui a Ollama</h1>
+ollama_ef = embedding_functions.OllamaEmbeddingFunction(
+    model_name=&quot;nomic-embed-text&quot;,
+    url=&quot;http://localhost:11434/api/embeddings&quot;
+)
+<h1>Inicialitzar ChromaDB</h1>
+client = chromadb.PersistentClient(path=VECTORSTORE_DIR)
+collection = client.get_or_create_collection(
+    name=COLLECTION_NAME,
+    embedding_function=ollama_ef
+)
+<h1>Funció per fragmentar un document</h1>
+def fragmentar(text, mida=500, solapament=50):
+    &quot;&quot;&quot;Fragmenta text en trossos amb solapament.&quot;&quot;&quot;
+    paraules = text.split()
+    fragments = []
+    i = 0
+    while i &lt; len(paraules):
+        fragment = &quot; &quot;.join(paraules[i:i+mida])
+        fragments.append(fragment)
+        i += mida - solapament
+    return fragments
+<h1>Indexar tots els .md</h1>
+idx = 0
+for md_file in HORT_DIR.rglob(&quot;*.md&quot;):
+    if md_file.name.startswith(&quot;.&quot;):
+        continue
+    text = md_file.read_text(encoding=&quot;utf-8&quot;)
+    fragments = fragmentar(text)
+    for n, frag in enumerate(fragments):
+        collection.add(
+            documents=[frag],
+            metadatas=[{
+                &quot;source&quot;: str(md_file.relative_to(HORT_DIR)),
+                &quot;fragment&quot;: n,
+                &quot;tema&quot;: md_file.stem
+            }],
+            ids=[f&quot;{md_file.stem}-{n}&quot;]
+        )
+        idx += 1
+    print(f&quot;  Indexat: {md_file.name} ({len(fragments)} fragments)&quot;)
+<p>print(f&quot;\nTotal: {idx} fragments indexats a ChromaDB&quot;)</code></pre></p>
+<p>Executa'l una vegada, i ja tens les 76 fitxes (i totes les guies) en una base vectorial.</p>
+<h2>36.9 Com escollir el model d'embeddings</h2>
+<p>No tots els models d'embeddings són igual de bons. Al 2026, els millors per a text multilingüe (inclòs català) són:</p>
+<p>| Model | Mida | Qualitat | Català | Velocitat |
+|---|---|---|---|---|
+| <strong>nomic-embed-text</strong> | 274 MB | Excel·lent | Bona | Molt ràpid |
+| <strong>mxbai-embed-large</strong> | 670 MB | Excel·lent | Bona | Ràpid |
+| <strong>bge-m3</strong> | 2.3 GB | Excel·lent | Molt bona | Mitjà |
+| <strong>multilingual-e5-large</strong> | 2.2 GB | Excel·lent | Molt bona | Mitjà |
+| <strong>snowflake-arctic-embed</strong> | 1.2 GB | Molt bona | Bona | Ràpid |</p>
+<p>Recomanació per al BernatLab: `nomic-embed-text` per defecte. Si vols més qualitat, `bge-m3` o `multilingual-e5-large`.</p>
+<h2>36.10 Com avaluar la qualitat de la cerca</h2>
+<p>Per validar que la cerca funciona bé:</p>
+<p>1. <strong>Crea un test set</strong>: 10-20 preguntes amb les respostes esperades (quins documents haurien d'aparèixer).
+2. <strong>Executa cada pregunta</strong> i mira els resultats.
+3. <strong>Calcula mètriques</strong>:
+<ul>
+<li><strong>Recall@K</strong> (quants documents rellevants apareixen entre els K primers resultats).</li>
+<li><strong>MRR</strong> (Mean Reciprocal Rank, rang mitjà del primer document rellevant).</li>
+</ul>
+4. <strong>Ajusta</strong>: si els resultats són dolents, canvia de model d'embeddings, ajusta la mida dels fragments, o afegeix metadades.</p>
+<p>Per a Hort Osona, les primeres 10 preguntes bones serien:</p>
+<p>1. "Quan plantar tomàquets a Osona?"
+2. "Com combatre el pugó?"
+3. "Quines associacions de cultius funcionen?"
+4. "Com fer compost casolà?"
+5. "Quan collir les carbasses?"
+6. "Quin reg necessita l'enciam?"
+7. "Com sembrar pèsols?"
+8. "Quines plagues ataquen la patata?"
+9. "Com protegir les plantes de la gelada?"
+10. "Quan fer la poda dels fruiters?"</p>
+<p>Si el sistema retorna les fitxes correctes per a totes 10, tens una bona base.</p>
+<h2>36.11 Com actualitzar la base vectorial</h2>
+<p>Quan afegeixis nous documents a Hort Osona (una nova fitxa, una guia actualitzada), cal re-indexar. Opcions:</p>
+<p>1. <strong>Re-indexar tot sencer</strong>. Lent però segur.
+2. <strong>Indexar només els nous</strong>. Ràpid, però cal gestionar els fragments antics.
+3. <strong>Sistema d'actualització automàtic</strong>. Un script que mira els canvis amb `git pull` i re-indexa el que cal.</p>
+<p>Recomanació per al BernatLab: un script setmanal via cron que comprova si hi ha canvis i re-indexa només el que cal.</p>
+<h2>36.12 Emmagatzematge i persistència</h2>
+<p>La base vectorial s'ha de desar a algun lloc:</p>
+<ul>
+<li><strong>Local al Mac</strong>: `~/.chromadb` o `./vectorstore`. Fàcil però cal còpia de seguretat.</li>
+<li><strong>A la Raspberry</strong>: si vols compartir amb altres dispositius.</li>
+<li><strong>A GitHub</strong>: NO! Els fitxers de la base vectorial ocupen molt i canvien sovint.</li>
+</ul>
+<p>Recomanació: <strong>local al Mac, amb còpia a la Raspberry via Tailscale si vols accedir-hi des d'allà</strong>. No versionis la base vectorial a Git.</p>
+<h2>36.13 Com moure la base vectorial a la Raspberry</h2>
+<p>Si vols accedir a la base vectorial des de la Raspberry, pots:</p>
+<p>1. <strong>Muntar la carpeta</strong> via NFS o SMB (compartir carpetes per xarxa).
+2. <strong>Usar SSHFS</strong> (muntar carpetes remotes com si fossin locals).
+3. <strong>Exportar/importar</strong> periòdicament (un script que fa `cp`).</p>
+<p>L'opció més neta per a un homelab és SSHFS:</p>
+<pre class="code"><code class="language-bash"># A la Raspberry
+sshfs bernat@&lt;mac-tailscale-ip&gt;:/Users/bernat/vectorstore /home/bernat/vectorstore</code></pre>
+<p>Ara `/home/bernat/vectorstore` és la mateixa carpeta que al Mac.</p>
+<h2>36.14 Resum</h2>
+<p>Hem après què són els embeddings, com representen el significat del text com a vectors numèrics, com funcionen les bases vectorials, i com indexar els documents d'Hort Osona amb ChromaDB. Al proper capítol muntarem el sistema RAG complet: quan l'usuari fa una pregunta, buscarem els fragments més rellevants i els donarem al model de llengua perquè generi una resposta basada en ells.</p>
+<h2>36.15 Exercicis pràctics</h2>
+<p>1. Instal·la ChromaDB al teu Mac: `pip install chromadb`.
+2. Descarrega `nomic-embed-text` a Ollama.
+3. Executa l'script d'exemple amb 3-5 documents i comprova que la cerca funciona.
+4. Adapta l'script `index_hort_osona.py` al teu cas.
+5. Crea 10 preguntes de test i avalua la qualitat de la cerca.
+6. Compara `nomic-embed-text` amb `bge-m3` (si tens temps).
+7. Documenta al README la mida de la base vectorial, el model d'embeddings, i les mètriques obtingudes.</p>
+<p>Paraules clau: <strong>embedding, vector, representació vectorial, incrustació, similaritat, cosinus, cosine similarity, distància euclidiana, dot product, base vectorial, vector store, vector database, ChromaDB, FAISS, LanceDB, Qdrant, Milvus, Pinecone, fragmentació, chunking, solapament, overlap, n_results, recall, MRR, mètriques, test set, ground truth, embeddings multilingüe, nomic, bge, e5, mxbai, arctic, multilingual, semàntica, cerca semàntica, cerca per paraules clau, search, full-text search, FTS, BM25, híbrida, reranking, cross-encoder, bi-encoder, contrastive learning, sentence-transformers, Hugging Face, Ollama embedding, API embedding, persistència, SSHFS, NFS, còpia de seguretat, vectorstore, col·lecció, document, fragment, metadata, filtratge, filter, where, where_document, similarity threshold, top-k</strong>.</p>
+<hr>
+<h2 id="37-rag-pas-a-pas">Capítol 37 — RAG pas a pas amb les 76 fitxes d&#x27;hort</h2>
+<p>> <em>"El RAG és la diferència entre una eina que respon coses generals i una eina que respon coses sobre el teu hort."</em></p>
+<h2>37.1 Què és RAG (revisited)</h2>
+<p>Al Cap 36 vàrem veure els embeddings i les bases vectorials. Ara les connectem amb un model de llengua per crear un <strong>RAG</strong> (Retrieval-Augmented Generation, generació augmentada per recuperació): quan l'usuari fa una pregunta, primer busquem els fragments més rellevants als documents, i després donem aquests fragments al model com a context perquè generi una resposta.</p>
+<p>Això és molt potent perquè:</p>
+<ul>
+<li>El model <strong>no necessita saber</strong> les respostes de memòria.</li>
+<li>Les respostes estan <strong>basades en els teus documents</strong>, no en dades generals.</li>
+<li>Pots <strong>actualitzar els documents</strong> sense re-entrenar el model.</li>
+<li>Les respostes poden <strong>citar</strong> els documents d'origen.</li>
+</ul>
+<h2>37.2 L'arquitectura d'un sistema RAG</h2>
+<pre class="code"><code class="language-">[Usuari fa pregunta]
+        │
+        ▼
+[Convertir pregunta en embedding]
+        │
+        ▼
+[Cercar fragments similars a ChromaDB] ────► [Retorna top-k fragments]
+        │                                              │
+        │                                              ▼
+        └─────────────────────► [Construir prompt amb:
+<ul>
+<li>System prompt</li>
+<li>Pregunta original</li>
+<li>Fragments recuperats</li>
+<li>Instruccions de format]</li>
+</ul>
+                                                │
+                                                ▼
+                            [Enviar prompt al model d&#x27;Ollama]
+                                                │
+                                                ▼
+                                    [Model genera resposta]
+                                                │
+                                                ▼
+                                        [Retornar a l&#x27;usuari]</code></pre>
+<h2>37.3 El primer RAG: versió mínima</h2>
+<p>Aquí tens un RAG complet en 30 línies de Python:</p>
+<pre class="code"><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;
+rag_simple.py — Primer RAG per a Hort Osona.
+Necessita: ollama (servidor corrent), chromadb, requests.
+&quot;&quot;&quot;
+<p>import requests
+import chromadb
+from chromadb.utils import embedding_functions</p>
+<h1>Configuració</h1>
+MODEL_LLM = &quot;gemma3:12b&quot;
+MODEL_EMBEDDING = &quot;nomic-embed-text&quot;
+COLLECTION_NAME = &quot;hort_osona&quot;
+N_FRAGMENTS = 4  # quants fragments recuperar
+<h1>Connexió a ChromaDB</h1>
+ollama_ef = embedding_functions.OllamaEmbeddingFunction(
+    model_name=MODEL_EMBEDDING,
+    url=&quot;http://localhost:11434/api/embeddings&quot;
+)
+client = chromadb.PersistentClient(path=&quot;./vectorstore&quot;)
+collection = client.get_or_create_collection(
+    name=COLLECTION_NAME,
+    embedding_function=ollama_ef
+)
+<p>def cerca(consulta: str, k: int = N_FRAGMENTS) -&gt; list[str]:
+    &quot;&quot;&quot;Retorna els k fragments més rellevants per a la consulta.&quot;&quot;&quot;
+    resultats = collection.query(query_texts=[consulta], n_results=k)
+    return resultats[&#x27;documents&#x27;][0]</p>
+<p>def genera_resposta(pregunta: str) -&gt; str:
+    &quot;&quot;&quot;Genera una resposta basada en els fragments recuperats.&quot;&quot;&quot;
+    fragments = cerca(pregunta)
+    context = &quot;\n\n&quot;.join(
+        f&quot;[Fragment {i+1}]: {frag}&quot; for i, frag in enumerate(fragments)
+    )
+    prompt = f&quot;&quot;&quot;Ets l&#x27;assistent Hort Osona. Respon en català, basant-te
+només en la informació dels fragments següents. Si la informació no
+és als fragments, digues &quot;No tinc prou informació a les fitxes d&#x27;Hort
+Osona per respondre aquesta pregunta.&quot;</p>
+<p>FRAGMENTS D&#x27;HORT OSONA:
+{context}</p>
+<p>PREGUNTA: {pregunta}</p>
+<p>RESPOSTA:&quot;&quot;&quot;</p>
+<p># Crida a l&#x27;API d&#x27;Ollama
+    r = requests.post(&quot;http://localhost:11434/api/generate&quot;, json={
+        &quot;model&quot;: MODEL_LLM,
+        &quot;prompt&quot;: prompt,
+        &quot;stream&quot;: False
+    })
+    return r.json()[&quot;response&quot;]</p>
+<p>if __name__ == &quot;__main__&quot;:
+    import sys
+    pregunta = &quot; &quot;.join(sys.argv[1:]) or &quot;Quan he de plantar carbasses?&quot;
+    print(f&quot;\nPregunta: {pregunta}\n&quot;)
+    print(&quot;Resposta:&quot;)
+    print(genera_resposta(pregunta))</code></pre></p>
+<p>Prova'l:</p>
+<pre class="code"><code class="language-bash">python rag_simple.py &quot;Com combatre el pugó?&quot;
+python rag_simple.py &quot;Quan plantar tomàquets?&quot;</code></pre>
+<h2>37.4 Millorant el prompt</h2>
+<p>El prompt de l'apartat anterior és molt bàsic. Un millor prompt:</p>
+<pre class="code"><code class="language-python">PROMPT_TEMPLATE = &quot;&quot;&quot;Ets l&#x27;assistent del projecte Hort Osona, un hort
+ecològic a la comarca d&#x27;Osona (Catalunya). Tens accés a 76 fitxes de
+cultius i 30+ guies d&#x27;horticultura.
+<p>INSTRUCCIONS:
+1. Respon SEMPRE en català.
+2. Basat-te NOMÉS en la informació dels fragments. Si no hi ha prou
+   informació, digues &quot;No ho sé amb les dades que tinc&quot;.
+3. Sigues pràctic i directe. Evita frases com &quot;En general...&quot; o &quot;És
+   important...&quot;. Dona consells concrets.
+4. Si la pregunta és sobre una planta concreta, esmenta la fitxa
+   d&#x27;origen.
+5. Si la pregunta és general, dona una resposta sintètica (5-10
+   línies).
+6. Si hi ha diverses opcions, enumera-les amb números.</p>
+<p>FRAGMENTS D&#x27;HORT OSONA:
+{context}</p>
+<p>PREGUNTA: {pregunta}</p>
+<p>RESPOSTA:&quot;&quot;&quot;</code></pre></p>
+<p>Aquest prompt força respostes útils i honestes.</p>
+<h2>37.5 Afegir cites als documents</h2>
+<p>Una millora important: retornar <strong>quina fitxa ha donat la informació</strong>. Això permet a l'usuari verificar i aprendre'n més.</p>
+<pre class="code"><code class="language-python">def cerca_amb_metadades(consulta: str, k: int = 4) -&gt; list[dict]:
+    resultats = collection.query(
+        query_texts=[consulta],
+        n_results=k
+    )
+    fragments = []
+    for i in range(len(resultats[&#x27;documents&#x27;][0])):
+        fragments.append({
+            &quot;text&quot;: resultats[&#x27;documents&#x27;][0][i],
+            &quot;font&quot;: resultats[&#x27;metadatas&#x27;][0][i][&#x27;source&#x27;],
+            &quot;tema&quot;: resultats[&#x27;metadatas&#x27;][0][i].get(&#x27;tema&#x27;, &#x27;desconegut&#x27;),
+            &quot;distancia&quot;: resultats[&#x27;distances&#x27;][0][i] if &#x27;distances&#x27; in resultats else None
+        })
+    return fragments
+<p>def genera_resposta_amb_cites(pregunta: str) -&gt; dict:
+    fragments = cerca_amb_metadades(pregunta)
+    context = &quot;\n\n&quot;.join(
+        f&quot;[{f[&#x27;tema&#x27;]} | {f[&#x27;font&#x27;]}]: {f[&#x27;text&#x27;]}&quot; for f in fragments
+    )
+    prompt = PROMPT_TEMPLATE.format(context=context, pregunta=pregunta)
+    r = requests.post(&quot;http://localhost:11434/api/generate&quot;, json={
+        &quot;model&quot;: MODEL_LLM,
+        &quot;prompt&quot;: prompt,
+        &quot;stream&quot;: False
+    })
+    return {
+        &quot;resposta&quot;: r.json()[&quot;response&quot;],
+        &quot;fonts&quot;: list(set(f[&#x27;font&#x27;] for f in fragments)),
+        &quot;fragments&quot;: fragments
+    }</code></pre></p>
+<p>Ara la resposta inclou quines fitxes ha usat.</p>
+<h2>37.6 Com gestionar fragments massa llargs</h2>
+<p>Quan recuperes 4-5 fragments, el context pot ser massa llarg per a un model petit. Solucions:</p>
+<p>1. <strong>Limitar la mida dels fragments</strong> a l'hora d'indexar (ja ho fem al Cap 36).
+2. <strong>Resumir els fragments</strong> amb el model abans de generar la resposta.
+3. <strong>Comprimir el context</strong> tècniques com LongLLMLingua, Selective Context, LLMLingua.</p>
+<p>Per al BernatLab, la solució 1 ja és bona. Si volem anar més enllà, la 2:</p>
+<pre class="code"><code class="language-python">def resum_fragments(fragments: list[str], pregunta: str) -&gt; str:
+    &quot;&quot;&quot;Resum cada fragment en una frase, mantenint el relevant per a la pregunta.&quot;&quot;&quot;
+    resums = []
+    for frag in fragments:
+        prompt = f&quot;Resum en una frase el següent text, mantenint la informació rellevant per a: &#x27;{pregunta}&#x27;.\n\nText: {frag}\n\nResum:&quot;
+        r = requests.post(&quot;http://localhost:11434/api/generate&quot;, json={
+            &quot;model&quot;: MODEL_LLM,
+            &quot;prompt&quot;: prompt,
+            &quot;stream&quot;: False
+        })
+        resums.append(r.json()[&quot;response&quot;].strip())
+    return &quot;\n&quot;.join(f&quot;- {r}&quot; for r in resums)</code></pre>
+<p>Això fa una passada extra pel model, però redueix molt la mida del context final.</p>
+<h2>37.7 Com afegir metadades útils</h2>
+<p>Per a Hort Osona, les metadades importants són:</p>
+<ul>
+<li><strong>Temporada</strong>: primavera, estiu, tardor, hivern.</li>
+<li><strong>Secció de l'hort</strong>: tomateres, carabasseres, fruiters, compost, etc.</li>
+<li><strong>Tipus</strong>: fitxa, guia, pla mensual, recepta.</li>
+<li><strong>Data</strong>: quan s'ha escrit/actualitzat.</li>
+</ul>
+<p>Si volem cerques més intel·ligents ("quines coses he de fer aquest mes?"), podem filtrar per temporada:</p>
+<pre class="code"><code class="language-python">def cerca_filtrada(consulta: str, temporada: str = None, k: int = 4) -&gt; list:
+    where = {&quot;temporada&quot;: temporada} if temporada else None
+    resultats = collection.query(
+        query_texts=[consulta],
+        n_results=k,
+        where=where
+    )
+    return resultats[&#x27;documents&#x27;][0]</code></pre>
+<p>Això permet respostes contextualitzades ("a l'estiu fes X, a l'hivern fes Y").</p>
+<h2>37.8 Com gestionar actualitzacions</h2>
+<p>Quan escrius una nova fitxa o actualitzes una de vella, cal:</p>
+<p>1. <strong>Re-indexar el document sencer</strong> (esborrar els fragments antics i afegir els nous).
+2. <strong>Indexar només els canvis</strong> (més eficient, però cal gestionar versions).</p>
+<p>Un script de re-indexació per canvi:</p>
+<pre class="code"><code class="language-python">def reindexar_document(path: Path):
+    &quot;&quot;&quot;Re-indexa un sol document.&quot;&quot;&quot;
+    # Esborrar fragments antics
+    tema = path.stem
+    try:
+        collection.delete(where={&quot;tema&quot;: tema})
+    except:
+        pass
+<p># Llegir i fragmentar
+    text = path.read_text(encoding=&quot;utf-8&quot;)
+    fragments = fragmentar(text)</p>
+<p># Afegir nous fragments
+    for n, frag in enumerate(fragments):
+        collection.add(
+            documents=[frag],
+            metadatas=[{
+                &quot;source&quot;: str(path.name),
+                &quot;fragment&quot;: n,
+                &quot;tema&quot;: tema
+            }],
+            ids=[f&quot;{tema}-{n}&quot;]
+        )</code></pre></p>
+<p>I un script setmanal que comprova quins fitxers han canviat:</p>
+<pre class="code"><code class="language-python">import os
+import time
+from pathlib import Path
+<p>HORT_DIR = Path(&quot;/home/bernat/bernatlab/projects/hort-osona&quot;)
+INDEX_FILE = Path(&quot;.indexed_files.txt&quot;)</p>
+<h1>Carregar l&#x27;estat anterior</h1>
+indexats = {}
+if INDEX_FILE.exists():
+    for line in INDEX_FILE.read_text().splitlines():
+        if &quot;,&quot; in line:
+            f, mtime = line.split(&quot;,&quot;)
+            indexats[f] = float(mtime)
+<h1>Comprovar canvis</h1>
+nous_canvis = []
+for md in HORT_DIR.rglob(&quot;*.md&quot;):
+    rel = str(md.relative_to(HORT_DIR))
+    mtime = md.stat().st_mtime
+    if rel not in indexats or mtime &gt; indexats[rel]:
+        nous_canvis.append(md)
+        indexats[rel] = mtime
+<h1>Re-indexar</h1>
+for md in nous_canvis:
+    print(f&quot;Re-indexant: {md.name}&quot;)
+    reindexar_document(md)
+<h1>Guardar estat</h1>
+INDEX_FILE.write_text(&quot;\n&quot;.join(f&quot;{f},{m}&quot; for f, m in indexats.items()))</code></pre>
+<h2>37.9 Com avaluar la qualitat del RAG</h2>
+<p>Per saber si el teu RAG funciona bé, crea un <strong>test set</strong>:</p>
+<pre class="code"><code class="language-python">tests = [
+    {
+        &quot;pregunta&quot;: &quot;Quan plantar carbasses?&quot;,
+        &quot;resposta_esperada&quot;: &quot;A la primavera, després de les últimes gelades&quot;,
+        &quot;fonts_esperades&quot;: [&quot;fitxa-carbassa.md&quot;, &quot;calendari-sembra.md&quot;]
+    },
+    {
+        &quot;pregunta&quot;: &quot;Com combatre el pugó?&quot;,
+        &quot;resposta_esperada&quot;: &quot;Sabó potàssic, infusions d&#x27;all, afavorir marietes&quot;,
+        &quot;fonts_esperades&quot;: [&quot;guia-plagues.md&quot;, &quot;gestio-plagues.md&quot;]
+    },
+    # ...
+]
+<p>for t in tests:
+    r = genera_resposta_amb_cites(t[&quot;pregunta&quot;])
+    correcte = t[&quot;fonts_esperades&quot;][0] in r[&quot;fonts&quot;]
+    print(f&quot;{&#x27;✓&#x27; if correcte else &#x27;✗&#x27;} {t[&#x27;pregunta&#x27;]}&quot;)</code></pre></p>
+<p>Si el RAG falla, ajusta:</p>
+<ul>
+<li>El model d'embeddings (prova'n un altre).</li>
+<li>La mida dels fragments.</li>
+<li>El nombre de fragments recuperats.</li>
+<li>El prompt del sistema.</li>
+<li>La qualitat dels documents d'origen.</li>
+</ul>
+<h2>37.10 Com passar a streaming</h2>
+<p>Per a respostes llargues, voldrem <strong>streaming</strong> (rebre la resposta a mesura que es genera, en comptes d'esperar tota la resposta):</p>
+<pre class="code"><code class="language-python">import json
+<p>def genera_stream(pregunta: str):
+    fragments = cerca_amb_metadades(pregunta)
+    context = &quot;\n\n&quot;.join(f&quot;[{f[&#x27;font&#x27;]}]: {f[&#x27;text&#x27;]}&quot; for f in fragments)
+    prompt = PROMPT_TEMPLATE.format(context=context, pregunta=pregunta)</p>
+<p>with requests.post(
+        &quot;http://localhost:11434/api/generate&quot;,
+        json={&quot;model&quot;: MODEL_LLM, &quot;prompt&quot;: prompt, &quot;stream&quot;: True},
+        stream=True
+    ) as r:
+        for line in r.iter_lines():
+            if line:
+                data = json.loads(line)
+                if &quot;response&quot; in data:
+                    yield data[&quot;response&quot;]</code></pre></p>
+<p>Ús:</p>
+<pre class="code"><code class="language-python">for chunk in genera_stream(&quot;Quan plantar carbasses?&quot;):
+    print(chunk, end=&quot;&quot;, flush=True)
+print()</code></pre>
+<p>Això és el que farem servir al client web (Cap 38).</p>
+<h2>37.11 Errors habituals</h2>
+<p><strong>Error 1: el model no segueix les instruccions del prompt</strong>.</p>
+<p>Solució: fes servir un model més gran o reescriu el prompt més clar.</p>
+<p><strong>Error 2: la cerca retorna fragments irrellevants</strong>.</p>
+<p>Solució: canvia el model d'embeddings, millora els documents, redueix k.</p>
+<p><strong>Error 3: les respostes són molt llargues</strong>.</p>
+<p>Solució: afegeix "Respon en 3-5 línies" al prompt.</p>
+<p><strong>Error 4: les respostes inventen informació</strong>.</p>
+<p>Solució: reforça el prompt amb "Si no saps, digues 'no ho sé'". Afegeix cites per verificar.</p>
+<p><strong>Error 5: la base vectorial creix molt</strong>.</p>
+<p>Solució: fragmenta més fi (300-400 tokens) o redueix el nombre de documents.</p>
+<h2>37.12 Resum</h2>
+<p>Hem après a construir un RAG complet amb Ollama i ChromaDB: com recuperar fragments, com construir el prompt, com generar respostes amb cites, com gestionar actualitzacions, i com avaluar la qualitat. Al proper capítol construirem un client web senzill perquè puguis parlar amb l'assistent des del navegador.</p>
+<h2>37.13 Exercicis pràctics</h2>
+<p>1. Descarrega el codi de `rag_simple.py` i prova'l amb 5 preguntes.
+2. Avalua la qualitat de les respostes.
+3. Afegeix cites als documents.
+4. Implementa streaming.
+5. Crea un test set amb 10 preguntes i avalua el rendiment.
+6. Ajusta el prompt per millorar les respostes.
+7. Documenta al README la configuració del RAG, el model usat, i les mètriques.</p>
+<p>Paraules clau: <strong>RAG, retrieval-augmented generation, generació augmentada, fragments, top-k, context, prompt, system prompt, streaming, cites, fonts, metadades, ChromaDB, Ollama, embedding, on-premises, self-hosted, private AI, hort Osona, fitxes, guies, re-indexació, actualització, test set, avaluació, mètriques, recall, precision, MRR, reranking, re-ranking, rerank, cross-encoder, bi-encoder, hybrid search, BM25, filtratge, where, chunking, fragmentació, size, overlap, sliding window, semantic chunking, structured chunking, LongLLMLingua, LLMLingua, context compression, summarization, query expansion, HyDE, hypothetical document embeddings, multi-query, fusion, RAG-Fusion, agentic RAG, ReAct, self-RAG, corrective RAG, CRAG, advanced RAG, modular RAG, GraphRAG, knowledge graph</strong>.</p>
+<hr>
+<h2 id="38-client-web">Capítol 38 — Client web per parlar amb l&#x27;assistent</h2>
+<p>> <em>"Un assistent potent al terminal és útil. Un assistent al navegador, amb historial, cites i veu, és una altra cosa."</em></p>
+<h2>38.1 Per què un client web</h2>
+<p>Un cop tens el RAG funcionant al terminal (Cap 37), vols alguna cosa més usable:</p>
+<ul>
+<li><strong>Interfície gràfica</strong> amb quadre de text, historial, format.</li>
+<li><strong>Cites clicables</strong> que porten a la fitxa original.</li>
+<li><strong>Markdown renderitzat</strong> (llistes, negretes, enllaços).</li>
+<li><strong>Codi amb color</strong> (útil si preguntes sobre scripts).</li>
+<li><strong>Persistència</strong> de l'historial entre sessions.</li>
+<li><strong>Accessible des de qualsevol dispositiu</strong> del tailnet.</li>
+</ul>
+<p>La manera més senzilla és un client web local que connecta amb Ollama. Sense dependències complexes, en HTML + JavaScript, allotjable a qualsevol lloc.</p>
+<h2>38.2 Stack tecnològic</h2>
+<p>Triarem eines lleugeres, sense frameworks pesats:</p>
+<ul>
+<li><strong>Backend</strong>: FastAPI (Python) — simple, modern, async.</li>
+<li><strong>Frontend</strong>: HTML + CSS + JavaScript — sense React ni Vue, perquè volem poc.</li>
+<li><strong>Markdown</strong>: marked.js (libreria que converteix Markdown a HTML, ~30 KB) carregada per CDN.</li>
+<li><strong>Syntax highlight</strong>: highlight.js per al codi, per CDN.</li>
+</ul>
+<p>Tot plegat: <strong>150 KB de frontend, 200 línies de Python al backend</strong>. Prou per a un assistent potent.</p>
+<h2>38.3 Estructura del projecte</h2>
+<pre class="code"><code class="language-">book/asistent/
+├── backend/
+│   ├── main.py            # FastAPI app
+│   ├── rag.py             # Lògica RAG (Cap 37)
+│   └── requirements.txt   # Dependències
+├── frontend/
+│   ├── index.html         # Pàgina principal
+│   ├── styles.css         # Estils
+│   └── app.js             # Lògica del client
+└── README.md              # Com arrancar-ho</code></pre>
+<h2>38.4 Backend: FastAPI</h2>
+<p>Crea `backend/main.py`:</p>
+<pre class="code"><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;
+asistent_hort_osona.py — Backend FastAPI per a l&#x27;assistent Hort Osona.
+&quot;&quot;&quot;
+<p>from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from pathlib import Path
+import sys</p>
+<h1>Afegir el directori del RAG al path</h1>
+sys.path.insert(0, str(Path(__file__).parent))
+from rag import HortOsonaRAG
+<h1>Inicialitzar</h1>
+app = FastAPI(title=&quot;Hort Osona Assistent&quot;)
+rag = HortOsonaRAG(
+    model_llm=&quot;gemma3:12b&quot;,
+    model_embedding=&quot;nomic-embed-text&quot;,
+    collection_name=&quot;hort_osona&quot;,
+    vectorstore_path=&quot;./vectorstore&quot;
+)
+<h1>Servir fitxers estàtics</h1>
+FRONTEND_DIR = Path(__file__).parent.parent / &quot;frontend&quot;
+app.mount(&quot;/static&quot;, StaticFiles(directory=FRONTEND_DIR), name=&quot;static&quot;)
+<p>class Pregunta(BaseModel):
+    text: str
+    stream: bool = True</p>
+<p>@app.get(&quot;/&quot;)
+def root():
+    return FileResponse(FRONTEND_DIR / &quot;index.html&quot;)</p>
+<p>@app.get(&quot;/api/preguntar&quot;)
+def preguntar_text(q: str):
+    &quot;&quot;&quot;Endpoint per streaming amb Server-Sent Events (SSE).&quot;&quot;&quot;
+    from fastapi.responses import StreamingResponse
+    import json</p>
+<p>def generator():
+        for chunk in rag.ask_stream(q):
+            yield f&quot;data: {json.dumps(chunk)}\n\n&quot;
+        yield &quot;data: [DONE]\n\n&quot;</p>
+<p>return StreamingResponse(generator(), media_type=&quot;text/event-stream&quot;)</p>
+<p>@app.post(&quot;/api/preguntar&quot;)
+def preguntar_json(pregunta: Pregunta):
+    &quot;&quot;&quot;Endpoint per obtenir resposta completa en JSON.&quot;&quot;&quot;
+    if pregunta.stream:
+        raise HTTPException(400, &quot;Useu /api/preguntar?q=... per streaming&quot;)
+    return rag.ask(pregunta.text)</p>
+<p>@app.get(&quot;/api/estadistiques&quot;)
+def estadistiques():
+    &quot;&quot;&quot;Retorna estadístiques de la base vectorial.&quot;&quot;&quot;
+    return {
+        &quot;fragments_indexats&quot;: rag.count(),
+        &quot;model_llm&quot;: rag.model_llm,
+        &quot;model_embedding&quot;: rag.model_embedding,
+    }</code></pre></p>
+<h2>38.5 Backend: la classe RAG</h2>
+<p>Crea `backend/rag.py` (basat en el Cap 37, però organitzat com a classe):</p>
+<pre class="code"><code class="language-python">&quot;&quot;&quot;
+rag.py — Lògica del RAG per a Hort Osona.
+&quot;&quot;&quot;
+<p>import json
+from pathlib import Path
+import chromadb
+from chromadb.utils import embedding_functions
+import requests</p>
+<p>class HortOsonaRAG:
+    def __init__(self, model_llm, model_embedding, collection_name, vectorstore_path):
+        self.model_llm = model_llm
+        self.model_embedding = model_embedding</p>
+<p># Configurar embeddings via Ollama
+        ollama_ef = embedding_functions.OllamaEmbeddingFunction(
+            model_name=model_embedding,
+            url=&quot;http://localhost:11434/api/embeddings&quot;
+        )</p>
+<p># Connectar a ChromaDB
+        client = chromadb.PersistentClient(path=vectorstore_path)
+        self.collection = client.get_or_create_collection(
+            name=collection_name,
+            embedding_function=ollama_ef
+        )</p>
+<p>def cerca(self, pregunta: str, k: int = 4) -&gt; list[dict]:
+        resultats = self.collection.query(
+            query_texts=[pregunta],
+            n_results=k
+        )
+        return [
+            {
+                &quot;text&quot;: resultats[&#x27;documents&#x27;][0][i],
+                &quot;font&quot;: resultats[&#x27;metadatas&#x27;][0][i].get(&#x27;source&#x27;, &#x27;desconegut&#x27;),
+                &quot;tema&quot;: resultats[&#x27;metadatas&#x27;][0][i].get(&#x27;tema&#x27;, &#x27;&#x27;),
+                &quot;distancia&quot;: resultats[&#x27;distances&#x27;][0][i] if &#x27;distances&#x27; in resultats else 0
+            }
+            for i in range(len(resultats[&#x27;documents&#x27;][0]))
+        ]</p>
+<p>def _build_prompt(self, pregunta: str, fragments: list[dict]) -&gt; str:
+        context = &quot;\n\n&quot;.join(
+            f&quot;[Fragment de {f[&#x27;font&#x27;]}]\n{f[&#x27;text&#x27;]}&quot;
+            for f in fragments
+        )
+        return f&quot;&quot;&quot;Ets l&#x27;assistent del projecte Hort Osona.</p>
+<p>INSTRUCCIONS:
+<ul>
+<li>Respon SEMPRE en català.</li>
+<li>Basat-te NOMÉS en la informació dels fragments.</li>
+<li>Si la informació no és als fragments, digues &quot;No ho sé amb les dades d&#x27;Hort Osona&quot;.</li>
+<li>Sigues pràctic i concret.</li>
+<li>Si la pregunta és sobre una planta concreta, esmenta la fitxa d&#x27;origen.</li>
+</ul></p>
+<p>FRAGMENTS:
+{context}</p>
+<p>PREGUNTA: {pregunta}</p>
+<p>RESPOSTA:&quot;&quot;&quot;</p>
+<p>def ask(self, pregunta: str) -&gt; dict:
+        fragments = self.cerca(pregunta)
+        prompt = self._build_prompt(pregunta, fragments)
+        r = requests.post(&quot;http://localhost:11434/api/generate&quot;, json={
+            &quot;model&quot;: self.model_llm,
+            &quot;prompt&quot;: prompt,
+            &quot;stream&quot;: False
+        })
+        return {
+            &quot;resposta&quot;: r.json()[&quot;response&quot;],
+            &quot;fonts&quot;: list(set(f[&#x27;font&#x27;] for f in fragments)),
+            &quot;fragments&quot;: fragments
+        }</p>
+<p>def ask_stream(self, pregunta: str):
+        &quot;&quot;&quot;Genera la resposta en streaming, amb cites al final.&quot;&quot;&quot;
+        fragments = self.cerca(pregunta)
+        prompt = self._build_prompt(pregunta, fragments)</p>
+<p># Enviar primer les cites
+        yield {
+            &quot;type&quot;: &quot;fonts&quot;,
+            &quot;fonts&quot;: list(set(f[&#x27;font&#x27;] for f in fragments))
+        }</p>
+<p># Després la resposta en streaming
+        with requests.post(
+            &quot;http://localhost:11434/api/generate&quot;,
+            json={&quot;model&quot;: self.model_llm, &quot;prompt&quot;: prompt, &quot;stream&quot;: True},
+            stream=True
+        ) as r:
+            for line in r.iter_lines():
+                if line:
+                    data = json.loads(line)
+                    if &quot;response&quot; in data:
+                        yield {
+                            &quot;type&quot;: &quot;text&quot;,
+                            &quot;content&quot;: data[&quot;response&quot;]
+                        }</p>
+<p>def count(self) -&gt; int:
+        return self.collection.count()</code></pre></p>
+<h2>38.6 Frontend: HTML</h2>
+<p>Crea `frontend/index.html`:</p>
+<pre class="code"><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ca&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Hort Osona · Assistent&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;/static/styles.css&quot;&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/marked/marked.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot;
+          href=&quot;https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css&quot;&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;header&gt;
+        &lt;h1&gt;🌱 Hort Osona&lt;/h1&gt;
+        &lt;p class=&quot;subtitle&quot;&gt;Assistent local basat en les teves 76 fitxes&lt;/p&gt;
+    &lt;/header&gt;
+<p>&lt;main&gt;
+        &lt;div id=&quot;chat&quot;&gt;&lt;/div&gt;</p>
+<p>&lt;form id=&quot;form&quot;&gt;
+            &lt;textarea
+                id=&quot;input&quot;
+                placeholder=&quot;Pregunta&#x27;m sobre el teu hort...&quot;
+                rows=&quot;3&quot;
+                autofocus&gt;&lt;/textarea&gt;
+            &lt;div class=&quot;actions&quot;&gt;
+                &lt;span id=&quot;status&quot;&gt;&lt;/span&gt;
+                &lt;button type=&quot;submit&quot;&gt;Enviar&lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/form&gt;
+    &lt;/main&gt;</p>
+<p>&lt;footer&gt;
+        &lt;small&gt;
+            Model: &lt;span id=&quot;model-name&quot;&gt;...&lt;/span&gt; ·
+            Fragments: &lt;span id=&quot;fragments-count&quot;&gt;...&lt;/span&gt;
+        &lt;/small&gt;
+    &lt;/footer&gt;</p>
+<p>&lt;script src=&quot;/static/app.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre></p>
+<h2>38.7 Frontend: CSS</h2>
+<p>Crea `frontend/styles.css`:</p>
+<pre class="code"><code class="language-css">* { box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;
+    margin: 0;
+    background: #f8f9fa;
+    color: #222;
+    line-height: 1.6;
+}
+header {
+    background: #2d5016;
+    color: #fff;
+    padding: 1em 2em;
+    text-align: center;
+}
+header h1 { margin: 0; font-size: 1.5em; }
+header .subtitle { margin: 0.3em 0 0; opacity: 0.8; font-size: 0.9em; }
+main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1em;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+#chat {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1em;
+}
+.message {
+    margin: 1em 0;
+    padding: 0.8em 1em;
+    border-radius: 8px;
+    max-width: 90%;
+}
+.user {
+    background: #e3f2fd;
+    margin-left: auto;
+}
+.assistant {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+}
+.assistant pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 0.8em;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+.assistant code {
+    background: #f0f0f0;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+}
+.fonts {
+    margin-top: 0.5em;
+    font-size: 0.85em;
+    color: #666;
+    font-style: italic;
+}
+#form {
+    background: #fff;
+    padding: 1em;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+#input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5em;
+    font-family: inherit;
+    font-size: 1em;
+    resize: vertical;
+}
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5em;
+}
+button {
+    background: #2d5016;
+    color: #fff;
+    border: none;
+    padding: 0.5em 1.5em;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+}
+button:hover { background: #3d6b1f; }
+button:disabled { background: #aaa; cursor: not-allowed; }
+#status { font-size: 0.85em; color: #666; }
+footer {
+    text-align: center;
+    color: #888;
+    padding: 1em;
+}</code></pre>
+<h2>38.8 Frontend: JavaScript</h2>
+<p>Crea `frontend/app.js`:</p>
+<pre class="code"><code class="language-javascript">// app.js — Client per a l&#x27;assistent Hort Osona
+<p>const chat = document.getElementById(&#x27;chat&#x27;);
+const form = document.getElementById(&#x27;form&#x27;);
+const input = document.getElementById(&#x27;input&#x27;);
+const status = document.getElementById(&#x27;status&#x27;);
+const modelName = document.getElementById(&#x27;model-name&#x27;);
+const fragmentsCount = document.getElementById(&#x27;fragments-count&#x27;);</p>
+<p>// Carregar estadístiques
+fetch(&#x27;/api/estadistiques&#x27;)
+    .then(r =&gt; r.json())
+    .then(d =&gt; {
+        modelName.textContent = d.model_llm;
+        fragmentsCount.textContent = d.fragments_indexats;
+    });</p>
+<p>function afegirMissatge(text, role, fonts = null) {
+    const div = document.createElement(&#x27;div&#x27;);
+    div.className = `message ${role}`;
+    if (role === &#x27;assistant&#x27;) {
+        div.innerHTML = DOMPurify.sanitize(marked.parse(text));
+        if (fonts &amp;&amp; fonts.length &gt; 0) {
+            const f = document.createElement(&#x27;div&#x27;);
+            f.className = &#x27;fonts&#x27;;
+            f.textContent = &#x27;📚 &#x27; + fonts.join(&#x27;, &#x27;);
+            div.appendChild(f);
+        }
+    } else {
+        div.textContent = text;
+    }
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+}</p>
+<p>form.addEventListener(&#x27;submit&#x27;, async (e) =&gt; {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;</p>
+<p>afegirMissatge(text, &#x27;user&#x27;);
+    input.value = &#x27;&#x27;;
+    status.textContent = &#x27;Pensant...&#x27;;
+    form.querySelector(&#x27;button&#x27;).disabled = true;</p>
+<p>try {
+        // Obrir stream
+        const response = await fetch(`/api/preguntar?q=${encodeURIComponent(text)}`);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();</p>
+<p>let buffer = &#x27;&#x27;;
+        let assistantDiv = null;
+        let fullText = &#x27;&#x27;;
+        let fonts = null;</p>
+<p>while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });</p>
+<p>// Processar línies SSE
+            const lines = buffer.split(&#x27;\n\n&#x27;);
+            buffer = lines.pop() || &#x27;&#x27;;</p>
+<p>for (const line of lines) {
+                if (!line.startsWith(&#x27;data: &#x27;)) continue;
+                const data = line.slice(6);
+                if (data === &#x27;[DONE]&#x27;) continue;</p>
+<p>try {
+                    const obj = JSON.parse(data);
+                    if (obj.type === &#x27;fonts&#x27;) {
+                        fonts = obj.fonts;
+                    } else if (obj.type === &#x27;text&#x27;) {
+                        fullText += obj.content;
+                        if (!assistantDiv) {
+                            assistantDiv = afegirMissatge(&#x27;&#x27;, &#x27;assistant&#x27;);
+                        }
+                        assistantDiv.innerHTML = DOMPurify.sanitize(
+                            marked.parse(fullText)
+                        );
+                    }
+                } catch (e) {}
+            }
+            chat.scrollTop = chat.scrollHeight;
+        }</p>
+<p>// Afegir cites al final
+        if (fonts &amp;&amp; assistantDiv) {
+            const f = document.createElement(&#x27;div&#x27;);
+            f.className = &#x27;fonts&#x27;;
+            f.textContent = &#x27;📚 Fonts: &#x27; + fonts.join(&#x27;, &#x27;);
+            assistantDiv.appendChild(f);
+        }</p>
+<p>status.textContent = &#x27;&#x27;;
+    } catch (err) {
+        afegirMissatge(&#x27;Error: &#x27; + err.message, &#x27;assistant&#x27;);
+        status.textContent = &#x27;&#x27;;
+    } finally {
+        form.querySelector(&#x27;button&#x27;).disabled = false;
+    }
+});</code></pre></p>
+<h2>38.9 Com arrencar-ho tot</h2>
+<p>1. <strong>Assegura't que Ollama està corrent</strong>:</p>
+<pre class="code"><code class="language-bash">ollama serve &amp;</code></pre>
+<p>2. <strong>Indexa les fitxes</strong> (només la primera vegada, o quan n'afegim de noves):</p>
+<pre class="code"><code class="language-bash">python backend/../index_hort_osona.py</code></pre>
+<p>3. <strong>Arrenca el backend</strong>:</p>
+<pre class="code"><code class="language-bash">cd backend
+pip install -r requirements.txt  # fastapi, uvicorn, chromadb, requests
+uvicorn main:app --host 0.0.0.0 --port 8080 --reload</code></pre>
+<p>4. <strong>Obre el navegador</strong> a `http://localhost:8080`.</p>
+<h2>38.10 Accedir des de la Raspberry o el mòbil</h2>
+<p>Si vols accedir des d'altres dispositius del tailnet:</p>
+<p>1. <strong>Assegura't que el backend escolta a 0.0.0.0</strong> (ja ho fem amb `--host 0.0.0.0`).
+2. <strong>Obre el port al firewall</strong> del Mac:</p>
+<pre class="code"><code class="language-bash"># System Settings → Network → Firewall → Options
+<h1>Afegir uvicorn (Python) i permetre connexions entrants</code></pre></h1>
+<p>3. <strong>Accedeix des de la Raspberry</strong>:</p>
+<pre class="code"><code class="language-bash">curl http://&lt;mac-tailscale-ip&gt;:8080/api/estadistiques</code></pre>
+<p>4. <strong>Des del navegador del mòbil</strong>: obre `http://<mac-tailscale-ip>:8080`.</p>
+<h2>38.11 Millores opcionals</h2>
+<p>Un cop el bàsic funciona, pots afegir:</p>
+<p>1. <strong>Historial persistent</strong>. Guarda les converses a una base de dades SQLite o fitxer JSON.
+2. <strong>Sistema de feedback</strong>. Botons 👍/👎 per millorar el model.
+3. <strong>Memòria a llarg termini</strong>. Recorda les preferències de l'usuari (l'hort, varietats favorites).
+4. <strong>Exportar converses</strong>. Descarrega les respostes com a Markdown o PDF.
+5. <strong>Multimodal</strong>. Afegeix lectura d'imatges (p. ex. una foto d'una planta malalta).
+6. <strong>Veu</strong>. Cap 40.</p>
+<h2>38.12 Desplegament al BernatLab</h2>
+<p>Si vols que el client estigui disponible sempre, sense haver d'arrencar-lo manualment:</p>
+<p>1. <strong>Crea un servei launchd al Mac</strong>:</p>
+<pre class="code"><code class="language-xml">&lt;!-- ~/Library/LaunchAgents/com.bernat.asistent.plist --&gt;
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot;
+  &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;
+&lt;plist version=&quot;1.0&quot;&gt;
+&lt;dict&gt;
+    &lt;key&gt;Label&lt;/key&gt;
+    &lt;string&gt;com.bernat.asistent&lt;/string&gt;
+    &lt;key&gt;ProgramArguments&lt;/key&gt;
+    &lt;array&gt;
+        &lt;string&gt;/Users/bernat/bernatlab/.venv/bin/python&lt;/string&gt;
+        &lt;string&gt;-m&lt;/string&gt;
+        &lt;string&gt;uvicorn&lt;/string&gt;
+        &lt;string&gt;main:app&lt;/string&gt;
+        &lt;string&gt;--host&lt;/string&gt;
+        &lt;string&gt;0.0.0.0&lt;/string&gt;
+        &lt;string&gt;--port&lt;/string&gt;
+        &lt;string&gt;8080&lt;/string&gt;
+    &lt;/array&gt;
+    &lt;key&gt;WorkingDirectory&lt;/key&gt;
+    &lt;string&gt;/Users/bernat/bernatlab/asistent/backend&lt;/string&gt;
+    &lt;key&gt;RunAtLoad&lt;/key&gt;
+    &lt;true/&gt;
+    &lt;key&gt;KeepAlive&lt;/key&gt;
+    &lt;true/&gt;
+&lt;/dict&gt;
+&lt;/plist&gt;</code></pre>
+<p>2. <strong>Carrega'l</strong>:</p>
+<pre class="code"><code class="language-bash">launchctl load ~/Library/LaunchAgents/com.bernat.asistent.plist</code></pre>
+<p>Ara l'assistent arrenca automàticament quan encens el Mac.</p>
+<h2>38.13 Resum</h2>
+<p>Hem muntat un client web complet per a l'assistent Hort Osona: backend FastAPI, frontend HTML+CSS+JS, streaming de respostes, cites als documents, i persistència. Al proper capítol veurem com integrar Ollama amb l'API del BernatLab perquè la Raspberry pugui preguntar coses al Mac i rebre respostes basades en les fitxes.</p>
+<h2>38.14 Exercicis pràctics</h2>
+<p>1. Crea l'estructura `asistent/backend/` i `asistent/frontend/`.
+2. Escriu `rag.py` i `main.py`.
+3. Escriu `index.html`, `styles.css`, i `app.js`.
+4. Arrenca Ollama i el backend amb uvicorn.
+5. Obre `http://localhost:8080` i fes 5 preguntes.
+6. Afegeix el servei launchd per arrencada automàtica.
+7. Configura l'accés des de la Raspberry via Tailscale.
+8. Documenta al README com usar-lo.</p>
+<p>Paraules clau: <strong>FastAPI, uvicorn, streaming, Server-Sent Events, SSE, EventSource, ReadableStream, frontend, HTML, CSS, JavaScript, marked.js, DOMPurify, highlight.js, marked, sanitize, Markdown, renderitzat, historial, persistència, localStorage, SQLite, JSON, feedback, usuari, multi-dispositiu, Tailscale, mòbil, responsive, launchd, plist, dimoni, servei, arrencada automàtica, RunAtLoad, KeepAlive, Mac, deployment, producció, monitor, watchdog, pàgina web, navegador, client, UI, UX, interfície, quadre de text, Enter, enviar, cites, fonts, links, click, enllaços, navegació</strong>.</p>
+<hr>
+<h2 id="39-api-ollama">Capítol 39 — API d&#x27;Ollama: integrar la IA amb el BernatLab</h2>
+<p>> <em>"Ollama al Mac, el BernatLab a la Raspberry. Si parlen entre ells, tens un sistema que pot raonar sobre les dades del teu hort sense sortir de casa."</em></p>
+<h2>39.1 L'API d'Ollama</h2>
+<p>Ollama exposa una <strong>API HTTP local</strong> (a `http://localhost:11434`) que permet:</p>
+<ul>
+<li>Generar respostes (`/api/generate`).</li>
+<li>Mantenir converses amb historial (`/api/chat`).</li>
+<li>Generar embeddings (`/api/embeddings`).</li>
+<li>Llistar models (`/api/tags`).</li>
+<li>Aturar/reprendre models (`/api/ps`, `/api/load`, `/api/unload`).</li>
+</ul>
+<p>També és <strong>compatible amb l'API d'OpenAI</strong>, així que qualsevol eina que funcioni amb OpenAI funciona amb Ollama (canviant la URL base).</p>
+<p>Això obre la porta a integrar Ollama amb tot el que ja tenim al BernatLab: FastAPI, Node-RED, scripts Python, Telegram bots, etc.</p>
+<h2>39.2 Configurar Ollama per accedir des de la xarxa</h2>
+<p>Per defecte, Ollama escolta a `localhost:11434`. Per permetre connexions des d'altres dispositius:</p>
+<pre class="code"><code class="language-bash"># Atura Ollama
+pkill ollama
+<h1>Re-arrenca escoltant a totes les interfícies</h1>
+OLLAMA_HOST=0.0.0.0:11434 ollama serve &amp;</code></pre>
+<p>Per fer-ho persistent, edita la configuració del servei launchd (macOS):</p>
+<pre class="code"><code class="language-xml">&lt;key&gt;EnvironmentVariables&lt;/key&gt;
+&lt;dict&gt;
+    &lt;key&gt;OLLAMA_HOST&lt;/key&gt;
+    &lt;string&gt;0.0.0.0:11434&lt;/string&gt;
+&lt;/dict&gt;</code></pre>
+<p>Verifica des d'un altre dispositiu:</p>
+<pre class="code"><code class="language-bash">curl http://&lt;mac-tailscale-ip&gt;:11434/api/tags</code></pre>
+<p>Hauries de veure la llista de models.</p>
+<h2>39.3 Endpoints essencials</h2>
+<h3>Llistar models disponibles</h3>
+<pre class="code"><code class="language-bash">curl http://localhost:11434/api/tags</code></pre>
+<p>Resposta:</p>
+<pre class="code"><code class="language-json">{
+  &quot;models&quot;: [
+    {
+      &quot;name&quot;: &quot;gemma3:12b&quot;,
+      &quot;size&quot;: 8149502976,
+      &quot;modified_at&quot;: &quot;2026-07-08T10:30:00Z&quot;
+    }
+  ]
+}</code></pre>
+<h3>Generar una resposta (no streaming)</h3>
+<pre class="code"><code class="language-bash">curl http://localhost:11434/api/generate -d &#x27;{
+  &quot;model&quot;: &quot;gemma3:12b&quot;,
+  &quot;prompt&quot;: &quot;Quan plantar tomàquets?&quot;,
+  &quot;stream&quot;: false
+}&#x27;</code></pre>
+<p>Resposta:</p>
+<pre class="code"><code class="language-json">{
+  &quot;model&quot;: &quot;gemma3:12b&quot;,
+  &quot;response&quot;: &quot;Els tomàquets es planten a la primavera...&quot;,
+  &quot;done&quot;: true,
+  &quot;context&quot;: [123, 456, 789, ...],
+  &quot;total_duration&quot;: 5234567890,
+  &quot;load_duration&quot;: 1234567890,
+  &quot;prompt_eval_count&quot;: 12,
+  &quot;eval_count&quot;: 87
+}</code></pre>
+<h3>Generar amb streaming</h3>
+<pre class="code"><code class="language-bash">curl http://localhost:11434/api/generate -d &#x27;{
+  &quot;model&quot;: &quot;gemma3:12b&quot;,
+  &quot;prompt&quot;: &quot;Explica el compostatge&quot;,
+  &quot;stream&quot;: true
+}&#x27;</code></pre>
+<p>Resposta: cada línia és un JSON amb un tros de la resposta. Acaba amb `"done": true`.</p>
+<h3>Chat amb historial</h3>
+<pre class="code"><code class="language-bash">curl http://localhost:11434/api/chat -d &#x27;{
+  &quot;model&quot;: &quot;gemma3:12b&quot;,
+  &quot;messages&quot;: [
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hola&quot;},
+    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;Hola! Com puc ajudar-te?&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Quan plantar carbasses?&quot;}
+  ],
+  &quot;stream&quot;: false
+}&#x27;</code></pre>
+<p>Això manté el context de la conversa.</p>
+<h3>Generar embeddings</h3>
+<pre class="code"><code class="language-bash">curl http://localhost:11434/api/embeddings -d &#x27;{
+  &quot;model&quot;: &quot;nomic-embed-text&quot;,
+  &quot;prompt&quot;: &quot;El tomàquet prefereix sòl ben drenat&quot;
+}&#x27;</code></pre>
+<p>Resposta: un vector de 768 números.</p>
+<h2>39.4 Compatibilitat amb OpenAI</h2>
+<p>L'endpoint `http://localhost:11434/v1/chat/completions` és compatible amb l'API d'OpenAI. Això vol dir que qualsevol eina que usi OpenAI pot usar Ollama simplement canviant la URL base:</p>
+<pre class="code"><code class="language-python"># Abans amb OpenAI:
+import openai
+client = openai.OpenAI(api_key=&quot;sk-...&quot;)
+response = client.chat.completions.create(
+    model=&quot;gpt-4&quot;,
+    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hola&quot;}]
+)
+<h1>Ara amb Ollama (canvi mínim):</h1>
+import openai
+client = openai.OpenAI(
+    api_key=&quot;ollama&quot;,  # qualsevol valor, no es valida
+    base_url=&quot;http://localhost:11434/v1&quot;
+)
+response = client.chat.completions.create(
+    model=&quot;gemma3:12b&quot;,
+    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hola&quot;}]
+)</code></pre>
+<p>Això permet usar eines com:
+<ul>
+<li><strong>LangChain</strong> (framework per construir aplicacions amb LLMs).</li>
+<li><strong>LlamaIndex</strong> (framework especialitzat en RAG).</li>
+<li><strong>Open WebUI</strong> (interfície web similar a ChatGPT).</li>
+<li><strong>AnythingLLM</strong> (una altra interfície).</li>
+</ul></p>
+<h2>39.5 Integració amb la Raspberry</h2>
+<p>A la Raspberry, podem fer consultes a Ollama al Mac via Tailscale. Un script Python:</p>
+<pre class="code"><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;
+consulta_hort.py — Script per fer consultes a Ollama des de la Raspberry.
+&quot;&quot;&quot;
+<p>import requests
+import sys</p>
+<p>OLLAMA_URL = &quot;http://100.115.134.76:11434&quot;  # Mac Tailscale IP
+MODEL = &quot;gemma3:12b&quot;</p>
+<p>def pregunta(text: str) -&gt; str:
+    &quot;&quot;&quot;Envia una pregunta a Ollama i retorna la resposta.&quot;&quot;&quot;
+    r = requests.post(
+        f&quot;{OLLAMA_URL}/api/generate&quot;,
+        json={
+            &quot;model&quot;: MODEL,
+            &quot;prompt&quot;: text,
+            &quot;stream&quot;: False
+        },
+        timeout=60
+    )
+    r.raise_for_status()
+    return r.json()[&quot;response&quot;]</p>
+<p>if __name__ == &quot;__main__&quot;:
+    if len(sys.argv) &lt; 2:
+        print(&quot;Ús: consulta_hort.py &#x27;la teva pregunta&#x27;&quot;)
+        sys.exit(1)
+    q = &quot; &quot;.join(sys.argv[1:])
+    print(f&quot;Pregunta: {q}\n&quot;)
+    print(f&quot;Resposta: {pregunta(q)}&quot;)</code></pre></p>
+<p>Ús:</p>
+<pre class="code"><code class="language-bash">python3 consulta_hort.py &quot;Quan he de plantar carbasses a Osona?&quot;</code></pre>
+<h2>39.6 Integració amb Node-RED</h2>
+<p>Node-RED té nodes per cridar HTTP. Un flux per rebre alertes de sensors i consultar Ollama:</p>
+<pre class="code"><code class="language-">[MQTT subscriber: hort/sensors/#]
+        │
+        ▼
+[Function: construir prompt amb dades del sensor]
+        │
+        ▼
+[HTTP request: POST a Ollama]
+        │
+        ▼
+[Function: formatar resposta]
+        │
+        ▼
+[Telegram: enviar alerta]</code></pre>
+<p>Exemple del node function que construeix el prompt:</p>
+<pre class="code"><code class="language-javascript">// Rep un missatge MQTT amb dades del sensor
+const sensorData = msg.payload;
+<p>const prompt = `Ets l&#x27;assistent de l&#x27;hort. Acabo de rebre les següents dades
+d&#x27;un sensor a l&#x27;hort:</p>
+<p>${JSON.stringify(sensorData, null, 2)}</p>
+<p>Analitza aquestes dades i, si hi ha alguna cosa que requereixi atenció
+(temperatura extrema, humitat del sòl massa baixa, bateria baixa),
+dona&#x27;m una alerta curta en català. Si tot és normal, digue&#x27;m &quot;Tot correcte&quot;.</p>
+<p>Resposta (màxim 3 línies):`;</p>
+<p>msg.payload = prompt;
+return msg;</code></pre></p>
+<h2>39.7 Integració amb el bot de Telegram</h2>
+<p>Tens un bot de Telegram al BernatLab (M2). Pots afegir una comanda `/hort` que consulta Ollama:</p>
+<pre class="code"><code class="language-python"># Dins del teu bot de Telegram (python-telegram-bot)
+async def hort(update, context):
+    &quot;&quot;&quot;Respon a la comanda /hort amb una consulta a Ollama.&quot;&quot;&quot;
+    if not context.args:
+        await update.message.reply_text(
+            &quot;Ús: /hort la teva pregunta sobre l&#x27;hort&quot;
+        )
+        return
+<p>pregunta = &quot; &quot;.join(context.args)
+    await context.bot.send_chat_action(
+        update.effective_chat.id, &quot;typing&quot;
+    )</p>
+<p>try:
+        resposta = pregunta_ollama(pregunta)
+        await update.message.reply_text(resposta, parse_mode=&quot;Markdown&quot;)
+    except Exception as e:
+        await update.message.reply_text(f&quot;Error: {e}&quot;)</code></pre></p>
+<p>Ara pots fer `/hort Quan plantar tomàquets?` des del mòbil.</p>
+<h2>39.8 Integració amb FastAPI (BernatLab API)</h2>
+<p>L'API FastAPI del M2 (Cap 20) pot tenir un nou endpoint que consulta Ollama:</p>
+<pre class="code"><code class="language-python"># A l&#x27;API del BernatLab
+from fastapi import APIRouter
+import httpx
+<p>router = APIRouter()</p>
+<p>OLLAMA_URL = &quot;http://100.115.134.76:11434&quot;  # Mac Tailscale</p>
+<p>@router.get(&quot;/hort/preguntar&quot;)
+async def hort_preguntar(q: str):
+    &quot;&quot;&quot;Consulta l&#x27;assistent Hort Osona.&quot;&quot;&quot;
+    async with httpx.AsyncClient(timeout=60) as client:
+        r = await client.post(
+            f&quot;{OLLAMA_URL}/api/generate&quot;,
+            json={&quot;model&quot;: &quot;gemma3:12b&quot;, &quot;prompt&quot;: q, &quot;stream&quot;: False}
+        )
+        return r.json()</code></pre></p>
+<p>Ara la web pública d'Hort Osona pot tenir un quadre de preguntes que crida aquest endpoint.</p>
+<h2>39.9 Com gestionar la càrrega</h2>
+<p>Ollama pot gestionar una sola petició a la vegada bé, però si tens moltes peticions simultànies, cal:</p>
+<p>1. <strong>Posar un timeout</strong>. Si la resposta triga més de 60 segons, cancel·la.
+2. <strong>Posar una cua</strong>. Usa Redis o RabbitMQ per serialitzar les peticions.
+3. <strong>Limitar les peticions concurrents</strong>. Usa un middleware al backend.
+4. <strong>Servir el model més petit per a tasques fàcils</strong>. Tenir 2-3 models i triar el adequat.</p>
+<p>Exemple de cua simple amb Python:</p>
+<pre class="code"><code class="language-python">import asyncio
+from collections import deque
+<p>class OllamaQueue:
+    def __init__(self):
+        self.cua = deque()
+        self.busy = False</p>
+<p>async def processa(self, prompt: str) -&gt; str:
+        future = asyncio.Future()
+        self.cua.append((prompt, future))
+        await self._buidar()
+        return await future</p>
+<p>async def _buidar(self):
+        if self.busy or not self.cua:
+            return
+        self.busy = True
+        while self.cua:
+            prompt, future = self.cua.popleft()
+            try:
+                resultat = await self._trucar_ollama(prompt)
+                future.set_result(resultat)
+            except Exception as e:
+                future.set_exception(e)
+        self.busy = False</code></pre></p>
+<h2>39.10 Monitoratge de l'API</h2>
+<p>Per saber com va l'API, podem afegir:</p>
+<p>1. <strong>Logs</strong>: totes les peticions amb temps de resposta.
+2. <strong>Mètriques</strong>: nombre de peticions, latència, errors.
+3. <strong>Alertes</strong>: si el model no respon, o si la latència és massa alta.</p>
+<p>Exemple amb un middleware de FastAPI:</p>
+<pre class="code"><code class="language-python">import time
+from fastapi import Request
+<p>@app.middleware(&quot;http&quot;)
+async def timing(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+    print(f&quot;{request.method} {request.url.path}: {duration:.2f}s&quot;)
+    return response</code></pre></p>
+<p>I un panell a Uptime Kuma per veure si l'API està viva:</p>
+<pre class="code"><code class="language-bash"># Afegir a Uptime Kuma
+curl -X POST http://localhost:3001/api/monitors \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;name&quot;: &quot;Ollama API&quot;, &quot;url&quot;: &quot;http://mac:11434/api/tags&quot;, &quot;interval&quot;: 60}&#x27;</code></pre>
+<h2>39.11 Seguretat de l'API</h2>
+<p>L'API d'Ollama <strong>no té autenticació</strong> per defecte. Si l'exposes a la xarxa, algú podria:</p>
+<ul>
+<li>Usar el teu Mac per a inferència (consumint CPU/RAM).</li>
+<li>Enviar prompts maliciosos.</li>
+<li>Saturar el sistema.</li>
+</ul>
+<p>Per protegir-la:</p>
+<p>1. <strong>Tallafocs al Mac</strong>: permet només la xarxa Tailscale.
+2. <strong>Reverse proxy amb Nginx/Caddy</strong> i autenticació bàsica.
+3. <strong>API key</strong> personalitzada: modifica Ollama per afegir un header d'autenticació.</p>
+<p>Una solució senzilla amb Caddy:</p>
+<pre class="code"><code class="language-caddyfile"># /etc/caddy/Caddyfile
+ollama.bernat.local {
+    basicauth {
+        bernat $2a$14$...  # hash bcrypt
+    }
+    reverse_proxy localhost:11434
+}</code></pre>
+<p>Ara cal usuari i contrasenya per accedir.</p>
+<h2>39.12 Backup i recuperació</h2>
+<p>Quan tens un sistema que depèn d'Ollama, és bona pràctica:</p>
+<p>1. <strong>Guardar els models</strong> amb regularitat: les descàrregues ocupen molt, però si les perds, cal esperar hores a tornar-les a descarregar.
+2. <strong>Guardar la base vectorial</strong> (ChromaDB): una còpia de seguretat setmanal.
+3. <strong>Guardar l'historial de converses</strong>: si en tens.
+4. <strong>Guardar les configuracions</strong>: Modelfiles, scripts, etc.</p>
+<p>Un script de backup:</p>
+<pre class="code"><code class="language-bash">#!/bin/bash
+<h1>backup_ollama.sh</h1>
+BACKUP_DIR=&quot;/Users/bernat/backups/ollama&quot;
+DATE=$(date +%Y%m%d)
+<p>mkdir -p &quot;$BACKUP_DIR/$DATE&quot;</p>
+<h1>Models</h1>
+cp -r ~/.ollama &quot;$BACKUP_DIR/$DATE/&quot;
+<h1>Base vectorial</h1>
+cp -r ~/bernatlab/asistent/vectorstore &quot;$BACKUP_DIR/$DATE/&quot;
+<h1>Configuració</h1>
+cp ~/Library/LaunchAgents/com.bernat.asistent.plist &quot;$BACKUP_DIR/$DATE/&quot;
+<p>echo &quot;Backup fet a $BACKUP_DIR/$DATE&quot;</code></pre></p>
+<p>Executar amb cron o launchd.</p>
+<h2>39.13 Resum</h2>
+<p>Hem après a fer accessible l'API d'Ollama des de la xarxa, a integrar-la amb la Raspberry, Node-RED, el bot de Telegram, i l'API del BernatLab. Hem vist com gestionar la càrrega, monitorar, securitzar, i fer còpies de seguretat. Al proper capítol afegirem veu: li parlarem a l'assistent en lloc d'escriure.</p>
+<h2>39.14 Exercicis pràctics</h2>
+<p>1. Configura Ollama per escoltar a `0.0.0.0:11434`.
+2. Verifica que la Raspberry pot accedir-hi via Tailscale.
+3. Crea el script `consulta_hort.py` i prova'l.
+4. Afegeix un node HTTP a Node-RED que consulti Ollama.
+5. Afegeix una comanda `/hort` al bot de Telegram.
+6. Afegeix un endpoint `/hort/preguntar` a l'API FastAPI.
+7. Configura Uptime Kuma per monitorar l'API.
+8. Fes un backup programat d'Ollama i la base vectorial.</p>
+<p>Paraules clau: <strong>API, HTTP, REST, Ollama, localhost, 11434, Tailscale, 100.115.134.76, OpenAI compatibility, /v1, /api/generate, /api/chat, /api/embeddings, /api/tags, streaming, JSON, pydantic, FastAPI, uvicorn, async, httpx, timeout, cua, queue, rate limit, autenticació, basicauth, Caddy, Nginx, seguretat, tallafocs, firewall, monitoratge, Uptime Kuma, alerting, backup, recuperació, restore, snapshot, launchd, servei, dimoni, plist, RunAtLoad, KeepAlive, integració, Node-RED, Telegram, Python, script, CLI, command-line, asyncio, future, deque, prometheus, grafana, observabilitat, mètriques, logs, latència, throughput, peticions per segon, RPS, error rate, time series, panell, alert, contact point</strong>.</p>
+<hr>
+<h2 id="40-veu">Capítol 40 — Veu: parlar a l&#x27;assistent en lloc d&#x27;escriure</h2>
+<p>> <em>"Quan tens les mans plenes de terra i el cap ple de preguntes, l'últim que vols és teclejar. Li parles, et contesta. Màgia."</em></p>
+<h2>40.1 Per què veu a Hort Osona</h2>
+<p>A l'hort, les mans estan ocupades (pala, planter, regadora). El mòbil pot estar brut. Però la veu sempre és disponible. Per això, la integració de veu és especialment valuosa per a consultes ràpides mentre treballes.</p>
+<p>Casos d'ús reals:</p>
+<ul>
+<li>Estàs trasplantant tomàquets i vols saber la distància exacta. Li preguntes, et contesta.</li>
+<li>Vius una plaga sobtada i vols consell immediat. Li parles, reps la resposta.</li>
+<li>Estàs collint i vols saber si ja estan al punt. Li ensenyes la foto (multimodal), et diu.</li>
+</ul>
+<h2>40.2 Stack tecnològic</h2>
+<p>Per a la veu, usarem:</p>
+<ul>
+<li><strong>Whisper</strong> (OpenAI) per a <strong>STT</strong> (Speech-to-Text, transcripció de veu a text). Versió local, multilingüe, excel·lent en català.</li>
+<li><strong>Piper</strong> o <strong>XTTS</strong> per a <strong>TTS</strong> (Text-to-Speech, síntesi de veu). Sintetitza veu a partir de text. Opcions locals, en diversos idiomes.</li>
+<li><strong>FastAPI</strong> com a backend (reutilitzem el del Cap 38).</li>
+<li><strong>Web Audio API</strong> al frontend per gravar àudio del micròfon.</li>
+</ul>
+<p>Tot local, sense enviar res al núvol.</p>
+<h2>40.3 Instal·lar Whisper</h2>
+<p>Whisper és la millor opció per a transcripció. Versió local amb Python:</p>
+<pre class="code"><code class="language-bash"># Opció 1: faster-whisper (recomanada, més ràpida)
+pip install faster-whisper
+<h1>Opció 2: openai-whisper (oficial)</h1>
+pip install openai-whisper</code></pre>
+<p>`faster-whisper` és ~4x més ràpida i consumeix menys memòria. Recomanada.</p>
+<p>Descarrega un model:</p>
+<pre class="code"><code class="language-python">from faster_whisper import WhisperModel
+<h1>Models disponibles: tiny, base, small, medium, large-v3</h1>
+<h1>- tiny: 39M paràmetres, ~75 MB, molt ràpid, baixa qualitat</h1>
+<h1>- base: 74M, ~140 MB, ràpid, qualitat acceptable</h1>
+<h1>- small: 244M, ~460 MB, equilibrat</h1>
+<h1>- medium: 769M, ~1.5 GB, bona qualitat</h1>
+<h1>- large-v3: 1.5 GB, ~3 GB, millor qualitat, multilingüe</h1>
+<p>model = WhisperModel(&quot;large-v3&quot;, device=&quot;cpu&quot;, compute_type=&quot;int8&quot;)</code></pre></p>
+<h2>40.4 Ús bàsic de Whisper</h2>
+<pre class="code"><code class="language-python">from faster_whisper import WhisperModel
+<p>model = WhisperModel(&quot;large-v3&quot;, device=&quot;cpu&quot;, compute_type=&quot;int8&quot;)</p>
+<h1>Transcriure un fitxer d&#x27;àudio</h1>
+segments, info = model.transcribe(&quot;audio.wav&quot;, language=&quot;ca&quot;)
+<p>print(f&quot;Idioma detectat: {info.language} (probabilitat: {info.language_probability:.2f})&quot;)
+print(f&quot;Durada: {info.duration:.1f}s&quot;)
+print()</p>
+<p>for segment in segments:
+    print(f&quot;[{segment.start:.1f}s - {segment.end:.1f}s] {segment.text}&quot;)</code></pre></p>
+<p>Whisper detecta automàticament l'idioma, però pots forçar-lo amb `language="ca"`.</p>
+<h2>40.5 Capturar àudio del navegador</h2>
+<p>Al frontend, podem capturar àudio del micròfon amb la <strong>Web Audio API</strong> + <strong>MediaRecorder</strong>:</p>
+<pre class="code"><code class="language-javascript">async function gravarAudio() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
+<p>recorder.ondataavailable = e =&gt; chunks.push(e.data);
+    recorder.onstop = async () =&gt; {
+        const blob = new Blob(chunks, { type: &#x27;audio/webm&#x27; });
+        const formData = new FormData();
+        formData.append(&#x27;audio&#x27;, blob, &#x27;gravar.webm&#x27;);</p>
+<p>const response = await fetch(&#x27;/api/transcriure&#x27;, {
+            method: &#x27;POST&#x27;,
+            body: formData
+        });
+        const data = await response.json();
+        console.log(&#x27;Transcripció:&#x27;, data.text);
+    };</p>
+<p>recorder.start();
+    // Aturar després de 5 segons (o quan l&#x27;usuari cliqui un botó)
+    setTimeout(() =&gt; recorder.stop(), 5000);
+}</code></pre></p>
+<p>El botó pot ser:</p>
+<pre class="code"><code class="language-html">&lt;button id=&quot;record&quot;&gt;🎤 Parleu (5s)&lt;/button&gt;</code></pre>
+<h2>40.6 Endpoint FastAPI per transcriure</h2>
+<p>Al backend, afegim:</p>
+<pre class="code"><code class="language-python">from fastapi import UploadFile, File
+from faster_whisper import WhisperModel
+import tempfile
+import os
+<h1>Inicialitzar el model un sol cop</h1>
+whisper_model = WhisperModel(&quot;large-v3&quot;, device=&quot;cpu&quot;, compute_type=&quot;int8&quot;)
+<p>@app.post(&quot;/api/transcriure&quot;)
+async def transcriure(audio: UploadFile = File(...)):
+    &quot;&quot;&quot;Rep un àudio i retorna la transcripció.&quot;&quot;&quot;
+    # Guardar l&#x27;àudio temporalment
+    with tempfile.NamedTemporaryFile(delete=False, suffix=&quot;.webm&quot;) as f:
+        content = await audio.read()
+        f.write(content)
+        tmp_path = f.name</p>
+<p>try:
+        # Transcriure
+        segments, info = whisper_model.transcribe(tmp_path, language=&quot;ca&quot;)
+        text = &quot; &quot;.join(s.text for s in segments)
+        return {
+            &quot;text&quot;: text,
+            &quot;idioma&quot;: info.language,
+            &quot;probabilitat&quot;: info.language_probability
+        }
+    finally:
+        os.unlink(tmp_path)</code></pre></p>
+<p>Ara el frontend pot enviar l'àudio gravat i rebre la transcripció.</p>
+<h2>40.7 Integració amb el RAG</h2>
+<p>Combinem transcripció + RAG:</p>
+<pre class="code"><code class="language-python">@app.post(&quot;/api/veu-preguntar&quot;)
+async def veu_preguntar(audio: UploadFile = File(...)):
+    &quot;&quot;&quot;Rep àudio, transcriu, fa consulta RAG, retorna resposta en text.&quot;&quot;&quot;
+    # 1. Transcriure
+    text = await _transcriure(audio)
+<p># 2. Fer la consulta al RAG
+    resposta = rag.ask(text[&#x27;text&#x27;])</p>
+<p>return {
+        &quot;pregunta_transcrita&quot;: text[&#x27;text&#x27;],
+        &quot;resposta&quot;: resposta[&#x27;resposta&#x27;],
+        &quot;fonts&quot;: resposta[&#x27;fonts&#x27;]
+    }</code></pre></p>
+<p>I podem afegir síntesi de veu a la resposta:</p>
+<pre class="code"><code class="language-python">@app.post(&quot;/api/veu-preguntar-audio&quot;)
+async def veu_preguntar_audio(audio: UploadFile = File(...)):
+    &quot;&quot;&quot;Mateix que veu-preguntar, però retorna la resposta en àudio.&quot;&quot;&quot;
+    text = await _transcriure(audio)
+    resposta = rag.ask(text[&#x27;text&#x27;])
+<p># Sintetitzar la resposta a veu
+    audio_path = await _sintetitzar(resposta[&#x27;resposta&#x27;])</p>
+<p>return FileResponse(
+        audio_path,
+        media_type=&quot;audio/mpeg&quot;,
+        headers={
+            &quot;X-Pregunta&quot;: text[&#x27;text&#x27;],
+            &quot;X-Fonts&quot;: &quot;,&quot;.join(resposta[&#x27;fonts&#x27;])
+        }
+    )</code></pre></p>
+<h2>40.8 Síntesi de veu amb Piper</h2>
+<p><strong>Piper</strong> és un sistema de síntesi de veu local, lleuger i amb bona qualitat. Suporta català.</p>
+<h3>Instal·lació</h3>
+<pre class="code"><code class="language-bash">pip install piper-tts</code></pre>
+<p>Descarrega un model de veu en català:</p>
+<pre class="code"><code class="language-bash"># Descarregar model de veu (exemple)
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.json
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.onnx</code></pre>
+<h3>Ús</h3>
+<pre class="code"><code class="language-python">from piper import PiperVoice
+import wave
+<p>voice = PiperVoice.load(&quot;ca_ES/voice.onnx&quot;, &quot;ca_ES/voice.json&quot;)
+text = &quot;Hola, soc l&#x27;assistent Hort Osona. Com puc ajudar-te?&quot;</p>
+<p>with wave.open(&quot;resposta.wav&quot;, &quot;wb&quot;) as f:
+    voice.synthesize(text, f)</code></pre></p>
+<h2>40.9 Síntesi alternativa: XTTS</h2>
+<p><strong>XTTS</strong> (Coqui) permet clonar veus amb només 6 segons d'àudio. Recomanat si vols que l'assistent parli amb la teva veu o la d'un familiar.</p>
+<pre class="code"><code class="language-bash">pip install TTS</code></pre>
+<pre class="code"><code class="language-python">from TTS.api import TTS
+<p>tts = TTS(&quot;tts_models/multilingual/multi-dataset/xtts_v2&quot;, gpu=False)
+tts.tts_to_file(
+    text=&quot;Hola, benvingut al teu hort&quot;,
+    file_path=&quot;resposta.wav&quot;,
+    speaker_wav=&quot;la_meva_veu.wav&quot;,  # 6 segons de la teva veu
+    language=&quot;ca&quot;
+)</code></pre></p>
+<h2>40.10 Alternativa simple: Web Speech API</h2>
+<p>Si no vols instal·lar res al backend, pots fer servir la <strong>Web Speech API</strong> del navegador:</p>
+<pre class="code"><code class="language-javascript">// Reconèixer veu (STT)
+const recognition = new webkitSpeechRecognition();
+recognition.lang = &#x27;ca-ES&#x27;;
+recognition.continuous = false;
+<p>recognition.onresult = (event) =&gt; {
+    const text = event.results[0][0].transcript;
+    console.log(&#x27;Transcripció:&#x27;, text);
+};</p>
+<p>recognition.start();</p>
+<p>// Sintetitzar veu (TTS)
+const utterance = new SpeechSynthesisUtterance(&quot;Hola món&quot;);
+utterance.lang = &#x27;ca-ES&#x27;;
+utterance.rate = 1.0;
+speechSynthesis.speak(utterance);</code></pre></p>
+<p>Avantatges: zero instal·lació, funciona al navegador.
+Inconvenients: depèn del navegador, no sempre català de qualitat, no és privat (Google processa).</p>
+<p>Recomanació: usa Web Speech API per començar, i migra a Whisper + Piper quan vulguis més qualitat o privadesa total.</p>
+<h2>40.11 Optimitzar el reconeixement de veu</h2>
+<p>Whisper és bo, però podem millorar-lo:</p>
+<p>1. <strong>Forçar idioma</strong>: `language="ca"` evita que provi altres idiomes.
+2. <strong>Detectar silenci</strong>: parar la gravació quan hi ha 2 segons de silenci.
+3. <strong>Filtrar soroll</strong>: aplicar un filtre de reducció de soroll abans de transcriure.
+4. <strong>Usar el model adequat</strong>: `small` o `medium` per a velocitat, `large-v3` per a qualitat.
+5. <strong>Ajustar la mida del vocabulari</strong>: passa una llista de termes esperats (noms de plantes) per millorar el reconeixement.</p>
+<p>Exemple de llista de termes:</p>
+<pre class="code"><code class="language-python">from faster_whisper import WhisperModel
+<p>model = WhisperModel(&quot;large-v3&quot;, device=&quot;cpu&quot;, compute_type=&quot;int8&quot;)</p>
+<p>segments, info = model.transcribe(
+    &quot;audio.webm&quot;,
+    language=&quot;ca&quot;,
+    initial_prompt=&quot;carbassa, tomaquet, enciam, mongeta, ceba, all, porro, &quot;
+                   &quot;bleda, espinac, rave, meló, pebrot, col, escarola, &quot;
+                   &quot;alfàbrega, menta, romaní, farigola, orenga, sajolida, &quot;
+                   &quot;api, carabassa, patata, pastanaga, compota, purins, &quot;
+                   &quot;adob, compost, fem, humus, reg, ascla, aixada, trasplantar&quot;
+)</code></pre></p>
+<p>Això ajuda Whisper a reconèixer correctament els termes específics d'horticultura.</p>
+<h2>40.12 Com crear una interfície completa de veu</h2>
+<p>Combinem-ho tot en una interfície usable:</p>
+<pre class="code"><code class="language-html">&lt;div id=&quot;voice-control&quot;&gt;
+    &lt;button id=&quot;record-btn&quot; class=&quot;big-btn&quot;&gt;🎤&lt;/button&gt;
+    &lt;div id=&quot;status-veu&quot;&gt;Prem per parlar&lt;/div&gt;
+    &lt;div id=&quot;transcripcio&quot;&gt;&lt;/div&gt;
+    &lt;div id=&quot;resposta&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<pre class="code"><code class="language-javascript">const recordBtn = document.getElementById(&#x27;record-btn&#x27;);
+const statusVeu = document.getElementById(&#x27;status-veu&#x27;);
+let gravant = false;
+let mediaRecorder = null;
+let chunks = [];
+<p>recordBtn.addEventListener(&#x27;click&#x27;, async () =&gt; {
+    if (!gravant) {
+        // Començar a gravar
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        chunks = [];
+        mediaRecorder.ondataavailable = e =&gt; chunks.push(e.data);
+        mediaRecorder.onstop = enviarAudio;
+        mediaRecorder.start();
+        gravant = true;
+        recordBtn.textContent = &#x27;⏹&#x27;;
+        statusVeu.textContent = &#x27;Escoltant...&#x27;;
+    } else {
+        // Aturar
+        mediaRecorder.stop();
+        gravant = false;
+        recordBtn.textContent = &#x27;🎤&#x27;;
+        statusVeu.textContent = &#x27;Processant...&#x27;;
+    }
+});</p>
+<p>async function enviarAudio() {
+    const blob = new Blob(chunks, { type: &#x27;audio/webm&#x27; });
+    const formData = new FormData();
+    formData.append(&#x27;audio&#x27;, blob, &#x27;gravar.webm&#x27;);</p>
+<p>try {
+        const response = await fetch(&#x27;/api/veu-preguntar&#x27;, {
+            method: &#x27;POST&#x27;,
+            body: formData
+        });
+        const data = await response.json();
+        document.getElementById(&#x27;transcripcio&#x27;).textContent =
+            &#x27;Tú: &#x27; + data.pregunta_transcrita;
+        document.getElementById(&#x27;resposta&#x27;).textContent =
+            &#x27;Assistent: &#x27; + data.resposta;
+        statusVeu.textContent = &#x27;Fet&#x27;;
+    } catch (e) {
+        statusVeu.textContent = &#x27;Error: &#x27; + e.message;
+    }
+}</code></pre></p>
+<h2>40.13 Privadesa de la veu</h2>
+<p>La veu és una dada <strong>especialment sensible</strong>: conté biometria, emocions, salut. Per això:</p>
+<p>1. <strong>No enviar al núvol</strong>. Whisper local + Piper local.
+2. <strong>Xifrar l'àudio</strong> si l'emmagatzemes.
+3. <strong>Esborrar després d'ús</strong>. No cal guardar totes les gravacions.
+4. <strong>Permetre l'opt-out</strong>. L'usuari ha de poder desactivar la veu.</p>
+<p>Això és important no només per privadesa, sinó per <strong>complir normatives</strong> (GDPR, LOPDGDD a Espanya).</p>
+<h2>40.14 Veu offline al mòbil</h2>
+<p>Si vols que el client web funcioni <strong>offline</strong> al mòbil (a l'hort sense cobertura):</p>
+<p>1. <strong>PWA</strong> (Progressive Web App, aplicació web que es comporta com a app nativa): converteix el client en una "app" que es pot instal·lar.
+2. <strong>Service Worker</strong> (script que permet que la web funcioni offline): permet cachejar recursos.
+3. <strong>Whisper al mòbil</strong>: hi ha versions (Whisper.cpp, Whisper Android).</p>
+<p>La PWA és la solució més pràctica. Pots instal·lar el client web al mòbil amb "Add to Home Screen" i funciona com una app.</p>
+<h2>40.15 Resum</h2>
+<p>Hem après a afegir veu a l'assistent Hort Osona: transcripció amb Whisper, síntesi amb Piper o Web Speech API, integració amb el RAG, i una interfície usable. Hem vist com optimitzar el reconeixement, gestionar la privadesa, i preparar el client per a ús offline. Al proper capítol veurem les bones pràctiques de privadesa i seguretat per a sistemes d'IA local.</p>
+<h2>40.16 Exercicis pràctics</h2>
+<p>1. Instal·la faster-whisper al Mac.
+2. Descarrega el model `large-v3` (o `small` si tens poca RAM).
+3. Grava un àudio de prova amb el mòbil i transcriu-lo.
+4. Afegeix l'endpoint `/api/transcriure` al backend del Cap 38.
+5. Crea una interfície amb botó de micròfon.
+6. Afegeix síntesi de veu amb Piper o Web Speech API.
+7. Combina transcripció + RAG + síntesi en un sol endpoint.
+8. Fes proves amb termes específics d'horticultura.</p>
+<p>Paraules clau: <strong>veu, STT, TTS, speech-to-text, text-to-speech, Whisper, faster-whisper, Piper, XTTS, Coqui, àudio, gravació, micròfon, MediaRecorder, Web Audio API, Web Speech API, SpeechRecognition, SpeechSynthesis, frontend, mic permission, getUserMedia, FormData, multipart, blob, webm, mp3, wav, format, codificació, privacy, GDPR, LOPDGDD, biometria, opt-out, offline, PWA, Service Worker, install, Add to Home Screen, manifest, model de veu, clonar veu, veu sintètica, idioma, català, ca-ES, optimització, transcripció, vocabulari, initial_prompt, hotwords, language detection, vad, voice activity detection, silenci, gravació, 5 segons, parlar, escoltar, streaming audio, WebSocket, àudio, format, opus, codec, compressió, qualitat, sample rate, 16kHz, 44.1kHz, micròfon, noise reduction, filtre, pre-processament, post-processament, diacritics, accent, dialecte, pronunciació</strong>.</p>
+<hr>
+<h2 id="41-privadesa">Capítol 41 — Privadesa i bones pràctiques</h2>
+<p>> <em>"La privadesa no és una opció, és una responsabilitat. Quan l'IA és al núvol, no saps on van les teves dades. Quan és a casa, saps exactament què passa."</em></p>
+<h2>41.1 Per què la privadesa importa, fins i tot en local</h2>
+<p>Pot semblar que si tens un model local, la privadesa està garantida. Però hi ha paranys:</p>
+<p>1. <strong>Dades d'entrada</strong>. Encara que el model no surti del teu Mac, el que hi escrius pot quedar en logs, historial, obert en finestres, capturat per altres aplicacions.</p>
+<p>2. <strong>Metadades</strong>. El fet que facis servir IA en determinats moments és informació. Si vols amagar que estàs consultant temes mèdics, o legals, o polítics, cal mesures.</p>
+<p>3. <strong>Dades compartides</strong>. Si comparteixes el client amb altres persones (família, veïns), cada usuari pot veure les converses dels altres.</p>
+<p>4. <strong>Sortida accidental</strong>. Un model pot filtrar informació privada en les respostes. Per exemple, si els documents contenen dades personals, el RAG els pot reproduir.</p>
+<p>5. <strong>Emmagatzematge</strong>. Les converses, si les guardes, contenen dades sensibles. Cal xifrar-les o esborrar-les.</p>
+<h2>41.2 El que NO has d'enviar a una IA al núvol</h2>
+<p><strong>Regla d'or</strong>: si una dada és prou sensible per no explicar-la a un desconegut al carrer, no l'enviïs a cap servei d'IA al núvol.</p>
+<p>Categories específiques:</p>
+<p>1. <strong>Dades mèdiques</strong>: informes, proves, historial, medicació, salut mental.
+2. <strong>Dades financeres</strong>: números de compte, salaris, inversions, impostos.
+3. <strong>Identificadors personals</strong>: DNI, NIE, passaport, targeta sanitària, número de la Seguretat Social.
+4. <strong>Contrasenyes i tokens</strong>: mai, ni tan sols parcials.
+5. <strong>Correspondència privada</strong>: cartes, missatges personals, fotos íntimes.
+6. <strong>Dades d'algú sense consentiment</strong>: fotos d'altres, informació de tercers.
+7. <strong>Secrets comercials o professionals</strong>: receptes, plànols, codi propietari, llistes de clients.
+8. <strong>Localització en temps real</strong>: adreça de casa, ubicació de vacances, etc.
+9. <strong>Menors</strong>: informació sobre nens, fotos d'escola, dades escolars.
+10. <strong>Activitat il·legal</strong>: res que pugui ser delicte, encara que sigui per "curiositat".</p>
+<p>Això és vàlid <strong>fins i tot amb empreses que diuen ser privades</strong> (Claude, ChatGPT, Gemini). Les seves polítiques poden canviar, i els seus sistemes poden tenir bretxes.</p>
+<h2>41.3 Avantatges específics de la IA local</h2>
+<p>Quan el model és a casa teva, els avantatges són clars:</p>
+<p>1. <strong>Cap transmissió externa</strong>. Les dades no viatgen per Internet.
+2. <strong>Sense terme de servei</strong>. No hi ha cap empresa que decideixi què pots o no pots fer.
+3. <strong>Sense canvis de política</strong>. Avui ChatGPT és "privat", demà canvia la política.
+4. <strong>Inspeccionable</strong>. Pots mirar exactament què fa el model.
+5. <strong>Personalitzable</strong>. Pots afinar-lo amb les teves dades sense compartir-les.
+6. <strong>Funciona offline</strong>. Sense Internet, funciona igual.</p>
+<p>Això és especialment important per a:</p>
+<ul>
+<li><strong>Professionals sanitaris</strong> que volen assistència amb casos.</li>
+<li><strong>Advocats</strong> que treballen amb informació privilegiada.</li>
+<li><strong>Empresaris</strong> amb dades financeres o clients.</li>
+<li><strong>Famílies</strong> amb informació sobre menors.</li>
+<li><strong>Activistes</strong> o periodistes en entorns hostils.</li>
+</ul>
+<h2>41.4 Bones pràctiques amb IA local</h2>
+<p>Encara que la IA sigui local, cal seguir bones pràctiques:</p>
+<h3>1. Configura bé el tallafocs</h3>
+<p>Assegura't que Ollama només escolta a les xarxes de confiança:</p>
+<pre class="code"><code class="language-bash"># Talla tot el tràfic a Ollama excepte Tailscale
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /Applications/Ollama.app
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --block /Applications/Ollama.app
+<h1>Permet només a la xarxa Tailscale</h1>
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /Applications/Ollama.app</code></pre>
+<h3>2. Limita les xarxes</h3>
+<p>Si vols ser estricte, fes que Ollama escolti només a `100.64.0.0/10` (la xarxa Tailscale):</p>
+<pre class="code"><code class="language-bash">OLLAMA_HOST=100.115.134.76:11434 ollama serve</code></pre>
+<h3>3. Autentica l'accés</h3>
+<p>Si exposa l'API a la xarxa, afegeix autenticació amb Caddy o Nginx:</p>
+<pre class="code"><code class="language-caddyfile">ollama.bernat.local {
+    basicauth {
+        bernat $2a$14$...
+    }
+    reverse_proxy localhost:11434
+}</code></pre>
+<h3>4. Xifra l'emmagatzematge</h3>
+<p>Si el teu Mac té FileVault activat (macOS ho activa per defecte), l'emmagatzematge ja està xifrat. Si no:</p>
+<pre class="code"><code class="language-bash"># Activar FileVault
+fdesetup enable</code></pre>
+<p>Això xifra tot el disc dur amb la teva contrasenya d'inici de sessió.</p>
+<h3>5. Neteja les dades temporals</h3>
+<p>Whisper crea fitxers temporals amb l'àudio. Assegura't que s'esborrin:</p>
+<pre class="code"><code class="language-python">try:
+    # Processar àudio
+finally:
+    if os.path.exists(tmp_path):
+        os.unlink(tmp_path)</code></pre>
+<h3>6. Configura la retenció de logs</h3>
+<p>Per defecte, Ollama no guarda logs de les peticions. Però el servidor web sí:</p>
+<pre class="code"><code class="language-python"># A FastAPI, configura el logger per no guardar res sensible
+import logging
+logging.getLogger(&quot;uvicorn.access&quot;).setLevel(logging.WARNING)</code></pre>
+<h3>7. Limita el context</h3>
+<p>Si el model té accés a molts documents, pot filtrar informació sensible. Configura bé la RAG per limitar l'accés.</p>
+<h3>8. Audita periòdicament</h3>
+<p>Revisa cada mes:
+<ul>
+<li>Quins documents estan a la base vectorial.</li>
+<li>Quines converses s'han guardat.</li>
+<li>Qui té accés al sistema.</li>
+<li>Si hi ha actualitzacions de seguretat pendents.</li>
+</ul></p>
+<h2>41.5 Com gestionar converses multi-usuari</h2>
+<p>Si comparteixes el sistema amb família, amics, o veïns, cal:</p>
+<p>1. <strong>Autenticació per usuari</strong>. Cada persona té el seu compte.
+2. <strong>Aïllament de dades</strong>. Les converses d'un no es veuen per l'altre.
+3. <strong>Auditoria</strong>. Qui ha fet què.
+4. <strong>Permisos</strong>. Qui pot accedir a quins documents.</p>
+<p>Implementació amb FastAPI:</p>
+<pre class="code"><code class="language-python">from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+<p>security = HTTPBasic()</p>
+<p>USERS = {
+    &quot;bernat&quot;: &quot;contrasenya_bernat&quot;,
+    &quot;anna&quot;: &quot;contrasenya_anna&quot;,
+    &quot;joan&quot;: &quot;contrasenya_joan&quot;
+}</p>
+<p>def autenticar(credentials: HTTPBasicCredentials = Depends(security)):
+    username = credentials.username
+    if username not in USERS or USERS[username] != credentials.password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=&quot;Credencials incorrectes&quot;
+        )
+    return username</p>
+<h1>Cada usuari té la seva col·lecció</h1>
+@app.get(&quot;/api/preguntar&quot;)
+def preguntar(q: str, usuari: str = Depends(autenticar)):
+    col_name = f&quot;hort_osona_{usuari}&quot;
+    # ...</code></pre>
+<p>Ara cada usuari té el seu aïllament.</p>
+<h2>41.6 Com evitar que el RAG filtri informació sensible</h2>
+<p>Si els documents d'Hort Osona contenen dades personals, el RAG les pot reproduir. Per evitar-ho:</p>
+<p>1. <strong>Neteja els documents abans d'indexar</strong>. Esborra noms, adreces, telèfons, DNI.
+2. <strong>Filtra els fragments retornats</strong>. Si un fragment conté dades sensibles, exclou-lo.
+3. <strong>Limita l'accés per usuari</strong>. Cada usuari té la seva vista.
+4. <strong>Marca la informació sensible</strong>. Un sistema de tags per evitar la indexació.</p>
+<p>Exemple de filtratge:</p>
+<pre class="code"><code class="language-python">def es_sensible(text: str) -&gt; bool:
+    &quot;&quot;&quot;Detecta si un text conté dades sensibles.&quot;&quot;&quot;
+    indicadors = [
+        &quot;DNI&quot;, &quot;NIE&quot;, &quot;targeta&quot;, &quot;contrasenya&quot;,
+        &quot;@gmail.com&quot;, &quot;@hotmail.com&quot;, &quot;telèfon&quot;,
+        &quot;adreça&quot;, &quot;carrer&quot;, &quot;número&quot;
+    ]
+    text_lower = text.lower()
+    return any(ind.lower() in text_lower for ind in indicadors)
+<p>def cerca_filtrada(consulta: str, k: int = 4) -&gt; list:
+    resultats = collection.query(query_texts=[consulta], n_results=k*2)
+    fragments_net = []
+    for i, frag in enumerate(resultats[&#x27;documents&#x27;][0]):
+        if not es_sensible(frag):
+            fragments_net.append({
+                &quot;text&quot;: frag,
+                &quot;font&quot;: resultats[&#x27;metadatas&#x27;][0][i][&#x27;source&#x27;],
+                &quot;distancia&quot;: resultats[&#x27;distances&#x27;][0][i] if &#x27;distances&#x27; in resultats else 0
+            })
+        if len(fragments_net) &gt;= k:
+            break
+    return fragments_net</code></pre></p>
+<h2>41.7 Com gestionar el "dret a l'oblit"</h2>
+<p>Si un usuari vol esborrar totes les seves dades, cal:</p>
+<p>1. <strong>Esborrar la seva col·lecció vectorial</strong>.
+2. <strong>Esborrar el seu historial de converses</strong>.
+3. <strong>Esborrar els seus logs</strong>.
+4. <strong>Confirmar per escrit</strong> que s'ha fet.</p>
+<p>Script d'esborrat:</p>
+<pre class="code"><code class="language-python">def oblidar_usuari(usuari: str):
+    &quot;&quot;&quot;Esborra totes les dades d&#x27;un usuari.&quot;&quot;&quot;
+    # Esborrar col·lecció
+    col_name = f&quot;hort_osona_{usuari}&quot;
+    try:
+        client.delete_collection(col_name)
+    except:
+        pass
+<p># Esborrar historial
+    historial_path = Path(f&quot;./historial/{usuari}.json&quot;)
+    if historial_path.exists():
+        historial_path.unlink()</p>
+<p># Esborrar logs
+    logs_path = Path(f&quot;./logs/{usuari}.log&quot;)
+    if logs_path.exists():
+        logs_path.unlink()</p>
+<p>print(f&quot;Dades de {usuari} esborrades correctament&quot;)</code></pre></p>
+<h2>41.8 Bones pràctiques amb prompts</h2>
+<p>A l'hora de fer prompts, pensa:</p>
+<p>1. <strong>No comparteixis informació personal identificable</strong> (PII) si no és estrictament necessari.
+2. <strong>Usa noms falsos</strong> per a persones en exemples.
+3. <strong>Esborra la informació sensible</strong> de les respostes del model abans de desar-les.
+4. <strong>Configura el system prompt</strong> perquè el model eviti inventar dades personals:</p>
+<pre class="code"><code class="language-">Si et demanen informació personal d&#x27;algú, respon &quot;No tinc aquesta
+informació&quot; en lloc d&#x27;inventar-la.</code></pre>
+<h2>41.9 Com auditar el sistema</h2>
+<p>Un cop al mes, revisa:</p>
+<p>1. <strong>Quins documents estan indexats</strong>: `ls vectorstore/`
+2. <strong>Quines converses s'han desat</strong>: `ls historial/`
+3. <strong>Quins logs hi ha</strong>: `tail logs/assistant.log`
+4. <strong>Qui ha accedit</strong>: revisar logs d'autenticació
+5. <strong>Quines actualitzacions hi ha</strong>: `ollama list`, `pip list --outdated`</p>
+<p>Un script d'auditoria:</p>
+<pre class="code"><code class="language-python">def auditar_sistema():
+    print(&quot;=== Auditoria mensual del sistema ===\n&quot;)
+    print(f&quot;Documents indexats: {collection.count()}&quot;)
+    print(f&quot;Converses guardades: {len(list(Path(&#x27;historial&#x27;).glob(&#x27;*.json&#x27;)))}&quot;)
+    print(f&quot;Mida de la base vectorial: {sum(f.stat().st_size for f in Path(&#x27;vectorstore&#x27;).rglob(&#x27;*&#x27;)) / 1e6:.1f} MB&quot;)
+    print(f&quot;Mida de l&#x27;historial: {sum(f.stat().st_size for f in Path(&#x27;historial&#x27;).rglob(&#x27;*&#x27;)) / 1e6:.1f} MB&quot;)
+    # Més coses...</code></pre>
+<h2>41.10 Què fer si hi ha una bretxa</h2>
+<p>Si sospites que algú ha accedit al sistema sense permís:</p>
+<p>1. <strong>Desconnecta l'API</strong> (`pkill ollama`).
+2. <strong>Canvia les contrasenyes</strong> (Tailscale, sistema, etc.).
+3. <strong>Revisa els logs</strong> per veure què s'ha fet.
+4. <strong>Notifica als afectats</strong> si hi ha dades personals.
+5. <strong>Reinstaŀla Ollama</strong> des de zero.
+6. <strong>Re-indexa</strong> els documents.
+7. <strong>Documenta la incidència</strong> al README.</p>
+<h2>41.11 Compliment normatiu</h2>
+<p>A Espanya i la UE, el Reglament General de Protecció de Dades (RGPD) i la Llei Orgànica de Protecció de Dades (LOPDGDD) apliquen. Amb IA local, tens molt bon posicionament, però encara cal:</p>
+<p>1. <strong>Consentiment informat</strong>: si altres persones usen el sistema.
+2. <strong>Transparència</strong>: explicar què es fa amb les dades.
+3. <strong>Minimització</strong>: només recull el que necessitis.
+4. <strong>Limitació de la finalitat</strong>: no usar les dades per a altres coses.
+5. <strong>Integritat i confidencialitat</strong>: protegir-les.
+6. <strong>Responsabilitat proactiva</strong>: poder demostrar que compleixes.</p>
+<p>Documenta tot això en una <strong>Política de Privacitat</strong> si el sistema és compartit.</p>
+<h2>41.12 Bones pràctiques amb el backup</h2>
+<p>Quan fas còpies de seguretat, xifra-les:</p>
+<pre class="code"><code class="language-bash"># Backup xifrat amb gpg
+tar -czf - ~/bernatlab/asistent/ | gpg -c &gt; backup-asistent-$(date +%Y%m%d).tar.gz.gpg</code></pre>
+<p>Això xifra la còpia amb una contrasenya. Guarda la contrasenya en un gestor de contrasenyes (1Password, Bitwarden, KeePass).</p>
+<h2>41.13 Resum</h2>
+<p>Hem après les bones pràctiques de privadesa per a sistemes d'IA local: què no enviar al núvol, com configurar el tallafocs i l'autenticació, com gestionar múltiples usuaris, com evitar filtracions del RAG, com auditar, i com complir la normativa. Al proper capítol veurem 10 consultes reals que pots fer a l'assistent Hort Osona per començar a usar-lo de manera pràctica.</p>
+<h2>41.14 Exercicis pràctics</h2>
+<p>1. Fes una llista de quines dades personals tens a les fitxes d'Hort Osona.
+2. Configura el tallafocs del Mac per permetre Ollama només des de Tailscale.
+3. Activa FileVault si no el tens activat.
+4. Implementa autenticació bàsica al backend.
+5. Configura la neteja automàtica de fitxers temporals.
+6. Crea un script d'auditoria mensual.
+7. Documenta al README la política de privadesa del sistema.</p>
+<p>Paraules clau: <strong>privadesa, privacy, GDPR, RGPD, LOPDGDD, dades personals, PII, identificació, biometria, consentiment, transparència, minimització, finalitat, integritat, confidencialitat, responsabilitat proactiva, política de privadesa, tallafocs, firewall, FileVault, xifrat, encryption, autenticació, basicauth, OAuth, JWT, multi-usuari, aïllament, retenció de dades, dret a l'oblit, esborrat, compliança, auditoria, logs, monitoratge, alerting, backup xifrat, gpg, contrasenya, gestor de contrasenyes, KeePass, Bitwarden, 1Password, model local, Ollama, Tailscale, xarxa privada, IP, tallafocs per IP, subnet, ACL, MAC filtering, port forwarding, NAT, port, 11434, 8080, 0.0.0.0, localhost, 100.x, 192.168, mTLS, TLS, certificat, client certificate, mutual TLS, fingerprint, verificació, prompt injection, sanitization, validació, escape, sandbox, contenidor, Docker, aïllament, recursos, cgroup, namespace, seccomp, AppArmor, SELinux, hardening, CIS, NIST, security baseline, OWASP, top 10, application security, dependency, vulnerabilitat, CVE, update, patch, manteniment</strong>.</p>
+<hr>
+<h2 id="42-casos-us">Capitol 42 — 10 consultes reals a l&#x27;assistent Hort Osona</h2>
+<p>> <em>"Ja tens l'eina. Ara veurem què li pots preguntar per començar a treure'n profit des del primer dia."</em></p>
+<h2>42.1 Com usar aquest capítol</h2>
+<p>Aquest capítol és diferent dels altres. No és teoria ni pràctica, sinó <strong>exemples reals</strong> de consultes que pots fer a l'assistent Hort Osona un cop estigui muntat (Caps 33-41).</p>
+<p>Cada consulta inclou:</p>
+<ul>
+<li>La <strong>pregunta exacta</strong> que pots escriure o dictar.</li>
+<li>El <strong>context</strong> (per què és útil).</li>
+<li>La <strong>resposta esperada</strong> (orientativa — dependrà del model que usis).</li>
+<li>Els <strong>documents</strong> que el RAG hauria de recuperar.</li>
+</ul>
+<p>Al final tens un <strong>prompt de benvinguda</strong> que pots personalitzar.</p>
+<h2>42.2 Consulta 1: el calendari de sembra del mes</h2>
+<p><strong>Pregunta</strong>: "Què he de sembrar aquest mes a l'hort d'Osona?"</p>
+<p><strong>Context</strong>: cada mes hi ha sembres òptimes. Vols saber-les sense haver de cercar per totes les fitxes.</p>
+<p><strong>Resposta esperada</strong> (orientativa):</p>
+<p>> Aquest mes a la comarca d'Osona (zona mitjana, ~600 m d'altitud), pots sembrar:
+>
+> 1. <strong>Enciam, escarola, ruca</strong> (tolerant al fred).
+> 2. <strong>Pèsols, faves</strong> (lleguminoses que volen temperatures fresques).
+> 3. <strong>Espinac, bleda</strong> (hoja verda de cicle curt).
+> 4. <strong>Rave, pastanaga</strong> (d'arrel, cicle ràpid).
+> 5. <strong>All, ceba tendra</strong> (bulbs que es cullen a l'estiu).
+>
+> Consulta la fitxa de sembra per a cada cultiu al calendari d'Hort Osona. Recorda que aquesta llista és per a la zona d'Osona; altres zones poden variar 2-4 setmanes.</p>
+<p><strong>Fonts esperades</strong>: `calendari-sembra.md`, `pla-mensual.md`, fitxes individuals dels cultius esmentats.</p>
+<h2>42.3 Consulta 2: diagnòstic d'una plaga</h2>
+<p><strong>Pregunta</strong>: "Les fulles del tomàquet tenen taques grogues amb un pols blanc a sota. Què és i què puc fer?"</p>
+<p><strong>Context</strong>: detectes un problema a la planta i vols consell ràpid.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> Pel que descrius, és probable que sigui <strong>míldiu</strong> (<em>Phytophora infestans</em>), un fong que afecta tomàquets i patates, especialment amb humitat alta. Confirma mirant si:
+>
+> 1. Les taques s'escampen ràpidament.
+> 2. A sota hi ha una mena de pelussa blanca.
+> 3. Les tiges també es taquen.
+>
+> <strong>Tractament ecològic</strong>:
+>
+> - <strong>Preventiu</strong>: sulfat de coure (0.3-0.5%) o decocció de cua de cavall.
+> - <strong>Curatiu</strong>: infusió d'all o purí d'ortiga.
+> - <strong>Eliminar</strong> fulles afectades i cremar-les (no compostar).
+> - <strong>Ventilació</strong>: esporgar les plantes per millorar la circulació d'aire.
+> - <strong>Evitar</strong> reg per aspersió; millor reg per degoteig.
+>
+> Si la infecció és greu, és possible que hagis de sacrificar la planta. Consulta la fitxa de plagues per a més detalls.</p>
+<p><strong>Fonts esperades</strong>: `gestio-plagues.md`, `fitxa-tomaque.md`, `practiques-avancades.md`.</p>
+<h2>42.4 Consulta 3: associacions de cultius</h2>
+<p><strong>Pregunta</strong>: "Vull fer un hort de 100 m² amb tomàquets, enciams i pastanagues. Quines associacions em recomanes?"</p>
+<p><strong>Context</strong>: estàs planificant un hort nou i vols optimitzar l'espai.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> Per a un hort de 100 m² amb tomàquets, enciams i pastanagues, et recomano:
+>
+> <strong>Associacions positives</strong> (ajuden mútuament):
+>
+> 1. <strong>Tomàquet + alfàbrega</strong>: l'alfàbrega repel·la els mosquits i millora el gust del tomàquet.
+> 2. <strong>Enciam + pastanaga</strong>: l'enciam ombreja el sòl, mantenint la humitat que la pastanaga necessita.
+> 3. <strong>Tomàquet + ceba/all</strong>: la ceba repel·la plagues del tomàquet.
+>
+> <strong>Rotació recomanada</strong> (any següent):
+>
+> - On hi havia tomàquet, plantar lleguminoses (faves, pèsols) per fixar nitrogen.
+> - On hi havia enciam, plantar brassicàcies (col, rave).
+> - On hi havia pastanaga, plantar tomàquet.
+>
+> <strong>Disposició suggested</strong>:
+>
+> ```
+> [Tomàquets 60m²]  [Enciams 20m²]  [Pastanagues 20m²]
+> [Alfàbrega intercalada]  [Ceba intercalada]
+> ```
+>
+> Consulta la guia d'associacions per a més combinacions.</p>
+<p><strong>Fonts esperades</strong>: `associacions-rotacions.md`, `croquis-hort.md`, fitxes individuals.</p>
+<h2>42.5 Consulta 4: com fer compost casolà</h2>
+<p><strong>Pregunta</strong>: "Com puc fer compost a casa amb restes de cuina si visc en un pis?"</p>
+<p><strong>Context</strong>: vols compost però no tens jardí.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> Per fer compost en un pis, la millor opció és un <strong>composter domèstic</strong> tipus <strong>Bokashi</strong> (fermentació anaeròbica en galleda tancada) o un <strong>composter de balcó</strong> amb cucs.
+>
+> <strong>Opció 1: Bokashi</strong> (recomanada per a pisos):
+>
+> 1. Compra una galleda Bokashi (~30 €).
+> 2. Afegeix restes de cuina (fruita, verdura, pa, marro de cafè).
+> 3. Escampa una capa de micelis Bokashi cada 2 cm de restes.
+> 4. Premsa per expulsar l'aire.
+> 5. Tanca la tapa. Cada 2-3 dies, obre la vàlvula per escórrer el líquid (dilueix 1:100 en aigua i usa com a adob líquid).
+> 6. En 2-4 setmanes, el compost estarà fermentat.
+>
+> <strong>Opció 2: Vermicompostador amb cucs</strong> (per a balcons):
+>
+> 1. Compra un vermicompostador (~50 €).
+> 2. Afegeix restes vegetals (no carn ni làctics).
+> 3. Els cucs (Eisenia foetida) les transformen en humus.
+> 4. Cada 3-6 mesos, recull l'humus del compartiment inferior.
+>
+> <strong>Important</strong>:
+>
+> - No posis carn, peix, làctics, ni olis.
+> - Evita cítrics en grans quantitats (els cucs no els toleren).
+> - Mantén humit però no enxarcat.
+>
+> Consulta la fitxa de compost per a més detalls.</p>
+<p><strong>Fonts esperades</strong>: `compost.md`, `practiques-avancades.md`.</p>
+<h2>42.6 Consulta 5: poda de fruiters</h2>
+<p><strong>Pregunta</strong>: "Quan i com he de podar els meus presseguers de 5 anys?"</p>
+<p><strong>Context</strong>: tens fruiters joves i vols podar correctament.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> Els <strong>presseguers</strong> (<em>Prunus persica</em>) es poden a <strong>final d'hivern o inici de primavera</strong>, quan ja no hi ha risc de gelades fortes però abans que brotin.
+>
+> <strong>Objectius de la poda</strong>:
+>
+> 1. <strong>Eliminar branques mortes o malaltes</strong>.
+> 2. <strong>Obrir la capçada</strong> perquè entri llum i aire.
+> 3. <strong>Renovar branques fructíferes</strong> (el presseguer fructifica en branques de l'any anterior).
+>
+> <strong>Tipus de branques a distingir</strong>:
+>
+> - <strong>Brindilles</strong> (curtes, amb borrons arrodonits): fructifiquen.
+> - <strong>Branques mixtes</strong> (mitjanes): fructifiquen parcialment.
+> - <strong>Brots d'aigua</strong> (llargs i verticals): no fructifiquen, treure.
+>
+> <strong>Passos</strong>:
+>
+> 1. <strong>Eines</strong>: tisores de poda netes i afilades, serra petita per branques grosses.
+> 2. <strong>Cortes a 45°</strong>, just per sobre d'un borró que miri cap a fora.
+> 3. <strong>Eliminar</strong> brots d'aigua, branques creuades, xucladors.
+> 4. <strong>Deixar</strong> 3-4 branques principals ben distribuïdes.
+> 5. <strong>Aplica pasta segelladora</strong> en talls grans.
+>
+> <strong>Consell</strong>: la primera poda en arbres joves és la més important. Defineix bé l'estructura els primers 3 anys.</p>
+<p><strong>Fonts esperades</strong>: `fruiters-guia-completa.md`, `practiques-avancades.md`.</p>
+<h2>42.7 Consulta 6: reg durant la calor</h2>
+<p><strong>Pregunta</strong>: "Estem passant una onada de calor a 38 °C. Com he de regar l'hort?"</p>
+<p><strong>Context</strong>: temps extrem, vols evitar pèrdues.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> Amb temperatures superiors a 35 °C, cal ajustar el reg:
+>
+> <strong>Horari</strong>:
+>
+> - Rega <strong>primerenca del matí</strong> (6-9 h) o al <strong>vespre</strong> (20-22 h).
+> - <strong>Mai</strong> al migdia (l'aigua s'evapora i pot cremar les fulles).
+>
+> <strong>Freqüència</strong>:
+>
+> - Hortalisses de fruit (tomàquet, pebrot, albergínia): <strong>cada 1-2 dies</strong>.
+> - Hortalisses d'arrel (pastanaga, rave): <strong>cada 2-3 dies</strong>.
+> - Hortalisses de fulla (enciam, espinac): <strong>diari</strong>.
+> - Fruiters: <strong>setmanal</strong> amb reg profund.
+>
+> <strong>Quantitat</strong>:
+>
+> - 10-15 litres per m² en regs profunds.
+> - 5-8 litres per m² en regs de manteniment.
+>
+> <strong>Tècniques d'estalvi</strong>:
+>
+> - <strong>Encoixinat</strong> (mulching, cobrir el sòl amb palla, fullaraca, o plàstic) redueix l'evaporació un 50-70%.
+> - <strong>Reg per degoteig</strong>: més eficient que l'aspersió.
+> - <strong>Reg subterrani</strong>: tubs perforats sota la superfície.
+>
+> <strong>Senyals d'estrès hídric</strong>:
+>
+> - Fulles pansides al matí (no pas al migdia, és normal).
+> - Color verd pàl·lid o groguenc.
+> - Fruits petits o amb cremades solars.
+>
+> Consulta la fitxa de reg per a cada cultiu.</p>
+<p><strong>Fonts esperades</strong>: `reg-fertilitzacio.md`, fitxes individuals.</p>
+<h2>42.8 Consulta 7: control del pugó</h2>
+<p><strong>Pregunta</strong>: "Tinc molt de pugó a les faves. Com ho combatre sense productes químics?"</p>
+<p><strong>Context</strong>: plaga comuna, vols solució ecològica.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> El <strong>pugó</strong> a les faves és molt comú a la primavera. Combatre'l de forma ecològica:
+>
+> <strong>Tractaments directes</strong>:
+>
+> 1. <strong>Sabó potàssic</strong>: 10-15 ml per litre d'aigua. Polvoritza al matí o al vespre. Repetir cada 5-7 dies.
+> 2. <strong>Infusió d'all</strong>: 50 g d'all picat per litre d'aigua, deixa reposar 24 h, filtra i polvoritza.
+> 3. <strong>Purí d'ortiga</strong>: fermenta 1 kg d'ortigues en 10 L d'aigua durant 1-2 setmanes. Dilueix 1:10.
+> 4. <strong>Oli de neem</strong>: 5 ml per litre. Molt eficaç, però car.
+>
+> <strong>Control biològic</strong>:
+>
+> - <strong>Marietes</strong> (Coccinellidae): mengen 50-100 pugons al dia. <strong>No les matis!</strong>
+> - <strong>Crysoperla</strong> (crisopa): les larves mengen molts pugons.
+> - <strong>Sírfids</strong>: les larves són depredadores.
+>
+> Per afavorir aquests insectes, planta <strong>flors</strong> al voltant de l'hort: calèndula, caps d'ase, alfalfa, facèlia.
+>
+> <strong>Prevenció</strong>:
+>
+> - <strong>Evitar</strong> l'excés de nitrogen (adobs massa rics atrauen pugons).
+> - <strong>Rotació</strong> de cultius.
+> - <strong>Eliminar</strong> herbes hoste (com la corretjola).
+>
+> Si la infestació és molt forta, poda les parts més afectades i crema-les.</p>
+<p><strong>Fonts esperades</strong>: `gestio-plagues.md`, `practiques-avancades.md`.</p>
+<h2>42.9 Consulta 8: guardar llavors</h2>
+<p><strong>Pregunta</strong>: "Com guardo les llavors dels tomàquets per sembrar l'any vinent?"</p>
+<p><strong>Context</strong>: vols autosuficiència.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> Per guardar llavors de tomàquet per sembrar l'any vinent:
+>
+> <strong>1. Tria les millors plantes</strong>:
+>
+> - Les més sanes, productives, i representatives de la varietat.
+> - No agafis llavors de plantes híbrides (F1): la descendència no serà fidel.
+>
+> <strong>2. Extracció de llavors</strong> (per tomàquets):
+>
+> 1. Talla el tomàquet madur per la meitat.
+> 2. Buida les llavors amb el gel en un colador.
+> 3. Frega-les suaument per separar la polpa.
+> 4. Deixa-les fermentar 2-4 dies en un got amb aigua (per eliminar la capa gelatinosa).
+> 5. Renteu-les bé.
+> 6. Escampar-les en un paper o plàtic per assecar-les (7-10 dies).
+>
+> <strong>3. Assecatge i emmagatzematge</strong>:
+>
+> - Asseca-les en un lloc ventilat, sense sol directe.
+> - Guardar-les en un <strong>pot de vidre</strong> o <strong>sobre de paper</strong> en un lloc <strong>fresc, sec i fosc</strong>.
+> - Afegeix un <strong>dessecant</strong> (gel de sílice) per evitar humitat.
+> - Durada: 4-6 anys (depenent de la varietat).
+>
+> <strong>4. Etiqueta sempre</strong>:
+>
+> - Nom de la varietat.
+> - Data de collita.
+> - Procedència (any, lloc).
+>
+> <strong>5. Prova de germinació</strong> (opcional):
+>
+> - 10 llavors en un paper humit.
+> - 7-14 dies.
+> - Si germinen >7, la llavor és bona.
+>
+> Consulta la guia de llavors per a més detalls.</p>
+<p><strong>Fonts esperades</strong>: `guardar-llavors.md`.</p>
+<h2>42.10 Consulta 9: trasplantar tomàquets</h2>
+<p><strong>Pregunta</strong>: "Quan i com trasplanto les plantes de tomàquet del planter al camp?"</p>
+<p><strong>Context</strong>: arriba el moment del trasplantament.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> El trasplantament del tomàquet es fa a la <strong>primavera</strong>, quan ja no hi ha risc de gelades i el sòl està a <strong>15-18 °C</strong> com a mínim. A Osona, sol ser entre <strong>finals d'abril i mitjans de maig</strong>.
+>
+> <strong>Passos</strong>:
+>
+> <strong>1. Enduriment</strong> (7-10 dies abans):
+>
+> - Surt les plantes al balcó o fora, gradualment (1 h, 2 h, mig dia, dia sencer).
+> - Evita sol directe les primeres hores.
+> - Redueix el reg per estrès controlat.
+>
+> <strong>2. Preparació del sòl</strong>:
+>
+> - Llaura o cavar la terra a 30 cm de fondària.
+> - Incorpora compost madur (5-10 L/m²).
+> - Nivella i marca les línies de plantació.
+>
+> <strong>3. Distàncies</strong>:
+>
+> - Entre plantes: <strong>50-60 cm</strong>.
+> - Entre línies: <strong>80-100 cm</strong>.
+>
+> <strong>4. Trasplantament</strong> (al vespre o dia ennuvolat):
+>
+> 1. Rega el planter 1-2 h abans.
+> 2. Fes forats de la mida del test.
+> 3. Treu la planta amb el pa de terra intacte.
+> 4. Col·loca-la al forat, fins a les primeres fulles.
+> 5. Omple amb terra, premsant suaument.
+> 6. Rega abundantment.
+>
+> <strong>5. Cura post-trasplantament</strong>:
+>
+> - Rega diàriament la primera setmana.
+> - Protegeix del sol directe els primers 2-3 dies (tela d'ombra o campana).
+> - Col·loca tutors si la varietat ho necessita.
+>
+> <strong>Senyals d'estrès</strong>: fulles pansides que es recuperen al vespre és normal. Si no es recuperen, rega més.</p>
+<p><strong>Fonts esperades</strong>: `calendari-sembra.md`, `fitxa-tomaque.md`, `practiques-avancades.md`.</p>
+<h2>42.11 Consulta 10: elaboració d'una conserva</h2>
+<p><strong>Pregunta</strong>: "Com faig conserva de tomàquet per a tot l'any?"</p>
+<p><strong>Context</strong>: tens excedent de tomàquets i vols conservar-los.</p>
+<p><strong>Resposta esperada</strong>:</p>
+<p>> Per fer conserva de tomàquet casolana:
+>
+> <strong>Ingredients</strong>:
+>
+> - 5 kg de tomàquets madurs.
+> - 1 ceba gran (opcional).
+> - 1 cullerada de sal.
+> - 1 cullerada de sucre (opcional, per reduir acidesa).
+> - 1 cullerada d'oli d'oliva.
+> - Alfàbrega fresca (opcional).
+>
+> <strong>Passos</strong>:
+>
+> 1. <strong>Rentar</strong> i <strong>tallar</strong> els tomàquets a quarts.
+> 2. <strong>Bullir</strong> 30-45 minuts a foc lent, tapats, fins que es desfacin.
+> 3. <strong>Triturar</strong> amb batedora o passar pel passapures.
+> 4. <strong>Colar</strong> per eliminar llavors i pell (opcional, segons el gust).
+> 5. <strong>Coure</strong> 20-30 minuts més, afegint sal, sucre, ceba picada, alfàbrega.
+> 6. <strong>Provar</strong> i rectificar de sal.
+> 7. <strong>Envasar</strong> en pots de vidre esterilitzats.
+> 8. <strong>Tapar</strong> i <strong>bullir al bany maria</strong> 30 minuts per segellar.
+> 9. <strong>Deixar refredar</strong> i guardar en lloc fresc i fosc.
+>
+> <strong>Durada</strong>: 1-2 anys si es conserva correctament.
+>
+> <strong>Consells</strong>:
+>
+> - Esterilitza els pots al forn a 120 °C 15 min.
+> - Assegura't que la tapa fa "click" quan es refreda (bona soldadura).
+> - Si una tapa no fa "click", guardar a la nevera i consumir aviat.
+>
+> <strong>ATENCIÓ</strong>: un pot mal soldat pot desenvolupar <strong>botulisme</strong> (perill mortal). Si el tomàquet fa mala olor, color estrany, o gas en obrir-lo, llença'l.</p>
+<p><strong>Fonts esperades</strong>: `conserves.md`, `fitxa-tomaque.md`.</p>
+<h2>42.12 Prompt de benvinguda personalitzat</h2>
+<p>Quan configuris el teu assistent, pots personalitzar el system prompt:</p>
+<pre class="code"><code class="language-">Ets l&#x27;assistent Hort Osona. Coneixes les 76 fitxes de cultius del
+projecte BernatLab i les guies d&#x27;horticultura ecològica de la comarca
+d&#x27;Osona.
+<p>CARACTERÍSTIQUES:
+<ul>
+<li>Respon SEMPRE en català.</li>
+<li>Sigues pràctic i directe, sense floritures.</li>
+<li>Dona consells adaptats a la comarca d&#x27;Osona (zona mitjana, ~600 m,</li>
+</ul>
+  clima continental).
+<ul>
+<li>Prioritza mètodes ecològics i sostenibles.</li>
+<li>Si no saps la resposta, digues &quot;No tinc prou informació a les</li>
+</ul>
+  fitxes d&#x27;Hort Osona. Consulta la fitxa corresponent o pregunta al
+  fòrum&quot;.
+<ul>
+<li>Cita sempre les fonts al final de la resposta.</li>
+</ul></p>
+<p>ESTIL:
+<ul>
+<li>Frases curtes.</li>
+<li>Llistes numerades quan hi ha diversos punts.</li>
+<li>Negreta per termes clau.</li>
+<li>Màxim 10-15 línies per resposta (o menys).</code></pre></li>
+</ul></p>
+<p>Aquest prompt personalitzat es posa a la configuració d'Ollama (Cap 34) o a la variable d'entorn del backend.</p>
+<h2>42.13 Consells finals</h2>
+<p>1. <strong>Pregunta amb context</strong>. "Com plantar carbasses?" és menys útil que "Com plantar carbasses en un hort de 50 m² a Osona amb sòl argilós?".</p>
+<p>2. <strong>Confirma les respostes</strong>. El model pot inventar coses. Si una recomanació et sembla estranya, consulta la fitxa original.</p>
+<p>3. <strong>Fes-lo servir sovint</strong>. Com més el facis servir, més aprendràs a formular bones preguntes.</p>
+<p>4. <strong>Ensenya'l a la família</strong>. Si comparteixes l'hort amb algú, ensenya'ls a usar l'assistent. Així tothom hi contribueix.</p>
+<p>5. <strong>Documenta les respostes bones</strong>. Si el model dóna una resposta excel·lent, guarda-la. Pot servir d'inspiració per a futures consultes.</p>
+<h2>42.14 Resum</h2>
+<p>Aquest capítol ha presentat 10 consultes reals que pots fer a l'assistent Hort Osona: el calendari de sembra, diagnòstic de plagues, associacions, compost, poda, reg, plagues, guardar llavors, trasplantar, i conserves. Cada consulta ha mostrat la pregunta, el context, la resposta esperada, i les fonts. També hem vist un prompt de benvinguda personalitzat per configurar el teu assistent.</p>
+<p>Aquest és l'últim capítol del Mòdul 4. Ara tens tot el que necessites per tenir un assistent d'IA local potent, privadesa garantida, i totalment integrat amb el teu hort. Comença amb una pregunta senzilla i experimenta!</p>
+<h2>42.15 Exercicis pràctics</h2>
+<p>1. Tria 3 de les 10 consultes d'aquest capítol i fes-les al teu assistent (quan estigui muntat).
+2. Avalua la qualitat de les respostes i compara-les amb les respostes esperades.
+3. Personalitza el system prompt amb les teves pròpies instruccions.
+4. Documenta al README les 5 millors respostes que has obtingut.
+5. Comparteix les consultes útils amb família o veïns.</p>
+<p>Paraules clau: <strong>consultes, exemples, casos d'ús, calendari de sembra, plagues, associacions, compost, poda, reg, conserves, llavors, trasplantament, hort Osona, comarca d'Osona, primavera, estiu, tardor, hivern, calendari lunar, rotació, conreu associat, planter, hivernacle, microclima, adob, fertilitzant, nitrogen, fòsfor, potassi, reg per degoteig, aspersió, encoixinat, mulching, conserves, fermentació, lactofermentació, oli d'oliva, alfàbrega, sajolida, farigola, orenga, plantes aromàtiques, plantes medicinals, infusions, decoccions, maceracions, ungüents, cremes, tintures, remeieres, saviesa popular, transmissió, aprenentatge, oralitat, etnografia, memòria oral</strong>.</p>
+<hr>
+</main>
+</div>
+<footer>
+    BernatLab Wiki · Generada automàticament a partir dels capítols Markdown.
+</footer>
+</body>
+</html>
