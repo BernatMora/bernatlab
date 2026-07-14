@@ -1,0 +1,3023 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Mòdul 7 — BernatLab Wiki</title>
+    <link rel="stylesheet" href="css/wiki.css">
+</head>
+<body>
+<div class="layout">
+<nav>
+<h2>BernatLab</h2>
+<p style="color: #888; font-size: 0.9em;">Wiki del manual tècnic</p>
+<a href="modul-1.html">Mòdul 1</a>
+<a href="modul-2.html">Mòdul 2</a>
+<a href="modul-3.html">Mòdul 3</a>
+<a href="modul-4.html">Mòdul 4</a>
+<a href="modul-5.html">Mòdul 5</a>
+<a href="modul-6.html">Mòdul 6</a>
+<a href="modul-7.html">Mòdul 7</a>
+<h2>Capítols</h2>
+<a href="#58-preparacio"><span class="toc-num">58</span>Capitol 58 — Preparació: què necessites tenir abans de començar</a>
+<a href="#59-primer-contacte"><span class="toc-num">59</span>Capitol 59 — Primer contacte amb la Raspberry Pi</a>
+<a href="#60-sistema-base-segur"><span class="toc-num">60</span>Capitol 60 — Sistema base segur</a>
+<a href="#61-docker-portainer"><span class="toc-num">61</span>Capitol 61 — Docker i Portainer: la base dels serveis</a>
+<a href="#62-uptime-kuma"><span class="toc-num">62</span>Capitol 62 — Uptime Kuma: el primer monitor</a>
+<a href="#63-mqtt-influxdb-grafana"><span class="toc-num">63</span>Capitol 63 — La cadena de dades: MQTT, InfluxDB, Grafana</a>
+<a href="#64-node-red"><span class="toc-num">64</span>Capitol 64 — Node-RED: les primeres automatitzacions</a>
+<a href="#65-node-lora"><span class="toc-num">65</span>Capitol 65 — El node LoRa al camp</a>
+<a href="#66-telegram"><span class="toc-num">66</span>Capitol 66 — Bot de Telegram: alertes al mòbil</a>
+<a href="#67-prometheus-alertes"><span class="toc-num">67</span>Capitol 67 — Prometheus i alertes avançades</a>
+<a href="#68-runbooks"><span class="toc-num">68</span>Capitol 68 — Runbooks: quan falla alguna cosa</a>
+<a href="#69-drp-test"><span class="toc-num">69</span>Capitol 69 — DRP: el dia que es crema tot</a>
+</nav>
+<main>
+<h1>Mòdul 7</h1>
+<p><em>Hort Osona en acció: implementar el BernatLab pas a pas</em></p>
+<hr>
+<h2 id="58-preparacio">Capitol 58 — Preparació: què necessites tenir abans de començar</h2>
+<p>> <em>"El 80% dels problemes d'una instal·lació es decideixen abans de tocar cap botó. Si prepares bé la llista de la compra i el pla, el dia D flueix."</em></p>
+<h2>58.1 A qui va dirigit aquest mòdul</h2>
+<p>Aquest mòdul és diferent dels anteriors. Allà on el <strong>M1</strong> explicava conceptes i el <strong>M5</strong> assegurava el sistema, <strong>aquest mòdul t'acompanya pas a pas</strong> a muntar el teu propi BernatLab des de zero.</p>
+<p>Si ja tens la Raspberry en marxa, pots saltar-te les parts que ja has fet. Però si vols oferir el BernatLab a un amic o familiar — o si vols refer-lo tot de nou per entendre'l bé — segueix l'ordre dels capítols.</p>
+<p>Al final d'aquest mòdul tindràs:</p>
+<ul>
+<li>Una Raspberry Pi 4 preparada i segura.</li>
+<li>Un servidor de monitoratge (Uptime Kuma, Prometheus, Grafana).</li>
+<li>Una cadena de dades funcional (MQTT → InfluxDB → Grafana).</li>
+<li>Un node LoRa enviant dades reals des del camp.</li>
+<li>Un bot de Telegram que t'avisa quan passa alguna cosa.</li>
+<li>Un runbook per si alguna cosa es trenca.</li>
+<li>Un DRP que has provat, no només escrit.</li>
+</ul>
+<h2>58.2 Què necessites: la llista de la compra</h2>
+<p>Això és el que jo tenia el dia que vaig començar. No és la llista mínima universal, és la llista que <strong>a mi m'ha funcionat</strong> i que et recomano.</p>
+<h3>Hardware essencial</h3>
+<p>| Component | Quantitat | Preu aprox. | Per què |
+|---|---|---|---|
+| Raspberry Pi 4 Model B (4 GB RAM) | 1 | 55 € | El cor del BernatLab. 4 GB és el mínim; 8 GB és més còmode. |
+| MicroSD A2 de 64 GB | 1 | 15 € | Disc del sistema. <strong>A2</strong> vol dir bona velocitat d'escriptura aleatòria, crítica per al sistema operatiu. |
+| SSD USB 3.0 de 500 GB | 1 | 50 € | On van les dades. La microSD falla; la SSD no. |
+| Carcassa amb dissipador i ventilador | 1 | 15 € | La RPi 4 s'escalfa; sense refrigeració el rendiment baixa. |
+| Font d'alimentació USB-C oficial (5V/3A) | 1 | 12 € | <strong>L'oficial</strong>. Les fonts barates donen problemes subtils. |
+| Cable Ethernet Cat 6 (2 m) | 1 | 5 € | Millor que Wi-Fi: més estable, més ràpid, més segur. |</p>
+<h3>Hardware recomanable</h3>
+<p>| Component | Quantitat | Preu aprox. | Per què |
+|---|---|---|---|
+| SSD NVMe amb adaptador USB 3.0 | 1 | 80 € | Més ràpid que SSD SATA. Si vols anar sobrat. |
+| Cables Dupont i protoboard | 1 lot | 10 € | Per connectar sensors al GPIO. |
+| Sensor BME280 (I2C) | 1 | 5 € | Temperatura, humitat, pressió. Per a un node interior. |
+| Sensor d'humitat del sòl capacitiu | 1 | 3 € | Per a un node exterior. |
+| Mòdul SX1262 868 MHz + antena | 1 | 15 € | Per al node LoRa. |</p>
+<h3>Eines i accessoris</h3>
+<ul>
+<li>Un <strong>ordinador</strong> amb el qual configurar la RPi (Windows, Mac o Linux). El teu dia a dia.</li>
+<li>Un <strong>lector de microSD</strong> USB, per flashejar la imatge.</li>
+<li>Un <strong>monitor amb HDMI</strong> + <strong>teclat USB</strong>, per si mai necessites accés físic. No cal comprar-ne un de nou: qualsevol monitor vell serveix.</li>
+<li>Un <strong>cable USB-C</strong> llarg (1-2 m) per si la RPi queda lluny del router.</li>
+<li><strong>Etiquetes adhesives</strong> per marcar cables, ports, contenidors.</li>
+<li>Una <strong>caixa o calaix</strong> per emmagatzemar la còpia de seguretat del sistema.</li>
+</ul>
+<h3>Software</h3>
+<ul>
+<li><strong>Raspberry Pi Imager</strong> (gratuït): https://www.raspberrypi.com/software/</li>
+<li><strong>PuTTY</strong> (Windows) o <strong>Terminal</strong> (Mac/Linux): per accedir per SSH.</li>
+<li><strong>Restic</strong>: `sudo apt install restic` un cop tinguis la RPi en marxa.</li>
+</ul>
+<h3>Comptes que necessitaràs crear</h3>
+<ul>
+<li><strong>Tailscale</strong> (gratuït per a ús personal): https://tailscale.com</li>
+<li><strong>GitHub</strong> (gratuït): per al teu repo i per descarregar eines.</li>
+<li><strong>The Things Network</strong> (gratuït): per als nodes LoRaWAN, si esculls aquesta via.</li>
+<li><strong>Backblaze B2</strong> (gratuït fins a 10 GB): per a les còpies al núvol.</li>
+<li><strong>Telegram</strong> (gratuït): per al bot d'alertes.</li>
+</ul>
+<h2>58.3 Quin cost total esperar</h2>
+<p>Si compres tot de zero, el cost aproximat és:</p>
+<ul>
+<li>Hardware essencial: 152 €</li>
+<li>Hardware recomanable: 30 €</li>
+<li>Software i eines: 0 € (tot gratuït o ja el tens)</li>
+<li>Comptes al núvol: 0-3 €/mes (restic, B2, etc.)</li>
+</ul>
+<p><strong>Total: ~180 € d'entrada, 3 €/mes de manteniment.</strong></p>
+<p>És un cost raonable per a un servidor 24/7 que t'allotjarà dades, automatitzacions, alertes, IA, i qualsevol cosa que hi vulguis connectar.</p>
+<h2>58.4 Quin temps invertir</h2>
+<p>Depèn de com ho facis:</p>
+<p>| Modalitat | Temps | Comentari |
+|---|---|---|
+| Amb algú que t'ajuda | 6-8 hores | Si tens un amic que ja ho ha fet. |
+| Sol, seguint el llibre | 12-15 hores | Al teu ritme, amb temps per assimilar. |
+| Sol, sense pauses | 8-10 hores | Si tens pressa, en un cap de setmana. |</p>
+<p>Jo recomano la <strong>modalitat sol, seguint el llibre</strong>, repartida en 3-4 sessions d'un cap de setmana. Tens temps per llegir, entendre i adaptar.</p>
+<h2>58.5 Quin coneixement necessites</h2>
+<p>Aquest llibre no assumeix que siguis expert, però tampoc comença des de zero. Hauries de saber:</p>
+<ul>
+<li><strong>Fer servir la línia de comandes bàsica</strong>: `cd`, `ls`, `cp`, `mv`. Si no, llegeix el <strong>Cap 3</strong> (Linux per administrar un servidor) abans.</li>
+<li><strong>Llegir documentació tècnica</strong>: la majoria d'eines tenen documentació anglesa. Et pots apanyar amb el català, però l'anglès t'ajudarà.</li>
+<li><strong>Editar fitxers de text</strong>: nano o vim. El <strong>Cap 3</strong> t'ensenya nano.</li>
+<li><strong>Tenir paciència</strong>: les coses fallen. De vegades, l'única solució és tornar-ho a provar.</li>
+</ul>
+<p>Si tot això et sona però no ho has fet mai, <strong>perfecte</strong>. Aprendràs fent.</p>
+<h2>58.6 Quin espai físic</h2>
+<p>La Raspberry és petita, però pensa on la posaràs:</p>
+<h3>Criteris</h3>
+<ul>
+<li><strong>Ventilació</strong>: no la tanquis en un armari hermètic. Li cal aire.</li>
+<li><strong>Protecció</strong>: pols, esquitxos, animals (gats, ratolins, formigues).</li>
+<li><strong>Xarxa a prop</strong>: com més a prop del router, millor. Cable Ethernet millor que Wi-Fi.</li>
+<li><strong>Endoll</strong>: a prop d'un endoll o regleta amb protecció contra sobretensions.</li>
+<li><strong>Protecció contra talls de llum</strong>: si tens un <strong>SAI</strong> (Sistema d'Alimentació Ininterrompuda, com els que es venen per a PCs), millor. La RPi consumeix poc i un SAI petit la pot mantenir una estona.</li>
+</ul>
+<h3>Possibles ubicacions</h3>
+<ul>
+<li>A la sala d'estar, al costat del router, en una caixa ventilada.</li>
+<li>Al despatx, en una prestatgeria.</li>
+<li>A l'armari de les comunicacions (on tens el router, l'ONT de la fibra, etc.).</li>
+<li>A l'hort mateix, si tens electricitat i cobertura Wi-Fi allà (amb protecció IP65).</li>
+</ul>
+<p>Jo la tinc a la sala d'estar, en una caixa de fusta amb ventilació. Fa 3 anys que hi és i no ha fallat mai.</p>
+<h2>58.7 Quines decisions prendre abans de començar</h2>
+<p>Algunes decisions que has de prendre <strong>abans</strong> de tocar res:</p>
+<h3>1. Nom del servidor</h3>
+<p>Li posarem `hortosona` al llarg d'aquest llibre, però tu pots triar el que vulguis. Consells:</p>
+<ul>
+<li>Tot minúscules, sense espais ni caràcters estranys.</li>
+<li>Curt (8-12 caràcters).</li>
+<li>Que soni bé quan hi parlis ("el servidor hortosona està caigut").</li>
+</ul>
+<h3>2. Subdomini (si en tens un)</h3>
+<p>Si tens un domini propi (per exemple, `bernat.cat`), pots fer servir subdominis:</p>
+<ul>
+<li>`hortosona.bernat.cat` per accedir al servidor.</li>
+<li>`grafana.bernat.cat` per al panell de Grafana.</li>
+<li>`mosquitto.bernat.cat` per al broker MQTT.</li>
+</ul>
+<p>Si no tens domini, <strong>no passa res</strong>. Tailscale et dona noms automàticament (`hortosona.tailnet.ts.net`) que funcionen igual.</p>
+<h3>3. Quins serveis vull tenir</h3>
+<p>Al capítol 1 del llibre tens la llista de serveis possibles. Pensa quins necessites realment:</p>
+<ul>
+<li><strong>Hort Osona</strong>: MQTT, InfluxDB, Grafana, Node-RED.</li>
+<li><strong>IA local</strong>: Ollama al Mac, integració amb el BernatLab.</li>
+<li><strong>Còpies al núvol</strong>: Backblaze B2, restic.</li>
+<li><strong>Monitoratge</strong>: Uptime Kuma, Prometheus, Alertmanager.</li>
+<li><strong>Web pública</strong>: Nginx Proxy Manager, Cloudflare Tunnel.</li>
+<li><strong>Altres</strong>: File Browser, Nextcloud, Immich (fotos), etc.</li>
+</ul>
+<p>No activis serveis que no necessitis. <strong>Cada servei és feina de manteniment</strong>.</p>
+<h3>4. Quin hardware extra</h3>
+<p>Si vols connectar sensors reals, decideix ara quins:</p>
+<ul>
+<li>Sensor interior (BME280): 5 €.</li>
+<li>Sensor exterior (humitat del sòl): 3 €.</li>
+<li>Estació meteorològica completa: 200-500 €.</li>
+<li>Node LoRa: 30-50 € (mòdul + ESP32 + caixa + antena).</li>
+<li>Càmera: 30-50 €.</li>
+</ul>
+<p>Comença amb el mínim. Pots afegir més endavant.</p>
+<h2>58.8 Quin pla de treball</h2>
+<p>Aquest mòdul està pensat per anar pas a pas. La seqüència recomanada és:</p>
+<p>1. <strong>Cap 58</strong> (aquest): Preparació. Estàs aquí.
+2. <strong>Cap 59</strong>: Primer contacte amb la Raspberry.
+3. <strong>Cap 60</strong>: Sistema base segur.
+4. <strong>Cap 61</strong>: Docker i Portainer.
+5. <strong>Cap 62</strong>: Uptime Kuma.
+6. <strong>Cap 63</strong>: Stack de dades: MQTT, InfluxDB, Grafana.
+7. <strong>Cap 64</strong>: Node-RED: automatitzacions reals.
+8. <strong>Cap 65</strong>: Node LoRa al camp.
+9. <strong>Cap 66</strong>: Bot de Telegram.
+10. <strong>Cap 67</strong>: Prometheus i alertes avançades.
+11. <strong>Cap 68</strong>: Runbooks: quan falla alguna cosa.
+12. <strong>Cap 69</strong>: DRP: el dia que es crema tot.</p>
+<p>Cada capítol té una <strong>durada estimada</strong> al principi, i un <strong>checklist</strong> al final. Si la teva durada és molt més llarga, <strong>atura't i pregunta</strong>. Millor trigar més que no pas fer-ho malament.</p>
+<h2>58.9 Què tenir a mà durant la instal·lació</h2>
+<p>Quan et posis a treballar, tingues a mà:</p>
+<ul>
+<li>Aquest llibre (obert a la pantalla, o imprès si ho prefereixes).</li>
+<li>Un quadern o fitxer de notes per anotar:</li>
+<li>Comandes que has executat.</li>
+<li>Errors que has vist.</li>
+<li>Decisions que has pres.</li>
+<li>Contrasenyes (que després mouràs a un gestor).</li>
+<li>Un <strong>termòmetre de ambient</strong> (no és broma — la temperatura de la RPi afecta el rendiment).</li>
+<li>Un <strong>tester de xarxa</strong> o simplement poder fer `ping` des d'una altra màquina.</li>
+</ul>
+<h2>58.10 Com documentar la teva instal·lació</h2>
+<p>Al repo del BernatLab, ja tens un `homelab/` buit. Crea-hi:</p>
+<pre class="code"><code class="language-">homelab/
+├── README.md              # Descripció general
+├── setup-log.md           # El diari de la teva instal·lació
+├── decisions.md           # Les decisions que has pres i per què
+└── compose/               # Els teus fitxers docker-compose</code></pre>
+<p>El <strong>setup-log.md</strong> és especialment valuós. Anota cada pas amb:</p>
+<ul>
+<li>Data i hora.</li>
+<li>Comanda executada.</li>
+<li>Sortida esperada.</li>
+<li>Sortida real (especialment si falla).</li>
+<li>Solució aplicada.</li>
+</ul>
+<p>D'aquí un any, quan oblidis com vas fer una cosa, obriràs aquest fitxer i recordaràs.</p>
+<h2>58.11 Errors habituals en la preparació</h2>
+<p><strong>Error 1: comprar la primera RPi que trobes</strong>.</p>
+<p>Assegura't que és <strong>Raspberry Pi 4 Model B</strong> (o Pi 5 si el pressupost ho permet). No confondre amb RPi 3 (més antiga) o RPi Zero (molt menys potent).</p>
+<p><strong>Error 2: comprar una microSD qualsevol</strong>.</p>
+<p>Les <strong>SanDisk Extreme</strong> o <strong>Samsung EVO</strong> amb classe <strong>A2</strong> són les recomanades. Una microSD lenta farà que el sistema vagi lent.</p>
+<p><strong>Error 3: estalviar en la font d'alimentació</strong>.</p>
+<p>La RPi 4 necessita 5V/3A. Una font de 5V/2A (la del mòbil) no és prou. Sortirà "low voltage warning" i el rendiment baixarà.</p>
+<p><strong>Error 4: no tenir un pla B</strong>.</p>
+<p>Si compres la RPi, la microSD, però no el cable Ethernet, no podràs configurar res. Mira la llista sencera abans de comprar.</p>
+<p><strong>Error 5: començar divendres a la nit</strong>.</p>
+<p>Si comences un projecte llarg un divendres a la nit, acabaràs amb un sistema mig muntat i frustració. Comença en un moment amb temps de sobres.</p>
+<h2>58.12 Com organitzar les còpies de seguretat</h2>
+<p>Des del primer moment, pensa en còpies:</p>
+<ul>
+<li>Una <strong>microSD extra</strong> amb la imatge flashejada (per si falla la principal).</li>
+<li>Un <strong>disc USB</strong> per fer la primera còpia un cop tinguis el sistema en marxa.</li>
+<li>Un compte de <strong>Backblaze B2</strong> creat ja, per tenir la còpia al núvol configurada des del primer dia.</li>
+</ul>
+<p>La regla 3-2-1 (3 còpies, 2 suports, 1 fora de casa) és important <strong>des del primer moment</strong>, no pas quan ja tinguis dades valuoses.</p>
+<h2>58.13 El "moment de la veritat": quan ho engegues tot</h2>
+<p>El dia que connectis la RPi per primera vegada, tindràs una sensació d'<strong>emoció barrejada amb por</strong>. És normal. Si alguna cosa no va, recorda:</p>
+<ul>
+<li>El 80% dels problemes tenen solució buscant el missatge d'error exacte.</li>
+<li>El 20% restant es resol apagant i tornant a encendre (no és broma — funciona més del que voldríem).</li>
+<li>Si no trobes la solució, deixa-ho, dorm, i torna-hi l'endemà amb ulls frescos.</li>
+</ul>
+<h2>58.14 Resum</h2>
+<p>Aquest capítol és la "llista de la compra" del BernatLab. Hem vist:</p>
+<ul>
+<li>Quin hardware cal (essencial i recomanable).</li>
+<li>Quin cost esperar (~180 € d'entrada, 3 €/mes).</li>
+<li>Quin temps invertir (12-15 hores).</li>
+<li>Quin coneixement cal tenir.</li>
+<li>Quin espai físic.</li>
+<li>Quines decisions prendre.</li>
+<li>Quin pla seguir.</li>
+</ul>
+<p>Si tens tot això clar, ja pots passar al <strong>Cap 59</strong>: Primer contacte amb la Raspberry.</p>
+<h2>58.15 Exercicis pràctics</h2>
+<p>1. Fes la teva pròpia llista de la compra i compara-la amb la meva.
+2. Calcula el cost total del teu projecte.
+3. Decideix el nom del servidor.
+4. Decideix on el posaràs.
+5. Crea el compte de Tailscale.
+6. Crea el compte de Backblaze B2.
+7. Crea el compte de GitHub (si no el tens).
+8. Comença el quadern de notes.</p>
+<hr>
+<h2 id="59-primer-contacte">Capitol 59 — Primer contacte amb la Raspberry Pi</h2>
+<p>> <em>"Aquest és el moment de la veritat. Connectes la RPi, prem el botó, i tens un servidor. Si tot va bé, deu segons. Si no, mitja hora. Benvingut al món real."</em></p>
+<h2>59.1 Què aprendràs</h2>
+<p>Al final d'aquest capítol tindràs:</p>
+<ul>
+<li>La Raspberry Pi amb la microSD flashejada i arrancada.</li>
+<li>Connexió a la teva xarxa local (via Ethernet).</li>
+<li>Accés per SSH des del teu ordinador.</li>
+<li>L'adreça IP de la Raspberry per connectar-hi.</li>
+<li>Les primeres comandes executades.</li>
+</ul>
+<p>Aquest capítol és <strong>pràctic al 100%</strong>. Llegir-lo sense fer-ho no serveix de gaire. Té la RPi a mà quan comencis.</p>
+<h2>59.2 Durada estimada</h2>
+<ul>
+<li>Amb experiència: 15-20 min.</li>
+<li>Primer cop: 45-60 min (comptant possibles contratemps).</li>
+<li>Si mai has flashejat una microSD: +30 min.</li>
+</ul>
+<h2>59.3 Material a mà</h2>
+<p>Assegura't que tens:</p>
+<ul>
+<li>La <strong>Raspberry Pi 4</strong> amb la carcassa posada.</li>
+<li>La <strong>microSD</strong> amb el seu adaptador USB.</li>
+<li>La <strong>font d'alimentació oficial</strong> USB-C.</li>
+<li>El <strong>cable Ethernet</strong> connectat a la RPi i al router.</li>
+<li>Un <strong>ordinador</strong> amb el qual accedir per SSH.</li>
+<li>Un <strong>monitor amb HDMI</strong> i teclat USB (opcional, per si fallen coses).</li>
+</ul>
+<h2>59.4 Pas 1: descarregar i instal·lar Raspberry Pi Imager</h2>
+<p>Al teu <strong>ordinador</strong> (no a la RPi encara), descarrega <strong>Raspberry Pi Imager</strong> des de:</p>
+<ul>
+<li>https://www.raspberrypi.com/software/</li>
+</ul>
+<p>Està disponible per a Windows, Mac i Linux. Instal·la'l com qualsevol programa.</p>
+<h2>59.5 Pas 2: triar el sistema operatiu</h2>
+<p>Obre Raspberry Pi Imager. A la primera pantalla veuràs tres menús:</p>
+<p>1. <strong>Dispositiu</strong>: tria "Raspberry Pi 4".
+2. <strong>Sistema operatiu</strong>: tria "Raspberry Pi OS (other)" → "Raspberry Pi OS Lite (64-bit)".
+3. <strong>Emmagatzematge</strong>: tria la teva microSD.</p>
+<p>Per què <strong>Lite</strong> i no l'escriptori complet?</p>
+<ul>
+<li><strong>Lite</strong> no té entorn gràfic, és només terminal. Ocupa menys espai i menys RAM.</li>
+<li>Per a un servidor 24/7, l'escriptori és innecessari.</li>
+<li>Si vols, sempre pots afegir-lo més tard.</li>
+</ul>
+<h2>59.6 Pas 3: configuració personalitzada</h2>
+<p>Abans de flashejar, Imager et permet configurar quatre coses útils. <strong>Això t'estalviarà 30 minuts</strong> després.</p>
+<p>Fes clic a <strong>"Edita la configuració"</strong> (o "Edit Settings" en anglès). S'obrirà una finestra amb quatre pestanyes:</p>
+<h3>Pestanya "General"</h3>
+<ul>
+<li><strong>Hostname</strong>: escriu `hortosona` (o el nom que hagis triat). Això serà el nom de la RPi a la xarxa.</li>
+<li><strong>Nom d'usuari</strong>: jo faig servir `bernat`, tu pots fer servir el que vulguis. Però <strong>no facis servir `pi`</strong>: és el nom per defecte i tots els bots d'Internet el coneixen.</li>
+<li><strong>Contrasenya</strong>: una de forta, com les del <strong>Cap 46</strong> (2FA i secrets). Mínim 16 caràcters. Guarda-la al teu gestor de contrasenyes.</li>
+<li><strong>Wi-Fi</strong>: deixa-ho buit. Farem servir Ethernet.</li>
+<li><strong>Zona horària</strong>: posa-hi la teva (per a Catalunya, `Europe/Madrid` serveix).</li>
+<li><strong>Layout del teclat</strong>: si el teu és espanyol, tria `es`.</li>
+</ul>
+<h3>Pestanya "Serveis"</h3>
+<ul>
+<li>Activa <strong>"Enable SSH"</strong>.</li>
+<li>Triar <strong>"Use password authentication"</strong> és acceptable per començar. Més endavant (al capítol 60) canviarem a clau pública.</li>
+<li>Si vols, pots activar "Serial console" per si mai necessites accedir via UART.</li>
+</ul>
+<h3>Pestanya "Opcions"</h3>
+<ul>
+<li>Pots deixar-ho tot per defecte.</li>
+</ul>
+<p>Fes clic a <strong>"Desar"</strong> i després a <strong>"Escriure"</strong> (o "Write").</p>
+<h2>59.7 Pas 4: flashejar la microSD</h2>
+<p>Imager començarà a escriure. Això triga entre 1 i 5 minuts, depenent de la microSD. <strong>Paciència</strong>: no treguis la targeta a mitja escriptura.</p>
+<p>Quan acabi, Imager et preguntarà si vols extreure la targeta. Diu-li que sí, treu-la, i fica-la a la RPi.</p>
+<h2>59.8 Pas 5: primer arrencada de la Raspberry</h2>
+<p>Amb la microSD ja inserida:</p>
+<p>1. Connecta el <strong>cable Ethernet</strong> de la RPi al router.
+2. Connecta la <strong>font d'almentació</strong> USB-C.
+3. La RPi arrencarà automàticament. No té botó d'encesa (o si en té, no cal prémer-lo).</p>
+<p>Esperem que arrenqui. La <strong>LED vermella</strong> ha de quedar fixa, i la <strong>LED verda</strong> ha de parpellejar durant 10-30 segons mentre llegeix la microSD.</p>
+<p>Quan la verda deixi de parpellejar, el sistema ha acabat d'arrencar.</p>
+<h2>59.9 Pas 6: trobar l'adreça IP</h2>
+<p>Ara ve la part interessant: descobrir quina IP ha agafat la RPi al router. Hi ha diverses maneres:</p>
+<h3>Opció A: mirar al router</h3>
+<p>La majoria de routers tenen una pàgina d'administració on pots veure els dispositius connectats. Normalment és `http://192.168.1.1` o `http://192.168.0.1`. Busca a la llista un dispositiu amb nom `hortosona` i apunta la seva IP.</p>
+<h3>Opció B: fer ping al hostname</h3>
+<p>Des del teu ordinador:</p>
+<pre class="code"><code class="language-bash">ping hortosona</code></pre>
+<p>Si funciona, ja tens la IP. Si no, el teu ordinador no resol noms per mDNS (cosa que passa al Windows).</p>
+<h3>Opció C: eines específiques</h3>
+<ul>
+<li><strong>Windows</strong>: pots instal·lar <strong>Advanced IP Scanner</strong> (gratuït) o fer servir `arp -a` per veure dispositius de la xarxa.</li>
+<li><strong>Mac/Linux</strong>: `arp -a` o `nmap -sn 192.168.1.0/24` (si tens `nmap` instal·lat).</li>
+<li><strong>Apps mòbils</strong>: <strong>Fing</strong> (iOS/Android) és excel·lent per trobar dispositius a la xarxa.</li>
+</ul>
+<h3>Opció D: provar IPs comuns</h3>
+<p>Si tens un router amb DHCP normal, la RPi estarà a alguna IP com `192.168.1.42` o `192.168.0.42`. Prova unes quantes.</p>
+<p>Jo normalment uso la opció A (mirar al router) perquè és la més fiable.</p>
+<h2>59.10 Pas 7: accedir per SSH</h2>
+<p>Un cop tens la IP, obre un terminal al teu ordinador:</p>
+<p><strong>Windows</strong> (PowerShell o CMD):</p>
+<pre class="code"><code class="language-powershell">ssh bernat@hortosona</code></pre>
+<p>Si tens Windows 10/11 modern, `ssh` ja està disponible. Si no, instal·la OpenSSH o usa PuTTY.</p>
+<p><strong>Mac/Linux</strong>:</p>
+<pre class="code"><code class="language-bash">ssh bernat@hortosona</code></pre>
+<p>La primera vegada, SSH et preguntarà si confies en aquest host. Escriu `yes`.</p>
+<p>Després et demanarà la contrasenya (la que vas posar a la Imager). Escriu-la (no es veurà mentre l'escrius, és normal).</p>
+<p>Si tot va bé, veuràs alguna cosa com:</p>
+<pre class="code"><code class="language-">Linux hortosona 6.6.51+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.6.51-1+rpt3 (2024-10-08) aarch64
+<p>The programs included with the Debian GNU/Linux system are free software;
+...</p>
+<p>bernat@hortosona:~ $</code></pre></p>
+<p><strong>Felicitats! Acabes d'entrar al teu primer servidor.</strong></p>
+<h2>59.11 Pas 8: les primeres comandes</h2>
+<p>Un cop dins, executa aquestes comandes per entendre on ets:</p>
+<pre class="code"><code class="language-bash"># Qui sóc jo
+whoami
+<h1>On sóc</h1>
+pwd
+<h1>Quina distro tinc</h1>
+cat /etc/os-release
+<h1>Quin hardware tinc</h1>
+uname -a
+lscpu
+free -h
+df -h</code></pre>
+<p>Hauries de veure:</p>
+<ul>
+<li>`whoami` retorna `bernat` (o el teu nom d'usuari).</li>
+<li>`pwd` retorna `/home/bernat`.</li>
+<li>La distro és <strong>Debian GNU/Linux 13 (trixie)</strong>.</li>
+<li>L'arquitectura és <strong>aarch64</strong> (ARM 64 bits).</li>
+<li>La CPU és una <strong>ARM Cortex-A72</strong> amb 4 nuclis.</li>
+<li>La RAM és la que hagis comprat (4 GB o 8 GB).</li>
+<li>L'espai lliure a la microSD.</li>
+</ul>
+<h2>59.12 Pas 9: configurar la xarxa correctament</h2>
+<p>Si la IP t'ha canviat a cada reinici, és perquè el DHCP del router t'està donant IPs dinàmiques. Per evitar-ho, podem fer dues coses:</p>
+<h3>Opció A: IP estàtica al router</h3>
+<p>Mira al router quin rang de DHCP té, i assigna una IP fixa a la MAC de la RPi. Cada router és diferent, però busca "DHCP reservation" o "IP estática" al menú.</p>
+<p>Això és el que jo faig: la RPi sempre té la mateixa IP (excepte amb Tailscale, on té una IP del tailnet).</p>
+<h3>Opció B: IP estàtica a la RPi</h3>
+<p>Edita la configuració de xarxa:</p>
+<pre class="code"><code class="language-bash">sudo nano /etc/dhcpcd.conf</code></pre>
+<p>Afegeix al final:</p>
+<pre class="code"><code class="language-">interface eth0
+static ip_address=192.168.1.100/24
+static routers=192.168.1.1
+static domain_name_servers=192.168.1.1 1.1.1.1</code></pre>
+<p>(Canvia les IPs per les de la teva xarxa.)</p>
+<p>Guarda amb `Ctrl+O`, surt amb `Ctrl+X`, i reinicia:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart dhcpcd</code></pre>
+<h3>Per què és important tenir una IP fixa</h3>
+<p>Sense IP fixa, cada vegada que la RPi es reiniciï, el router li pot donar una IP diferent. Això és molt molest per:</p>
+<ul>
+<li>Scripts d'automatització.</li>
+<li>Configurar altres dispositius per apuntar a aquesta IP.</li>
+<li>Recordar on és el servidor.</li>
+</ul>
+<p>Tailscale ho soluciona (et dona una IP fixa del tailnet), però tenir la IP local fixa també ajuda.</p>
+<h2>59.13 Pas 10: primeres actualitzacions</h2>
+<p>Un cop tens accés, actualitza el sistema:</p>
+<pre class="code"><code class="language-bash">sudo apt update
+sudo apt upgrade -y</code></pre>
+<p>Això pot trigar una estona. Quan acabi, reinicia:</p>
+<pre class="code"><code class="language-bash">sudo reboot</code></pre>
+<p>Després d'un parell de minuts, torna a entrar per SSH:</p>
+<pre class="code"><code class="language-bash">ssh bernat@hortosona</code></pre>
+<h2>59.14 Pas 11: fer la primera còpia de seguretat de la microSD</h2>
+<p>Ara que el sistema està net i actualitzat, <strong>abans de fer res més</strong>, fes una còpia de la microSD. Si la RPi falla demà, podràs restaurar en 5 minuts.</p>
+<p>Apaga la RPi:</p>
+<pre class="code"><code class="language-bash">sudo shutdown -h now</code></pre>
+<p>Després d'un minut, la LED verda parpalleja 10 vegades i s'apaga. Treu la microSD.</p>
+<p>Al teu ordinador, amb un lector de microSD:</p>
+<p><strong>Windows</strong>: pots usar <strong>Win32 Disk Imager</strong> o <strong>balenaEtcher</strong> (sí, el mateix que per flashejar).</p>
+<p><strong>Mac</strong>:</p>
+<pre class="code"><code class="language-bash">diskutil list
+<h1>Troba la microSD (ex: /dev/disk2)</h1>
+diskutil unmountDisk /dev/disk2
+sudo dd if=/dev/rdisk2 of=~/backup-raspberry-2026-07-09.img bs=4m status=progress</code></pre>
+<p><strong>Linux</strong>:</p>
+<pre class="code"><code class="language-bash">lsblk
+<h1>Troba la microSD (ex: /dev/sdb)</h1>
+sudo dd if=/dev/sdb of=~/backup-raspberry-2026-07-09.img bs=4M status=progress</code></pre>
+<p>Comprimeix la imatge:</p>
+<pre class="code"><code class="language-bash">gzip ~/backup-raspberry-2026-07-09.img</code></pre>
+<p>Guarda aquest fitxer en un lloc segur. Si tens una còpia al núvol (Backblaze B2, per exemple), millor.</p>
+<h2>59.15 Què has après</h2>
+<p>Ara ja tens:</p>
+<ul>
+<li>Una Raspberry Pi amb sistema operatiu.</li>
+<li>Connexió SSH des del teu ordinador.</li>
+<li>Una adreça IP fixa a la xarxa.</li>
+<li>El sistema actualitzat.</li>
+<li>Una còpia de seguretat de la microSD.</li>
+</ul>
+<p>Al <strong>Cap 60</strong> farem el següent:</p>
+<ul>
+<li>Canviar la contrasenya per una clau SSH.</li>
+<li>Instal·lar Tailscale per accedir des de qualsevol lloc.</li>
+<li>Configurar l'usuari correctament.</li>
+<li>Aplicar les primeres mesures de seguretat.</li>
+</ul>
+<h2>59.16 Errors habituals</h2>
+<p><strong>Error 1: la LED vermella parpelleja</strong>.</p>
+<p>Vol dir que la font d'alimentació no és prou potent. Canvia-la per l'oficial.</p>
+<p><strong>Error 2: la LED verda no parpelleja mai</strong>.</p>
+<p>La microSD no està ben flashejada, o no està ben insertada. Torna a flashejar.</p>
+<p><strong>Error 3: "Permission denied" en fer SSH</strong>.</p>
+<p>Contrasenya incorrecta, o usuari mal escrit. Recorda que Linux distingeix majúscules.</p>
+<p><strong>Error 4: "Connection refused"</strong>.</p>
+<p>La RPi no està en marxa, o SSH no està activat. Connecta un monitor per veure què passa.</p>
+<p><strong>Error 5: "Host key verification failed"</strong>.</p>
+<p>Estàs intentant accedir a una RPi que ja tens enregistrada amb una clau diferent. Solució: `ssh-keygen -R hortosona` al teu ordinador.</p>
+<p><strong>Error 6: el router no mostra la RPi</strong>.</p>
+<p>Comprova que el cable Ethernet està ben connectat a les dues bandes. Mira si el LED de xarxa de la RPi s'il·lumina (verd o groc al port Ethernet).</p>
+<p><strong>Error 7: l'IP canvia a cada reinici</strong>.</p>
+<p>Configura una IP estàtica, com hem explicat al pas 12.</p>
+<h2>59.17 Resum</h2>
+<p>Aquest capítol és el moment de la veritat: la RPi en marxa, accessible per SSH, amb una còpia de seguretat. Hem vist:</p>
+<ul>
+<li>Com flashejar la microSD amb Raspberry Pi Imager.</li>
+<li>Com triar el sistema operatiu correcte (Lite, 64-bit).</li>
+<li>Com configurar coses abans de flashejar (estalvia temps).</li>
+<li>Com trobar la IP de la RPi.</li>
+<li>Com accedir per SSH.</li>
+<li>Com actualitzar el sistema.</li>
+<li>Com fer la primera còpia de seguretat.</li>
+</ul>
+<p>Al <strong>Cap 60</strong> endurem la seguretat: clau SSH, Tailscale, i primers ajustos.</p>
+<h2>59.18 Exercicis pràctics</h2>
+<p>1. Descarrega Raspberry Pi Imager.
+2. Flasheja la microSD amb Raspberry Pi OS Lite 64-bit.
+3. Configura el hostname, usuari i contrasenya a Imager.
+4. Activa SSH amb autenticació per contrasenya.
+5. Insereix la microSD a la RPi i engega-la.
+6. Troba la IP de la RPi.
+7. Accedeix per SSH.
+8. Executa les comandes del pas 11 per entendre el sistema.
+9. Configura una IP estàtica.
+10. Actualitza el sistema.
+11. Fes una còpia de seguretat de la microSD.
+12. Documenta-ho tot al `homelab/setup-log.md`.</p>
+<hr>
+<h2 id="60-sistema-base-segur">Capitol 60 — Sistema base segur</h2>
+<p>> <em>"La diferència entre un servidor vulnerable i un de segur és, sovint, una hora de feina. Aquest capítol és aquesta hora."</em></p>
+<h2>60.1 Què aprendràs</h2>
+<p>Al final d'aquest capítol tindràs:</p>
+<ul>
+<li>Autenticació per <strong>clau SSH</strong> (sense contrasenya).</li>
+<li><strong>Contrasenya desactivada</strong> per SSH (només clau).</li>
+<li><strong>Tailscale</strong> instal·lat i configurat.</li>
+<li>Accés a la RPi des de qualsevol lloc del món via Tailscale.</li>
+<li><strong>2FA</strong> per a SSH (opcional, però recomanat).</li>
+<li>Les primeres mesures de <strong>hardening</strong> aplicades.</li>
+</ul>
+<p>Aquest és el capítol on el teu servidor passa de "joguina" a "infraestructura". Tot el que hi ha aquí és <strong>defensa en profunditat</strong> (recorda el <strong>Cap 43</strong>, filosofia de seguretat).</p>
+<h2>60.2 Durada estimada</h2>
+<ul>
+<li>Amb experiència: 30-45 min.</li>
+<li>Primer cop: 1-1.5 hores (comptant la generació de claus).</li>
+</ul>
+<h2>60.3 Abans de començar</h2>
+<p>Assegura't que:</p>
+<ul>
+<li>Estàs connectat a la RPi per SSH.</li>
+<li>Tens accés a un altre terminal (el del teu ordinador, per generar les claus).</li>
+<li>Tens <strong>dos dispositius preparats</strong>: la RPi i el teu ordinador.</li>
+</ul>
+<p>Si tens problemes durant el capítol, recorda que <strong>no has de tancar la sessió SSH actual</strong> fins que tot funcioni. Si la configures malament, et pots quedar fora.</p>
+<h2>60.4 Pas 1: generar una clau SSH forta</h2>
+<p>Al <strong>teu ordinador</strong> (no a la RPi), obre un terminal i genera una clau SSH:</p>
+<pre class="code"><code class="language-bash">ssh-keygen -t ed25519 -C &quot;bernat@bernat-mbp&quot; -f ~/.ssh/bernatlab</code></pre>
+<p>Explicació:</p>
+<ul>
+<li>`-t ed25519`: tipus de clau. Ed25519 és moderna, curta i segura.</li>
+<li>`-C "..."`: comentari per identificar-la (el teu correu o usuari).</li>
+<li>`-f ~/.ssh/bernatlab`: on guardar-la. <strong>No usis el nom per defecte</strong> (`id_ed25519`), perquè si més endavant tens altres claus per a altres servidors, no es barregen.</li>
+</ul>
+<p>Et demanarà una <strong>passphrase</strong>. <strong>Sempre posa'n una</strong>. Això xifra la clau privada al teu disc: si algú te la roba, no pot fer-la servir.</p>
+<p>Recorda la passphrase al teu gestor de contrasenyes.</p>
+<p>Això genera dos fitxers:</p>
+<ul>
+<li>`~/.ssh/bernatlab` (clau privada — <strong>no la comparteixis mai</strong>).</li>
+<li>`~/.ssh/bernatlab.pub` (clau pública — la pots penjar a la RPi).</li>
+</ul>
+<h2>60.5 Pas 2: afegir la clau pública a la Raspberry</h2>
+<p>Des del teu <strong>ordinador</strong>, copia la clau pública a la RPi:</p>
+<pre class="code"><code class="language-bash">ssh-copy-id -i ~/.ssh/bernatlab.pub bernat@hortosona</code></pre>
+<p>Et demanarà la contrasenya (l'última vegada que l'hauràs de posar). Quan acabi, la clau pública estarà a `~/.ssh/authorized_keys` de la RPi.</p>
+<p>Alternativa manual (si `ssh-copy-id` no funciona):</p>
+<pre class="code"><code class="language-bash">cat ~/.ssh/bernatlab.pub | ssh bernat@hortosona &quot;mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 600 ~/.ssh/authorized_keys&quot;</code></pre>
+<h2>60.6 Pas 3: provar la connexió amb clau</h2>
+<p>Ara intenta entrar amb la clau:</p>
+<pre class="code"><code class="language-bash">ssh -i ~/.ssh/bernatlab bernat@hortosona</code></pre>
+<p>Si et demana la passphrase de la clau (no la contrasenya!), és que tot funciona. Si entra directament sense demanar res, tens `ssh-agent` actiu i la clau ja està desxifrada.</p>
+<p>Per evitar haver d'escriure la passphrase cada vegada, afegeix la clau a l'agent:</p>
+<p><strong>Mac</strong>:</p>
+<pre class="code"><code class="language-bash">ssh-add --apple-use-keychain ~/.ssh/bernatlab</code></pre>
+<p><strong>Linux</strong>:</p>
+<pre class="code"><code class="language-bash">ssh-add ~/.ssh/bernatlab</code></pre>
+<p>Ara ja no hauries de necessitar posar la passphrase cada vegada.</p>
+<h2>60.7 Pas 4: simplificar la configuració SSH al teu ordinador</h2>
+<p>Al teu <strong>ordinador</strong>, crea o edita `~/.ssh/config`:</p>
+<p><strong>Mac/Linux</strong>:</p>
+<pre class="code"><code class="language-bash">nano ~/.ssh/config</code></pre>
+<p><strong>Windows</strong> (PowerShell): `notepad $HOME\.ssh\config`</p>
+<p>Afegeix:</p>
+<pre class="code"><code class="language-">Host hortosona
+    HostName 192.168.1.100
+    User bernat
+    IdentityFile ~/.ssh/bernatlab
+    IdentitiesOnly yes</code></pre>
+<p>Així, només amb `ssh hortosona`, el teu ordinador sap que ha de connectar a la IP correcta amb la clau correcta.</p>
+<p>Si tens Tailscale configurat (pas següent), pots canviar el `HostName` per la IP del tailnet:</p>
+<pre class="code"><code class="language-">Host hortosona
+    HostName 100.115.134.76
+    User bernat
+    IdentityFile ~/.ssh/bernatlab
+    IdentitiesOnly yes</code></pre>
+<h2>60.8 Pas 5: instal·lar Tailscale</h2>
+<p>Tailscale et permet accedir a la teva RPi des de qualsevol lloc del món, sense obrir ports al router. És una VPN moderna basada en WireGuard.</p>
+<p>A la <strong>RPi</strong>:</p>
+<pre class="code"><code class="language-bash">curl -fsSL https://tailscale.com/install.sh | sh</code></pre>
+<p>Després:</p>
+<pre class="code"><code class="language-bash">sudo tailscale up</code></pre>
+<p>Això et donarà una URL. Obre-la al navegador, autentica't amb el compte que has creat al <strong>Cap 58</strong>, i la RPi quedarà afegida al teu tailnet.</p>
+<p>Verifica:</p>
+<pre class="code"><code class="language-bash">tailscale status</code></pre>
+<p>Hauries de veure la RPi amb una IP del tipus `100.x.x.x`. Aquesta és la IP Tailscale.</p>
+<h2>60.9 Pas 6: provar l'accés per Tailscale</h2>
+<p>Ara, <strong>des del teu ordinador</strong> (o des del mòbil!), intenta accedir per la IP Tailscale:</p>
+<pre class="code"><code class="language-bash">ssh bernat@100.115.134.76</code></pre>
+<p>(Canvia la IP per la que t'hagi tocat.)</p>
+<p>Si funciona, ja tens accés a la RPi des de qualsevol lloc amb Tailscale instal·lat. Sense obrir cap port al router, sense IP pública, sense res.</p>
+<p>Si tens un amic amb qui vulguis compartir accés (per exemple, per ajudar-te amb el servidor), pots afegir-lo al teu tailnet des de la consola de Tailscale: https://login.tailscale.com/admin.</p>
+<h2>60.10 Pas 7: desactivar l'accés per contrasenya</h2>
+<p>Un cop la clau SSH funciona, <strong>desactiva l'autenticació per contrasenya</strong>. Això evita atacs de força bruta.</p>
+<p>A la <strong>RPi</strong>:</p>
+<pre class="code"><code class="language-bash">sudo nano /etc/ssh/sshd_config</code></pre>
+<p>Cerca o afegeix aquestes línies (assegurant-te que no estan comentades amb `#`):</p>
+<pre class="code"><code class="language-">PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitEmptyPasswords no</code></pre>
+<p>Per trobar-les ràpid, pots fer:</p>
+<pre class="code"><code class="language-bash">sudo grep -E &quot;^#?(PermitRootLogin|PasswordAuthentication|PubkeyAuthentication|PermitEmptyPasswords)&quot; /etc/ssh/sshd_config</code></pre>
+<p>Si una línia està comentada (`#PasswordAuthentication yes`), lleva-li el `#` i canvia el valor a `no`.</p>
+<p>Desa i reinicia SSH:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart sshd</code></pre>
+<p><strong>Important</strong>: no tanquis la sessió SSH actual! Prova primer des d'un altre terminal:</p>
+<pre class="code"><code class="language-bash">ssh bernat@hortosona</code></pre>
+<p>Si funciona, llavors pots tancar la sessió original.</p>
+<h2>60.11 Pas 8: instal·lar 2FA a SSH (opcional però recomanat)</h2>
+<p>Afegeix una capa extra amb 2FA. Així, encara que robin la teva clau SSH, no podran entrar.</p>
+<p>A la <strong>RPi</strong>:</p>
+<pre class="code"><code class="language-bash">sudo apt install libpam-google-authenticator</code></pre>
+<p>Configura per al teu usuari:</p>
+<pre class="code"><code class="language-bash">google-authenticator</code></pre>
+<p>Et mostrarà un codi QR. Escaneja'l amb Google Authenticator, Authy o 1Password al teu mòbil.</p>
+<p>Guarda els <strong>codis de recuperació</strong> en un lloc segur (Bitwarden, paper en una caixa forta). Si perds el mòbil, aquests codis et deixaran entrar.</p>
+<p>Edita la configuració de PAM:</p>
+<pre class="code"><code class="language-bash">sudo nano /etc/pam.d/sshd</code></pre>
+<p>Afegeix al final:</p>
+<pre class="code"><code class="language-">auth required pam_google_authenticator.so</code></pre>
+<p>Edita la configuració de SSH:</p>
+<pre class="code"><code class="language-bash">sudo nano /etc/ssh/sshd_config</code></pre>
+<p>Canvia o afegeix:</p>
+<pre class="code"><code class="language-">ChallengeResponseAuthentication yes
+AuthenticationMethods publickey,keyboard-interactive</code></pre>
+<p>Reinicia SSH:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart sshd</code></pre>
+<p>Prova des d'un altre terminal:</p>
+<pre class="code"><code class="language-bash">ssh bernat@hortosona</code></pre>
+<p>Ara hauries de veure:</p>
+<p>1. Contrasenya de la clau (si tens passphrase).
+2. Codi de Google Authenticator.</p>
+<p>Si tot funciona, ja tens SSH amb clau + 2FA. <strong>Molt segur</strong>.</p>
+<h2>60.12 Pas 9: configurar actualitzacions automàtiques</h2>
+<p>Hem parlat d'això al <strong>Cap 48</strong> (hardening). Apliquem-ho ara:</p>
+<pre class="code"><code class="language-bash">sudo apt install unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades</code></pre>
+<p>Tria "Yes" a la pregunta.</p>
+<p>Edita la configuració:</p>
+<pre class="code"><code class="language-bash">sudo nano /etc/apt/apt.conf.d/50unattended-upgrades</code></pre>
+<p>Assegura't que tens aquestes línies (algunes poden estar comentades):</p>
+<pre class="code"><code class="language-">Unattended-Upgrade::Allowed-Origins {
+    &quot;Debian bookworm-security&quot;;
+    &quot;Debian bookworm-updates&quot;;
+};
+Unattended-Upgrade::AutoFixInterruptedDpkg &quot;true&quot;;
+Unattended-Upgrade::Remove-Unused-Kernel-Packages &quot;true&quot;;
+Unattended-Upgrade::Remove-Unused-Dependencies &quot;true&quot;;
+Unattended-Upgrade::Automatic-Reboot &quot;false&quot;;</code></pre>
+<p>(Ajusta `bookworm` per la teva versió; a Debian 13 és `trixie`.)</p>
+<p>Prova:</p>
+<pre class="code"><code class="language-bash">sudo unattended-upgrades --dry-run</code></pre>
+<p>Hauries de veure què passaria si s'executés ara.</p>
+<h2>60.13 Pas 10: configurar el tallafocs (UFW)</h2>
+<p>Hem parlat d'UFW al <strong>Cap 47</strong> (fail2ban i tallafocs). Apliquem una política restrictiva:</p>
+<pre class="code"><code class="language-bash">sudo apt install ufw</code></pre>
+<p>Política per defecte: denega tot, permet el necessari:</p>
+<pre class="code"><code class="language-bash">sudo ufw default deny incoming
+sudo ufw default allow outgoing</code></pre>
+<p>Permet SSH:</p>
+<pre class="code"><code class="language-bash"># Si tens 2FA, permet només per Tailscale
+sudo ufw allow in on tailscale0 to any port 22
+<h1>Si vols SSH per la xarxa local també</h1>
+sudo ufw allow from 192.168.1.0/24 to any port 22</code></pre>
+<p>Activa:</p>
+<pre class="code"><code class="language-bash">sudo ufw enable
+sudo ufw status verbose</code></pre>
+<p><strong>Important</strong>: comprova que pots seguir connectant per SSH abans de fer res més! Si UFW et talla l'accés, hauràs d'anar amb un monitor a la RPi.</p>
+<h2>60.14 Pas 11: instal·lar fail2ban</h2>
+<p>Recordeu el <strong>Cap 47</strong>: fail2ban bloqueja IPs que fan massa intents fallits. Activem-lo:</p>
+<pre class="code"><code class="language-bash">sudo apt install fail2ban</code></pre>
+<p>Crea la configuració local:</p>
+<pre class="code"><code class="language-bash">sudo nano /etc/fail2ban/jail.local</code></pre>
+<p>Afegeix:</p>
+<pre class="code"><code class="language-ini">[DEFAULT]
+bantime = 1h
+findtime = 10m
+maxretry = 3
+ignoreip = 127.0.0.1/8 100.64.0.0/10
+<p>[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 24h</code></pre></p>
+<p>El rang `100.64.0.0/10` és la xarxa Tailscale — molt important per no auto-bloquejar-te.</p>
+<p>Reinicia:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart fail2ban</code></pre>
+<p>Verifica:</p>
+<pre class="code"><code class="language-bash">sudo fail2ban-client status sshd</code></pre>
+<h2>60.15 Pas 12: permisos estrictes als fitxers crítics</h2>
+<p>Aplica els permisos del <strong>Cap 48</strong> (hardening):</p>
+<pre class="code"><code class="language-bash">sudo chmod 600 /etc/shadow
+sudo chmod 600 /etc/gshadow
+sudo chmod 644 /etc/passwd
+sudo chmod 644 /etc/group
+sudo chmod 600 /etc/ssh/sshd_config</code></pre>
+<h2>60.16 Pas 13: crear la primera còpia amb restic</h2>
+<p>Recordeu el <strong>Cap 45</strong> (còpies de seguretat). Ara que el sistema base està net, fem la primera còpia:</p>
+<pre class="code"><code class="language-bash">sudo apt install restic</code></pre>
+<p>Crea una carpeta per a les còpies (pot ser a una SSD USB, a la microSD, o al núvol — decideix tu):</p>
+<pre class="code"><code class="language-bash">mkdir -p /home/bernat/backups</code></pre>
+<p>Inicialitza el repositori:</p>
+<pre class="code"><code class="language-bash">restic init --repo /home/bernat/backups</code></pre>
+<p>Et demanarà una <strong>contrasenya</strong> per al repo. <strong>Guarda-la al gestor de contrasenyes</strong>. Si la perds, les dades són irrecuperables.</p>
+<p>Fes la primera còpia:</p>
+<pre class="code"><code class="language-bash">restic --repo /home/bernat/backups backup \
+    /home/bernat \
+    /etc \
+    /var/lib/docker 2&gt;/dev/null || true</code></pre>
+<p>(El `2>/dev/null || true` evita errors si la carpeta Docker encara no existeix.)</p>
+<p>Comprova:</p>
+<pre class="code"><code class="language-bash">restic --repo /home/bernat/backups snapshots</code></pre>
+<p>Hauries de veure una còpia recent.</p>
+<h2>60.17 Pas 14: configurar el hostname i el missatge d'avís</h2>
+<p>Edita `/etc/issue.net` per mostrar un avís quan algú intenti accedir per SSH:</p>
+<pre class="code"><code class="language-bash">sudo nano /etc/issue.net</code></pre>
+<pre class="code"><code class="language-">======================================================================
+ALERTA: Aquest sistema és d&#x27;ús privat.
+Tots els accessos queden registrats.
+L&#x27;accés no autoritzat està prohibit i pot ser perseguit legalment.
+======================================================================</code></pre>
+<p>Activa'l a SSH:</p>
+<pre class="code"><code class="language-bash">sudo nano /etc/ssh/sshd_config</code></pre>
+<p>Assegura't que tens:</p>
+<pre class="code"><code class="language-">Banner /etc/issue.net</code></pre>
+<p>Reinicia SSH:</p>
+<pre class="code"><code class="language-bash">sudo systemctl restart sshd</code></pre>
+<h2>60.18 Pas 15: fer una còpia de la microSD amb el sistema base segur</h2>
+<p>Ara que el sistema està endureït, <strong>torna a fer una còpia de la microSD</strong>. Aquesta és la còpia "bona", la pots restaurar si tot es trenca.</p>
+<p>Apaga:</p>
+<pre class="code"><code class="language-bash">sudo shutdown -h now</code></pre>
+<p>Fes la còpia igual que al <strong>Cap 59</strong> (pas 14). Guarda-la amb un nom clar, com `bernatlab-base-segur-2026-07-09.img`.</p>
+<h2>60.19 Què has après</h2>
+<p>Al final d'aquest capítol tens:</p>
+<ul>
+<li><strong>SSH amb clau</strong> (sense contrasenya).</li>
+<li><strong>2FA opcional</strong> a SSH.</li>
+<li><strong>Tailscale</strong> funcionant (accés remot segur).</li>
+<li><strong>Tallafocs UFW</strong> actiu.</li>
+<li><strong>fail2ban</strong> actiu.</li>
+<li><strong>Actualitzacions automàtiques</strong> configurades.</li>
+<li><strong>Còpia de seguretat</strong> inicial feta.</li>
+<li><strong>Permisos estrictes</strong> als fitxers crítics.</li>
+<li><strong>Còpia de la microSD</strong> amb el sistema endureït.</li>
+</ul>
+<p>Això és la base sobre la qual construirem la resta del BernatLab. Qualsevol cosa que instal·lem a partir d'ara partirà d'aquesta base sòlida.</p>
+<h2>60.20 Errors habituals</h2>
+<p><strong>Error 1: pèrdua d'accés SSH</strong>.</p>
+<p>Si canvies alguna cosa malament, pots perdre l'accés. <strong>Mai tanquis la sessió actual</strong> fins que no hagis provat des d'un altre terminal.</p>
+<p><strong>Error 2: UFW et talla l'accés</strong>.</p>
+<p>Si t'has equivocat amb la regla, UFW et pot tallar SSH. Solució: connectar un monitor + teclat a la RPi i fer `sudo ufw disable`.</p>
+<p><strong>Error 3: 2FA et bloqueja</strong>.</p>
+<p>Si canvies de mòbil o perds els codis, no podràs entrar. <strong>Guarda sempre els codis de recuperació</strong> en un lloc segur.</p>
+<p><strong>Error 4: clau SSH sense passphrase</strong>.</p>
+<p>Si la clau no té passphrase, qualsevol que accedeixi al teu ordinador pot entrar al servidor. Sempre passphrase.</p>
+<p><strong>Error 5: oblidar la contrasenya de restic</strong>.</p>
+<p>Si oblides la contrasenya, les còpies són irrecuperables. Guarda-la al gestor.</p>
+<h2>60.21 Resum</h2>
+<p>Aquest capítol converteix la teva RPi en un servidor <strong>professional</strong>. Hem vist:</p>
+<ul>
+<li>Generació i còpia de claus SSH.</li>
+<li>Tailscale per a accés remot segur.</li>
+<li>Desactivació de l'autenticació per contrasenya.</li>
+<li>2FA per SSH (opcional però recomanat).</li>
+<li>Tallafocs UFW.</li>
+<li>fail2ban.</li>
+<li>Actualitzacions automàtiques.</li>
+<li>Còpia de seguretat amb restic.</li>
+<li>Còpia de la microSD amb el sistema endureït.</li>
+</ul>
+<p>Al <strong>Cap 61</strong> instal·larem <strong>Docker</strong> i <strong>Portainer</strong>, la base de tots els serveis del BernatLab.</p>
+<h2>60.22 Exercicis pràctics</h2>
+<p>1. Genera una clau SSH ed25519 amb passphrase.
+2. Afegeix-la a la RPi.
+3. Configura `~/.ssh/config` per simplificar la connexió.
+4. Instal·la Tailscale.
+5. Desactiva l'autenticació per contrasenya.
+6. Activa 2FA a SSH.
+7. Configura actualitzacions automàtiques.
+8. Activa UFW amb polítiques restrictives.
+9. Instal·la fail2ban.
+10. Aplica permisos estrictes.
+11. Fes la primera còpia amb restic.
+12. Fes una còpia de la microSD.
+13. Documenta-ho tot al `homelab/setup-log.md`.</p>
+<hr>
+<h2 id="61-docker-portainer">Capitol 61 — Docker i Portainer: la base dels serveis</h2>
+<p>> <em>"Si has d'instal·lar una sola aplicació al teu servidor, fes-ho amb Docker. Si n'has d'instal·lar vint, fes-ho també amb Docker. La diferència és que amb la següent opció, vint aplicacions esdevenen un infern de dependències. Amb Docker, segueixen sent vint aplicacions, però cadascuna en una capsa."</em></p>
+<h2>61.1 Què aprendràs</h2>
+<ul>
+<li>Què és Docker i per què serveix.</li>
+<li>Com instal·lar Docker i Docker Compose.</li>
+<li>Com instal·lar Portainer.</li>
+<li>Com crear el teu primer contenidor.</li>
+<li>Com organitzar els teus serveis amb `docker-compose`.</li>
+</ul>
+<h2>61.2 Durada estimada</h2>
+<p>30-45 minuts.</p>
+<h2>61.3 Per què Docker</h2>
+<p>A la Raspberry, si instal·léssim cada aplicació directament (`apt install grafana`, `apt install mosquitto`...), tindríem un món de:</p>
+<ul>
+<li>Versions barrejades.</li>
+<li>Conflictes de dependències.</li>
+<li>Dificultat per actualitzar.</li>
+<li>Dificultat per reproduir la instal·lació en una altra màquina.</li>
+</ul>
+<p>Docker ho soluciona tot. Cada aplicació va en un <strong>contenidor</strong> que conté:</p>
+<ul>
+<li>El codi.</li>
+<li>Les llibreries.</li>
+<li>La configuració.</li>
+<li>Tot el que necessita per funcionar.</li>
+</ul>
+<p>I aquests contenidors <strong>no es barregen entre ells</strong>. Pots tenir 20 contenidors corrent simultàniament, cadascun amb les seves pròpies dependències, sense conflictes.</p>
+<p>Si alguna cosa falla, esborres el contenidor i el tornes a crear. Com si fos nova.</p>
+<h2>61.4 Instal·lar Docker</h2>
+<p>Docker ja ve preparat per a Debian. A la RPi:</p>
+<pre class="code"><code class="language-bash"># Script oficial d&#x27;instal·lació
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+rm get-docker.sh</code></pre>
+<p>Afegeix el teu usuari al grup `docker` per no haver de fer servir `sudo` cada vegada:</p>
+<pre class="code"><code class="language-bash">sudo usermod -aG docker bernat</code></pre>
+<p>Tanca la sessió SSH i torna a entrar perquè el canvi tingui efecte:</p>
+<pre class="code"><code class="language-bash">exit
+ssh bernat@hortosona</code></pre>
+<p>Verifica:</p>
+<pre class="code"><code class="language-bash">docker --version
+docker compose version
+docker run hello-world</code></pre>
+<p>L'últim comanda descarrega una imatge de prova i l'executa. Si funciona, tens Docker correctament instal·lat.</p>
+<h2>61.5 Instal·lar Portainer</h2>
+<p><strong>Portainer</strong> és una interfície web per gestionar Docker. Per a un homelab és perfecta: pots veure contenidors, imatges, volums, xarxes, logs — tot des del navegador.</p>
+<p>Crea una carpeta per a Portainer:</p>
+<pre class="code"><code class="language-bash">mkdir -p ~/homelab/portainer</code></pre>
+<p>Crea el contenidor:</p>
+<pre class="code"><code class="language-bash">docker run -d -p 9443:9443 --name portainer \
+    --restart=always \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v ~/homelab/portainer/data:/data \
+    portainer/portainer-ce:latest</code></pre>
+<p>Explicació:</p>
+<ul>
+<li>`-d`: en segon pla (detached).</li>
+<li>`-p 9443:9443`: exposa el port 9443 (HTTPS) al host.</li>
+<li>`--name portainer`: li posa nom.</li>
+<li>`--restart=always`: si la RPi es reinicia, Portainer torna a engegar.</li>
+<li>`-v /var/run/docker.sock:/var/run/docker.sock`: li dóna accés a Docker.</li>
+<li>`-v ~/homelab/portainer/data:/data`: persistència de dades.</li>
+</ul>
+<p>Obre el navegador a `https://hortosona:9443` (o `https://IP-LOCAL:9443`). La primera vegada et demanarà crear un compte d'administrador. <strong>Fes-ho immediatament</strong> — Portainer sense admin és un forat de seguretat.</p>
+<p>A la primera configuració, tria "Get Started" (entorn local). Ja tens Portainer.</p>
+<h2>61.6 Explorar Portainer</h2>
+<p>Al panell principal veuràs:</p>
+<ul>
+<li><strong>Stacks</strong>: grups de contenidors (els teus "serveis").</li>
+<li><strong>Containers</strong>: contenidors individuals.</li>
+<li><strong>Images</strong>: imatges Docker descarregades.</li>
+<li><strong>Volumes</strong>: emmagatzematge persistent.</li>
+<li><strong>Networks</strong>: xarxes virtuals entre contenidors.</li>
+<li><strong>Events</strong>: registre d'activitat.</li>
+</ul>
+<p>Per ara, explora. Encara no tens gaire cosa per mirar.</p>
+<h2>61.7 Crear el teu primer contenidor a mà</h2>
+<p>A la terminal, creem un contenidor de prova: <strong>Nginx</strong>, el servidor web més usat del món.</p>
+<pre class="code"><code class="language-bash">docker run -d -p 8080:80 --name nginx-test nginx</code></pre>
+<p>Ara:</p>
+<ul>
+<li>Portainer mostra el contenidor `nginx-test` en marxa.</li>
+<li>Si obres `http://hortosona:8080` al navegador, veuràs la pàgina de benvinguda de Nginx.</li>
+</ul>
+<p>Per veure els logs del contenidor:</p>
+<pre class="code"><code class="language-bash">docker logs nginx-test</code></pre>
+<p>Per aturar-lo:</p>
+<pre class="code"><code class="language-bash">docker stop nginx-test</code></pre>
+<p>Per tornar-lo a engegar:</p>
+<pre class="code"><code class="language-bash">docker start nginx-test</code></pre>
+<p>Per esborrar-lo:</p>
+<pre class="code"><code class="language-bash">docker rm -f nginx-test</code></pre>
+<h2>61.8 Què és Docker Compose</h2>
+<p>Quan tens més d'un contenidor, gestionar-los amb `docker run` un per un és tediós. <strong>Docker Compose</strong> permet definir tots els teus serveis en un fitxer YAML.</p>
+<p>Exemple: un fitxer `docker-compose.yml` per a Portainer:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;9443:9443&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>/var/run/docker.sock:/var/run/docker.sock</li>
+<li>./portainer/data:/data</code></pre></li>
+</ul></p>
+<p>Aquest fitxer fa exactament el mateix que la comanda `docker run` d'abans, però en format declaratiu.</p>
+<p>Per engegar:</p>
+<pre class="code"><code class="language-bash">docker compose up -d</code></pre>
+<p>Per aturar:</p>
+<pre class="code"><code class="language-bash">docker compose down</code></pre>
+<p>Per veure els logs:</p>
+<pre class="code"><code class="language-bash">docker compose logs -f</code></pre>
+<h2>61.9 Estructura recomanada per a serveis</h2>
+<p>A la teva RPi, crea aquesta estructura:</p>
+<pre class="code"><code class="language-">~/homelab/
+├── README.md              # Notes generals
+├── compose/               # Tots els docker-compose
+│   ├── portainer.yml
+│   ├── uptime-kuma.yml
+│   ├── mqtt.yml
+│   ├── influxdb.yml
+│   ├── grafana.yml
+│   └── ...
+├── data/                  # Volums persistents
+│   ├── portainer/
+│   ├── uptime-kuma/
+│   ├── mqtt/
+│   └── ...
+├── secrets/               # Fitxers .env amb secrets
+│   ├── mqtt.env
+│   ├── influxdb.env
+│   └── ...
+└── scripts/               # Scripts de manteniment
+    ├── backup.sh
+    ├── update.sh
+    └── healthcheck.sh</code></pre>
+<p>Aquesta estructura t'acompanyarà durant anys.</p>
+<h2>61.10 Convertir Portainer a Compose</h2>
+<p>Mou el Portainer que hem creat a mà a un fitxer Compose:</p>
+<p>Crea `~/homelab/compose/portainer.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;9443:9443&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>/var/run/docker.sock:/var/run/docker.sock</li>
+<li>./data/portainer:/data</code></pre></li>
+</ul></p>
+<p>Aquest fitxer farà servir `./data/portainer/` dins de la carpeta `compose/`, que és la mateixa ruta que ja estem usant.</p>
+<p>Atura i esborra el contenidor antic:</p>
+<pre class="code"><code class="language-bash">docker stop portainer
+docker rm portainer</code></pre>
+<p>Engega'l amb Compose:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f portainer.yml up -d</code></pre>
+<p>Verifica que funciona obrint `https://hortosona:9443`. Si tot va bé, ja tens Portainer sota Compose.</p>
+<h2>61.11 Comandes útils de Docker</h2>
+<pre class="code"><code class="language-bash"># Veure contenidors en marxa
+docker ps
+<h1>Veure tots els contenidors (inclosos aturats)</h1>
+docker ps -a
+<h1>Veure imatges descarregades</h1>
+docker images
+<h1>Veure espai ocupat per Docker</h1>
+docker system df
+<h1>Netejar recursos no utilitzats</h1>
+docker system prune -a
+<h1>Compte: això esborra imatges, contenidors aturats, xarxes no usades.</h1>
+<h1>NO esborra volums (per seguretat).</h1>
+<h1>Veure logs d&#x27;un contenidor</h1>
+docker logs -f portainer
+<h1>-f = follow (en temps real)</h1>
+<h1>Entrar dins d&#x27;un contenidor</h1>
+docker exec -it portainer /bin/sh
+<h1>Per Nginx Alpine, /bin/sh</h1>
+<h1>Per Debian/Ubuntu, /bin/bash</h1>
+<h1>Estadístiques en temps real</h1>
+docker stats</code></pre>
+<h2>61.12 Bones pràctiques</h2>
+<p>1. <strong>No posis secrets al docker-compose.yml</strong>. Usa un fitxer `.env` a part.
+2. <strong>Posa `restart: unless-stopped`</strong> a tots els serveis. Si la RPi es reinicia, tot torna a engegar.
+3. <strong>Fes servir volums</strong> per a totes les dades persistents. Mai guardis dades dins del contenidor.
+4. <strong>Etiqueta les imatges</strong>: usa tags específics (`nginx:1.25.3`) en lloc de `:latest`.
+5. <strong>Limita els recursos</strong> dels contenidors que poden consumir molt.
+6. <strong>Monitora</strong> els contenidors (capítol 67).</p>
+<h2>61.13 Què ve després</h2>
+<p>Ara tens Docker i Portainer funcionant. Al <strong>Cap 62</strong> afegirem el primer servei de monitoratge: <strong>Uptime Kuma</strong>.</p>
+<h2>61.14 Resum</h2>
+<p>Docker + Portainer és la base de tot el que vindrà. Hem vist:</p>
+<ul>
+<li>Què és Docker i per què serveix.</li>
+<li>Com instal·lar Docker i Docker Compose.</li>
+<li>Com instal·lar Portainer i gestionar-lo via web.</li>
+<li>Comandes bàsiques de Docker.</li>
+<li>L'estructura recomanada per als teus serveis.</li>
+<li>Bones pràctiques.</li>
+</ul>
+<h2>61.15 Exercicis pràctics</h2>
+<p>1. Instal·la Docker.
+2. Afegeix el teu usuari al grup docker.
+3. Instal·la Portainer.
+4. Crea el teu primer contenidor (Nginx de prova).
+5. Esborra'l i crea'l de nou amb Compose.
+6. Mou Portainer a Compose.
+7. Explora Portainer des del navegador.
+8. Crea l'estructura `~/homelab/{compose,data,secrets,scripts}/`.
+9. Documenta-ho al `homelab/setup-log.md`.</p>
+<hr>
+<h2 id="62-uptime-kuma">Capitol 62 — Uptime Kuma: el primer monitor</h2>
+<p>> <em>"Si no saps si el teu servidor està viu o mort, no el pots arreglar. El monitoratge és la base de tot."</em></p>
+<h2>62.1 Què aprendràs</h2>
+<ul>
+<li>Què és Uptime Kuma.</li>
+<li>Com instal·lar-lo amb Docker Compose.</li>
+<li>Com configurar els teus primers monitors.</li>
+<li>Com rebre alertes per Telegram i correu.</li>
+<li>Com monitorar la pròpia Raspberry.</li>
+</ul>
+<h2>62.2 Durada estimada</h2>
+<p>20-30 minuts.</p>
+<h2>62.3 Què és Uptime Kuma</h2>
+<p><strong>Uptime Kuma</strong> és una eina de monitoratge self-hosted (l'allotges tu). Et permet:</p>
+<ul>
+<li>Fer ping a serveis (HTTP, TCP, ping ICMP, DNS, etc.).</li>
+<li>Veure l'estat en temps real.</li>
+<li>Rebre alertes quan alguna cosa falla.</li>
+<li>Veure gràfiques de latència i temps de resposta.</li>
+<li>Crear pàgines d'estat públiques.</li>
+</ul>
+<p>Alternatives:</p>
+<ul>
+<li><strong>UptimeRobot</strong> (cloud, gratuït fins a 50 monitors).</li>
+<li><strong>Healthchecks.io</strong> (molt simple, basat en cron).</li>
+<li><strong>Prometheus + Alertmanager</strong> (molt potent, però més complex — el veurem al cap 67).</li>
+</ul>
+<p>Uptime Kuma és el <strong>just mig</strong>: potent però fàcil.</p>
+<h2>62.4 Instal·lació</h2>
+<p>Crea `~/homelab/compose/uptime-kuma.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;3001:3001&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>./data/uptime-kuma:/app/data</li>
+<li>/var/run/docker.sock:/var/run/docker.sock:ro</code></pre></li>
+</ul></p>
+<p>Explicació:</p>
+<ul>
+<li>`louislam/uptime-kuma:1` és la imatge oficial. La tag `:1` segueix la darrera 1.x.</li>
+<li>Port 3001 (HTTP).</li>
+<li>Volum `./data/uptime-kuma` per persistir la configuració.</li>
+<li>`docker.sock` perquè Uptime Kuma pugui monitorar contenidors Docker directament.</li>
+</ul>
+<p>Engega:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f uptime-kuma.yml up -d</code></pre>
+<p>Obre `http://hortosona:3001` al navegador. La primera vegada et demanarà crear un compte d'administrador.</p>
+<h2>62.5 Configuració inicial</h2>
+<p>Un cop dins:</p>
+<p>1. Crea el compte d'admin.
+2. Tria el tema (clar o fosc).
+3. Activa 2FA des de "Settings" → "General" → "2FA".</p>
+<h2>62.6 Crear el primer monitor</h2>
+<p>A la pantalla principal, fes clic a <strong>"Add New Monitor"</strong>.</p>
+<p>Monitorem el <strong>Portainer</strong>:</p>
+<ul>
+<li><strong>Monitor Type</strong>: HTTPS</li>
+<li><strong>Friendly Name</strong>: Portainer</li>
+<li><strong>URL</strong>: `https://localhost:9443`</li>
+<li><strong>Monitoring Interval</strong>: 60 seconds</li>
+<li><strong>Retry</strong>: 1</li>
+<li><strong>Request Timeout</strong>: 10 seconds</li>
+<li><strong>Accepted Status Codes</strong>: 200-299</li>
+</ul>
+<p>Fes clic a <strong>"Save"</strong>. Ara Portainer apareix a la llista amb un punt verd (UP).</p>
+<h2>62.7 Què monitorar</h2>
+<p>Afegeix aquests monitors bàsics:</p>
+<p>| Nom | Tipus | URL/Target |
+|---|---|---|
+| Portainer | HTTPS | https://localhost:9443 |
+| Uptime Kuma | HTTP | http://localhost:3001 |
+| Raspberry Pi (ping) | Ping | localhost |
+| Grafana (futur) | HTTP | http://localhost:3000 |
+| Mosquitto (futur) | TCP | localhost:1883 |
+| InfluxDB (futur) | HTTP | http://localhost:8086 |</p>
+<p>Per al ping, has de triar "Ping" com a tipus i posar `localhost` com a target.</p>
+<h2>62.8 Configurar alertes per Telegram</h2>
+<p>Això és el que realment val la pena: rebre alertes al mòbil quan alguna cosa falla.</p>
+<p>Primer, necessites un <strong>bot de Telegram</strong> (si no el tens):</p>
+<p>1. Obre Telegram, parla amb `@BotFather`.
+2. Envia `/newbot`.
+3. Segueix les instruccions. Et donarà un <strong>token</strong> (una cadena llarga tipus `1234567890:ABCdef...`).
+4. Crea un grup amb tu i el bot.
+5. Per obtenir el <strong>chat_id</strong>, obre `https://api.telegram.org/bot<TOKEN>/getUpdates` al navegador. Busca el `chat.id` del grup.</p>
+<p>A Uptime Kuma:</p>
+<p>1. Vés a <strong>Settings</strong> → <strong>Notifications</strong> → <strong>Telegram</strong>.
+2. Activa.
+3. Posa el <strong>bot token</strong> i el <strong>chat ID</strong>.
+4. Fes clic a <strong>"Test"</strong>. Si tot va bé, rebràs un missatge al grup de Telegram.</p>
+<p>Torna a <strong>"Add New Monitor"</strong> i configura les notificacions per aquest monitor (a la secció "Notifications" del formulari).</p>
+<h2>62.9 Configurar alertes per correu</h2>
+<p>Si vols rebre correus:</p>
+<p>1. Settings → Notifications → Email (SMTP).
+2. Configura el teu servidor SMTP. Si uses Gmail:
+<ul>
+<li>SMTP Host: `smtp.gmail.com`</li>
+<li>Port: 587</li>
+<li>Username: el teu correu.</li>
+<li>Password: una <strong>app password</strong> de Google (no la teva contrasenya normal).</li>
+<li>From i To: el teu correu.</li>
+</ul></p>
+<p>Per obtenir una app password de Gmail:</p>
+<p>1. Vés a https://myaccount.google.com/apppasswords.
+2. Crea una nova "App password" per a "Mail / Uptime Kuma".
+3. Google et donarà una contrasenya de 16 caràcters. Usa aquesta.</p>
+<h2>62.10 Monitorar la pròpia Raspberry</h2>
+<p>Volem saber si la RPi està viva. Per a això, monitora:</p>
+<ul>
+<li><strong>Ping</strong> a localhost (o a la seva IP).</li>
+<li><strong>CPU</strong> i <strong>RAM</strong> (no és directe a Uptime Kuma — cal un script).</li>
+<li><strong>Temperatura</strong> (cal un script).</li>
+</ul>
+<p>Per a CPU/RAM/temperatura, podem afegir un monitor HTTP que apunti a un petit servidor de mètriques. Però això ho farem al <strong>Cap 67</strong> (Prometheus). Per ara, el ping ja és bona cosa.</p>
+<p>També podem monitorar <strong>Uptime Kuma mateix</strong> (un watchdog). Per fer-ho:</p>
+<p>1. Crea un monitor de tipus HTTP a `http://localhost:3001`.
+2. Si Uptime Kuma es cau, ell mateix no t'avisarà — però el monitor sí.</p>
+<p>Això és estrany però útil: si Uptime Kuma es reinicia i funciona, rebràs una alerta de "Recovered".</p>
+<h2>62.11 Pàgina d'estat pública</h2>
+<p>Uptime Kuma permet crear una pàgina d'estat pública:</p>
+<p>1. Settings → Status Page.
+2. Crea una nova pàgina.
+3. Afegeix els monitors que vols que siguin visibles.
+4. Tria un nom (per exemple, "BernatLab Status").
+5. Opcional: posa una contrasenya perquè només tu la puguis veure.</p>
+<p>La pàgina estarà disponible a `http://hortosona:3001/status/bernatlab` o similar.</p>
+<p>Això és útil si vols compartir amb algú l'estat del sistema sense donar accés a la consola d'admin.</p>
+<h2>62.12 Què fer quan arriba una alerta</h2>
+<p>Quan Uptime Kuma t'avisa per Telegram que un servei està caigut:</p>
+<p>1. <strong>No entris en pànic</strong>. És normal que un servei caigui de tant en tant.
+2. <strong>Mira els logs</strong>: a Portainer, selecciona el contenidor i mira els logs.
+3. <strong>Comprova si és transitori</strong>: espera 5 minuts. Si torna sol, era un reinici de Docker o de la RPi.
+4. <strong>Si persisteix</strong>: consulta el runbook pertinent (cap 68).
+5. <strong>Si no hi ha runbook</strong>: consulta el cap 56 (diagnòstic).</p>
+<h2>62.13 Què ve després</h2>
+<p>Ja tens Docker, Portainer i Uptime Kuma. Al <strong>Cap 63</strong> muntarem la cadena de dades: <strong>Mosquitto (MQTT)</strong>, <strong>InfluxDB</strong> i <strong>Grafana</strong>. Això és el cor de l'hort.</p>
+<h2>62.14 Errors habituals</h2>
+<p><strong>Error 1: el contenidor no arrenca</strong>.</p>
+<p>Mira els logs:</p>
+<pre class="code"><code class="language-bash">docker logs uptime-kuma</code></pre>
+<p>Sovint és un conflicte de port o de volum.</p>
+<p><strong>Error 2: Telegram no envia</strong>.</p>
+<p>Comprova que el token i el chat ID són correctes. Assegura't que el bot és membre del grup. Fes servir el botó "Test".</p>
+<p><strong>Error 3: monitors falsos positius</strong>.</p>
+<p>Si la teva xarxa és inestable, rebràs alertes que no són reals. Augmenta l'interval de monitoratge o el "Retry" a 3 per evitar-ho.</p>
+<p><strong>Error 4: pàgina d'estat inaccesible</strong>.</p>
+<p>Assegura't que el port 3001 és accessible. Si tens UFW, permet-ho per a la xarxa local.</p>
+<h2>62.15 Resum</h2>
+<p>Uptime Kuma és la teva primera línia de defensa: si un servei cau, t'avisa. Hem vist:</p>
+<ul>
+<li>Instal·lació amb Compose.</li>
+<li>Configuració de monitors.</li>
+<li>Alertes per Telegram i correu.</li>
+<li>Pàgina d'estat pública.</li>
+</ul>
+<p>Al <strong>Cap 63</strong> muntarem la cadena de dades de l'hort.</p>
+<h2>62.16 Exercicis pràctics</h2>
+<p>1. Instal·la Uptime Kuma amb Compose.
+2. Crea el compte d'admin i activa 2FA.
+3. Crea 5 monitors (Portainer, Uptime Kuma, ping, i 2 més).
+4. Configura alertes per Telegram.
+5. Configura alertes per correu.
+6. Crea una pàgina d'estat pública.
+7. Documenta els monitors al `homelab/setup-log.md`.</p>
+<hr>
+<h2 id="63-mqtt-influxdb-grafana">Capitol 63 — La cadena de dades: MQTT, InfluxDB, Grafana</h2>
+<p>> <em>"Aquest capítol és el cor de l'hort. Tot el que vingui després (nodes LoRa, sensors, automatitzacions) acaba passant per aquí."</em></p>
+<h2>63.1 Què aprendràs</h2>
+<ul>
+<li>Què és MQTT i per què és el protocol estàndard per a IoT.</li>
+<li>Com instal·lar <strong>Mosquitto</strong> (broker MQTT).</li>
+<li>Com instal·lar <strong>InfluxDB</strong> (base de dades de sèries temporals).</li>
+<li>Com instal·lar <strong>Telegraf</strong> (ponte entre MQTT i InfluxDB).</li>
+<li>Com instal·lar <strong>Grafana</strong> (visualització).</li>
+<li>Com veure les primeres dades a Grafana.</li>
+</ul>
+<h2>63.2 Durada estimada</h2>
+<p>1-1.5 hores.</p>
+<h2>63.3 L'arquitectura de dades</h2>
+<p>Abans de tocar res, entenem què construirem:</p>
+<pre class="code"><code class="language-">Sensor (LoRa, ESP32, etc.)
+   │
+   │ publica a MQTT
+   ↓
+[ Mosquitto ]  ← broker MQTT (port 1883)
+   │
+   │ rep dades
+   ↓
+[ Telegraf ]   ← agent que escolta MQTT i escriu a InfluxDB
+   │
+   │ escriu a
+   ↓
+[ InfluxDB ]   ← base de dades de sèries temporals
+   │
+   │ llegeix
+   ↓
+[ Grafana ]    ← panell web amb gràfiques</code></pre>
+<p>Aquesta és la cadena estàndard per a IoT. Funciona.</p>
+<p>Alternatives:</p>
+<ul>
+<li><strong>InfluxDB 1.x</strong> amb el seu propi plugin MQTT (sense Telegraf). Més simple però menys flexible.</li>
+<li><strong>MQTT → Node-RED → InfluxDB → Grafana</strong>. Node-RED pot fer la part de Telegraf, però afegeix complexitat.</li>
+<li><strong>MQTT → base de dades SQL → Grafana</strong>. Més potència per a consultes, menys per a sèries temporals.</li>
+</ul>
+<p>La meva recomanació: <strong>Telegraf</strong> per la seva senzillesa i perquè és part de la stack InfluxData (els mateixos que fan InfluxDB).</p>
+<h2>63.4 Instal·lar Mosquitto</h2>
+<p>Crea `~/homelab/secrets/mqtt.env`:</p>
+<pre class="code"><code class="language-">MQTT_USER=bernat
+MQTT_PASSWORD=una-contrasenya-forta-de-32-caracters</code></pre>
+<p><strong>Mai</strong> posis la contrasenya directament al docker-compose.</p>
+<p>Crea `~/homelab/compose/mqtt.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;1883:1883&quot;</li>
+<li>&quot;9001:9001&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>./data/mosquitto/data:/mosquitto/data</li>
+<li>./data/mosquitto/log:/mosquitto/log</li>
+<li>./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf</li>
+<li>./mosquitto/passwd:/mosquitto/config/passwd</li>
+</ul>
+    env_file:
+<ul>
+<li>../secrets/mqtt.env</code></pre></li>
+</ul></p>
+<p>Crea `~/homelab/compose/mosquitto/mosquitto.conf`:</p>
+<pre class="code"><code class="language-"># Configuració bàsica de Mosquitto
+persistence true
+persistence_location /mosquitto/data/
+log_dest stdout
+<h1>Autenticació</h1>
+allow_anonymous false
+password_file /mosquitto/config/passwd
+<h1>Listener MQTT</h1>
+listener 1883
+protocol mqtt
+<h1>Listener WebSockets (opcional, per accedir des del navegador)</h1>
+listener 9001
+protocol websockets</code></pre>
+<p>Crea el fitxer de contrasenyes:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker run --rm -it \
+    -v $(pwd)/mosquitto/passwd:/mosquitto/config/passwd \
+    eclipse-mosquitto:2 \
+    mosquitto_passwd -c /mosquitto/config/passwd $MQTT_USER</code></pre>
+<p>(Substitueix `$MQTT_USER` pel valor del .env, o passa'l manualment.)</p>
+<p>Engega:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f mqtt.yml up -d</code></pre>
+<h2>63.5 Provar Mosquitto</h2>
+<p>Des del teu ordinador, publica un missatge:</p>
+<pre class="code"><code class="language-bash"># Publicar
+mosquitto_pub -h hortosona -p 1883 \
+    -u bernat -P &#x27;contrasenya&#x27; \
+    -t &#x27;test/hort&#x27; -m &#x27;Hola des del BernatLab!&#x27;
+<h1>Subscriure (en un altre terminal)</h1>
+mosquitto_sub -h hortosona -p 1883 \
+    -u bernat -P &#x27;contrasenya&#x27; \
+    -t &#x27;test/#&#x27; -v</code></pre>
+<p>Si veus el missatge al segon terminal, tot funciona.</p>
+<h2>63.6 Instal·lar InfluxDB</h2>
+<p>Crea `~/homelab/secrets/influxdb.env`:</p>
+<pre class="code"><code class="language-">DOCKER_INFLUXDB_INIT_MODE=setup
+DOCKER_INFLUXDB_INIT_USERNAME=admin
+DOCKER_INFLUXDB_INIT_PASSWORD=una-altra-contrasenya-forta
+DOCKER_INFLUXDB_INIT_ORG=bernatlab
+DOCKER_INFLUXDB_INIT_BUCKET=hort
+DOCKER_INFLUXDB_INIT_RETENTION=1y
+DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=un-token-llarg-aleatori-de-32-chars</code></pre>
+<p>Crea `~/homelab/compose/influxdb.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  influxdb:
+    image: influxdb:2
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;8086:8086&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>./data/influxdb:/var/lib/influxdb2</li>
+</ul>
+    env_file:
+<ul>
+<li>../secrets/influxdb.env</code></pre></li>
+</ul></p>
+<p>Engega:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f influxdb.yml up -d</code></pre>
+<p>Obre `http://hortosona:8086` al navegador. Hauries de veure la pantalla de benvinguda. Ja està configurat (les variables d'entorn ho fan).</p>
+<h2>63.7 Instal·lar Telegraf</h2>
+<p>Telegraf escolta MQTT i escriu a InfluxDB.</p>
+<p>Crea `~/homelab/compose/telegraf.conf`:</p>
+<pre class="code"><code class="language-toml">[agent]
+interval = &quot;30s&quot;
+flush_interval = &quot;10s&quot;
+<p>[[outputs.influxdb_v2]]
+urls = [&quot;http://influxdb:8086&quot;]
+token = &quot;${INFLUX_TOKEN}&quot;
+org = &quot;bernatlab&quot;
+bucket = &quot;hort&quot;</p>
+<p>[[inputs.mqtt_consumer]]
+servers = [&quot;tcp://mosquitto:1883&quot;]
+topics = [&quot;sensors/#&quot;, &quot;bernatlab/#&quot;]
+qos = 0
+username = &quot;${MQTT_USER}&quot;
+password = &quot;${MQTT_PASSWORD}&quot;
+data_format = &quot;json&quot;
+tag_keys = [&quot;node&quot;, &quot;sensor&quot;]
+json_string_fields = [&quot;value&quot;]</code></pre></p>
+<p>Crea `~/homelab/compose/telegraf.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  telegraf:
+    image: telegraf:1.30
+    container_name: telegraf
+    restart: unless-stopped
+    depends_on:
+<ul>
+<li>mosquitto</li>
+<li>influxdb</li>
+</ul>
+    volumes:
+<ul>
+<li>./telegraf.conf:/etc/telegraf/telegraf.conf:ro</li>
+</ul>
+    environment:
+<ul>
+<li>INFLUX_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}</li>
+<li>MQTT_USER=${MQTT_USER}</li>
+<li>MQTT_PASSWORD=${MQTT_PASSWORD}</li>
+</ul>
+    env_file:
+<ul>
+<li>../secrets/mqtt.env</li>
+<li>../secrets/influxdb.env</code></pre></li>
+</ul></p>
+<p>Engega:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f telegraf.yml up -d</code></pre>
+<p>Verifica els logs:</p>
+<pre class="code"><code class="language-bash">docker logs telegraf</code></pre>
+<p>Si tot va bé, veuràs línies tipus:</p>
+<pre class="code"><code class="language-">2026-07-09T12:00:00Z I! Loaded inputs: mqtt_consumer
+2026-07-09T12:00:00Z I! Loaded aggregators:
+2026-07-09T12:00:00Z I! Loaded processors:
+2026-07-09T12:00:00Z I! Loaded outputs: influxdb_v2</code></pre>
+<h2>63.8 Instal·lar Grafana</h2>
+<p>Crea `~/homelab/compose/grafana.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;3000:3000&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>./data/grafana:/var/lib/grafana</li>
+</ul>
+    environment:
+<ul>
+<li>GF_SECURITY_ADMIN_USER=admin</li>
+<li>GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}</li>
+<li>GF_USERS_ALLOW_SIGN_UP=false</li>
+</ul>
+    env_file:
+<ul>
+<li>../secrets/grafana.env</code></pre></li>
+</ul></p>
+<p>Crea `~/homelab/secrets/grafana.env`:</p>
+<pre class="code"><code class="language-">GRAFANA_PASSWORD=una-contrasenya-forta</code></pre>
+<p>Engega:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f grafana.yml up -d</code></pre>
+<p>Obre `http://hortosona:3000`. Login: `admin` / la teva contrasenya. Canvia la contrasenya al primer login.</p>
+<h2>63.9 Connectar Grafana a InfluxDB</h2>
+<p>A Grafana:</p>
+<p>1. <strong>Connections</strong> → <strong>Data sources</strong> → <strong>Add data source</strong>.
+2. Tria <strong>InfluxDB</strong>.
+3. Configura:
+<ul>
+<li>URL: `http://influxdb:8086`</li>
+<li>Organization: `bernatlab`</li>
+<li>Token: el que has posat al `.env` d'InfluxDB</li>
+<li>Default bucket: `hort`</li>
+</ul>
+4. <strong>Save & test</strong>. Si tot va bé, veuràs "Data source is working".</p>
+<h2>63.10 Provar la cadena sencera</h2>
+<p>Des de la terminal:</p>
+<pre class="code"><code class="language-bash">mosquitto_pub -h hortosona -p 1883 \
+    -u bernat -P &#x27;contrasenya&#x27; \
+    -t &#x27;sensors/hort1/temperatura&#x27; \
+    -m &#x27;{&quot;node&quot;:&quot;hort1&quot;,&quot;sensor&quot;:&quot;temperatura&quot;,&quot;value&quot;:23.5,&quot;unit&quot;:&quot;C&quot;}&#x27;</code></pre>
+<p>A Grafana:</p>
+<p>1. <strong>Explore</strong> (la icona de brúixola a l'esquerra).
+2. Tria el data source InfluxDB.
+3. Escriu una query com `SELECT mean("value") FROM "hort" WHERE ("sensor" = 'temperatura') GROUP BY time($__interval), node fill(null)`.
+4. Veuràs un punt a la gràfica.</p>
+<p>Si veus el punt, <strong>tens la cadena sencera funcionant</strong>: del teu terminal a una gràfica a Grafana, passant per MQTT, Telegraf i InfluxDB.</p>
+<h2>63.11 El primer panell</h2>
+<p>Crea un dashboard:</p>
+<p>1. <strong>+</strong> → <strong>Dashboard</strong> → <strong>Add visualization</strong>.
+2. Tria InfluxDB.
+3. Configura:
+<ul>
+<li><strong>From</strong>: `hort`</li>
+<li><strong>Measurement</strong>: `mqtt_consumer` (Telegraf usa aquest nom per defecte).</li>
+<li><strong>Field</strong>: `value`.</li>
+<li><strong>Filters</strong>: `sensor = temperatura`.</li>
+</ul>
+4. Tria el tipus de visualització (Time series).
+5. Desa el panell.
+6. Desa el dashboard.</p>
+<p>Ara cada cop que algú publiqui una temperatura a `sensors/hort1/temperatura`, apareixerà al panell.</p>
+<h2>63.12 Com organitzar les dades</h2>
+<p>A l'hora de publicar a MQTT, tria un esquema de temes clar. Jo uso:</p>
+<ul>
+<li>`sensors/<ubicacio>/<sensor>` per a dades de sensors.</li>
+<li>`bernatlab/<servei>/<accio>` per a esdeveniments del sistema.</li>
+<li>`alerts/<severitat>/<servei>` per a alertes.</li>
+</ul>
+<p>Exemple:</p>
+<ul>
+<li>`sensors/hort1/temperatura` → temperatura de l'hort 1.</li>
+<li>`sensors/hort1/humitat` → humitat de l'hort 1.</li>
+<li>`sensors/ciutat/temperatura` → temperatura al sensor de la ciutat.</li>
+<li>`bernatlab/mqtt/disconnect` → esdeveniment de desconnexió.</li>
+<li>`alerts/critical/grafana` → alerta crítica a Grafana.</li>
+</ul>
+<p>Això et permetrà filtrar fàcilment a Grafana i Node-RED.</p>
+<h2>63.13 Què ve després</h2>
+<p>Ja tens la cadena de dades. Al <strong>Cap 64</strong> afegirem <strong>Node-RED</strong>, que ens permetrà fer automatitzacions reals (si la temperatura baixa de 5°C, encén la calefacció de l'hivernacle).</p>
+<h2>63.14 Errors habituals</h2>
+<p><strong>Error 1: "Connection refused" a MQTT</strong>.</p>
+<p>Comprova que el port 1883 està exposat i que el contenidor està en marxa.</p>
+<p><strong>Error 2: Telegraf no escriu a InfluxDB</strong>.</p>
+<p>Mira els logs de Telegraf. Sovint és un token mal copiat o un nom de bucket incorrecte.</p>
+<p><strong>Error 3: Grafana no es connecta a InfluxDB</strong>.</p>
+<p>Comprova la URL, el token i el nom d'organització. El "Save & test" t'ho dirà.</p>
+<p><strong>Error 4: les dades arriben però Grafana no les mostra</strong>.</p>
+<p>El tema de la query és delicat. Comença amb `SELECT * FROM "mqtt_consumer" LIMIT 10` per veure què hi ha, i refina després.</p>
+<h2>63.15 Resum</h2>
+<p>Ara tens la cadena de dades completa:</p>
+<ul>
+<li><strong>Mosquitto</strong> (MQTT) escolta publicacions.</li>
+<li><strong>Telegraf</strong> les tradueix i les envia a InfluxDB.</li>
+<li><strong>InfluxDB</strong> les emmagatzema.</li>
+<li><strong>Grafana</strong> les visualitza.</li>
+</ul>
+<p>Això és la base sobre la qual vindrà tot: nodes LoRa, sensors, alertes, automatitzacions. La combinació MQTT + InfluxDB + Grafana és el cor de l'IoT modern.</p>
+<h2>63.16 Exercicis pràctics</h2>
+<p>1. Instal·la Mosquitto, InfluxDB, Telegraf i Grafana.
+2. Configura l'autenticació a Mosquitto.
+3. Publica una dada de prova.
+4. Connecta Grafana a InfluxDB.
+5. Crea el teu primer panell.
+6. Publica 5 dades de prova amb valors diferents.
+7. Afegeix un monitor d'Uptime Kuma per a Grafana i Mosquitto.
+8. Documenta els temes MQTT que has triat.</p>
+<hr>
+<h2 id="64-node-red">Capitol 64 — Node-RED: les primeres automatitzacions</h2>
+<p>> <em>"Node-RED és un llenguatge visual. En lloc d'escriure codi, arrossegues caixes. Per a automatitzacions de l'hort, és perfecte."</em></p>
+<h2>64.1 Què aprendràs</h2>
+<ul>
+<li>Què és Node-RED i per què serveix.</li>
+<li>Com instal·lar Node-RED amb Docker.</li>
+<li>Com fer el teu primer flow.</li>
+<li>Com escoltar MQTT des de Node-RED.</li>
+<li>Com publicar a MQTT des de Node-RED.</li>
+<li>Com fer una automatització condicional real.</li>
+<li>Com desar els teus flows.</li>
+</ul>
+<h2>64.2 Durada estimada</h2>
+<p>1-1.5 hores.</p>
+<h2>64.3 Què és Node-RED</h2>
+<p><strong>Node-RED</strong> és una eina de programació visual, basada en Node.js, creada per IBM. És com Scratch, però per a IoT.</p>
+<p>Pensa en ell com un "IFTTT professional":</p>
+<ul>
+<li>Rep esdeveniments d'un costat (MQTT, HTTP, temporitzador...).</li>
+<li>Hi aplica una lògica (if/else, transformacions...).</li>
+<li>Fa alguna cosa (publicar a MQTT, enviar un correu, encendre un relé...).</li>
+</ul>
+<p>Tot arrossegant caixes. <strong>Sense escriure una línia de codi</strong> (tot i que pots fer-ho si vols).</p>
+<p>Exemples d'ús:</p>
+<ul>
+<li>Si la temperatura de l'hort baixa de 5°C, encén una estufa.</li>
+<li>Si el nivell d'humitat baixa del 30%, rega.</li>
+<li>Si el node LoRa no ha enviat dades en 1 hora, avisa per Telegram.</li>
+<li>Cada dia a les 20h, envia un resum a Telegram.</li>
+</ul>
+<p>Node-RED és <strong>l'eina perfecta</strong> per a automatitzacions de l'hort.</p>
+<h2>64.4 Instal·lació</h2>
+<p>Crea `~/homelab/compose/node-red.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  node-red:
+    image: nodered/node-red:latest
+    container_name: node-red
+    restart: unless-stopped
+    ports:
+<ul>
+<li>&quot;1880:1880&quot;</li>
+</ul>
+    volumes:
+<ul>
+<li>./data/node-red:/data</li>
+</ul>
+    environment:
+<ul>
+<li>TZ=Europe/Madrid</li>
+</ul>
+    depends_on:
+<ul>
+<li>mosquitto</code></pre></li>
+</ul></p>
+<p>Engega:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f node-red.yml up -d</code></pre>
+<p>Obre `http://hortosona:1880` al navegador. Hauries de veure l'editor visual.</p>
+<h2>64.5 Interfície de Node-RED</h2>
+<p>A la part esquerra tens la <strong>paleta de nodes</strong>, organitzats per categories:</p>
+<ul>
+<li><strong>input</strong>: nodes que reben dades (MQTT, HTTP, timer, inject...).</li>
+<li><strong>output</strong>: nodes que envien dades (MQTT, HTTP, email, file...).</li>
+<li><strong>function</strong>: nodes per fer lògica (if/else, switch, change, function...).</li>
+<li><strong>social</strong>: nodes per a serveis externs (Telegram, Twitter, email...).</li>
+<li><strong>storage</strong>: nodes per emmagatzematge (SQL, InfluxDB...).</li>
+</ul>
+<p>Al centre tens el <strong>flow</strong>, on arrossegues els nodes.</p>
+<p>A la dreta tens la <strong>informació del node</strong> i el <strong>debug</strong>.</p>
+<h2>64.6 El primer flow: "Hello, world!"</h2>
+<p>Arrossega un node `inject` al flow.</p>
+<p>1. Configura'l: posa'l una mica a la dreta, fes doble clic, i tria "Time stamp" com a payload.
+2. Arrossega un node `debug`.
+3. Connecta'ls: arrossega des del cercle gris de la dreta del `inject` fins al cercle gris de l'esquerra del `debug`.
+4. Fes clic al botó blau <strong>Deploy</strong> (a dalt a la dreta).
+5. Fes clic al botó quadrat blau a la dreta del node `inject` (per activar-lo).</p>
+<p>A la dreta, a la pestanya <strong>debug</strong>, hauries de veure l'hora actual.</p>
+<p>Això és el teu primer flow. Simplement injecta un valor (l'hora) i l'envia a debug. Ara complica-ho.</p>
+<h2>64.7 Escoltar dades MQTT</h2>
+<p>Arrossega un node `mqtt in` (a la categoria "network"):</p>
+<ul>
+<li>Fes doble clic.</li>
+<li><strong>Server</strong>: clic a la icona del llapis per afegir un servidor nou.</li>
+<li><strong>Name</strong>: BernatLab MQTT</li>
+<li><strong>Server</strong>: `mosquitto` (o `hortosona`)</li>
+<li><strong>Port</strong>: 1883</li>
+<li><strong>Security</strong>: activa username/password i posa les credencials de Mosquitto.</li>
+<li><strong>Action</strong>: "Subscribe to topic"</li>
+<li><strong>Topic</strong>: `sensors/#`</li>
+<li><strong>QoS</strong>: 0</li>
+</ul>
+<p>Connecta'l a un node `debug` (canvia el node debug a "complete msg object" per veure tot).</p>
+<p>Deploy. Ara cada cop que algú publiqui a `sensors/...`, ho veuràs al debug.</p>
+<p>Si tens dades a MQTT, ja les veuràs aquí.</p>
+<h2>64.8 Publicar a MQTT</h2>
+<p>Per publicar:</p>
+<ul>
+<li>Arrossega un node `mqtt out`.</li>
+<li>Configura'l igual que el `mqtt in` (mateix servidor, mateixa autenticació).</li>
+<li><strong>Action</strong>: "Publish to topic".</li>
+<li><strong>Topic</strong>: `bernatlab/test/hola`.</li>
+</ul>
+<p>Per enviar un missatge, connecta'l a algun node d'input (per exemple, un `inject` amb payload "Hola des de Node-RED").</p>
+<h2>64.9 La primera automatització: alerta per temperatura baixa</h2>
+<p>Farem un flow que:</p>
+<p>1. Escolta `sensors/hort1/temperatura`.
+2. Si el valor és < 5°C, publica una alerta a `alerts/critical/hort`.
+3. Si no, no fa res.</p>
+<p>Passos:</p>
+<p>1. Arrossega un `mqtt in` configurat com abans, subscrit a `sensors/hort1/temperatura`.
+2. Arrossega un node `function` i posa-hi:</p>
+<pre class="code"><code class="language-javascript">// El payload arriba com a string JSON
+const msg = JSON.parse(msg.payload);
+const temperatura = msg.value;
+<p>if (temperatura &lt; 5) {
+    msg.payload = {
+        node: msg.node,
+        sensor: msg.sensor,
+        value: temperatura,
+        message: &quot;Risc de gelada!&quot;,
+    };
+    return msg;
+}</p>
+<p>// No enviem res si no és una alerta
+return null;</code></pre></p>
+<p>3. Arrossega un `mqtt out` configurat per publicar a `alerts/critical/hort`.
+4. Connecta'ls en cadena: mqtt in → function → mqtt out.
+5. Deploy.</p>
+<p>Prova publicant una temperatura baixa:</p>
+<pre class="code"><code class="language-bash">mosquitto_pub -h hortosona -p 1883 -u bernat -P &#x27;contrasenya&#x27; \
+    -t &#x27;sensors/hort1/temperatura&#x27; \
+    -m &#x27;{&quot;node&quot;:&quot;hort1&quot;,&quot;sensor&quot;:&quot;temperatura&quot;,&quot;value&quot;:2.3,&quot;unit&quot;:&quot;C&quot;}&#x27;</code></pre>
+<p>Mira els logs de Mosquitto o subscriu-te a `alerts/#` per veure l'alerta.</p>
+<h2>64.10 La segona automatització: regar si la humitat baixa</h2>
+<p>Aquest és el cas clàssic de l'hort:</p>
+<p>1. Escolta `sensors/hort1/humitat` periòdicament.
+2. Si humitat < 30%, publica una ordre a `bernatlab/reg/on` durant 5 minuts.
+3. Envia una alerta per Telegram.</p>
+<p>Això ja és més complex. Ho fem pas a pas.</p>
+<p><strong>Part 1: escoltar la humitat</strong></p>
+<p>Node `mqtt in` a `sensors/hort1/humitat`.</p>
+<p><strong>Part 2: comparar amb el llindar</strong></p>
+<p>Node `function`:</p>
+<pre class="code"><code class="language-javascript">const data = JSON.parse(msg.payload);
+const humitat = data.value;
+const node = data.node;
+<p>if (humitat &lt; 30) {
+    msg.payload = {
+        node: node,
+        humitat: humitat,
+        action: &quot;regar&quot;,
+        duration: 300, // 5 minuts en segons
+    };
+    return msg;
+}
+return null;</code></pre></p>
+<p><strong>Part 3: enviar ordre al sistema de reg</strong></p>
+<p>Aquí hem de decidir com és el sistema de reg. En el M3 parlàvem d'un node LoRa amb relés. Per ara, simulem:</p>
+<p>Node `mqtt out` a `bernatlab/reg/hort1/on` amb el payload generat.</p>
+<p><strong>Part 4: alerta per Telegram</strong></p>
+<p>Aquí veurem al <strong>Cap 66</strong> com configurar el bot de Telegram. Per ara, podem posar un node `debug` per veure què passaria.</p>
+<h2>64.11 Com desar els flows</h2>
+<p>Els flows es desen automàticament quan fas Deploy. Però hi ha més:</p>
+<ul>
+<li><strong>Exportar</strong>: pots exportar un flow com a JSON (menú → Export).</li>
+<li><strong>Importar</strong>: pots importar un flow d'un altre (menú → Import).</li>
+<li><strong>Subversion</strong>: els flows estan a `./data/node-red/flows.json`. Pots versionar aquest fitxer a Git.</li>
+</ul>
+<p>Jo recomano <strong>versionar el `flows.json`</strong> al repo del BernatLab. Així tens un historial de canvis i pots recuperar fàcilment.</p>
+<h2>64.12 La paleta de nodes</h2>
+<p>A mesura que necessitis més coses, pots afegir nodes nous. Node-RED té un sistema de "palette manager":</p>
+<p>1. Menú → <strong>Manage palette</strong>.
+2. <strong>Install</strong>.
+3. Busca el node que vulguis.</p>
+<p>Alguns nodes útils per a l'hort:</p>
+<ul>
+<li>`node-red-node-ui-table`: per visualitzar dades en taules.</li>
+<li>`node-red-dashboard`: per crear un panell web per a l'hort.</li>
+<li>`node-red-contrib-modbus`: per comunicar amb dispositius Modbus.</li>
+<li>`node-red-contrib-influxdb`: per escriure directament a InfluxDB des de Node-RED.</li>
+</ul>
+<h2>64.13 Què ve després</h2>
+<p>Node-RED és la peça que fa servir <strong>totes les altres</strong>. Al <strong>Cap 65</strong> afegirem un <strong>node LoRa</strong> real al camp, que publicarà dades a MQTT, i les veuràs a Grafana gràcies a aquesta cadena.</p>
+<h2>64.14 Errors habituals</h2>
+<p><strong>Error 1: "Connection refused" a MQTT</strong>.</p>
+<p>Comprova que el servidor, port, usuari i contrasenya són correctes.</p>
+<p><strong>Error 2: el flow no es desplega</strong>.</p>
+<p>Mira l'error a la consola (a sota). Sovint és un node mal configurat o un JSON invàlid al node `function`.</p>
+<p><strong>Error 3: la funció no retorna res</strong>.</p>
+<p>Si la funció retorna `null` o no retorna, el flow s'atura. Assegura't que el flux té un camí per a tots els casos.</p>
+<p><strong>Error 4: les dades no es reben</strong>.</p>
+<p>Comprova que el topic MQTT és correcte. Un `sensors/#` rep `sensors/hort1/temperatura`, però un `sensors/hort1/#` no rep `sensors/hort2/temperatura`.</p>
+<h2>64.15 Resum</h2>
+<p>Node-RED és la cola del BernatLab. Aquí és on la lògica esdevé visual i intuïtiva. Hem vist:</p>
+<ul>
+<li>Instal·lació amb Compose.</li>
+<li>Interfície i paleta de nodes.</li>
+<li>Com escoltar i publicar a MQTT.</li>
+<li>Com fer una funció que filtra i transforma missatges.</li>
+<li>Com fer una automatització condicional.</li>
+</ul>
+<p>Al <strong>Cap 65</strong> afegirem un node LoRa al camp, que serà el primer consumidor real d'aquesta cadena.</p>
+<h2>64.16 Exercicis pràctics</h2>
+<p>1. Instal·la Node-RED.
+2. Fes el "Hello, world!" amb un `inject` i un `debug`.
+3. Connecta't a Mosquitto des de Node-RED.
+4. Publica una temperatura i rep-la a Node-RED.
+5. Fes una funció que filtri temperatures < 5°C.
+6. Fes una automatització que publiqui una alerta a `alerts/#` quan la humitat < 30%.
+7. Exporta el teu flow a JSON i guarda'l al repo.
+8. Documenta els flows al `homelab/setup-log.md`.</p>
+<hr>
+<h2 id="65-node-lora">Capitol 65 — El node LoRa al camp</h2>
+<p>> <em>"Aquest capítol és on l'hort es connecta de veritat. Fins ara tenies un servidor; ara tens un sistema que escolta el que passa al camp."</em></p>
+<h2>65.1 Què aprendràs</h2>
+<ul>
+<li>Quin hardware necessites per al node LoRa.</li>
+<li>Com muntar el node (ESP32 + SX1262 + sensors).</li>
+<li>Com programar-lo per publicar dades a MQTT.</li>
+<li>Com rebre les dades a la Raspberry.</li>
+<li>Com veure les primeres dades reals a Grafana.</li>
+</ul>
+<h2>65.2 Durada estimada</h2>
+<p>2-3 hores (comptant proves).</p>
+<h2>65.3 Quin hardware</h2>
+<p>Per al node del camp:</p>
+<ul>
+<li><strong>ESP32-WROOM-32</strong> (la placa de microcontrol·lador): 5 €.</li>
+<li><strong>Mòdul SX1262 868 MHz</strong> (la ràdio LoRa): 10 €.</li>
+<li><strong>Antena 868 MHz</strong> amb connector IPEX/U.FL: 3 €.</li>
+<li><strong>Sensor BME280</strong> (temperatura, humitat, pressió): 5 €.</li>
+<li><strong>Sensor d'humitat del sòl capacitiu</strong>: 3 €.</li>
+<li><strong>Cable Dupont</strong> (per connectar tot): 5 €.</li>
+<li><strong>Caixa estanca IP65</strong>: 5 €.</li>
+<li><strong>Bateria 18650 + carregador TP4056</strong>: 8 €.</li>
+<li><strong>Placa solar 6V 1W</strong> (opcional): 8 €.</li>
+</ul>
+<p><strong>Total: ~50 € per node.</strong></p>
+<p>Si ja tens un gateway LoRaWAN (Dragino LPS8, RAK7258, etc.), el node serà més simple — parla directament amb TTN, no necessita un gateway local.</p>
+<h2>65.4 Decidir: LoRaWAN o P2P</h2>
+<p>Al <strong>Cap 25</strong> ja vam decidir això. Recordatori breu:</p>
+<ul>
+<li><strong>LoRaWAN + TTN</strong>: el node parla amb un gateway, TTN redirigeix a un servidor (el teu, via MQTT). Molt escalable, però depens d'un servei extern.</li>
+<li><strong>LoRa P2P</strong>: dos mòduls SX1262 parlen directament. No hi ha servidor intermedi. Més simple, però menys escalable.</li>
+</ul>
+<p>Per a un homelab amb un sol node, <strong>P2P és més simple</strong> — no necessites TTN ni un gateway, només dos SX1262. Però <strong>LoRaWAN + un gateway Dragino LPS8</strong> és més robust.</p>
+<p>Aquest capítol assumeix <strong>LoRaWAN amb un gateway local</strong>. Si vols P2P, els canvis són petits (mira el Cap 31).</p>
+<h2>65.5 Muntar el gateway (si no el tens)</h2>
+<p>El gateway és un dispositiu que escolta els nodes LoRa i envia les dades a un servidor. El model més popular per a homelab és el <strong>Dragino LPS8</strong>.</p>
+<p>Per muntar-lo:</p>
+<p>1. Connecta'l al router via Ethernet.
+2. Connecta'l a l'antena (port SMA).
+3. Endolla'l.
+4. Accedeix a la interfície web (per defecte, http://192.168.1.77).
+5. Configura'l per parlar amb TTN o amb el teu servidor local.</p>
+<p>Al cap 27 explicàvem com configurar el gateway amb concentratord. Si tens dubtes, mira'l.</p>
+<h2>65.6 Muntar el node</h2>
+<p>Connexions de l'ESP32 al SX1262 (SPI):</p>
+<p>| ESP32 | SX1262 |
+|---|---|
+| 3.3V | VCC |
+| GND | GND |
+| GPIO 5 | SCK |
+| GPIO 27 | MISO |
+| GPIO 2 | MOSI |
+| GPIO 4 | NSS (CS) |
+| GPIO 14 | RST |
+| GPIO 26 | DIO1 |
+| GPIO 33 | BUSY |</p>
+<p>I els sensors:</p>
+<p>| ESP32 | BME280 | Humitat sòl |
+|---|---|---|
+| 3.3V | VCC | VCC |
+| GND | GND | GND |
+| GPIO 21 (SDA) | SDA | - |
+| GPIO 22 (SCL) | SCL | - |
+| GPIO 34 (ADC) | - | AOUT |</p>
+<p>Això és la part elèctrica. Ara ve la programació.</p>
+<h2>65.7 Programar el node</h2>
+<p>Usa <strong>Arduino IDE</strong> o <strong>PlatformIO</strong> per programar l'ESP32. Jo recomano PlatformIO (integrat a VS Code) per la seva potència.</p>
+<p>Crea un nou projecte "ESP32 + LoRa + BME280".</p>
+<p><strong>Llibreries necessàries</strong> (via PlatformIO):</p>
+<pre class="code"><code class="language-ini">lib_deps =
+    sandeepmistry/LoRa@^0.8.0
+    adafruit/Adafruit BME280 Library@^2.2.4
+    bblanchon/ArduinoJson@^7.0.0</code></pre>
+<p><strong>Codi bàsic</strong>:</p>
+<pre class="code"><code class="language-cpp">#include &lt;SPI.h&gt;
+#include &lt;LoRa.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_Sensor.h&gt;
+#include &lt;Adafruit_BME280.h&gt;
+<p>#define SS_PIN    4
+#define RST_PIN   14
+#define DIO0_PIN  26</p>
+<p>Adafruit_BME280 bme;</p>
+<p>int counter = 0;</p>
+<p>void setup() {
+    Serial.begin(115200);</p>
+<p>// Setup LoRa
+    LoRa.setPins(SS_PIN, RST_PIN, DIO0_PIN);
+    if (!LoRa.begin(868E6)) {
+        Serial.println(&quot;Error iniciant LoRa&quot;);
+        while (1);
+    }
+    LoRa.setSpreadingFactor(7);
+    LoRa.setSignalBandwidth(125E3);
+    LoRa.setTxPower(14);</p>
+<p>// Setup BME280
+    if (!bme.begin(0x76)) {
+        Serial.println(&quot;Error iniciant BME280&quot;);
+        while (1);
+    }
+}</p>
+<p>void loop() {
+    // Llegeix sensors
+    float temperatura = bme.readTemperature();
+    float humitat = bme.readHumidity();
+    float pressio = bme.readPressure() / 100.0;</p>
+<p>// Llegeix humitat del sòl (0-4095, menor = més humit)
+    int soilRaw = analogRead(34);
+    float soilPercent = map(soilRaw, 0, 4095, 100, 0);  // invertir</p>
+<p>// Crea el payload
+    String payload = &quot;{&quot;;
+    payload += &quot;\&quot;node\&quot;:\&quot;hort1\&quot;,&quot;;
+    payload += &quot;\&quot;counter\&quot;:&quot; + String(counter) + &quot;,&quot;;
+    payload += &quot;\&quot;temperatura\&quot;:&quot; + String(temperatura, 1) + &quot;,&quot;;
+    payload += &quot;\&quot;humitat\&quot;:&quot; + String(humitat, 1) + &quot;,&quot;;
+    payload += &quot;\&quot;pressio\&quot;:&quot; + String(pressio, 1) + &quot;,&quot;;
+    payload += &quot;\&quot;soil\&quot;:&quot; + String(soilPercent, 1);
+    payload += &quot;}&quot;;</p>
+<p>// Envia via LoRa
+    LoRa.beginPacket();
+    LoRa.print(payload);
+    LoRa.endPacket();</p>
+<p>Serial.println(&quot;Enviat: &quot; + payload);
+    counter++;</p>
+<p>// Espera 5 minuts
+    delay(300000);
+}</code></pre></p>
+<p>Pujem el codi a l'ESP32.</p>
+<h2>65.8 Receptar les dades a la Raspberry</h2>
+<p>Al gateway Dragino, configura el "Packet Forwarder" per enviar les dades a un servidor local:</p>
+<p>1. Accedeix a la interfície web del gateway.
+2. Configura el servidor primari com a `localhost` (o la IP de la RPi si el gateway és un altre dispositiu).
+3. Configura el port 1700 (per defecte del packet forwarder).</p>
+<p>A la Raspberry, hem de tenir un servei que escolti el port 1700 i enviï les dades a MQTT. Una opció és <strong>ChirpStack</strong> (molt potent però complex), o <strong>golismero</strong> (molt simple).</p>
+<p>Alternativa: usa <strong>TTN</strong> com a intermediari. El gateway envia a TTN, i TTN redirigeix a un servidor MQTT (que pot ser la teva RPi).</p>
+<h2>65.9 Configurar TTN (mètode recomanat)</h2>
+<p><strong>The Things Network</strong> (TTN) és gratuït per a ús personal. Configurar-lo:</p>
+<p>1. Crea un compte a https://www.thethingsnetwork.org.
+2. Crea una <strong>Application</strong>.
+3. Crea un <strong>End device</strong> dins l'aplicació:
+<ul>
+<li>Manufacturer: el teu (o selecciona el perfil correcte).</li>
+<li>DevEUI, AppEUI, AppKey: els que tingui el teu node (o genera'ls automàticament).</li>
+</ul>
+4. Configura el <strong>Payload formatter</strong> (Uplink) per desxifrar CayenneLPP o el teu format JSON.
+5. Configura l'<strong>integració MQTT</strong>:
+<ul>
+<li>Default endpoint.</li>
+<li>Porta 1883.</li>
+<li>Username i password: els de Mosquitto (però TTN ha de poder accedir — cal exposar Mosquitto, cosa que NO recomanem per seguretat).</li>
+</ul></p>
+<p><strong>Alternativa més segura</strong>: usa TTN per desar les dades, i un script a la RPi que les vagi a buscar periòdicament via l'API de TTN (no via MQTT directe).</p>
+<h2>65.10 Receptar amb un script Python local</h2>
+<p>Si vols evitar TTN, pots tenir un script Python a la RPi que escolti el port 1700:</p>
+<p>Crea `~/homelab/scripts/lora-listener.py`:</p>
+<pre class="code"><code class="language-python">import socket
+import json
+import paho.mqtt.client as mqtt
+import os
+<h1>Configuració</h1>
+TTN_MQTT_USER = &quot;bernat&quot;
+TTN_MQTT_PASSWORD = os.environ[&quot;MQTT_PASSWORD&quot;]
+MQTT_BROKER = &quot;localhost&quot;
+MQTT_PORT = 1883
+<h1>Client MQTT</h1>
+client = mqtt.Client()
+client.username_pw_set(TTN_MQTT_USER, TTN_MQTT_PASSWORD)
+client.connect(MQTT_BROKER, MQTT_PORT, 60)
+<h1>Socket per escoltar el gateway</h1>
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind((&quot;0.0.0.0&quot;, 1700))
+<p>print(&quot;Escoltant al port 1700...&quot;)</p>
+<p>while True:
+    data, addr = sock.recvfrom(4096)
+    # Parseja el protocol TTN Packet Forwarder
+    # (Aquí va una mica de feina per deserialitzar el format)
+    # Publica a MQTT
+    payload = {&quot;raw&quot;: data.hex()}
+    client.publish(&quot;lora/gateway/raw&quot;, json.dumps(payload))</code></pre></p>
+<p>Aquest script és esquemàtic — caldria implementar correctament el protocol del packet forwarder. En la pràctica, és molt més fàcil usar TTN.</p>
+<h2>65.11 Veure les primeres dades a Grafana</h2>
+<p>Un cop el node envia, el gateway rep, TTN redirigeix, i la teva cadena MQTT → InfluxDB → Grafana ja té les dades.</p>
+<p>Si tot està connectat:</p>
+<p>1. Publica una dada de prova (o espera que el node enviï).
+2. Mira els logs de Mosquitto: `docker logs mosquitto`.
+3. Mira els logs de Telegraf: `docker logs telegraf`.
+4. A Grafana, crea una gràfica nova amb `SELECT mean("temperatura") FROM "mqtt_consumer" WHERE node = 'hort1'`.</p>
+<p>Si veus una línia a la gràfica, <strong>tot funciona</strong>. El teu hort ara és al núvol.</p>
+<h2>65.12 Bateria i durada</h2>
+<p>Si el node funciona amb bateria, el consum és crític. Optimitzacions:</p>
+<ul>
+<li><strong>Deep sleep</strong> entre transmissions (ESP32 consumeix 10 µA en sleep).</li>
+<li>Transmetre cada 5-15 minuts en lloc de cada minut.</li>
+<li>Usar SF7 (ràpida, menys temps d'aire).</li>
+<li>Reduir la potència de transmissió al mínim necessari.</li>
+</ul>
+<p>Codi per afegir deep sleep:</p>
+<pre class="code"><code class="language-cpp">#include &lt;esp_sleep.h&gt;
+<p>void loop() {
+    // Llegeix sensors
+    // Envia dades
+    Serial.println(&quot;Anant a dormir 5 minuts&quot;);
+    esp_sleep_enable_timer_wakeup(300 * 1000000);
+    esp_deep_sleep_start();
+}</code></pre></p>
+<p>Així l'ESP32 es desperta cada 5 minuts, llegeix sensors, envia, i torna a dormir. La bateria pot durar setmanes o mesos.</p>
+<h2>65.13 Què ve després</h2>
+<p>Ja tens el node LoRa enviant dades reals des del camp. Al <strong>Cap 66</strong> afegirem un <strong>bot de Telegram</strong> per rebre alertes al mòbil.</p>
+<h2>65.14 Errors habituals</h2>
+<p><strong>Error 1: el node no es connecta al gateway</strong>.</p>
+<p>Comprova:</p>
+<ul>
+<li>Clau d'aplicació (AppKey) correcta.</li>
+<li>Freqüència correcta (868 MHz a Europa).</li>
+<li>El node està dins del rang del gateway.</li>
+<li>La DevEUI és correcta a TTN.</li>
+</ul>
+<p><strong>Error 2: les dades arriben però no es veuen a Grafana</strong>.</p>
+<p>Comprova:</p>
+<ul>
+<li>Telegraf està escoltant el topic correcte.</li>
+<li>InfluxDB està rebent dades (botó "Query" a InfluxDB UI).</li>
+<li>La query de Grafana té el bon nom de mesura (`mqtt_consumer` per defecte).</li>
+</ul>
+<p><strong>Error 3: el node es queda sense bateria ràpid</strong>.</p>
+<p>Augmenta l'interval de transmissió, activa deep sleep, redueix la potència de transmissió.</p>
+<p><strong>Error 4: senyals dèbils (RSSI baix)</strong>.</p>
+<p>Afegeix una antena millor, canvia la ubicació del node, augmenta SF (a costa de més temps d'aire i consum).</p>
+<h2>65.15 Resum</h2>
+<p>Ara tens el node LoRa enviant dades reals a través de TTS → Mosquitto → Telegraf → InfluxDB → Grafana. La cadena completa funciona. A partir d'aquí, el que pots fer és infinit:</p>
+<ul>
+<li>Afegir més nodes.</li>
+<li>Afegir més sensors (vent, pluja, radiació solar).</li>
+<li>Fer automatitzacions a Node-RED basades en les dades.</li>
+<li>Afegir alertes quan els valors surtin dels llindars.</li>
+</ul>
+<h2>65.16 Exercicis pràctics</h2>
+<p>1. Munta el node (ESP32 + SX1262 + sensors).
+2. Programa'l amb el codi bàsic.
+3. Configura el gateway (o usa TTN).
+4. Configura Telegraf per escoltar `lora/+/+`.
+5. Crea un panell a Grafana amb les dades.
+6. Activa deep sleep al node.
+7. Col·loca el node a l'hort (o al balcó) i espera 24 h.
+8. Documenta la configuració al `homelab/setup-log.md`.</p>
+<hr>
+<h2 id="66-telegram">Capitol 66 — Bot de Telegram: alertes al mòbil</h2>
+<p>> <em>"Rebre una alerta al mòbil quan passa alguna cosa a l'hort, en temps real, és el salt entre un sistema que recull dades i un sistema que et cuida."</em></p>
+<h2>66.1 Què aprendràs</h2>
+<ul>
+<li>Com crear un bot de Telegram.</li>
+<li>Com obtenir el chat_id.</li>
+<li>Com enviar missatges des de la RPi.</li>
+<li>Com configurar alertes automàtiques des de Node-RED.</li>
+<li>Com combinar-ho amb Uptime Kuma.</li>
+<li>Bones pràctiques per a bots de Telegram.</li>
+</ul>
+<h2>66.2 Durada estimada</h2>
+<p>30-45 minuts.</p>
+<h2>66.3 Per què Telegram</h2>
+<p>Telegram és ideal per a alertes perquè:</p>
+<ul>
+<li><strong>Gratuït</strong> per a bots.</li>
+<li><strong>API oberta</strong> i ben documentada.</li>
+<li><strong>Grups</strong> amb múltiples membres (perfecte per compartir l'estat amb família).</li>
+<li><strong>Markdown</strong> i <strong>HTML</strong> als missatges.</li>
+<li><strong>Sense límit</strong> pràctic de missatges.</li>
+<li><strong>Multiplataforma</strong>: iOS, Android, web, desktop.</li>
+</ul>
+<p>Alternatives:</p>
+<ul>
+<li><strong>Signal</strong>: més segur però l'API per a bots és menys popular.</li>
+<li><strong>Discord</strong>: similar però pensat per a comunitats.</li>
+<li><strong>Pushover, Pushbullet, Ntfy</strong>: serveis específics per a notificacions.</li>
+<li><strong>SMS</strong>: car i no xifrat.</li>
+</ul>
+<p>Telegram és la millor elecció per a un homelab personal.</p>
+<h2>66.4 Crear el bot</h2>
+<p>Al teu mòbil o web de Telegram:</p>
+<p>1. Cerca <strong>@BotFather</strong>.
+2. Inicia conversa.
+3. Envia `/newbot`.
+4. Tria un nom (per exemple, "BernatLab Bot").
+5. Tria un username (ha d'acabar en `bot`, per exemple, "bernatlab_alerts_bot").
+6. Rebràs un <strong>token</strong>. Guarda'l al gestor de contrasenyes.</p>
+<p>Exemple de token: `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz123456`.</p>
+<h2>66.5 Crear el grup</h2>
+<p>1. Crea un grup a Telegram anomenat "BernatLab" (o com vulguis).
+2. Afegeix el bot al grup.
+3. Per obtenir el <strong>chat_id</strong> del grup:
+<ul>
+<li>Com a admin, obre `https://api.telegram.org/bot<TOKEN>/getUpdates`.</li>
+<li>Cerca el `chat.id` del grup (un número negatiu, ex: `-1001234567890`).</li>
+<li>Guarda'l al gestor.</li>
+</ul></p>
+<h2>66.6 El primer missatge des de la RPi</h2>
+<p>Des de la Raspberry, prova:</p>
+<pre class="code"><code class="language-bash">curl -X POST &quot;https://api.telegram.org/bot&lt;TOKEN&gt;/sendMessage&quot; \
+    -d &quot;chat_id=&lt;CHAT_ID&gt;&quot; \
+    -d &quot;text=Hola des del BernatLab!&quot;</code></pre>
+<p>Si tot va bé, rebràs el missatge al grup.</p>
+<h2>66.7 Com automatitzar des de la RPi</h2>
+<p>Crea un petit script Python que envia missatges:</p>
+<p>Crea `~/homelab/scripts/telegram-notify.py`:</p>
+<pre class="code"><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;Envia un missatge a Telegram.&quot;&quot;&quot;
+import os
+import sys
+import requests
+<p>TOKEN = os.environ.get(&quot;TELEGRAM_TOKEN&quot;)
+CHAT_ID = os.environ.get(&quot;TELEGRAM_CHAT_ID&quot;)</p>
+<p>if not TOKEN or not CHAT_ID:
+    print(&quot;Falten TELEGRAM_TOKEN o TELEGRAM_CHAT_ID&quot;, file=sys.stderr)
+    sys.exit(1)</p>
+<p>if len(sys.argv) &lt; 2:
+    print(&quot;Ús: telegram-notify.py &lt;missatge&gt;&quot;, file=sys.stderr)
+    sys.exit(1)</p>
+<p>text = &quot; &quot;.join(sys.argv[1:])</p>
+<p>r = requests.post(
+    f&quot;https://api.telegram.org/bot{TOKEN}/sendMessage&quot;,
+    json={&quot;chat_id&quot;: CHAT_ID, &quot;text&quot;: text, &quot;parse_mode&quot;: &quot;HTML&quot;},
+    timeout=10,
+)
+r.raise_for_status()
+print(&quot;Enviat.&quot;)</code></pre></p>
+<p>Crea `~/homelab/secrets/telegram.env`:</p>
+<pre class="code"><code class="language-">TELEGRAM_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+TELEGRAM_CHAT_ID=-1001234567890</code></pre>
+<p>Fes-lo executable:</p>
+<pre class="code"><code class="language-bash">chmod +x ~/homelab/scripts/telegram-notify.py</code></pre>
+<p>Prova'l:</p>
+<pre class="code"><code class="language-bash">source ~/homelab/secrets/telegram.env
+~/homelab/scripts/telegram-notify.py &quot;Prova de Telegram&quot;</code></pre>
+<h2>66.8 Integrar amb Uptime Kuma</h2>
+<p>Recordes el <strong>Cap 62</strong>? Uptime Kuma ja permet enviar alertes per Telegram. Si ho vas configurar, ja ho tens.</p>
+<p>Si no, ara és el moment. A Uptime Kuma:</p>
+<p>1. Settings → Notifications → Telegram.
+2. Activa.
+3. Posa el bot token.
+4. Posa el chat_id.
+5. Fes clic a "Test".
+6. Aplica a tots els monitors que vulguis.</p>
+<h2>66.9 Integrar amb Node-RED</h2>
+<p>A Node-RED, podem afegir un node de Telegram:</p>
+<p>1. <strong>Manage palette</strong> → Install → busca `node-red-contrib-telegrambot`.
+2. Després d'instal·lar, tindràs nodes `telegram bot`, `telegram sender`, `telegram receiver`, `telegram command`, `telegram event`.
+3. Configura el bot:
+<ul>
+<li><strong>Bot username</strong>: el que vas triar.</li>
+<li><strong>Bot token</strong>: el token.</li>
+</ul>
+4. Usa el node `telegram sender` per enviar missatges.</p>
+<p>Exemple: una automatització que envia una alerta quan la temperatura baixa de 5°C.</p>
+<p>1. Node `mqtt in` a `sensors/hort1/temperatura`.
+2. Node `function` que filtra temperatures baixes.
+3. Node `telegram sender` configurat amb el bot.
+4. Connecta'ls.</p>
+<p>Deploy. Prova publicant una temperatura baixa a MQTT. Rebràs un missatge al grup de Telegram.</p>
+<h2>66.10 Com enviar missatges amb format</h2>
+<p>Telegram accepta HTML i Markdown. Pots fer missatges bonics:</p>
+<pre class="code"><code class="language-python">text = &quot;&quot;&quot;
+&lt;b&gt;⚠️ Alerta BernatLab&lt;/b&gt;
+<p>&lt;b&gt;Node:&lt;/b&gt; hort1
+&lt;b&gt;Sensor:&lt;/b&gt; temperatura
+&lt;b&gt;Valor:&lt;/b&gt; 2.3°C
+&lt;b&gt;Llindar:&lt;/b&gt; 5°C
+&lt;b&gt;Missatge:&lt;/b&gt; Risc de gelada!
+&quot;&quot;&quot;</code></pre></p>
+<p>Per usar HTML, posa `parse_mode=HTML` a la crida a l'API.</p>
+<p>Per Markdown, `parse_mode=MarkdownV2`.</p>
+<h2>66.11 Comandes del bot</h2>
+<p>Pots fer que el bot respongui a comandes. Per exemple, `/status` retorna l'estat dels serveis.</p>
+<p>A Node-RED, amb el node `telegram command`:</p>
+<p>1. Configura `/status` com a command.
+2. Connecta'l a un node `function` que construeixi el missatge.
+3. Connecta'l a un node `telegram sender`.</p>
+<p>Ara quan algú escrigui `/status` al grup, rebrà l'estat actual.</p>
+<h2>66.12 Bones pràctiques</h2>
+<p>1. <strong>Un sol grup per a tot</strong>. No creïs 10 grups.
+2. <strong>No saturis</strong>. Limita les alertes a les importants.
+3. <strong>Usa emojis</strong> per identificar ràpidament la severitat: 🔴 critical, ⚠️ warning, ℹ️ info.
+4. <strong>Inclou l'acció a prendre</strong>. No només "s'ha trencat X", sinó "s'ha trencat X, fer Y per arreglar-ho".
+5. <strong>Limita el volum</strong>. Si reps 100 missatges al dia, ja no els llegeixes.
+6. <strong>No comparteixis el token</strong>. És com una contrasenya.</p>
+<h2>66.13 Què ve després</h2>
+<p>Ja tens alertes al mòbil. Al <strong>Cap 67</strong> afegirem <strong>Prometheus + Alertmanager</strong> per a monitoratge avançat, i al <strong>Cap 68</strong> aprendrem a fer <strong>runbooks</strong> per als incidents.</p>
+<h2>66.14 Errors habituals</h2>
+<p><strong>Error 1: el bot no envia res</strong>.</p>
+<p>Comprova el token i el chat_id. Mira els logs de Node-RED o del script Python.</p>
+<p><strong>Error 2: el bot és al grup però no rep missatges</strong>.</p>
+<p>Això passa si el grup té "anti-spam" molt estricte. Assegura't que el bot té permís per llegir i enviar.</p>
+<p><strong>Error 3: el missatge s'envia però no el reps</strong>.</p>
+<p>Comprova que tens notificacions actives per a aquest grup al teu mòbil.</p>
+<p><strong>Error 4: format HTML invàlid</strong>.</p>
+<p>Si el missatge té un `<` sense tancar, Telegram el rebutja. Escapa caràcters especials.</p>
+<h2>66.15 Resum</h2>
+<p>Telegram és la manera més còmoda de rebre alertes del BernatLab. Hem vist:</p>
+<ul>
+<li>Crear el bot.</li>
+<li>Configurar el grup.</li>
+<li>Enviar missatges des de la RPi.</li>
+<li>Integrar amb Uptime Kuma.</li>
+<li>Integrar amb Node-RED.</li>
+<li>Comandes interactives.</li>
+</ul>
+<h2>66.16 Exercicis pràctics</h2>
+<p>1. Crea el bot de Telegram.
+2. Crea el grup i afegeix-hi el bot.
+3. Envia un missatge des de la RPi amb `curl`.
+4. Configura Uptime Kuma per enviar alertes al grup.
+5. Configura Node-RED per enviar alertes quan la temperatura baixa de 5°C.
+6. Afegeix una comanda `/status` al bot.
+7. Documenta la configuració al `homelab/setup-log.md`.</p>
+<hr>
+<h2 id="67-prometheus-alertes">Capitol 67 — Prometheus i alertes avançades</h2>
+<p>> <em>"Uptime Kuma et diu si un servei està viu o mort. Prometheus et diu com està de salut. La diferència és subtil però fonamental."</em></p>
+<h2>67.1 Què aprendràs</h2>
+<ul>
+<li>Què és Prometheus i per què serveix.</li>
+<li>Com instal·lar Prometheus + Node Exporter + cAdvisor + Alertmanager.</li>
+<li>Com crear mètriques personalitzades.</li>
+<li>Com configurar alertes intel·ligents.</li>
+<li>Com integrar-ho amb Telegram.</li>
+<li>Com visualitzar les mètriques a Grafana.</li>
+</ul>
+<h2>67.2 Durada estimada</h2>
+<p>1-1.5 hores.</p>
+<h2>67.3 Què és Prometheus</h2>
+<p><strong>Prometheus</strong> és un sistema de monitoratge de mètriques (números) amb:</p>
+<ul>
+<li><strong>Pull</strong>: ell mateix demana les mètriques als serveis cada X segons.</li>
+<li><strong>Series temporals</strong>: emmagatzema cada mètrica amb un timestamp.</li>
+<li><strong>Alerting</strong>: té el seu propi sistema d'alertes (Alertmanager).</li>
+<li><strong>Lenguatge de consultes</strong>: PromQL, potent i flexible.</li>
+</ul>
+<p>Combinat amb <strong>Grafana</strong> (que ja tens) tens una solució completa.</p>
+<h2>67.4 Arquitectura</h2>
+<pre class="code"><code class="language-">[ Node Exporter ]   ──┐
+[ cAdvisor ]        ──┤
+[ Mosquitto exporter ]─┤──→ [ Prometheus ] ──→ [ Alertmanager ] ──→ [ Telegram ]
+[ Custom exporter ]  ──┘                       ──→ [ Grafana ]</code></pre>
+<p>Cada component:</p>
+<ul>
+<li><strong>Node Exporter</strong>: mètriques del sistema (CPU, RAM, disc, xarxa, temperatura).</li>
+<li><strong>cAdvisor</strong>: mètriques dels contenidors Docker.</li>
+<li><strong>Mosquitto exporter</strong>: mètriques del broker MQTT.</li>
+<li><strong>Custom exporter</strong>: mètriques específiques (per exemple, l'estat del node LoRa).</li>
+<li><strong>Prometheus</strong>: recull tot i emmagatzema.</li>
+<li><strong>Alertmanager</strong>: gestiona les alertes.</li>
+<li><strong>Grafana</strong>: visualitza.</li>
+</ul>
+<h2>67.5 Instal·lació</h2>
+<p>Crea `~/homelab/compose/prometheus.yml`:</p>
+<pre class="code"><code class="language-yaml">version: &quot;3.8&quot;
+<p>services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+<ul>
+<li>./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml</li>
+<li>./prometheus/rules.yml:/etc/prometheus/rules.yml</li>
+<li>./data/prometheus:/prometheus</li>
+</ul>
+    command:
+<ul>
+<li>&#x27;--config.file=/etc/prometheus/prometheus.yml&#x27;</li>
+<li>&#x27;--storage.tsdb.path=/prometheus&#x27;</li>
+<li>&#x27;--storage.tsdb.retention.time=30d&#x27;</li>
+</ul>
+    ports:
+<ul>
+<li>&quot;9090:9090&quot;</li>
+</ul></p>
+<p>alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    volumes:
+<ul>
+<li>./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml</li>
+</ul>
+    command:
+<ul>
+<li>&#x27;--config.file=/etc/alertmanager/alertmanager.yml&#x27;</li>
+</ul>
+    ports:
+<ul>
+<li>&quot;9093:9093&quot;</li>
+</ul></p>
+<p>node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    volumes:
+<ul>
+<li>/proc:/host/proc:ro</li>
+<li>/sys:/host/sys:ro</li>
+<li>/:/rootfs:ro</li>
+</ul>
+    command:
+<ul>
+<li>&#x27;--path.procfs=/host/proc&#x27;</li>
+<li>&#x27;--path.sysfs=/host/sys&#x27;</li>
+<li>&#x27;--path.rootfs=/rootfs&#x27;</li>
+</ul>
+    ports:
+<ul>
+<li>&quot;9100:9100&quot;</li>
+</ul></p>
+<p>cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+<ul>
+<li>/:/rootfs:ro</li>
+<li>/var/run:/var/run:ro</li>
+<li>/sys:/sys:ro</li>
+<li>/var/lib/docker/:/var/lib/docker:ro</li>
+</ul>
+    ports:
+<ul>
+<li>&quot;8080:8080&quot;</code></pre></li>
+</ul></p>
+<p>Crea `~/homelab/compose/prometheus/prometheus.yml`:</p>
+<pre class="code"><code class="language-yaml">global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+<p>rule_files:
+<ul>
+<li>&quot;rules.yml&quot;</li>
+</ul></p>
+<p>alerting:
+  alertmanagers:
+<ul>
+<li>static_configs:</li>
+<li>targets: [&#x27;alertmanager:9093&#x27;]</li>
+</ul></p>
+<p>scrape_configs:
+<ul>
+<li>job_name: prometheus</li>
+</ul>
+    static_configs:
+<ul>
+<li>targets: [&#x27;localhost:9090&#x27;]</li>
+</ul></p>
+<ul>
+<li>job_name: node</li>
+</ul>
+    static_configs:
+<ul>
+<li>targets: [&#x27;node-exporter:9100&#x27;]</li>
+</ul>
+<ul>
+<li>job_name: cadvisor</li>
+</ul>
+    static_configs:
+<ul>
+<li>targets: [&#x27;cadvisor:8080&#x27;]</code></pre></li>
+</ul>
+<p>Crea `~/homelab/compose/prometheus/rules.yml`:</p>
+<pre class="code"><code class="language-yaml">groups:
+<ul>
+<li>name: bernatlab</li>
+</ul>
+    rules:
+<ul>
+<li>alert: HighCPUUsage</li>
+</ul>
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=&quot;idle&quot;}[5m])) * 100) &gt; 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: &quot;CPU alta a {{ $labels.instance }}&quot;
+          description: &quot;CPU al {{ $value }}% durant més de 5 minuts.&quot;
+<ul>
+<li>alert: LowMemory</li>
+</ul>
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 &lt; 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: &quot;RAM baixa a {{ $labels.instance }}&quot;
+<ul>
+<li>alert: DiskFull</li>
+</ul>
+        expr: (node_filesystem_avail_bytes{fstype!=&quot;tmpfs&quot;} / node_filesystem_size_bytes) * 100 &lt; 10
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: &quot;Disc ple a {{ $labels.instance }}&quot;
+<ul>
+<li>alert: ContainerDown</li>
+</ul>
+        expr: up{job=~&quot;cadvisor|prometheus&quot;} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: &quot;Contenidor {{ $labels.instance }} caigut&quot;</code></pre>
+<p>Crea `~/homelab/compose/prometheus/alertmanager.yml`:</p>
+<pre class="code"><code class="language-yaml">global:
+  resolve_timeout: 5m
+<p>route:
+  group_by: [&#x27;alertname&#x27;, &#x27;instance&#x27;]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: &#x27;telegram&#x27;</p>
+<p>receivers:
+<ul>
+<li>name: &#x27;telegram&#x27;</li>
+</ul>
+    webhook_configs:
+<ul>
+<li>url: &#x27;http://alert-webhook:8080/alerts&#x27;</code></pre></li>
+</ul></p>
+<p>Crea `~/homelab/compose/alert-webhook/`:</p>
+<pre class="code"><code class="language-python"># app.py
+import os, requests
+from flask import Flask, request
+<p>app = Flask(__name__)</p>
+<p>@app.route(&quot;/alerts&quot;, methods=[&quot;POST&quot;])
+def alerts():
+    data = request.json
+    for alert in data.get(&quot;alerts&quot;, []):
+        status = alert.get(&quot;status&quot;, &quot;unknown&quot;)
+        emoji = &quot;🔴&quot; if status != &quot;resolved&quot; else &quot;✅&quot;
+        text = alert.get(&quot;annotations&quot;, {}).get(&quot;summary&quot;, &quot;&quot;)
+        desc = alert.get(&quot;annotations&quot;, {}).get(&quot;description&quot;, &quot;&quot;)
+        msg = f&quot;{emoji} {text}\n{desc}&quot;
+        requests.post(
+            f&quot;https://api.telegram.org/bot{os.environ[&#x27;TELEGRAM_TOKEN&#x27;]}/sendMessage&quot;,
+            json={&quot;chat_id&quot;: os.environ[&quot;TELEGRAM_CHAT_ID&quot;], &quot;text&quot;: msg},
+        )
+    return &quot;OK&quot;, 200</p>
+<p>if __name__ == &quot;__main__&quot;:
+    app.run(host=&quot;0.0.0.0&quot;, port=8080)</code></pre></p>
+<p>Engega:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f prometheus.yml up -d</code></pre>
+<p>Afegeix el webhook al compose.</p>
+<h2>67.6 Verificar</h2>
+<ul>
+<li>Prometheus UI: http://hortosona:9090</li>
+<li>Alertmanager UI: http://hortosona:9093</li>
+<li>Node Exporter: http://hortosona:9100/metrics</li>
+</ul>
+<p>A Prometheus, vés a <strong>Status</strong> → <strong>Targets</strong> i comprova que tots els jobs estan "UP".</p>
+<h2>67.7 Connectar Grafana a Prometheus</h2>
+<p>A Grafana:</p>
+<p>1. Connections → Data sources → Add data source.
+2. Tria <strong>Prometheus</strong>.
+3. URL: `http://prometheus:9090`.
+4. Save & test.</p>
+<p>Ara pots crear panells que combinen dades de Grafana (InfluxDB) i Prometheus (CPU, RAM, etc.).</p>
+<h2>67.8 Dashboard recomanat</h2>
+<p>Importa el dashboard oficial de Node Exporter:</p>
+<p>1. Grafana → <strong>+</strong> → <strong>Import</strong>.
+2. Enganxa l'ID `1860` (Node Exporter Full).
+3. Tria el data source Prometheus.
+4. Import.</p>
+<p>Ara tens un dashboard complet amb CPU, RAM, disc, xarxa, processos, etc.</p>
+<h2>67.9 Provar les alertes</h2>
+<p>Per forçar una alerta, podem aturar un servei:</p>
+<pre class="code"><code class="language-bash">docker stop grafana</code></pre>
+<p>Espera 2-3 minuts. Hauries de rebre un missatge a Telegram: "Contenidor grafana caigut".</p>
+<p>Torna a engegar:</p>
+<pre class="code"><code class="language-bash">docker start grafana</code></pre>
+<p>Rebràs "Resolved".</p>
+<h2>67.10 Mètriques personalitzades: l'estat del node LoRa</h2>
+<p>Podem exposar l'estat del node LoRa com a mètriques. Per exemple, un script Python que exposa "l'última vegada que el node ha enviat dades":</p>
+<pre class="code"><code class="language-python"># lora-exporter.py
+from prometheus_client import start_http_server, Gauge
+import paho.mqtt.client as mqtt
+import time
+import os
+<p>last_seen = Gauge(&#x27;lora_node_last_seen_timestamp&#x27;, &#x27;Última vegada que el node ha enviat dades&#x27;, [&#x27;node&#x27;])</p>
+<p>def on_message(client, userdata, msg):
+    import time
+    last_seen.labels(node=&quot;hort1&quot;).set(time.time())</p>
+<p>client = mqtt.Client()
+client.username_pw_set(&quot;bernat&quot;, os.environ[&quot;MQTT_PASSWORD&quot;])
+client.connect(&quot;mosquitto&quot;, 1883, 60)
+client.subscribe(&quot;sensors/#&quot;)
+client.on_message = on_message</p>
+<p>start_http_server(9119)
+client.loop_forever()</code></pre></p>
+<p>Afegeix aquest servei al compose de Prometheus. Ara pots crear una alerta:</p>
+<pre class="code"><code class="language-yaml">- alert: LoRaNodeOffline
+  expr: time() - lora_node_last_seen_timestamp{node=&quot;hort1&quot;} &gt; 3600
+  for: 10m
+  labels:
+    severity: warning
+  annotations:
+    summary: &quot;Node hort1 sense dades des de fa més d&#x27;1h&quot;</code></pre>
+<h2>67.11 Què ve després</h2>
+<p>Ja tens monitoratge complet. Al <strong>Cap 68</strong> aprendrem a fer <strong>runbooks</strong> per reaccionar ràpidament als incidents. Al <strong>Cap 69</strong> farem el <strong>DRP</strong> amb un test real.</p>
+<h2>67.12 Errors habituals</h2>
+<p><strong>Error 1: Prometheus no recull mètriques</strong>.</p>
+<p>Mira els targets a la UI. Si un job està "DOWN", comprova la URL i la xarxa.</p>
+<p><strong>Error 2: les alertes no s'envien</strong>.</p>
+<p>Mira els logs d'Alertmanager. Comprova la configuració del webhook.</p>
+<p><strong>Error 3: les alertes s'envien massa</strong>.</p>
+<p>Ajusta els llindars i els temps `for: 5m`. Sigues estricte.</p>
+<h2>67.13 Resum</h2>
+<p>Prometheus + Alertmanager és la combinació de monitoratge avançat més potent per a un homelab. Hem vist:</p>
+<ul>
+<li>Arquitectura completa.</li>
+<li>Instal·lació amb Compose.</li>
+<li>Regles d'alerta bàsiques.</li>
+<li>Integració amb Telegram.</li>
+<li>Mètriques personalitzades.</li>
+<li>Dashboard a Grafana.</li>
+</ul>
+<h2>67.14 Exercicis pràctics</h2>
+<p>1. Instal·la Prometheus + Alertmanager + Node Exporter + cAdvisor.
+2. Verifica que els targets són "UP".
+3. Importa el dashboard de Node Exporter (ID 1860).
+4. Configura alertes per Telegram.
+5. Crea una alerta personalitzada (per exemple, "Node LoRa offline").
+6. Força una alerta aturant un servei.
+7. Documenta la configuració.</p>
+<hr>
+<h2 id="68-runbooks">Capitol 68 — Runbooks: quan falla alguna cosa</h2>
+<p>> <em>"Un runbook és la diferència entre resoldre un incident en 5 minuts o en 5 hores."</em></p>
+<h2>68.1 Què aprendràs</h2>
+<ul>
+<li>Què és un runbook i quan usar-lo.</li>
+<li>Com estructurar un runbook.</li>
+<li>Com escriure els teus primers 3 runbooks.</li>
+<li>On desar-los.</li>
+<li>Com millorar-los amb el temps.</li>
+</ul>
+<h2>68.2 Durada estimada</h2>
+<p>30-45 minuts.</p>
+<h2>68.3 Per què runbooks</h2>
+<p>Ara tens un sistema amb molts components: Docker, Portainer, Uptime Kuma, MQTT, InfluxDB, Grafana, Node-RED, Telegram, Prometheus, Alertmanager, node LoRa. Si un falla, has de saber què fer.</p>
+<p>Sense un runbook:</p>
+<ul>
+<li>Tens memòria (que falla).</li>
+<li>Has de cercar a Internet cada vegada.</li>
+<li>El pànic et porta a cometre errors.</li>
+</ul>
+<p>Amb un runbook:</p>
+<ul>
+<li>Tens les passes exactes.</li>
+<li>Les executes sense pensar.</li>
+<li>El temps de resolució baixa.</li>
+</ul>
+<p>Un runbook <strong>es crea quan resols un incident</strong>, no pas abans. Ara tens un sistema relativament estable — bona oportunitat per escriure els primers.</p>
+<h2>68.4 Estructura d'un runbook</h2>
+<pre class="code"><code class="language-markdown"># Runbook: [Títol del problema]
+<h2>Símptomes</h2>
+<ul>
+<li>Què veus.</li>
+</ul>
+<h2>Diagnòstic</h2>
+1. Comandes per confirmar.
+<h2>Solució</h2>
+1. Passes per resoldre.
+<h2>Verificació</h2>
+<ul>
+<li>Com saber que s&#x27;ha resolt.</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>Com evitar-ho en el futur.</li>
+</ul>
+<h2>Contactes</h2>
+<ul>
+<li>Qui avisar.</li>
+</ul>
+<h2>Última actualització</h2>
+<ul>
+<li>Data i canvis.</code></pre></li>
+</ul>
+<h2>68.5 On desar els runbooks</h2>
+<p>A la teva estructura:</p>
+<pre class="code"><code class="language-">homelab/
+└── runbooks/
+    ├── README.md          # índex
+    ├── 001-portainer-down.md
+    ├── 002-grafana-no-data.md
+    ├── 003-lora-offline.md
+    └── ...</code></pre>
+<p>Crea la carpeta:</p>
+<pre class="code"><code class="language-bash">mkdir -p ~/homelab/runbooks</code></pre>
+<p>Crea un `README.md` índex:</p>
+<pre class="code"><code class="language-markdown"># Runbooks del BernatLab
+<h2>Incidents</h2>
+<ul>
+<li><a href="001-portainer-down.md">001</a> — Portainer no respon</li>
+<li><a href="002-grafana-no-data.md">002</a> — Grafana no mostra dades</li>
+<li><a href="003-lora-offline.md">003</a> — Node LoRa offline</li>
+<li><a href="004-mqtt-disconnected.md">004</a> — Mosquitto no accepta connexions</li>
+</ul>
+<h2>Manteniment</h2>
+<ul>
+<li><a href="101-update-containers.md">101</a> — Actualitzar contenidors</li>
+<li><a href="102-rotate-secrets.md">102</a> — Rotar secrets</li>
+</ul>
+<h2>Recuperació</h2>
+<ul>
+<li><a href="201-restore-raspberry.md">201</a> — Restaurar Raspberry</li>
+<li><a href="202-data-loss.md">202</a> — Pèrdua de dades</code></pre></li>
+</ul>
+<p>Versiona aquesta carpeta a Git. Així tens historial de canvis.</p>
+<h2>68.6 Runbook 001: Portainer no respon</h2>
+<p>Crea `~/homelab/runbooks/001-portainer-down.md`:</p>
+<pre class="code"><code class="language-markdown"># Runbook 001: Portainer no respon
+<h2>Símptomes</h2>
+<ul>
+<li>El navegador no pot connectar a `https://hortosona:9443`.</li>
+<li>Altres serveis funcionen normalment.</li>
+</ul>
+<h2>Diagnòstic</h2>
+<p>1. Comprova l&#x27;estat del contenidor:
+   ```bash
+   docker ps | grep portainer
+   ```</p>
+<p>2. Si el contenidor està aturat, mira els logs:
+   ```bash
+   docker logs portainer --tail 100
+   ```</p>
+<p>3. Si està en marxa, comprova el port:
+   ```bash
+   ss -tulnp | grep 9443
+   ```</p>
+<h2>Solució</h2>
+<p><strong>Si el contenidor està aturat:</strong></p>
+<p>1. Reiniciar:
+   ```bash
+   docker start portainer
+   ```</p>
+<p>2. Esperar 30 segons.</p>
+<p>3. Comprovar:
+   ```bash
+   curl -k https://localhost:9443
+   ```</p>
+<p><strong>Si el contenidor està en marxa però no respon:</strong></p>
+<p>1. Reiniciar:
+   ```bash
+   docker restart portainer
+   ```</p>
+<p>2. Si continua, mirar logs per errors:
+   ```bash
+   docker logs portainer --tail 200
+   ```</p>
+<p>3. Si hi ha error de base de dades:
+   ```bash
+   docker stop portainer
+   cp -r ~/homelab/compose/data/portainer.bak/* \
+       ~/homelab/compose/data/portainer/
+   docker start portainer
+   ```</p>
+<h2>Verificació</h2>
+<ul>
+<li>`curl -k https://localhost:9443` retorna algun HTTP status.</li>
+<li>El navegador pot connectar i fer login.</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>Mantenir espai en disc (Portainer necessita 1 GB lliure).</li>
+<li>Comprovar memòria disponible (mínim 256 MB).</li>
+<li>Configurar `restart: unless-stopped` (ja ho tens al compose).</li>
+</ul>
+<h2>Contactes</h2>
+<ul>
+<li>@bernat a Telegram</li>
+</ul>
+<h2>Última actualització</h2>
+<ul>
+<li>2026-07-09 per Bernat</code></pre></li>
+</ul>
+<h2>68.7 Runbook 002: Grafana no mostra dades</h2>
+<pre class="code"><code class="language-markdown"># Runbook 002: Grafana no mostra dades noves
+<h2>Símptomes</h2>
+<ul>
+<li>Les gràfiques estan buides o no s&#x27;actualitzen.</li>
+<li>Les dades antigues es veuen, les noves no.</li>
+</ul>
+<h2>Diagnòstic</h2>
+<p>1. Comprovar que InfluxDB rep dades:
+   ```bash
+   docker exec influxdb influx query &#x27;from(bucket:&quot;hort&quot;) |&gt; range(start:-10m)&#x27;
+   ```</p>
+<p>2. Si no hi ha dades, comprovar Telegraf:
+   ```bash
+   docker logs telegraf --tail 50
+   ```</p>
+<p>3. Si Telegraf no es connecta, comprovar Mosquitto:
+   ```bash
+   mosquitto_sub -h localhost -p 1883 -u bernat -P &#x27;contrasenya&#x27; -t &#x27;sensors/#&#x27; -v
+   ```</p>
+<h2>Solució</h2>
+<p><strong>Si Mosquitto no funciona:</strong></p>
+<p>1. Reiniciar:
+   ```bash
+   docker restart mosquitto
+   ```</p>
+<p>2. Esperar 30 segons.</p>
+<p>3. Provar de nou amb `mosquitto_sub`.</p>
+<p><strong>Si Telegraf no es connecta:</strong></p>
+<p>1. Reiniciar:
+   ```bash
+   docker restart telegraf
+   ```</p>
+<p>2. Esperar 30 segons.</p>
+<p>3. Comprovar logs:
+   ```bash
+   docker logs telegraf --tail 50
+   ```</p>
+<p><strong>Si Grafana no es connecta a InfluxDB:</strong></p>
+<p>1. Anar a Grafana → Connections → Data sources.
+2. Editar el data source InfluxDB.
+3. Verificar URL, token, org, bucket.
+4. Save &amp; test.</p>
+<h2>Verificació</h2>
+<ul>
+<li>Publicar una temperatura de prova a `sensors/hort1/temperatura`.</li>
+<li>Esperar 1 minut.</li>
+<li>La gràfica de Grafana ha de mostrar el punt.</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>Monitorar els serveis amb Uptime Kuma.</li>
+<li>Configurar alertes a Prometheus per &quot;no data&quot;.</li>
+<li>Revisar logs periòdicament.</li>
+</ul>
+<h2>Contactes</h2>
+<ul>
+<li>@bernat a Telegram</li>
+</ul>
+<h2>Última actualització</h2>
+<ul>
+<li>2026-07-09 per Bernat</code></pre></li>
+</ul>
+<h2>68.8 Runbook 003: Node LoRa offline</h2>
+<pre class="code"><code class="language-markdown"># Runbook 003: Node LoRa no envia dades
+<h2>Símptomes</h2>
+<ul>
+<li>El node hauria d&#x27;enviar dades cada 5-15 minuts.</li>
+<li>Fa més d&#x27;1 hora que no apareixen dades noves a Grafana.</li>
+<li>Alerta de Prometheus o Uptime Kuma.</li>
+</ul>
+<h2>Diagnòstic</h2>
+<p>1. Comprovar que el node té bateria (si té placa solar, comprovar-la).
+2. Si tens accés físic, mirar el LED d&#x27;estat.
+3. Publicar un missatge manual a MQTT per verificar la cadena:
+   ```bash
+   mosquitto_pub -h hortosona -p 1883 -u bernat -P &#x27;contrasenya&#x27; \
+       -t &#x27;sensors/hort1/temperatura&#x27; \
+       -m &#x27;{&quot;node&quot;:&quot;hort1&quot;,&quot;sensor&quot;:&quot;temperatura&quot;,&quot;value&quot;:99.9,&quot;unit&quot;:&quot;C&quot;}&#x27;
+   ```</p>
+<p>4. Si el missatge arriba a Grafana, el problema és del node, no del servidor.</p>
+<h2>Solució</h2>
+<p><strong>Si és un node amb bateria:</strong></p>
+<p>1. Anar al camp.
+2. Obrir la caixa.
+3. Comprovar la bateria.
+4. Si cal, substituir-la o recarregar-la.
+5. Reiniciar el node (desendollar i tornar a endollar).</p>
+<p><strong>Si és un node amb placa solar:</strong></p>
+<p>1. Comprovar que la placa està neta.
+2. Comprovar que la bateria es carrega.
+3. Mirar si la placa té ombra (arbres nous?).</p>
+<p><strong>Si el node sembla correcte però no envia:</strong></p>
+<p>1. Comprovar la cobertura LoRa.
+2. Verificar que el gateway està en marxa.
+3. Reiniciar el node i el gateway.</p>
+<h2>Verificació</h2>
+<ul>
+<li>Esperar 15-30 minuts.</li>
+<li>Hauries de veure dades noves a Grafana.</li>
+</ul>
+<h2>Prevenció</h2>
+<ul>
+<li>Usar bateries de més capacitat.</li>
+<li>Afegir un panell solar més gran.</li>
+<li>Configurar deep sleep agressiu.</li>
+<li>Posar el node en un lloc amb bona cobertura.</li>
+</ul>
+<h2>Contactes</h2>
+<ul>
+<li>@bernat a Telegram</li>
+</ul>
+<h2>Última actualització</h2>
+<ul>
+<li>2026-07-09 per Bernat</code></pre></li>
+</ul>
+<h2>68.9 Com millorar els runbooks</h2>
+<p>Cada vegada que resols un incident:</p>
+<p>1. Escriu el runbook si no existeix.
+2. Actualitza'l si existeix.
+3. Prova'l la propera vegada.
+4. Comparteix-lo si pot ajudar algú.</p>
+<p>Al cap d'un any, tindràs 10-20 runbooks que cobreixen el 90% dels incidents habituals. Això et permetrà respondre ràpidament sense pensar.</p>
+<h2>68.10 Com provar els runbooks</h2>
+<p>Cada trimestre, dedica una hora a:</p>
+<p>1. Tria un runbook.
+2. Llegeix-lo.
+3. Executa'l en un entorn de test (no en producció).
+4. Comprova que funciona.
+5. Corregeix el que no.</p>
+<p>Això t'assegura que els runbooks estan al dia.</p>
+<h2>68.11 Què ve després</h2>
+<p>Ja tens runbooks. Al <strong>Cap 69</strong> farem el <strong>DRP</strong> (Disaster Recovery Plan) amb un test real: simular una fallada total i restaurar des de zero.</p>
+<h2>68.12 Errors habituals</h2>
+<p><strong>Error 1: runbooks massa genèrics</strong>.</p>
+<p>"No facis res" no és un runbook. Ha de tenir comandes específiques.</p>
+<p><strong>Error 2: runbooks desactualitzats</strong>.</p>
+<p>Si canvies el sistema, els runbooks queden obsolets. Revisa'ls cada mes.</p>
+<p><strong>Error 3: runbooks que ningú llegeix</strong>.</p>
+<p>Guarda'ls a un lloc accessible. Referencia'ls a les alertes.</p>
+<p><strong>Error 4: no provar els runbooks</strong>.</p>
+<p>Si no els has provat, no saps si funcionen.</p>
+<h2>68.13 Resum</h2>
+<p>Els runbooks et fan estalviar temps i estrès. Hem vist:</p>
+<ul>
+<li>Què és un runbook.</li>
+<li>Com estructurar-lo.</li>
+<li>Tres runbooks d'exemple (Portainer, Grafana, LoRa).</li>
+<li>On desar-los.</li>
+<li>Com millorar-los.</li>
+</ul>
+<h2>68.14 Exercicis pràctics</h2>
+<p>1. Crea la carpeta `~/homelab/runbooks/`.
+2. Escriu 3 runbooks basats en els 3 exemples d'aquest capítol.
+3. Adaptals al teu sistema (canviar noms, paths, etc.).
+4. Crea un `README.md` índex.
+5. Versionals a Git.
+6. Prova un runbook amb una situació simulada.</p>
+<hr>
+<h2 id="69-drp-test">Capitol 69 — DRP: el dia que es crema tot</h2>
+<p>> <em>"Les còpies sense un pla de recuperació són diners al calaix. Aquest capítol és el pla."</em></p>
+<h2>69.1 Què aprendràs</h2>
+<ul>
+<li>Què és un DRP i per què és vital.</li>
+<li>Com fer un test real de recuperació.</li>
+<li>Quines decisions has pres abans del desastre.</li>
+<li>Com restaurar el sistema pas a pas.</li>
+<li>Què fer si el hardware falla.</li>
+</ul>
+<h2>69.2 Durada estimada</h2>
+<p>2-4 hores (comptant el test real).</p>
+<h2>69.3 Per què un test real</h2>
+<p>A la majoria d'homelabs, el DRP és un document que ningú ha provat mai. Això és perillós perquè:</p>
+<ul>
+<li>El document pot tenir errors.</li>
+<li>Pot ser obsolet.</li>
+<li>Pot no funcionar en la pràctica.</li>
+</ul>
+<p>La solució és <strong>fer un test real</strong>, en un entorn segur, <strong>abans</strong> que passi el desastre de veritat.</p>
+<p>En aquest capítol farem un test de restauració completa. <strong>Apagaràs la Raspberry</strong>, <strong>borraràs la microSD</strong>, i <strong>la restauraràs</strong> des de zero amb les còpies que tens.</p>
+<p>Això et portarà 1-2 hores. Però et donarà la confiança que el teu sistema és recuperable.</p>
+<h2>69.4 Què necessites per al test</h2>
+<ul>
+<li>Una <strong>microSD de recanvi</strong> (32-64 GB).</li>
+<li>Un <strong>lector de microSD</strong> USB.</li>
+<li>Un <strong>PC</strong> amb balenaEtcher o similar.</li>
+<li>La <strong>còpia de seguretat de la microSD</strong> (la del cap 60).</li>
+<li>Les <strong>còpies de restic</strong> (a un disc extern o al núvol).</li>
+<li>1-2 hores de temps lliure.</li>
+</ul>
+<h2>69.5 Preparació: abans del test</h2>
+<p>1. <strong>Assegura't que les còpies estan al dia</strong>:
+   ```bash
+   restic -r ~/backups/bernatlab snapshots
+   ```
+   La còpia més recent ha de ser de fa menys de 24 h.</p>
+<p>2. <strong>Comprova la integritat de les còpies</strong>:
+   ```bash
+   restic -r ~/backups/bernatlab check
+   ```</p>
+<p>3. <strong>Tingues a mà la llista de serveis i les seves configuracions</strong>:
+<ul>
+<li>`~/homelab/compose/`</li>
+<li>`~/homelab/secrets/`</li>
+<li>`~/homelab/data/`</li>
+</ul></p>
+<p>4. <strong>Documenta l'estat actual</strong>:
+<ul>
+<li>Quins contenidors estan corrent?</li>
+<li>Quines són les IPs?</li>
+<li>Quins serveis són crítics?</li>
+</ul></p>
+<p>5. <strong>Avisa la família o la gent que depèn del sistema</strong> que el sistema estarà inactiu durant 1-2 hores.</p>
+<h2>69.6 El test: pas a pas</h2>
+<h3>Pas 1: atura tots els serveis ordenadament</h3>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+docker compose -f portainer.yml down
+docker compose -f uptime-kuma.yml down
+docker compose -f mqtt.yml down
+docker compose -f influxdb.yml down
+docker compose -f grafana.yml down
+docker compose -f node-red.yml down
+docker compose -f telegraf.yml down
+docker compose -f prometheus.yml down</code></pre>
+<p>Així tanques tot netament. Si hi ha algun contenidor amb problema, pots forçar-lo:</p>
+<pre class="code"><code class="language-bash">docker stop $(docker ps -aq)</code></pre>
+<h3>Pas 2: apaga la Raspberry</h3>
+<pre class="code"><code class="language-bash">sudo shutdown -h now</code></pre>
+<p>Espera 30 segons. La LED verda parpalleja 10 vegades i s'apaga.</p>
+<h3>Pas 3: treu la microSD</h3>
+<p>Desendolla la RPi. Treu la microSD.</p>
+<h3>Pas 4: simula la pèrdua total</h3>
+<p>Aquí ve la part interessant. Tens dues opcions:</p>
+<p><strong>Opció A: destruir la microSD "dolenta" (recomanada)</strong>.</p>
+<p>Si tens una microSD de recanvi, fes servir aquesta per al test. La "dolenta" la guardes com a testimoni de la pèrdua.</p>
+<p><strong>Opció B: formatar la microSD "dolenta"</strong>.</p>
+<p>Si vols reutilitzar-la:</p>
+<p>Al teu PC amb lector de microSD:</p>
+<ul>
+<li><strong>Windows</strong>: usa <strong>SD Card Formatter</strong> o l'eina de disc.</li>
+<li><strong>Mac</strong>: `diskutil eraseDisk FAT32 NOOBS /dev/disk2` (canvia disk2 pel teu).</li>
+<li><strong>Linux</strong>: `sudo mkfs.vfat -F 32 /dev/sdb1` (canvia sdb1 pel teu).</li>
+</ul>
+<h3>Pas 5: flasheja la microSD amb la imatge de recuperació</h3>
+<p>Agafes la còpia de la microSD (la que vas fer al cap 60) i la flasheges a la nova microSD:</p>
+<p>Al teu PC:</p>
+<ul>
+<li><strong>balenaEtcher</strong>: selecciona la imatge, selecciona la microSD, flash.</li>
+<li><strong>Raspberry Pi Imager</strong>: igual.</li>
+</ul>
+<h3>Pas 6: inserir la microSD i arrencar</h3>
+<p>Insereix la nova microSD a la RPi, endolla-la, i engega-la.</p>
+<p>La RPi hauria d'arrencar exactament com estava abans del test. Verifica:</p>
+<ul>
+<li>Tens accés per SSH?</li>
+<li>Tens xarxa?</li>
+<li>Tens les teves dades?</li>
+</ul>
+<h3>Pas 7: comprovar serveis</h3>
+<pre class="code"><code class="language-bash">docker ps</code></pre>
+<p>Tots els serveis haurien d'estar corrent. Si no, engega'ls:</p>
+<pre class="code"><code class="language-bash">cd ~/homelab/compose
+for f in *.yml; do docker compose -f &quot;$f&quot; up -d; done</code></pre>
+<h3>Pas 8: verificar la integritat</h3>
+<p>Per a cada servei, comprova que funciona:</p>
+<ul>
+<li>Portainer: https://hortosona:9443</li>
+<li>Uptime Kuma: http://hortosona:3001</li>
+<li>Grafana: http://hortosona:3000</li>
+<li>Node-RED: http://hortosona:1880</li>
+</ul>
+<p>Si tot funciona, <strong>el test ha estat un èxit</strong>.</p>
+<h3>Pas 9: documentar el temps</h3>
+<p>Anota quant ha durat cada pas. Això t'ajudarà a calcular el teu RTO (Recovery Time Objective).</p>
+<p>Exemple:</p>
+<ul>
+<li>Apagar serveis: 2 min</li>
+<li>Apagar Raspberry: 1 min</li>
+<li>Treure microSD: 1 min</li>
+<li>Flashejar imatge: 10 min</li>
+<li>Arrencar: 2 min</li>
+<li>Verificar serveis: 10 min</li>
+<li><strong>Total: 26 min</strong></li>
+</ul>
+<p>Si el teu RTO és 4 h, estàs molt bé. Si trigues més, cal optimitzar.</p>
+<h2>69.7 Test alternatiu: restauració de dades amb restic</h2>
+<p>Aquest test és menys dramàtic però igual d'important. Simula que has esborrat un fitxer per error.</p>
+<p>1. Esborra un fitxer qualsevol (no crític):
+   ```bash
+   rm ~/homelab/compose/test-file.txt
+   ```</p>
+<p>2. Troba'l a la còpia:
+   ```bash
+   restic -r ~/backups/bernatlab find test-file.txt
+   ```</p>
+<p>3. Restaura'l:
+   ```bash
+   restic -r ~/backups/bernatlab restore latest \
+       --target /tmp/restored \
+       --include /home/bernat/homelab/compose/test-file.txt
+   ```</p>
+<p>4. Comprova:
+   ```bash
+   cat /tmp/restored/home/bernat/homelab/compose/test-file.txt
+   ```</p>
+<p>Si funciona, les teves còpies són vàlides.</p>
+<h2>69.8 Què fer si el hardware falla</h2>
+<p>Si la RPi falla (cosa que passarà), tens opcions:</p>
+<h3>Opció A: comprar una RPi nova</h3>
+<ul>
+<li>Preu: 50-100 € (RPi 4 o 5).</li>
+<li>Restaurar la microSD antiga (si la RPi ha fallat però la microSD està bé).</li>
+<li>O flashejar una nova amb la imatge de còpia.</li>
+</ul>
+<h3>Opció B: usar un mini PC</h3>
+<p>Si la RPi no està disponible, pots muntar el sistema en un mini PC amb Debian. La majoria de coses funcionaran igual.</p>
+<h3>Opció C: usar el núvol temporalment</h3>
+<p>Si necessites el sistema actiu ràpidament, pots contractar un VPS i restaurar-hi les dades.</p>
+<h2>69.9 El DRP documentat</h2>
+<p>Un cop fet el test, documenta el DRP:</p>
+<pre class="code"><code class="language-markdown"># DRP del BernatLab
+<h2>RTO: 1 hora</h2>
+<h2>RPO: 24 hores (còpies diàries)</h2>
+<h2>Escenari 1: Fallada de la Raspberry</h2>
+<p><strong>Detecció</strong>: Uptime Kuma, Telegram.
+<strong>Responsable</strong>: Bernat.
+<strong>Temps de recuperació</strong>: 30 min - 2 h.</p>
+<p>Passes:
+1. Identificar la fallada.
+2. Si és de hardware, comprar Raspberry nova.
+3. Flashejar la microSD amb la imatge de còpia.
+4. Inserir a la Raspberry i arrencar.
+5. Verificar que tots els serveis s&#x27;han reiniciat.
+6. Verificar que les dades estan intactes (recollir una dada de test).</p>
+<h2>Escenari 2: Pèrdua de dades</h2>
+<p><strong>Detecció</strong>: Alerta o descoberta accidental.
+<strong>Responsable</strong>: Bernat.
+<strong>Temps de recuperació</strong>: 10-30 min.</p>
+<p>Passes:
+1. Identificar què s&#x27;ha perdut.
+2. Buscar a les còpies de restic.
+3. Restaurar amb `restic restore`.
+4. Verificar que el fitxer és correcte.</p>
+<h2>Escenari 3: Atac de seguretat</h2>
+<p><strong>Detecció</strong>: Alerta de seguretat o comportament estrany.
+<strong>Responsable</strong>: Bernat.
+<strong>Temps de recuperació</strong>: 2-4 h.</p>
+<p>Passes:
+1. Aïllar la Raspberry de la xarxa.
+2. Identificar el vector d&#x27;atac.
+3. Restaurar des d&#x27;una còpia neta.
+4. Rotar tots els secrets.
+5. Investigar i documentar.</p>
+<h2>Escenari 4: Desastre natural</h2>
+<p><strong>Detecció</strong>: Pèrdua total del hardware.
+<strong>Responsable</strong>: Bernat.
+<strong>Temps de recuperació</strong>: 1-7 dies (depèn del hardware).</p>
+<p>Passes:
+1. Comprar hardware nou.
+2. Restaurar des de còpia al núvol.
+3. Reconfigurar segons el README.</p>
+<h2>Recursos</h2>
+<ul>
+<li>Còpies al núvol: b2:bernatlab-backups</li>
+<li>Imatges de microSD: a la caixa forta / NAS d&#x27;un familiar</li>
+<li>Codi i configuració: https://github.com/BernatMora/bernatlab</li>
+<li>Recovery codes Tailscale: a Bitwarden</li>
+</ul>
+<h2>Última actualització</h2>
+<ul>
+<li>2026-07-09 per Bernat (després del primer test)</code></pre></li>
+</ul>
+<h2>69.10 Què fer després del test</h2>
+<p>Si el test ha anat bé:</p>
+<ul>
+<li>Documenta'l.</li>
+<li>Desa la documentació al repo.</li>
+<li>Comparteix el DRP amb algú de confiança (la teva parella, un amic).</li>
+</ul>
+<p>Si ha fallat:</p>
+<ul>
+<li>Identifica on ha fallat.</li>
+<li>Corregeix la documentació.</li>
+<li>Torna-ho a provar.</li>
+<li>No t'amoïnis — un DRP és un document viu.</li>
+</ul>
+<h2>69.11 Resum final del Mòdul 7</h2>
+<p>Acabes de completar el camí de tenir una Raspberry en una caixa a tenir un <strong>sistema professional</strong> d'IoT per a l'hort. Has après:</p>
+<ul>
+<li>A instal·lar i endureir una Raspberry Pi.</li>
+<li>A muntar una cadena de dades completa.</li>
+<li>A rebre alertes al mòbil.</li>
+<li>A monitorar tot el sistema.</li>
+<li>A reaccionar als incidents amb runbooks.</li>
+<li>A recuperar el sistema si passa el pitjor.</li>
+</ul>
+<p>Això és molt. La majoria d'homelabs no arriben ni a la meitat d'això.</p>
+<h2>69.12 Què ve després</h2>
+<p>Ara tens un BernatLab funcional. Les possibles ampliacions són infinites:</p>
+<ul>
+<li>Més nodes LoRa.</li>
+<li>Nous sensors (vent, pluja, radiació solar).</li>
+<li>Càmera amb visió per computador.</li>
+<li>Més serveis (Nextcloud per a fitxers, Immich per a fotos, etc.).</li>
+<li>Domini propi i HTTPS.</li>
+<li>Un assistent d'IA local.</li>
+</ul>
+<p>Tots aquests temes es poden convertir en futurs mòduls del llibre.</p>
+<h2>69.13 Agraïments</h2>
+<p>Si has arribat fins aquí, has après molt. Jo també he après escrivint-ho.</p>
+<p>Aquest llibre és un document viu. Si trobes errors, si canvies alguna cosa al teu sistema, si tens una idea nova, torna a editar-lo. El coneixement només és útil si està actualitzat.</p>
+<h2>69.14 Exercicis pràctics</h2>
+<p>1. Fes una còpia de la microSD si no la tens.
+2. Programa un test de DRP un dia que tinguis temps.
+3. Documenta el test al `homelab/postmortems/`.
+4. Escriu el DRP al `homelab/DRP.md`.
+5. Comparteix-lo amb algú de confiança.
+6. Repeteix el test cada 6 mesos.</p>
+<hr>
+</main>
+</div>
+<footer>
+    BernatLab Wiki · Generada automàticament a partir dels capítols Markdown.
+</footer>
+</body>
+</html>

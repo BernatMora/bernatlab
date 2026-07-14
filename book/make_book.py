@@ -125,6 +125,21 @@ CHAPTERS_M6 = [
     ("57-pujar-hardware.md", "Capitol 57 — Quan cal pujar de hardware: escenaris reals"),
 ]
 
+CHAPTERS_M7 = [
+    ("58-preparacio.md", "Capitol 58 — Preparació: què necessites tenir abans de començar"),
+    ("59-primer-contacte.md", "Capitol 59 — Primer contacte amb la Raspberry Pi"),
+    ("60-sistema-base-segur.md", "Capitol 60 — Sistema base segur"),
+    ("61-docker-portainer.md", "Capitol 61 — Docker i Portainer: la base dels serveis"),
+    ("62-uptime-kuma.md", "Capitol 62 — Uptime Kuma: el primer monitor"),
+    ("63-mqtt-influxdb-grafana.md", "Capitol 63 — La cadena de dades: MQTT, InfluxDB, Grafana"),
+    ("64-node-red.md", "Capitol 64 — Node-RED: les primeres automatitzacions"),
+    ("65-node-lora.md", "Capitol 65 — El node LoRa al camp"),
+    ("66-telegram.md", "Capitol 66 — Bot de Telegram: alertes al mòbil"),
+    ("67-prometheus-alertes.md", "Capitol 67 — Prometheus i alertes avançades"),
+    ("68-runbooks.md", "Capitol 68 — Runbooks: quan falla alguna cosa"),
+    ("69-drp-test.md", "Capitol 69 — DRP: el dia que es crema tot"),
+]
+
 # Mòdul actiu per defecte. Es pot canviar amb --module {1|2|both}
 DEFAULT_MODULE = "both"
 
@@ -1018,7 +1033,7 @@ def main():
     module = DEFAULT_MODULE
     if len(sys.argv) > 1:
         module = sys.argv[1]
-        if module not in ("1", "2", "3", "4", "5", "6", "both", "all"):
+        if module not in ("1", "2", "3", "4", "5", "6", "7", "both", "all"):
                 print(f"ERROR: --module ha de ser 1, 2, 3, 4, both o all (rebut: {module})")
                 sys.exit(1)
 
@@ -1057,6 +1072,12 @@ def main():
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_6.docx"
         build_pdf(CHAPTERS_M6, out_pdf, "Mòdul 6", "Operativa 24/7, monitoratge i manteniment")
         build_docx(CHAPTERS_M6, out_docx, "Mòdul 6", "Operativa 24/7, monitoratge i manteniment")
+
+    if module in ("7", "all"):
+        out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_7.pdf"
+        out_docx = ROOT / "output" / "BernatLab_Manual_Modul_7.docx"
+        build_pdf(CHAPTERS_M7, out_pdf, "Mòdul 7", "Hort Osona en acció: implementar el BernatLab pas a pas")
+        build_docx(CHAPTERS_M7, out_docx, "Mòdul 7", "Hort Osona en acció: implementar el BernatLab pas a pas")
 
     print("[fet] Generació completada.")
 

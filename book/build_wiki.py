@@ -388,7 +388,7 @@ def main():
     (WIKI_DIR / "css" / "wiki.css").write_text(CSS, encoding="utf-8")
 
     # Definir mòduls
-    from make_book import CHAPTERS_M1, CHAPTERS_M2, CHAPTERS_M3, CHAPTERS_M4, CHAPTERS_M5, CHAPTERS_M6
+    from make_book import CHAPTERS_M1, CHAPTERS_M2, CHAPTERS_M3, CHAPTERS_M4, CHAPTERS_M5, CHAPTERS_M6, CHAPTERS_M7
     modules = [
         ("Mòdul 1", "modul-1.html", "Fonaments, contenidors i pràctica", CHAPTERS_M1),
         ("Mòdul 2", "modul-2.html", "Dades operatives, MQTT, Grafana, web", CHAPTERS_M2),
@@ -396,6 +396,7 @@ def main():
         ("Mòdul 4", "modul-4.html", "IA local amb Ollama i RAG", CHAPTERS_M4),
         ("Mòdul 5", "modul-5.html", "Seguretat i còpies de seguretat", CHAPTERS_M5),
         ("Mòdul 6", "modul-6.html", "Operativa 24/7, monitoratge i manteniment", CHAPTERS_M6),
+        ("Mòdul 7", "modul-7.html", "Hort Osona en acció: implementar el BernatLab pas a pas", CHAPTERS_M7),
     ]
     all_links = {label: fname for label, fname, _, _ in modules}
 
