@@ -846,7 +846,39 @@ tailscale ping hortosona</code></pre>
 <p><strong>Error 5: no documentar les claus SSH</strong>. Símptoma: perdem una clau, no podem entrar. Solució: desar una còpia segura de la clau privada (en un gestor de contrasenyes o en un dispositiu segur).</p>
 <h2>4.10 Resum</h2>
 <p>Hem après què és una IP, un port, un DNS, un tallafoc. Hem après a configurar SSH amb claus públiques, a deshabilitar l'accés per contrasenya, a limitar els usuaris. Hem après què és Tailscale, com funciona, com ens dóna una xarxa privada sense tocar el router, i com MagicDNS ens permet accedir als serveis pel nom. Ara ja podem connectar-nos al BernatLab de manera segura des de qualsevol lloc del món. En el proper capítol començarem a desplegar-hi serveis amb Docker.</p>
-<h2>4.11 Exercicis pràctics</h2>
+<h2>4.11 Com verificar que estàs passant per Tailscale</h2>
+<p>A vegades volem confirmar, de manera objectiva, que la nostra connexió SSH arriba a la Raspberry a través de Tailscale (i no per una altra via). Hi ha quatre proves, ordenades de menys a més concloent:</p>
+<p><strong>Prova 1: mirar la IP del client al log d'autenticació</strong></p>
+<p>A la Raspberry:</p>
+<pre class="code"><code class="language-bash"># Debian 12+ (només journal, sense /var/log/auth.log)
+sudo journalctl -u ssh --since &quot;1 hour ago&quot;
+<h1>Debian 11 o amb rsyslog actiu</h1>
+sudo tail -20 /var/log/auth.log | grep &quot;Accepted&quot;</code></pre>
+<p>Si la línia mostra `Accepted ... from 100.x.x.x`, <strong>estàs passant per Tailscale</strong>. Si mostra `from 192.168.x.x`, és xarxa local. Si mostra una altra IP, és per una altra via.</p>
+<p>Exemple real del BernatLab:</p>
+<pre class="code"><code class="language-">Jul 15 09:29:52 hortosona sshd-session[552348]: Accepted password for bernat from 100.82.142.113 port 52077 ssh2</code></pre>
+<p>`100.82.142.113` és una IP del rang Tailscale (`100.64.0.0/10`): confirmat.</p>
+<p><strong>Prova 2: connexions TCP actives</strong></p>
+<p>A la Raspberry, en una sessió SSH oberta:</p>
+<pre class="code"><code class="language-bash">ss -tnp | grep &quot;:22&quot;</code></pre>
+<p>Veuràs una línia tipus:</p>
+<pre class="code"><code class="language-">ESTAB  0  0  100.115.134.76:22  100.82.142.113:52077</code></pre>
+<p>Les dues IPs són del rang `100.x`: la connexió passa per Tailscale.</p>
+<p><strong>Prova 3: mirar la interfície de xarxa</strong></p>
+<pre class="code"><code class="language-bash"># Comprova que tailscale0 existeix i té la IP correcta
+ip addr show tailscale0
+<h1>Mira per on surten els paquets cap a la IP del client</h1>
+ip route get 100.82.142.113</code></pre>
+<p>Si el route passa per `tailscale0`, perfecte. Si passa per `eth0` o `wlan0`, no estàs passant per Tailscale.</p>
+<p><strong>Prova 4: la definitiva — atura Tailscale temporalment</strong></p>
+<p>Des del teu PC:</p>
+<pre class="code"><code class="language-bash">sudo tailscale down</code></pre>
+<p>Si la teva sessió SSH cau immediatament, estaves passant per Tailscale. Si es manté, tens una altra via oberta (xarxa local, IP pública).</p>
+<p>Per tornar a engegar:</p>
+<pre class="code"><code class="language-bash">sudo tailscale up</code></pre>
+<p>Aquesta és la prova més clara. Usa-la quan tinguis dubtes.</p>
+<p><strong>Comprova-ho ara</strong>: connecta't per SSH i executa la Prova 1. Si la IP és `100.x.x.x`, tot correcte. Si tens dubtes, comparteix la sortida amb mi.</p>
+<h2>4.12 Exercicis pràctics</h2>
 <p>1. Comprova la teva IP Tailscale amb `tailscale ip -4`.
 2. Comprova l'estat dels dispositius de la teva xarxa amb `tailscale status`.
 3. Connecta't a la Raspberry per SSH usant el nom en lloc de la IP: `ssh bernat@hortosona`.
@@ -862,8 +894,8 @@ ssh-copy-id bernat@hortosona
 sudo ufw status
 sudo ufw allow ssh
 tailscale status
-tailscale ip -4</code></pre></p>
-<p>Paraules clau: <strong>IP, port, DNS, tallafoc, SSH, clau pública, WireGuard, Tailscale, MagicDNS, NAT, VPN, seguretat</strong>.</p>
+tailscale ip -4</code></pre>
+Paraules clau: <strong>IP, port, DNS, tallafoc, SSH, clau pública, WireGuard, Tailscale, MagicDNS, NAT, VPN, seguretat</strong>.</p>
 <hr>
 <h2 id="05-docker">Capítol 5 — Docker des de zero</h2>
 <p>> <em>"Docker no és una eina. Docker és una manera de pensar els serveis: cadascun en la seva caixa, tots parlant entre ells, cap contaminant l'altre."</em></p>

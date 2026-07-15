@@ -362,7 +362,81 @@ tailscale ping hortosona
 
 Hem après què és una IP, un port, un DNS, un tallafoc. Hem après a configurar SSH amb claus públiques, a deshabilitar l'accés per contrasenya, a limitar els usuaris. Hem après què és Tailscale, com funciona, com ens dóna una xarxa privada sense tocar el router, i com MagicDNS ens permet accedir als serveis pel nom. Ara ja podem connectar-nos al BernatLab de manera segura des de qualsevol lloc del món. En el proper capítol començarem a desplegar-hi serveis amb Docker.
 
-## 4.11 Exercicis pràctics
+## 4.11 Com verificar que estàs passant per Tailscale
+
+A vegades volem confirmar, de manera objectiva, que la nostra connexió SSH arriba a la Raspberry a través de Tailscale (i no per una altra via). Hi ha quatre proves, ordenades de menys a més concloent:
+
+**Prova 1: mirar la IP del client al log d'autenticació**
+
+A la Raspberry:
+
+```bash
+# Debian 12+ (només journal, sense /var/log/auth.log)
+sudo journalctl -u ssh --since "1 hour ago"
+
+# Debian 11 o amb rsyslog actiu
+sudo tail -20 /var/log/auth.log | grep "Accepted"
+```
+
+Si la línia mostra `Accepted ... from 100.x.x.x`, **estàs passant per Tailscale**. Si mostra `from 192.168.x.x`, és xarxa local. Si mostra una altra IP, és per una altra via.
+
+Exemple real del BernatLab:
+
+```
+Jul 15 09:29:52 hortosona sshd-session[552348]: Accepted password for bernat from 100.82.142.113 port 52077 ssh2
+```
+
+`100.82.142.113` és una IP del rang Tailscale (`100.64.0.0/10`): confirmat.
+
+**Prova 2: connexions TCP actives**
+
+A la Raspberry, en una sessió SSH oberta:
+
+```bash
+ss -tnp | grep ":22"
+```
+
+Veuràs una línia tipus:
+
+```
+ESTAB  0  0  100.115.134.76:22  100.82.142.113:52077
+```
+
+Les dues IPs són del rang `100.x`: la connexió passa per Tailscale.
+
+**Prova 3: mirar la interfície de xarxa**
+
+```bash
+# Comprova que tailscale0 existeix i té la IP correcta
+ip addr show tailscale0
+
+# Mira per on surten els paquets cap a la IP del client
+ip route get 100.82.142.113
+```
+
+Si el route passa per `tailscale0`, perfecte. Si passa per `eth0` o `wlan0`, no estàs passant per Tailscale.
+
+**Prova 4: la definitiva — atura Tailscale temporalment**
+
+Des del teu PC:
+
+```bash
+sudo tailscale down
+```
+
+Si la teva sessió SSH cau immediatament, estaves passant per Tailscale. Si es manté, tens una altra via oberta (xarxa local, IP pública).
+
+Per tornar a engegar:
+
+```bash
+sudo tailscale up
+```
+
+Aquesta és la prova més clara. Usa-la quan tinguis dubtes.
+
+**Comprova-ho ara**: connecta't per SSH i executa la Prova 1. Si la IP és `100.x.x.x`, tot correcte. Si tens dubtes, comparteix la sortida amb mi.
+
+## 4.12 Exercicis pràctics
 
 1. Comprova la teva IP Tailscale amb `tailscale ip -4`.
 2. Comprova l'estat dels dispositius de la teva xarxa amb `tailscale status`.
@@ -383,5 +457,4 @@ sudo ufw allow ssh
 tailscale status
 tailscale ip -4
 ```
-
 Paraules clau: **IP, port, DNS, tallafoc, SSH, clau pública, WireGuard, Tailscale, MagicDNS, NAT, VPN, seguretat**.
