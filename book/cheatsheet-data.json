@@ -1,0 +1,1557 @@
+{
+  "Altres": [
+    {
+      "cmd": "│   Usuari bernat · SSH · tallafoc UFW opcional                │",
+      "cap": 1,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo systemctl enable docker",
+      "cap": 2,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo systemctl start docker",
+      "cap": 2,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo systemctl stop docker",
+      "cap": 2,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo systemctl restart docker",
+      "cap": 2,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "├── var/        → dades variables (logs, bases de dades, cues)",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "│   └── log/    → logs del sistema",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "chmod u+x script.sh      # afegeix execució al propietari",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo apt install paquet          # instal·la un paquet",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo apt remove paquet           # elimina un paquet",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo apt autoremove              # elimina dependències innecessàries",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ps aux                 # tots els processos",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ps aux | grep docker    # processos que contenen \"docker\"",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo apt install htop",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "└── docs/                        # documentació addicional",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "uptime                 # temps encès, càrrega",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ps aux, htop, kill",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo ufw status",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo apt install ufw",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo ufw default deny incoming",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo ufw default allow outgoing",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo ufw allow ssh",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo ufw allow 9443/tcp    # Portainer",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo ufw allow 3001/tcp    # Uptime Kuma",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo ufw allow 3000/tcp    # Homepage",
+      "cap": 4,
+      "topic": "Fonaments"
+    }
+  ],
+  "Cron": [
+    {
+      "cmd": "crontab -e",
+      "cap": 45,
+      "topic": "Seguretat"
+    }
+  ],
+  "Còpies de seguretat": [
+    {
+      "cmd": "sudo apt install restic",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "brew install restic",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic init --repo /home/bernat/backups/bernatlab",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r /home/bernat/backups/bernatlab backup \\",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r /home/bernat/backups/bernatlab snapshots",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r /home/bernat/backups/bernatlab restore latest --target /tmp/restored",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r /home/bernat/backups/bernatlab restore abc1234 --target /tmp/restored",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r /home/bernat/backups/bernatlab restore latest \\",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "export RESTIC_REPOSITORY=\"/home/bernat/backups/bernatlab\"",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "export RESTIC_PASSWORD_FILE=\"$HOME/.restic-password\"",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic backup \"${EXCLUDE_PATTERNS[@]}\" \"${BACKUP_PATHS[@]}\"",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic forget \\",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "0 3 * * * /home/bernat/scripts/backup_diari.sh >> /var/log/restic.log 2>&1",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r b2:bernatlab-backups:bernatlab init",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r b2:bernatlab-backups:bernatlab backup $HOME/bernatlab",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r s3:https://s3.wasabisys.com/bernatlab-backups init",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r rclone:gdrive:bernatlab-backups backup $HOME/bernatlab",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic backup /var/lib/docker/volumes/",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r /home/bernat/backups/bernatlab check",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "LATEST=$(restic -r \"$REPO\" snapshots --json | jq -r '.[0].time')",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic -r /mnt/usb/backups/bernatlab restore latest \\",
+      "cap": 50,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "restic init --repo /home/bernat/backups",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "restic --repo /home/bernat/backups backup \\",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "restic --repo /home/bernat/backups snapshots",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "restic -r ~/backups/bernatlab snapshots",
+      "cap": 69,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "Còpies i imatges": [
+    {
+      "cmd": "git add .",
+      "cap": 9,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "git remote add origin git@github.com:bernatmora/bernatlab.git",
+      "cap": 9,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "git remote add origin URL",
+      "cap": 9,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "git add directe.html css/directe.css js/directe.js sw.js",
+      "cap": 21,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "BACKUP_DIR=\"/Users/bernat/backups/ollama\"",
+      "cap": 39,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /Applications/Ollama.app",
+      "cap": 41,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "mkdir -p /home/bernat/backups/bernatlab",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "borg init --encryption=repokey /home/bernat/backups/borg-repo",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "/home/bernat/backups/borg-repo::bernatlab-$(date +%Y%m%d) \\",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "borg list /home/bernat/backups/borg-repo",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "borg extract /home/bernat/backups/borg-repo::bernatlab-20260708",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo dd if=/dev/mmcblk0 of=/home/bernat/backups/sd-card.img bs=4M status=progress",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "gzip /home/bernat/backups/sd-card.img",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "borg check /home/bernat/backups/borg-repo",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "REPO=\"/home/bernat/backups/bernatlab\"",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "AGE=$(stat -c %Y /var/lib/bernatlab-backups/latest)",
+      "cap": 53,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- alert: BackupStale",
+      "cap": 53,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "ExecStart=/home/bernat/homelab/scripts/backup-daily.sh",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "sudo systemctl enable --now bernatlab-backup.timer",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "mkdir -p /home/bernat/backups",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "Docker": [
+    {
+      "cmd": "│   └── Docker Compose (fitxers a /home/bernat/homelab)         │",
+      "cap": 1,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "find / -name \"docker-compose.yml\"  # buscar un fitxer",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "├── docker-compose.yml           # definició principal de serveis",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "├── stacks/                      # sub-piles de compose",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker run hello-world",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker images                       # llista imatges locals",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker pull imatge:tag              # descarrega una imatge",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker rmi imatge                   # esborra una imatge",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker image prune                  # esborra imatges no usades",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker image prune -a               # esborra TOTES les imatges no usades",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker ps                           # contenidors actius",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker ps -a                        # tots els contenidors (inclosos aturats)",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker run -d --name web nginx      # crea i arrenca un contenidor",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker start nom                    # arrenca un contenidor existent",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker stop nom                     # atura un contenidor",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker restart nom                  # reinicia",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker rm nom                       # esborra un contenidor aturat",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker rm -f nom                    # forçar esborrat",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker logs nom                     # mostra logs",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker logs -f nom                  # logs en directe",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker exec -it nom bash            # obre una consola dins del contenidor",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker stats                        # ús de recursos en temps real",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker volume ls                    # llista volums",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "docker volume create nom            # crea un volum",
+      "cap": 5,
+      "topic": "Fonaments"
+    }
+  ],
+  "Fitxers i editors": [
+    {
+      "cmd": "nano /etc/sudoers",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "nano, systemctl, journalctl",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "nano /home/bernat/homelab/data/homepage/services.yaml",
+      "cap": 9,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "nano services.yaml",
+      "cap": 9,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "cat ~/.ssh/bernatlab.pub | ssh bernat@hortosona \"mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys\"",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "nano ~/.ssh/config",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "Git": [
+    {
+      "cmd": "Homepage és la porta d'entrada visual al BernatLab. Ens permet organitzar tots els nostres serveis en una sola pàgina, amb informació en temps real. La configuració és totalment basada en fitxers, cosa que ens permet versionar-la amb Git. El socket de Docker, en mode lectura, ens permet accedir a informació dels contenidors. `HOMEPAGE_ALLOWED_HOSTS` és una de les variables clau per evitar errors. En el proper capítol veurem com versionar tota aquesta feina amb Git i com mantenir una bona documentació.",
+      "cap": 8,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "git pull",
+      "cap": 9,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "git init, git status, git add, git commit",
+      "cap": 9,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "git push, git pull",
+      "cap": 9,
+      "topic": "Fonaments"
+    }
+  ],
+  "Grafana": [
+    {
+      "cmd": "│   ├── monitoring/              # Uptime Kuma, Grafana, etc.",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "git commit -m \"Afegeix targeta Grafana a Homepage\"",
+      "cap": 9,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "user grafana",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "grafana:",
+      "cap": 19,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "image: grafana/grafana:11.0",
+      "cap": 19,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "container_name: grafana",
+      "cap": 19,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- /home/bernat/homelab/data/grafana:/var/lib/grafana",
+      "cap": 19,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}",
+      "cap": 19,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- /home/bernat/homelab/logs/grafana:/var/log/grafana",
+      "cap": 22,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "├── Grafana (visualització)",
+      "cap": 23,
+      "topic": "LoRa"
+    },
+    {
+      "cmd": "[Grafana]",
+      "cap": 30,
+      "topic": "LoRa"
+    },
+    {
+      "cmd": "grafana/loki:2.9.0",
+      "cap": 49,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "grafana/promtail:2.9.0",
+      "cap": 49,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "container_cpu_usage_seconds_total{name=\"grafana\"} 12.5",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "container_memory_usage_bytes{name=\"grafana\"} 52428800",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "image: grafana/grafana:latest",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- ./grafana/data:/var/lib/grafana",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- ./grafana/provisioning:/etc/grafana/provisioning",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "\"grafana:3000\"",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "grafana-data:",
+      "cap": 57,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "device: /mnt/ssd/grafana",
+      "cap": 57,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "│   ├── grafana.yml",
+      "cap": 61,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "[ Grafana ]    ← panell web amb gràfiques",
+      "cap": 63,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "- ./data/grafana:/var/lib/grafana",
+      "cap": 63,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "InfluxDB": [
+    {
+      "cmd": "│   ├── data/                    # InfluxDB, PostgreSQL, etc.",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "│   ├── monitoring/   → grafana, influxdb",
+      "cap": 6,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "influxdb:",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "image: influxdb:2.7",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "container_name: influxdb",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- /home/bernat/homelab/data/influxdb:/var/lib/influxdb2",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- /home/bernat/homelab/data/influxdb/config:/etc/influxdb2",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- DOCKER_INFLUXDB_INIT_MODE=setup",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- DOCKER_INFLUXDB_INIT_USERNAME=bernat",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- DOCKER_INFLUXDB_INIT_PASSWORD=ELMEUPASSWORD",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- DOCKER_INFLUXDB_INIT_ORG=bernatlab",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- DOCKER_INFLUXDB_INIT_BUCKET=hort-osona",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- DOCKER_INFLUXDB_INIT_RETENTION=8760h  # 1 any",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=ELMEUTOKENINICIAL",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "from influxdb_client import InfluxDBClient",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "from influxdb_client.client.write_api import SYNCHRONOUS",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "client = InfluxDBClient(",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "INFLUXD_BOLT_PATH=/var/lib/influxdb2/influxd.bolt",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "INFLUXD_ENGINE_PATH=/var/lib/influxdb2/engine",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "INFLUXD_QUERY_MEMORY_BYTES=536870912   # 512 MB",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "INFLUXD_QUERY_MAX_BUCKETS=20",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "influx backup /path/al/backup \\",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "influx restore /path/al/backup \\",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "influx backup /home/bernat/homelab/backup/influxdb-$(date +%F)",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "influx bucket list --org bernatlab --token ELMEUTOKEN",
+      "cap": 15,
+      "topic": "Dades operatives"
+    }
+  ],
+  "LoRa i sensors": [
+    {
+      "cmd": "Network Server (TTN o autoallotjat)",
+      "cap": 23,
+      "topic": "LoRa"
+    },
+    {
+      "cmd": "│   ├── Sí → LoRaWAN (amb TTN o ChirpStack)",
+      "cap": 25,
+      "topic": "LoRa"
+    },
+    {
+      "cmd": "client.publish(\"lora/gateway/raw\", json.dumps(payload))",
+      "cap": 65,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "MQTT": [
+    {
+      "cmd": "│       ├── [pròxims: File Browser, Node-RED, Mosquitto, ...]   │",
+      "cap": 1,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "│   ├── iot/                     # Mosquitto, Node-RED, etc.",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "│   ├── iot/          → mosquitto, node-red",
+      "cap": 6,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "mosquitto_pub -h broker.local -t sensors/zona1/temperatura \\",
+      "cap": 12,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "mosquitto_pub -h 100.115.134.76 -t test -m \"hola\"",
+      "cap": 12,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "mosquitto_sub -h 100.115.134.76 -t \"sensors/#\" -v",
+      "cap": 12,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "mosquitto_pub -h BROKER -t TOPIC -m MISSATGE",
+      "cap": 12,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "mosquitto_sub -h BROKER -t TOPIC -v",
+      "cap": 12,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "mosquitto_pub -h BROKER -t TOPIC -m MISSATGE -q 1 -r",
+      "cap": 12,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "│       ├── mosquitto.conf",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "└── mosquitto/    (volum persistent)",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "mosquitto:",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "image: eclipse-mosquitto:2.0",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "container_name: mosquitto",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- ./passwordfile:/mosquitto/config/passwordfile:ro",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- ./aclfile:/mosquitto/config/aclfile:ro",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- /home/bernat/homelab/data/mosquitto:/mosquitto/data",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "- /home/bernat/homelab/data/mosquitto/log:/mosquitto/log",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "persistence_location /mosquitto/data/",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "log_dest file /mosquitto/log/mosquitto.log",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "password_file /mosquitto/config/passwordfile",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "acl_file /mosquitto/config/aclfile",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "mosquitto_passwd -c passwordfile USUARI",
+      "cap": 13,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "mosquitto_passwd -b passwordfile USUARI CONTRASENYA",
+      "cap": 13,
+      "topic": "Dades operatives"
+    }
+  ],
+  "Paquets (apt)": [
+    {
+      "cmd": "apt update && apt upgrade",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "apt install, apt remove",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "apt install mosquitto-clients",
+      "cap": 12,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "apt update",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "apt upgrade -y",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "apt autoremove -y",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    }
+  ],
+  "Prometheus": [
+    {
+      "cmd": "prometheus:",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "image: prom/prometheus:latest",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "container_name: prometheus",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- ./prometheus/data:/prometheus",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- '--config.file=/etc/prometheus/prometheus.yml'",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- '--storage.tsdb.path=/prometheus'",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- '--web.console.libraries=/usr/share/prometheus/console_libraries'",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- '--web.console.templates=/usr/share/prometheus/consoles'",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- prometheus",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- job_name: prometheus",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- name: Prometheus",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "type: prometheus",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "url: http://prometheus:9090",
+      "cap": 52,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml",
+      "cap": 53,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "amtool silence add --alertmanager=http://localhost:9093 \\",
+      "cap": 53,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "\"prometheus:9090\"",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "- ./prometheus/rules.yml:/etc/prometheus/rules.yml",
+      "cap": 67,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "- ./data/prometheus:/prometheus",
+      "cap": 67,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "expr: up{job=~\"cadvisor|prometheus\"} == 0",
+      "cap": 67,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "from prometheus_client import start_http_server, Gauge",
+      "cap": 67,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "Python": [
+    {
+      "cmd": "pip install chromadb",
+      "cap": 36,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "pip install -r requirements.txt  # fastapi, uvicorn, chromadb, requests",
+      "cap": 38,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "pip install faster-whisper",
+      "cap": 40,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "pip install openai-whisper",
+      "cap": 40,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "pip install piper-tts",
+      "cap": 40,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "pip install TTS",
+      "cap": 40,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "pip install gitleaks",
+      "cap": 46,
+      "topic": "Seguretat"
+    }
+  ],
+  "SSH i accés remot": [
+    {
+      "cmd": "ssh bernat@100.115.134.76",
+      "cap": 1,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ssh-keygen -t ed25519 -C \"bernat@bernatlab\"",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ssh-copy-id bernat@100.115.134.76",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ssh bernat@hortosona",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ssh-keygen -t ed25519",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ssh-copy-id bernat@hortosona",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "ssh-keygen -t ed25519 -C \"bernat@bernat-mbp\" -f ~/.ssh/bernatlab",
+      "cap": 46,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "ssh-copy-id -i ~/.ssh/bernatlab.pub bernat@hortosona",
+      "cap": 46,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo systemctl restart sshd",
+      "cap": 46,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "ssh-add ~/.ssh/bernatlab",
+      "cap": 46,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo systemctl edit sshd",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "ExecStart=/usr/sbin/sshd -D -i -e -f /etc/ssh/sshd_config",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo fail2ban-client status sshd",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo fail2ban-client set sshd unbanip 1.2.3.4",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo fail2ban-client set sshd banip 1.2.3.4",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "journalctl -u sshd",
+      "cap": 49,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "journalctl -u sshd -n 100",
+      "cap": 56,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "ssh -i ~/.ssh/bernatlab bernat@hortosona",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "ssh-add --apple-use-keychain ~/.ssh/bernatlab",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "Seguretat i tallafocs": [
+    {
+      "cmd": "sudo apt install fail2ban",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo systemctl status fail2ban",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo fail2ban-client status",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo tail -f /var/log/fail2ban.log",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "description: \"Més de 10 intents fallits en 5 minuts. IP bloquejada per fail2ban.\"",
+      "cap": 49,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo nano /etc/fail2ban/jail.local",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "sudo systemctl restart fail2ban",
+      "cap": 60,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "Tailscale": [
+    {
+      "cmd": "sudo ufw allow in on tailscale0  # permet tot des de Tailscale",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo ufw allow in on tailscale0 to any port 22",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo ufw allow in on tailscale0 to any port 9443  # Portainer",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo ufw allow in on tailscale0 to any port 3000  # Homepage",
+      "cap": 47,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "sudo ufw allow in on tailscale0 to any port 3001  # Uptime Kuma",
+      "cap": 47,
+      "topic": "Seguretat"
+    }
+  ],
+  "Telegram": [
+    {
+      "cmd": "url = f\"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage\"",
+      "cap": 53,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "send_telegram \"⚠️ Còpia no s'ha executat avui\"",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "f\"https://api.telegram.org/bot{TOKEN}/sendMessage\",",
+      "cap": 66,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "f\"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage\",",
+      "cap": 67,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "Xarxa (curl, wget)": [
+    {
+      "cmd": "curl -fsSL https://tailscale.com/install.sh | sh",
+      "cap": 4,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg",
+      "cap": 5,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "curl -i -XPOST \"http://100.115.134.76:8086/api/v2/write?org=bernatlab&bucket=hort-osona\" \\",
+      "cap": 15,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "curl -H \"X-API-Key: CLAU\" http://100.115.134.76:8000/zones",
+      "cap": 20,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "curl -H \"X-API-Key: CLAU\" http://100.115.134.76:8000/zones/zona-tomateres/latest",
+      "cap": 20,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "curl -H \"X-API-Key: CLAU\" https://api.bernatlab.cat/zones",
+      "cap": 21,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "curl -X POST \"https://api.telegram.org/bot$BOT_TOKEN/sendMessage\" \\",
+      "cap": 22,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "curl -s http://100.115.134.76:3001/ | grep -q \"concentratord\" && echo \"Gateway OK\" || echo \"Gateway FALL\"",
+      "cap": 32,
+      "topic": "LoRa"
+    },
+    {
+      "cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+      "cap": 34,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "curl http://localhost:11434/api/generate -d '{",
+      "cap": 34,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "curl http://<mac-tailscale-ip>:11434/api/tags",
+      "cap": 34,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "curl http://localhost:11434/api/embeddings -d '{",
+      "cap": 36,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "curl http://<mac-tailscale-ip>:8080/api/estadistiques",
+      "cap": 38,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "curl http://localhost:11434/api/tags",
+      "cap": 39,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "curl http://localhost:11434/api/chat -d '{",
+      "cap": 39,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "curl -X POST http://localhost:3001/api/monitors \\",
+      "cap": 39,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.json",
+      "cap": 40,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.onnx",
+      "cap": 40,
+      "topic": "IA local"
+    },
+    {
+      "cmd": "curl http://100.115.134.76:8080",
+      "cap": 44,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "curl -X POST \"https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage\" \\",
+      "cap": 45,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "curl -s -X POST \"https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage\" \\",
+      "cap": 54,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "curl http://localhost:<port>",
+      "cap": 56,
+      "topic": "Operativa 24/7"
+    },
+    {
+      "cmd": "curl -fsSL https://get.docker.com -o get-docker.sh",
+      "cap": 61,
+      "topic": "Hort Osona en acció"
+    },
+    {
+      "cmd": "curl -X POST \"https://api.telegram.org/bot<TOKEN>/sendMessage\" \\",
+      "cap": 66,
+      "topic": "Hort Osona en acció"
+    }
+  ],
+  "systemd": [
+    {
+      "cmd": "systemctl status docker",
+      "cap": 2,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl list-units --type=service --state=running",
+      "cap": 2,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl status servei          # estat detallat",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl start servei           # iniciar",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl stop servei            # aturar",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl restart servei         # reiniciar",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl reload servei          # recarregar config sense parar",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl enable servei          # arrencar a l'inici",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl disable servei         # no arrencar a l'inici",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl is-active servei       # actiu? (yes/no)",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl is-enabled servei      # habilitat? (yes/no)",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl list-unit-files --type=service",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "journalctl -u servei                  # tots els logs",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "journalctl -u servei -f               # en directe (follow)",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "journalctl -u servei --since \"1 hour ago\"",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "journalctl -u servei --since today",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "journalctl -xe           # últims missatges amb explicacions",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "journalctl --since \"1 hour ago\"",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "journalctl -xe",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl status servei",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "systemctl restart servei",
+      "cap": 3,
+      "topic": "Fonaments"
+    },
+    {
+      "cmd": "journalctl -u ssh --since \"1 month ago\"",
+      "cap": 22,
+      "topic": "Dades operatives"
+    },
+    {
+      "cmd": "journalctl --since today",
+      "cap": 49,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "journalctl -p err",
+      "cap": 49,
+      "topic": "Seguretat"
+    },
+    {
+      "cmd": "journalctl -f",
+      "cap": 49,
+      "topic": "Seguretat"
+    }
+  ]
+}

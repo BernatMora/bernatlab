@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BernatLab · Raspberry Pi · Docker · IA · LoRa · Hort Osona</title>
+<meta name="description" content="Llibre tècnic pràctic del BernatLab: servidor personal basat en Raspberry Pi 4 amb Docker, MQTT, Grafana, LoRa, IA local i automatitzacions per a Hort Osona.">
+<style>
+:root {
+    --bg: #0f1115;
+    --bg-card: #1a1d24;
+    --fg: #e6e6e6;
+    --fg-dim: #9aa3b2;
+    --accent: #7fc3a0;
+    --accent-2: #ffd966;
+    --border: #2a2f3a;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+}
+.container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+header {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+}
+h1 {
+    font-size: 2.2rem;
+    margin: 0 0 0.5rem 0;
+    color: var(--accent);
+}
+.subtitle {
+    color: var(--fg-dim);
+    font-size: 1.05rem;
+    margin: 0 0 1.5rem 0;
+}
+.badges {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+.badge {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--fg-dim);
+}
+.badge strong { color: var(--accent); margin-right: 0.3rem; }
+section {
+    margin: 3rem 0;
+}
+h2 {
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+}
+.modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+.module {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    transition: border-color 0.2s, transform 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+.module:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+.module h3 {
+    margin: 0 0 0.4rem 0;
+    color: var(--accent-2);
+    font-size: 1.05rem;
+}
+.module p {
+    margin: 0;
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+.cta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 2rem 0;
+}
+.btn {
+    background: var(--accent);
+    color: var(--bg);
+    padding: 0.7rem 1.4rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: opacity 0.2s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-secondary {
+    background: var(--bg-card);
+    color: var(--fg);
+    border: 1px solid var(--border);
+}
+.about {
+    background: var(--bg-card);
+    border-left: 4px solid var(--accent);
+    padding: 1rem 1.5rem;
+    border-radius: 0 6px 6px 0;
+    color: var(--fg-dim);
+    font-size: 0.95rem;
+}
+.about p { margin: 0.5rem 0; }
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.feature {
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+.feature strong {
+    display: block;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+}
+.feature span {
+    font-size: 0.85rem;
+    color: var(--fg-dim);
+}
+footer {
+    text-align: center;
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    padding: 2rem 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+@media (max-width: 600px) {
+    h1 { font-size: 1.6rem; }
+    .modules { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+    <div class="container">
+        <h1>🌱 BernatLab</h1>
+        <p class="subtitle">Construint el meu servidor intel·ligent · Raspberry Pi · Docker · IA · LoRa · Hort Osona</p>
+        <div class="badges">
+            <span class="badge"><strong>562</strong> pàgines</span>
+            <span class="badge"><strong>7</strong> mòduls</span>
+            <span class="badge"><strong>303</strong> comandes a la chuleta</span>
+            <span class="badge"><strong>0€</strong> tot programari lliure</span>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+
+<section>
+    <h2>📚 Què és el BernatLab</h2>
+    <div class="about">
+        <p>El <strong>BernatLab</strong> és un servidor personal basat en una Raspberry Pi 4, amb Debian, Docker, Tailscale, MQTT, Grafana, LoRa, i un assistent d'IA local. Està concebut com el centre de tots els projectes d'<strong>Hort Osona</strong>: sensors al camp, automatitzacions, monitoratge, i una web pública per compartir les dades.</p>
+        <p>Aquest llibre explica pas a pas com muntar-lo, mantenir-lo, i fer-lo créixer. Està escrit en català, és <strong>reproduïble</strong> (tothom el pot muntar al seu hort), i evoluciona amb el projecte.</p>
+    </div>
+</section>
+
+<section>
+    <h2>🚀 Comença aquí</h2>
+    <div class="cta">
+        <a href="book/wiki/index.html" class="btn">📖 Llegir el llibre</a>
+        <a href="book/cheatsheet.html" class="btn btn-secondary">📋 Chuleta de comandes</a>
+        <a href="https://github.com/BernatMora/bernatlab" class="btn btn-secondary">⭐ Repo a GitHub</a>
+    </div>
+</section>
+
+<section>
+    <h2>📚 Els 7 mòduls del llibre</h2>
+    <div class="modules">
+        <a href="book/wiki/modul-1.html" class="module">
+            <h3>M1 · Fonaments</h3>
+            <p>Raspberry Pi, Linux, xarxa, SSH, Tailscale, Docker, Portainer, Uptime Kuma, Homepage, Git.</p>
+        </a>
+        <a href="book/wiki/modul-2.html" class="module">
+            <h3>M2 · Dades operatives</h3>
+            <p>MQTT, Node-RED, InfluxDB, Grafana, API, web pública, scripts de manteniment.</p>
+        </a>
+        <a href="book/wiki/modul-3.html" class="module">
+            <h3>M3 · LoRa</h3>
+            <p>Què és LoRa, LoRaWAN vs P2P, TTN, gateway a la RPi, node SX1262, proves de camp.</p>
+        </a>
+        <a href="book/wiki/modul-4.html" class="module">
+            <h3>M4 · IA local</h3>
+            <p>Ollama al Mac, com triar model, embeddings, RAG sobre les 76 fitxes d'hort, veu.</p>
+        </a>
+        <a href="book/wiki/modul-5.html" class="module">
+            <h3>M5 · Seguretat</h3>
+            <p>ACLs de Tailscale, còpies amb restic, 2FA, fail2ban, hardening, auditoria, DRP.</p>
+        </a>
+        <a href="book/wiki/modul-6.html" class="module">
+            <h3>M6 · Operativa 24/7</h3>
+            <p>Prometheus, Grafana, alertes Telegram, scripts, runbooks, troubleshooting, hardware.</p>
+        </a>
+        <a href="book/wiki/modul-7.html" class="module">
+            <h3>M7 · Hort Osona en acció</h3>
+            <p>El curs pràctic: de la RPi en caixa al sistema complet, pas a pas, amb comandes reals.</p>
+        </a>
+    </div>
+</section>
+
+<section>
+    <h2>💡 Per a qui és</h2>
+    <div class="features">
+        <div class="feature">
+            <strong>Per al curiós</strong>
+            <span>que vol entendre com es munta un servidor casolà real, no un experiment de cap de setmana.</span>
+        </div>
+        <div class="feature">
+            <strong>Per al pagès digital</strong>
+            <span>que vol un sistema per controlar el seu hort, amb sensors, alertes i un assistent d'IA.</span>
+        </div>
+        <div class="feature">
+            <strong>Per al professor</strong>
+            <span>que vol un cas pràctic per ensenyar IoT, xarxes, i administració de sistemes.</span>
+        </div>
+        <div class="feature">
+            <strong>Per a tu del futur</strong>
+            <span>que oblidarà com es configurava tot. La documentació és per a tu d'aquí un any.</span>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>📥 Descàrregues</h2>
+    <p>Si prefereixes el format PDF o DOCX per llegir offline o imprimir:</p>
+    <div class="cta">
+        <a href="https://github.com/BernatMora/bernatlab/tree/main/book/output" class="btn btn-secondary">📄 Tots els PDFs</a>
+        <a href="https://github.com/BernatMora/bernatlab/raw/main/book/output/BernatLab_Manual_Modul_1.pdf" class="btn btn-secondary">📘 M1 PDF</a>
+        <a href="https://github.com/BernatMora/bernatlab/raw/main/book/output/BernatLab_Manual_Modul_7.pdf" class="btn btn-secondary">📗 M7 PDF</a>
+    </div>
+</section>
+
+</main>
+
+<footer>
+    <p>
+        Fet amb cura per <a href="https://github.com/BernatMora">Bernat Mora</a> ·
+        Codi font: <a href="https://github.com/BernatMora/bernatlab">BernatMora/bernatlab</a> ·
+        Llicència: oberta
+    </p>
+    <p>Última actualització: <span id="date"></span></p>
+</footer>
+<script>
+    document.getElementById('date').textContent = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>

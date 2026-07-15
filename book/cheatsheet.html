@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BernatLab · Chuleta de comandes</title>
+<style>
+:root {
+    --bg: #0f1115;
+    --bg-card: #1a1d24;
+    --bg-code: #0d1117;
+    --fg: #e6e6e6;
+    --fg-dim: #9aa3b2;
+    --accent: #7fc3a0;
+    --border: #2a2f3a;
+    --highlight: #ffd966;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+}
+header {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+}
+h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    color: var(--accent);
+}
+.subtitle {
+    color: var(--fg-dim);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+.search-box {
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    font-size: 1rem;
+    background: var(--bg-card);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    font-family: inherit;
+}
+.search-box:focus {
+    border-color: var(--accent);
+}
+main {
+    padding: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.category {
+    margin-bottom: 2rem;
+}
+.category h2 {
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+.category-count {
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    font-weight: normal;
+    margin-left: 0.5rem;
+}
+.cmd {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 0.6rem;
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+.cmd:hover {
+    border-color: var(--accent);
+}
+.cmd-main {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+pre {
+    margin: 0;
+    padding: 0.7rem 0.9rem;
+    background: var(--bg-code);
+    color: var(--fg);
+    font-family: "SF Mono", "Cascadia Code", "Consolas", "Courier New", monospace;
+    font-size: 0.85rem;
+    flex: 1;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.4;
+}
+.copy-btn {
+    background: var(--bg-card);
+    color: var(--fg-dim);
+    border: none;
+    border-left: 1px solid var(--border);
+    padding: 0 0.8rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+.copy-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+.cmd-meta {
+    padding: 0.3rem 0.9rem;
+    font-size: 0.75rem;
+    color: var(--fg-dim);
+    background: rgba(255,255,255,0.02);
+    border-top: 1px solid var(--border);
+}
+.cmd-meta .topic {
+    color: var(--accent);
+    margin-right: 0.5rem;
+}
+.empty {
+    color: var(--fg-dim);
+    text-align: center;
+    padding: 3rem 1rem;
+    font-style: italic;
+}
+mark {
+    background: var(--highlight);
+    color: var(--bg);
+    padding: 0 2px;
+    border-radius: 2px;
+}
+footer {
+    text-align: center;
+    color: var(--fg-dim);
+    font-size: 0.8rem;
+    padding: 2rem 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+}
+@media (max-width: 600px) {
+    pre { font-size: 0.78rem; }
+    h1 { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+<header>
+    <h1>📋 BernatLab · Chuleta de comandes</h1>
+    <div class="subtitle">303 comandes extretes dels 7 mòduls del manual. Cerca amb <kbd>Ctrl+F</kbd> o el quadre de cerca.</div>
+    <input type="text" id="search" class="search-box" placeholder="Cerca comandes (per text, categoria, tema...)" autofocus>
+</header>
+<main id="main">
+<div class="category" data-cat="Altres">
+<h2>Altres <span class="category-count">(25 comandes)</span></h2>
+<div class="cmd" data-text="Altres Fonaments │   Usuari bernat · SSH · tallafoc UFW opcional                │">
+  <div class="cmd-main">
+    <pre>│   Usuari bernat · SSH · tallafoc UFW opcional                │</pre>
+    <button class="copy-btn" data-cmd="│   Usuari bernat · SSH · tallafoc UFW opcional                │">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 1</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo systemctl enable docker">
+  <div class="cmd-main">
+    <pre>sudo systemctl enable docker</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl enable docker">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 2</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo systemctl start docker">
+  <div class="cmd-main">
+    <pre>sudo systemctl start docker</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl start docker">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 2</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo systemctl stop docker">
+  <div class="cmd-main">
+    <pre>sudo systemctl stop docker</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl stop docker">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 2</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo systemctl restart docker">
+  <div class="cmd-main">
+    <pre>sudo systemctl restart docker</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl restart docker">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 2</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments ├── var/        → dades variables (logs, bases de dades, cues)">
+  <div class="cmd-main">
+    <pre>├── var/        → dades variables (logs, bases de dades, cues)</pre>
+    <button class="copy-btn" data-cmd="├── var/        → dades variables (logs, bases de dades, cues)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments │   └── log/    → logs del sistema">
+  <div class="cmd-main">
+    <pre>│   └── log/    → logs del sistema</pre>
+    <button class="copy-btn" data-cmd="│   └── log/    → logs del sistema">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments chmod u+x script.sh      # afegeix execució al propietari">
+  <div class="cmd-main">
+    <pre>chmod u+x script.sh      # afegeix execució al propietari</pre>
+    <button class="copy-btn" data-cmd="chmod u+x script.sh      # afegeix execució al propietari">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo apt install paquet          # instal·la un paquet">
+  <div class="cmd-main">
+    <pre>sudo apt install paquet          # instal·la un paquet</pre>
+    <button class="copy-btn" data-cmd="sudo apt install paquet          # instal·la un paquet">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo apt remove paquet           # elimina un paquet">
+  <div class="cmd-main">
+    <pre>sudo apt remove paquet           # elimina un paquet</pre>
+    <button class="copy-btn" data-cmd="sudo apt remove paquet           # elimina un paquet">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo apt autoremove              # elimina dependències innecessàries">
+  <div class="cmd-main">
+    <pre>sudo apt autoremove              # elimina dependències innecessàries</pre>
+    <button class="copy-btn" data-cmd="sudo apt autoremove              # elimina dependències innecessàries">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments ps aux                 # tots els processos">
+  <div class="cmd-main">
+    <pre>ps aux                 # tots els processos</pre>
+    <button class="copy-btn" data-cmd="ps aux                 # tots els processos">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments ps aux | grep docker    # processos que contenen "docker"">
+  <div class="cmd-main">
+    <pre>ps aux | grep docker    # processos que contenen &quot;docker&quot;</pre>
+    <button class="copy-btn" data-cmd="ps aux | grep docker    # processos que contenen &quot;docker&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo apt install htop">
+  <div class="cmd-main">
+    <pre>sudo apt install htop</pre>
+    <button class="copy-btn" data-cmd="sudo apt install htop">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments └── docs/                        # documentació addicional">
+  <div class="cmd-main">
+    <pre>└── docs/                        # documentació addicional</pre>
+    <button class="copy-btn" data-cmd="└── docs/                        # documentació addicional">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments uptime                 # temps encès, càrrega">
+  <div class="cmd-main">
+    <pre>uptime                 # temps encès, càrrega</pre>
+    <button class="copy-btn" data-cmd="uptime                 # temps encès, càrrega">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments ps aux, htop, kill">
+  <div class="cmd-main">
+    <pre>ps aux, htop, kill</pre>
+    <button class="copy-btn" data-cmd="ps aux, htop, kill">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo ufw status">
+  <div class="cmd-main">
+    <pre>sudo ufw status</pre>
+    <button class="copy-btn" data-cmd="sudo ufw status">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo apt install ufw">
+  <div class="cmd-main">
+    <pre>sudo apt install ufw</pre>
+    <button class="copy-btn" data-cmd="sudo apt install ufw">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo ufw default deny incoming">
+  <div class="cmd-main">
+    <pre>sudo ufw default deny incoming</pre>
+    <button class="copy-btn" data-cmd="sudo ufw default deny incoming">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo ufw default allow outgoing">
+  <div class="cmd-main">
+    <pre>sudo ufw default allow outgoing</pre>
+    <button class="copy-btn" data-cmd="sudo ufw default allow outgoing">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo ufw allow ssh">
+  <div class="cmd-main">
+    <pre>sudo ufw allow ssh</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow ssh">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo ufw allow 9443/tcp    # Portainer">
+  <div class="cmd-main">
+    <pre>sudo ufw allow 9443/tcp    # Portainer</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow 9443/tcp    # Portainer">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo ufw allow 3001/tcp    # Uptime Kuma">
+  <div class="cmd-main">
+    <pre>sudo ufw allow 3001/tcp    # Uptime Kuma</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow 3001/tcp    # Uptime Kuma">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="Altres Fonaments sudo ufw allow 3000/tcp    # Homepage">
+  <div class="cmd-main">
+    <pre>sudo ufw allow 3000/tcp    # Homepage</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow 3000/tcp    # Homepage">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+</div>
+<div class="category" data-cat="Cron">
+<h2>Cron <span class="category-count">(1 comandes)</span></h2>
+<div class="cmd" data-text="Cron Seguretat crontab -e">
+  <div class="cmd-main">
+    <pre>crontab -e</pre>
+    <button class="copy-btn" data-cmd="crontab -e">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+</div>
+<div class="category" data-cat="Còpies de seguretat">
+<h2>Còpies de seguretat <span class="category-count">(25 comandes)</span></h2>
+<div class="cmd" data-text="Còpies de seguretat Seguretat sudo apt install restic">
+  <div class="cmd-main">
+    <pre>sudo apt install restic</pre>
+    <button class="copy-btn" data-cmd="sudo apt install restic">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat brew install restic">
+  <div class="cmd-main">
+    <pre>brew install restic</pre>
+    <button class="copy-btn" data-cmd="brew install restic">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic init --repo /home/bernat/backups/bernatlab">
+  <div class="cmd-main">
+    <pre>restic init --repo /home/bernat/backups/bernatlab</pre>
+    <button class="copy-btn" data-cmd="restic init --repo /home/bernat/backups/bernatlab">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r /home/bernat/backups/bernatlab backup \">
+  <div class="cmd-main">
+    <pre>restic -r /home/bernat/backups/bernatlab backup \</pre>
+    <button class="copy-btn" data-cmd="restic -r /home/bernat/backups/bernatlab backup \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r /home/bernat/backups/bernatlab snapshots">
+  <div class="cmd-main">
+    <pre>restic -r /home/bernat/backups/bernatlab snapshots</pre>
+    <button class="copy-btn" data-cmd="restic -r /home/bernat/backups/bernatlab snapshots">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r /home/bernat/backups/bernatlab restore latest --target /tmp/restored">
+  <div class="cmd-main">
+    <pre>restic -r /home/bernat/backups/bernatlab restore latest --target /tmp/restored</pre>
+    <button class="copy-btn" data-cmd="restic -r /home/bernat/backups/bernatlab restore latest --target /tmp/restored">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r /home/bernat/backups/bernatlab restore abc1234 --target /tmp/restored">
+  <div class="cmd-main">
+    <pre>restic -r /home/bernat/backups/bernatlab restore abc1234 --target /tmp/restored</pre>
+    <button class="copy-btn" data-cmd="restic -r /home/bernat/backups/bernatlab restore abc1234 --target /tmp/restored">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r /home/bernat/backups/bernatlab restore latest \">
+  <div class="cmd-main">
+    <pre>restic -r /home/bernat/backups/bernatlab restore latest \</pre>
+    <button class="copy-btn" data-cmd="restic -r /home/bernat/backups/bernatlab restore latest \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat export RESTIC_REPOSITORY="/home/bernat/backups/bernatlab"">
+  <div class="cmd-main">
+    <pre>export RESTIC_REPOSITORY=&quot;/home/bernat/backups/bernatlab&quot;</pre>
+    <button class="copy-btn" data-cmd="export RESTIC_REPOSITORY=&quot;/home/bernat/backups/bernatlab&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat export RESTIC_PASSWORD_FILE="$HOME/.restic-password"">
+  <div class="cmd-main">
+    <pre>export RESTIC_PASSWORD_FILE=&quot;$HOME/.restic-password&quot;</pre>
+    <button class="copy-btn" data-cmd="export RESTIC_PASSWORD_FILE=&quot;$HOME/.restic-password&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic backup "${EXCLUDE_PATTERNS[@]}" "${BACKUP_PATHS[@]}"">
+  <div class="cmd-main">
+    <pre>restic backup &quot;${EXCLUDE_PATTERNS[@]}&quot; &quot;${BACKUP_PATHS[@]}&quot;</pre>
+    <button class="copy-btn" data-cmd="restic backup &quot;${EXCLUDE_PATTERNS[@]}&quot; &quot;${BACKUP_PATHS[@]}&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic forget \">
+  <div class="cmd-main">
+    <pre>restic forget \</pre>
+    <button class="copy-btn" data-cmd="restic forget \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat 0 3 * * * /home/bernat/scripts/backup_diari.sh >> /var/log/restic.log 2>&1">
+  <div class="cmd-main">
+    <pre>0 3 * * * /home/bernat/scripts/backup_diari.sh &gt;&gt; /var/log/restic.log 2&gt;&amp;1</pre>
+    <button class="copy-btn" data-cmd="0 3 * * * /home/bernat/scripts/backup_diari.sh &gt;&gt; /var/log/restic.log 2&gt;&amp;1">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r b2:bernatlab-backups:bernatlab init">
+  <div class="cmd-main">
+    <pre>restic -r b2:bernatlab-backups:bernatlab init</pre>
+    <button class="copy-btn" data-cmd="restic -r b2:bernatlab-backups:bernatlab init">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r b2:bernatlab-backups:bernatlab backup $HOME/bernatlab">
+  <div class="cmd-main">
+    <pre>restic -r b2:bernatlab-backups:bernatlab backup $HOME/bernatlab</pre>
+    <button class="copy-btn" data-cmd="restic -r b2:bernatlab-backups:bernatlab backup $HOME/bernatlab">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r s3:https://s3.wasabisys.com/bernatlab-backups init">
+  <div class="cmd-main">
+    <pre>restic -r s3:https://s3.wasabisys.com/bernatlab-backups init</pre>
+    <button class="copy-btn" data-cmd="restic -r s3:https://s3.wasabisys.com/bernatlab-backups init">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r rclone:gdrive:bernatlab-backups backup $HOME/bernatlab">
+  <div class="cmd-main">
+    <pre>restic -r rclone:gdrive:bernatlab-backups backup $HOME/bernatlab</pre>
+    <button class="copy-btn" data-cmd="restic -r rclone:gdrive:bernatlab-backups backup $HOME/bernatlab">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic backup /var/lib/docker/volumes/">
+  <div class="cmd-main">
+    <pre>restic backup /var/lib/docker/volumes/</pre>
+    <button class="copy-btn" data-cmd="restic backup /var/lib/docker/volumes/">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r /home/bernat/backups/bernatlab check">
+  <div class="cmd-main">
+    <pre>restic -r /home/bernat/backups/bernatlab check</pre>
+    <button class="copy-btn" data-cmd="restic -r /home/bernat/backups/bernatlab check">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat LATEST=$(restic -r "$REPO" snapshots --json | jq -r '.[0].time')">
+  <div class="cmd-main">
+    <pre>LATEST=$(restic -r &quot;$REPO&quot; snapshots --json | jq -r '.[0].time')</pre>
+    <button class="copy-btn" data-cmd="LATEST=$(restic -r &quot;$REPO&quot; snapshots --json | jq -r '.[0].time')">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Seguretat restic -r /mnt/usb/backups/bernatlab restore latest \">
+  <div class="cmd-main">
+    <pre>restic -r /mnt/usb/backups/bernatlab restore latest \</pre>
+    <button class="copy-btn" data-cmd="restic -r /mnt/usb/backups/bernatlab restore latest \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 50</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Hort Osona en acció restic init --repo /home/bernat/backups">
+  <div class="cmd-main">
+    <pre>restic init --repo /home/bernat/backups</pre>
+    <button class="copy-btn" data-cmd="restic init --repo /home/bernat/backups">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Hort Osona en acció restic --repo /home/bernat/backups backup \">
+  <div class="cmd-main">
+    <pre>restic --repo /home/bernat/backups backup \</pre>
+    <button class="copy-btn" data-cmd="restic --repo /home/bernat/backups backup \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Hort Osona en acció restic --repo /home/bernat/backups snapshots">
+  <div class="cmd-main">
+    <pre>restic --repo /home/bernat/backups snapshots</pre>
+    <button class="copy-btn" data-cmd="restic --repo /home/bernat/backups snapshots">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+<div class="cmd" data-text="Còpies de seguretat Hort Osona en acció restic -r ~/backups/bernatlab snapshots">
+  <div class="cmd-main">
+    <pre>restic -r ~/backups/bernatlab snapshots</pre>
+    <button class="copy-btn" data-cmd="restic -r ~/backups/bernatlab snapshots">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 69</div>
+</div>
+</div>
+<div class="category" data-cat="Còpies i imatges">
+<h2>Còpies i imatges <span class="category-count">(20 comandes)</span></h2>
+<div class="cmd" data-text="Còpies i imatges Fonaments git add .">
+  <div class="cmd-main">
+    <pre>git add .</pre>
+    <button class="copy-btn" data-cmd="git add .">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Fonaments git remote add origin git@github.com:bernatmora/bernatlab.git">
+  <div class="cmd-main">
+    <pre>git remote add origin git@github.com:bernatmora/bernatlab.git</pre>
+    <button class="copy-btn" data-cmd="git remote add origin git@github.com:bernatmora/bernatlab.git">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Fonaments git remote add origin URL">
+  <div class="cmd-main">
+    <pre>git remote add origin URL</pre>
+    <button class="copy-btn" data-cmd="git remote add origin URL">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Dades operatives git add directe.html css/directe.css js/directe.js sw.js">
+  <div class="cmd-main">
+    <pre>git add directe.html css/directe.css js/directe.js sw.js</pre>
+    <button class="copy-btn" data-cmd="git add directe.html css/directe.css js/directe.js sw.js">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 21</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges IA local BACKUP_DIR="/Users/bernat/backups/ollama"">
+  <div class="cmd-main">
+    <pre>BACKUP_DIR=&quot;/Users/bernat/backups/ollama&quot;</pre>
+    <button class="copy-btn" data-cmd="BACKUP_DIR=&quot;/Users/bernat/backups/ollama&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 39</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges IA local sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /Applications/Ollama.app">
+  <div class="cmd-main">
+    <pre>sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /Applications/Ollama.app</pre>
+    <button class="copy-btn" data-cmd="sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /Applications/Ollama.app">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 41</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat mkdir -p /home/bernat/backups/bernatlab">
+  <div class="cmd-main">
+    <pre>mkdir -p /home/bernat/backups/bernatlab</pre>
+    <button class="copy-btn" data-cmd="mkdir -p /home/bernat/backups/bernatlab">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat borg init --encryption=repokey /home/bernat/backups/borg-repo">
+  <div class="cmd-main">
+    <pre>borg init --encryption=repokey /home/bernat/backups/borg-repo</pre>
+    <button class="copy-btn" data-cmd="borg init --encryption=repokey /home/bernat/backups/borg-repo">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat /home/bernat/backups/borg-repo::bernatlab-$(date +%Y%m%d) \">
+  <div class="cmd-main">
+    <pre>/home/bernat/backups/borg-repo::bernatlab-$(date +%Y%m%d) \</pre>
+    <button class="copy-btn" data-cmd="/home/bernat/backups/borg-repo::bernatlab-$(date +%Y%m%d) \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat borg list /home/bernat/backups/borg-repo">
+  <div class="cmd-main">
+    <pre>borg list /home/bernat/backups/borg-repo</pre>
+    <button class="copy-btn" data-cmd="borg list /home/bernat/backups/borg-repo">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat borg extract /home/bernat/backups/borg-repo::bernatlab-20260708">
+  <div class="cmd-main">
+    <pre>borg extract /home/bernat/backups/borg-repo::bernatlab-20260708</pre>
+    <button class="copy-btn" data-cmd="borg extract /home/bernat/backups/borg-repo::bernatlab-20260708">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat sudo dd if=/dev/mmcblk0 of=/home/bernat/backups/sd-card.img bs=4M status=progress">
+  <div class="cmd-main">
+    <pre>sudo dd if=/dev/mmcblk0 of=/home/bernat/backups/sd-card.img bs=4M status=progress</pre>
+    <button class="copy-btn" data-cmd="sudo dd if=/dev/mmcblk0 of=/home/bernat/backups/sd-card.img bs=4M status=progress">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat gzip /home/bernat/backups/sd-card.img">
+  <div class="cmd-main">
+    <pre>gzip /home/bernat/backups/sd-card.img</pre>
+    <button class="copy-btn" data-cmd="gzip /home/bernat/backups/sd-card.img">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat borg check /home/bernat/backups/borg-repo">
+  <div class="cmd-main">
+    <pre>borg check /home/bernat/backups/borg-repo</pre>
+    <button class="copy-btn" data-cmd="borg check /home/bernat/backups/borg-repo">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Seguretat REPO="/home/bernat/backups/bernatlab"">
+  <div class="cmd-main">
+    <pre>REPO=&quot;/home/bernat/backups/bernatlab&quot;</pre>
+    <button class="copy-btn" data-cmd="REPO=&quot;/home/bernat/backups/bernatlab&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Operativa 24/7 AGE=$(stat -c %Y /var/lib/bernatlab-backups/latest)">
+  <div class="cmd-main">
+    <pre>AGE=$(stat -c %Y /var/lib/bernatlab-backups/latest)</pre>
+    <button class="copy-btn" data-cmd="AGE=$(stat -c %Y /var/lib/bernatlab-backups/latest)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 53</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Operativa 24/7 - alert: BackupStale">
+  <div class="cmd-main">
+    <pre>- alert: BackupStale</pre>
+    <button class="copy-btn" data-cmd="- alert: BackupStale">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 53</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Operativa 24/7 ExecStart=/home/bernat/homelab/scripts/backup-daily.sh">
+  <div class="cmd-main">
+    <pre>ExecStart=/home/bernat/homelab/scripts/backup-daily.sh</pre>
+    <button class="copy-btn" data-cmd="ExecStart=/home/bernat/homelab/scripts/backup-daily.sh">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Operativa 24/7 sudo systemctl enable --now bernatlab-backup.timer">
+  <div class="cmd-main">
+    <pre>sudo systemctl enable --now bernatlab-backup.timer</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl enable --now bernatlab-backup.timer">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+<div class="cmd" data-text="Còpies i imatges Hort Osona en acció mkdir -p /home/bernat/backups">
+  <div class="cmd-main">
+    <pre>mkdir -p /home/bernat/backups</pre>
+    <button class="copy-btn" data-cmd="mkdir -p /home/bernat/backups">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+</div>
+<div class="category" data-cat="Docker">
+<h2>Docker <span class="category-count">(25 comandes)</span></h2>
+<div class="cmd" data-text="Docker Fonaments │   └── Docker Compose (fitxers a /home/bernat/homelab)         │">
+  <div class="cmd-main">
+    <pre>│   └── Docker Compose (fitxers a /home/bernat/homelab)         │</pre>
+    <button class="copy-btn" data-cmd="│   └── Docker Compose (fitxers a /home/bernat/homelab)         │">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 1</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments find / -name "docker-compose.yml"  # buscar un fitxer">
+  <div class="cmd-main">
+    <pre>find / -name &quot;docker-compose.yml&quot;  # buscar un fitxer</pre>
+    <button class="copy-btn" data-cmd="find / -name &quot;docker-compose.yml&quot;  # buscar un fitxer">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments ├── docker-compose.yml           # definició principal de serveis">
+  <div class="cmd-main">
+    <pre>├── docker-compose.yml           # definició principal de serveis</pre>
+    <button class="copy-btn" data-cmd="├── docker-compose.yml           # definició principal de serveis">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments ├── stacks/                      # sub-piles de compose">
+  <div class="cmd-main">
+    <pre>├── stacks/                      # sub-piles de compose</pre>
+    <button class="copy-btn" data-cmd="├── stacks/                      # sub-piles de compose">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin">
+  <div class="cmd-main">
+    <pre>sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</pre>
+    <button class="copy-btn" data-cmd="sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker run hello-world">
+  <div class="cmd-main">
+    <pre>docker run hello-world</pre>
+    <button class="copy-btn" data-cmd="docker run hello-world">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker images                       # llista imatges locals">
+  <div class="cmd-main">
+    <pre>docker images                       # llista imatges locals</pre>
+    <button class="copy-btn" data-cmd="docker images                       # llista imatges locals">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker pull imatge:tag              # descarrega una imatge">
+  <div class="cmd-main">
+    <pre>docker pull imatge:tag              # descarrega una imatge</pre>
+    <button class="copy-btn" data-cmd="docker pull imatge:tag              # descarrega una imatge">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker rmi imatge                   # esborra una imatge">
+  <div class="cmd-main">
+    <pre>docker rmi imatge                   # esborra una imatge</pre>
+    <button class="copy-btn" data-cmd="docker rmi imatge                   # esborra una imatge">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker image prune                  # esborra imatges no usades">
+  <div class="cmd-main">
+    <pre>docker image prune                  # esborra imatges no usades</pre>
+    <button class="copy-btn" data-cmd="docker image prune                  # esborra imatges no usades">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker image prune -a               # esborra TOTES les imatges no usades">
+  <div class="cmd-main">
+    <pre>docker image prune -a               # esborra TOTES les imatges no usades</pre>
+    <button class="copy-btn" data-cmd="docker image prune -a               # esborra TOTES les imatges no usades">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker ps                           # contenidors actius">
+  <div class="cmd-main">
+    <pre>docker ps                           # contenidors actius</pre>
+    <button class="copy-btn" data-cmd="docker ps                           # contenidors actius">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker ps -a                        # tots els contenidors (inclosos aturats)">
+  <div class="cmd-main">
+    <pre>docker ps -a                        # tots els contenidors (inclosos aturats)</pre>
+    <button class="copy-btn" data-cmd="docker ps -a                        # tots els contenidors (inclosos aturats)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker run -d --name web nginx      # crea i arrenca un contenidor">
+  <div class="cmd-main">
+    <pre>docker run -d --name web nginx      # crea i arrenca un contenidor</pre>
+    <button class="copy-btn" data-cmd="docker run -d --name web nginx      # crea i arrenca un contenidor">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker start nom                    # arrenca un contenidor existent">
+  <div class="cmd-main">
+    <pre>docker start nom                    # arrenca un contenidor existent</pre>
+    <button class="copy-btn" data-cmd="docker start nom                    # arrenca un contenidor existent">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker stop nom                     # atura un contenidor">
+  <div class="cmd-main">
+    <pre>docker stop nom                     # atura un contenidor</pre>
+    <button class="copy-btn" data-cmd="docker stop nom                     # atura un contenidor">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker restart nom                  # reinicia">
+  <div class="cmd-main">
+    <pre>docker restart nom                  # reinicia</pre>
+    <button class="copy-btn" data-cmd="docker restart nom                  # reinicia">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker rm nom                       # esborra un contenidor aturat">
+  <div class="cmd-main">
+    <pre>docker rm nom                       # esborra un contenidor aturat</pre>
+    <button class="copy-btn" data-cmd="docker rm nom                       # esborra un contenidor aturat">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker rm -f nom                    # forçar esborrat">
+  <div class="cmd-main">
+    <pre>docker rm -f nom                    # forçar esborrat</pre>
+    <button class="copy-btn" data-cmd="docker rm -f nom                    # forçar esborrat">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker logs nom                     # mostra logs">
+  <div class="cmd-main">
+    <pre>docker logs nom                     # mostra logs</pre>
+    <button class="copy-btn" data-cmd="docker logs nom                     # mostra logs">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker logs -f nom                  # logs en directe">
+  <div class="cmd-main">
+    <pre>docker logs -f nom                  # logs en directe</pre>
+    <button class="copy-btn" data-cmd="docker logs -f nom                  # logs en directe">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker exec -it nom bash            # obre una consola dins del contenidor">
+  <div class="cmd-main">
+    <pre>docker exec -it nom bash            # obre una consola dins del contenidor</pre>
+    <button class="copy-btn" data-cmd="docker exec -it nom bash            # obre una consola dins del contenidor">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker stats                        # ús de recursos en temps real">
+  <div class="cmd-main">
+    <pre>docker stats                        # ús de recursos en temps real</pre>
+    <button class="copy-btn" data-cmd="docker stats                        # ús de recursos en temps real">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker volume ls                    # llista volums">
+  <div class="cmd-main">
+    <pre>docker volume ls                    # llista volums</pre>
+    <button class="copy-btn" data-cmd="docker volume ls                    # llista volums">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Docker Fonaments docker volume create nom            # crea un volum">
+  <div class="cmd-main">
+    <pre>docker volume create nom            # crea un volum</pre>
+    <button class="copy-btn" data-cmd="docker volume create nom            # crea un volum">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+</div>
+<div class="category" data-cat="Fitxers i editors">
+<h2>Fitxers i editors <span class="category-count">(6 comandes)</span></h2>
+<div class="cmd" data-text="Fitxers i editors Fonaments nano /etc/sudoers">
+  <div class="cmd-main">
+    <pre>nano /etc/sudoers</pre>
+    <button class="copy-btn" data-cmd="nano /etc/sudoers">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Fitxers i editors Fonaments nano, systemctl, journalctl">
+  <div class="cmd-main">
+    <pre>nano, systemctl, journalctl</pre>
+    <button class="copy-btn" data-cmd="nano, systemctl, journalctl">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Fitxers i editors Fonaments nano /home/bernat/homelab/data/homepage/services.yaml">
+  <div class="cmd-main">
+    <pre>nano /home/bernat/homelab/data/homepage/services.yaml</pre>
+    <button class="copy-btn" data-cmd="nano /home/bernat/homelab/data/homepage/services.yaml">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+<div class="cmd" data-text="Fitxers i editors Fonaments nano services.yaml">
+  <div class="cmd-main">
+    <pre>nano services.yaml</pre>
+    <button class="copy-btn" data-cmd="nano services.yaml">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+<div class="cmd" data-text="Fitxers i editors Hort Osona en acció cat ~/.ssh/bernatlab.pub | ssh bernat@hortosona "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"">
+  <div class="cmd-main">
+    <pre>cat ~/.ssh/bernatlab.pub | ssh bernat@hortosona &quot;mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 600 ~/.ssh/authorized_keys&quot;</pre>
+    <button class="copy-btn" data-cmd="cat ~/.ssh/bernatlab.pub | ssh bernat@hortosona &quot;mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 600 ~/.ssh/authorized_keys&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+<div class="cmd" data-text="Fitxers i editors Hort Osona en acció nano ~/.ssh/config">
+  <div class="cmd-main">
+    <pre>nano ~/.ssh/config</pre>
+    <button class="copy-btn" data-cmd="nano ~/.ssh/config">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+</div>
+<div class="category" data-cat="Git">
+<h2>Git <span class="category-count">(4 comandes)</span></h2>
+<div class="cmd" data-text="Git Fonaments Homepage és la porta d'entrada visual al BernatLab. Ens permet organitzar tots els nostres serveis en una sola pàgina, amb informació en temps real. La configuració és totalment basada en fitxers, cosa que ens permet versionar-la amb Git. El socket de Docker, en mode lectura, ens permet accedir a informació dels contenidors. `HOMEPAGE_ALLOWED_HOSTS` és una de les variables clau per evitar errors. En el proper capítol veurem com versionar tota aquesta feina amb Git i com mantenir una bona documentació.">
+  <div class="cmd-main">
+    <pre>Homepage és la porta d'entrada visual al BernatLab. Ens permet organitzar tots els nostres serveis en una sola pàgina, amb informació en temps real. La configuració és totalment basada en fitxers, cosa que ens permet versionar-la amb Git. El socket de Docker, en mode lectura, ens permet accedir a informació dels contenidors. `HOMEPAGE_ALLOWED_HOSTS` és una de les variables clau per evitar errors. En el proper capítol veurem com versionar tota aquesta feina amb Git i com mantenir una bona documentació.</pre>
+    <button class="copy-btn" data-cmd="Homepage és la porta d'entrada visual al BernatLab. Ens permet organitzar tots els nostres serveis en una sola pàgina, amb informació en temps real. La configuració és totalment basada en fitxers, cosa que ens permet versionar-la amb Git. El socket de Docker, en mode lectura, ens permet accedir a informació dels contenidors. `HOMEPAGE_ALLOWED_HOSTS` és una de les variables clau per evitar errors. En el proper capítol veurem com versionar tota aquesta feina amb Git i com mantenir una bona documentació.">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 8</div>
+</div>
+<div class="cmd" data-text="Git Fonaments git pull">
+  <div class="cmd-main">
+    <pre>git pull</pre>
+    <button class="copy-btn" data-cmd="git pull">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+<div class="cmd" data-text="Git Fonaments git init, git status, git add, git commit">
+  <div class="cmd-main">
+    <pre>git init, git status, git add, git commit</pre>
+    <button class="copy-btn" data-cmd="git init, git status, git add, git commit">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+<div class="cmd" data-text="Git Fonaments git push, git pull">
+  <div class="cmd-main">
+    <pre>git push, git pull</pre>
+    <button class="copy-btn" data-cmd="git push, git pull">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+</div>
+<div class="category" data-cat="Grafana">
+<h2>Grafana <span class="category-count">(25 comandes)</span></h2>
+<div class="cmd" data-text="Grafana Fonaments │   ├── monitoring/              # Uptime Kuma, Grafana, etc.">
+  <div class="cmd-main">
+    <pre>│   ├── monitoring/              # Uptime Kuma, Grafana, etc.</pre>
+    <button class="copy-btn" data-cmd="│   ├── monitoring/              # Uptime Kuma, Grafana, etc.">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Grafana Fonaments git commit -m "Afegeix targeta Grafana a Homepage"">
+  <div class="cmd-main">
+    <pre>git commit -m &quot;Afegeix targeta Grafana a Homepage&quot;</pre>
+    <button class="copy-btn" data-cmd="git commit -m &quot;Afegeix targeta Grafana a Homepage&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 9</div>
+</div>
+<div class="cmd" data-text="Grafana Dades operatives user grafana">
+  <div class="cmd-main">
+    <pre>user grafana</pre>
+    <button class="copy-btn" data-cmd="user grafana">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="Grafana Dades operatives grafana:">
+  <div class="cmd-main">
+    <pre>grafana:</pre>
+    <button class="copy-btn" data-cmd="grafana:">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 19</div>
+</div>
+<div class="cmd" data-text="Grafana Dades operatives image: grafana/grafana:11.0">
+  <div class="cmd-main">
+    <pre>image: grafana/grafana:11.0</pre>
+    <button class="copy-btn" data-cmd="image: grafana/grafana:11.0">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 19</div>
+</div>
+<div class="cmd" data-text="Grafana Dades operatives container_name: grafana">
+  <div class="cmd-main">
+    <pre>container_name: grafana</pre>
+    <button class="copy-btn" data-cmd="container_name: grafana">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 19</div>
+</div>
+<div class="cmd" data-text="Grafana Dades operatives - /home/bernat/homelab/data/grafana:/var/lib/grafana">
+  <div class="cmd-main">
+    <pre>- /home/bernat/homelab/data/grafana:/var/lib/grafana</pre>
+    <button class="copy-btn" data-cmd="- /home/bernat/homelab/data/grafana:/var/lib/grafana">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 19</div>
+</div>
+<div class="cmd" data-text="Grafana Dades operatives - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}">
+  <div class="cmd-main">
+    <pre>- GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}</pre>
+    <button class="copy-btn" data-cmd="- GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 19</div>
+</div>
+<div class="cmd" data-text="Grafana Dades operatives - /home/bernat/homelab/logs/grafana:/var/log/grafana">
+  <div class="cmd-main">
+    <pre>- /home/bernat/homelab/logs/grafana:/var/log/grafana</pre>
+    <button class="copy-btn" data-cmd="- /home/bernat/homelab/logs/grafana:/var/log/grafana">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 22</div>
+</div>
+<div class="cmd" data-text="Grafana LoRa ├── Grafana (visualització)">
+  <div class="cmd-main">
+    <pre>├── Grafana (visualització)</pre>
+    <button class="copy-btn" data-cmd="├── Grafana (visualització)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">LoRa</span>Capítol 23</div>
+</div>
+<div class="cmd" data-text="Grafana LoRa [Grafana]">
+  <div class="cmd-main">
+    <pre>[Grafana]</pre>
+    <button class="copy-btn" data-cmd="[Grafana]">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">LoRa</span>Capítol 30</div>
+</div>
+<div class="cmd" data-text="Grafana Seguretat grafana/loki:2.9.0">
+  <div class="cmd-main">
+    <pre>grafana/loki:2.9.0</pre>
+    <button class="copy-btn" data-cmd="grafana/loki:2.9.0">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 49</div>
+</div>
+<div class="cmd" data-text="Grafana Seguretat grafana/promtail:2.9.0">
+  <div class="cmd-main">
+    <pre>grafana/promtail:2.9.0</pre>
+    <button class="copy-btn" data-cmd="grafana/promtail:2.9.0">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 49</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 container_cpu_usage_seconds_total{name="grafana"} 12.5">
+  <div class="cmd-main">
+    <pre>container_cpu_usage_seconds_total{name=&quot;grafana&quot;} 12.5</pre>
+    <button class="copy-btn" data-cmd="container_cpu_usage_seconds_total{name=&quot;grafana&quot;} 12.5">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 container_memory_usage_bytes{name="grafana"} 52428800">
+  <div class="cmd-main">
+    <pre>container_memory_usage_bytes{name=&quot;grafana&quot;} 52428800</pre>
+    <button class="copy-btn" data-cmd="container_memory_usage_bytes{name=&quot;grafana&quot;} 52428800">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 image: grafana/grafana:latest">
+  <div class="cmd-main">
+    <pre>image: grafana/grafana:latest</pre>
+    <button class="copy-btn" data-cmd="image: grafana/grafana:latest">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 - ./grafana/data:/var/lib/grafana">
+  <div class="cmd-main">
+    <pre>- ./grafana/data:/var/lib/grafana</pre>
+    <button class="copy-btn" data-cmd="- ./grafana/data:/var/lib/grafana">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 - ./grafana/provisioning:/etc/grafana/provisioning">
+  <div class="cmd-main">
+    <pre>- ./grafana/provisioning:/etc/grafana/provisioning</pre>
+    <button class="copy-btn" data-cmd="- ./grafana/provisioning:/etc/grafana/provisioning">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}">
+  <div class="cmd-main">
+    <pre>- GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}</pre>
+    <button class="copy-btn" data-cmd="- GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 "grafana:3000"">
+  <div class="cmd-main">
+    <pre>&quot;grafana:3000&quot;</pre>
+    <button class="copy-btn" data-cmd="&quot;grafana:3000&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 grafana-data:">
+  <div class="cmd-main">
+    <pre>grafana-data:</pre>
+    <button class="copy-btn" data-cmd="grafana-data:">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 57</div>
+</div>
+<div class="cmd" data-text="Grafana Operativa 24/7 device: /mnt/ssd/grafana">
+  <div class="cmd-main">
+    <pre>device: /mnt/ssd/grafana</pre>
+    <button class="copy-btn" data-cmd="device: /mnt/ssd/grafana">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 57</div>
+</div>
+<div class="cmd" data-text="Grafana Hort Osona en acció │   ├── grafana.yml">
+  <div class="cmd-main">
+    <pre>│   ├── grafana.yml</pre>
+    <button class="copy-btn" data-cmd="│   ├── grafana.yml">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 61</div>
+</div>
+<div class="cmd" data-text="Grafana Hort Osona en acció [ Grafana ]    ← panell web amb gràfiques">
+  <div class="cmd-main">
+    <pre>[ Grafana ]    ← panell web amb gràfiques</pre>
+    <button class="copy-btn" data-cmd="[ Grafana ]    ← panell web amb gràfiques">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 63</div>
+</div>
+<div class="cmd" data-text="Grafana Hort Osona en acció - ./data/grafana:/var/lib/grafana">
+  <div class="cmd-main">
+    <pre>- ./data/grafana:/var/lib/grafana</pre>
+    <button class="copy-btn" data-cmd="- ./data/grafana:/var/lib/grafana">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 63</div>
+</div>
+</div>
+<div class="category" data-cat="InfluxDB">
+<h2>InfluxDB <span class="category-count">(25 comandes)</span></h2>
+<div class="cmd" data-text="InfluxDB Fonaments │   ├── data/                    # InfluxDB, PostgreSQL, etc.">
+  <div class="cmd-main">
+    <pre>│   ├── data/                    # InfluxDB, PostgreSQL, etc.</pre>
+    <button class="copy-btn" data-cmd="│   ├── data/                    # InfluxDB, PostgreSQL, etc.">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="InfluxDB Fonaments │   ├── monitoring/   → grafana, influxdb">
+  <div class="cmd-main">
+    <pre>│   ├── monitoring/   → grafana, influxdb</pre>
+    <button class="copy-btn" data-cmd="│   ├── monitoring/   → grafana, influxdb">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 6</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives influxdb:">
+  <div class="cmd-main">
+    <pre>influxdb:</pre>
+    <button class="copy-btn" data-cmd="influxdb:">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives image: influxdb:2.7">
+  <div class="cmd-main">
+    <pre>image: influxdb:2.7</pre>
+    <button class="copy-btn" data-cmd="image: influxdb:2.7">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives container_name: influxdb">
+  <div class="cmd-main">
+    <pre>container_name: influxdb</pre>
+    <button class="copy-btn" data-cmd="container_name: influxdb">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - /home/bernat/homelab/data/influxdb:/var/lib/influxdb2">
+  <div class="cmd-main">
+    <pre>- /home/bernat/homelab/data/influxdb:/var/lib/influxdb2</pre>
+    <button class="copy-btn" data-cmd="- /home/bernat/homelab/data/influxdb:/var/lib/influxdb2">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - /home/bernat/homelab/data/influxdb/config:/etc/influxdb2">
+  <div class="cmd-main">
+    <pre>- /home/bernat/homelab/data/influxdb/config:/etc/influxdb2</pre>
+    <button class="copy-btn" data-cmd="- /home/bernat/homelab/data/influxdb/config:/etc/influxdb2">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - DOCKER_INFLUXDB_INIT_MODE=setup">
+  <div class="cmd-main">
+    <pre>- DOCKER_INFLUXDB_INIT_MODE=setup</pre>
+    <button class="copy-btn" data-cmd="- DOCKER_INFLUXDB_INIT_MODE=setup">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - DOCKER_INFLUXDB_INIT_USERNAME=bernat">
+  <div class="cmd-main">
+    <pre>- DOCKER_INFLUXDB_INIT_USERNAME=bernat</pre>
+    <button class="copy-btn" data-cmd="- DOCKER_INFLUXDB_INIT_USERNAME=bernat">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - DOCKER_INFLUXDB_INIT_PASSWORD=ELMEUPASSWORD">
+  <div class="cmd-main">
+    <pre>- DOCKER_INFLUXDB_INIT_PASSWORD=ELMEUPASSWORD</pre>
+    <button class="copy-btn" data-cmd="- DOCKER_INFLUXDB_INIT_PASSWORD=ELMEUPASSWORD">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - DOCKER_INFLUXDB_INIT_ORG=bernatlab">
+  <div class="cmd-main">
+    <pre>- DOCKER_INFLUXDB_INIT_ORG=bernatlab</pre>
+    <button class="copy-btn" data-cmd="- DOCKER_INFLUXDB_INIT_ORG=bernatlab">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - DOCKER_INFLUXDB_INIT_BUCKET=hort-osona">
+  <div class="cmd-main">
+    <pre>- DOCKER_INFLUXDB_INIT_BUCKET=hort-osona</pre>
+    <button class="copy-btn" data-cmd="- DOCKER_INFLUXDB_INIT_BUCKET=hort-osona">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - DOCKER_INFLUXDB_INIT_RETENTION=8760h  # 1 any">
+  <div class="cmd-main">
+    <pre>- DOCKER_INFLUXDB_INIT_RETENTION=8760h  # 1 any</pre>
+    <button class="copy-btn" data-cmd="- DOCKER_INFLUXDB_INIT_RETENTION=8760h  # 1 any">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=ELMEUTOKENINICIAL">
+  <div class="cmd-main">
+    <pre>- DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=ELMEUTOKENINICIAL</pre>
+    <button class="copy-btn" data-cmd="- DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=ELMEUTOKENINICIAL">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives from influxdb_client import InfluxDBClient">
+  <div class="cmd-main">
+    <pre>from influxdb_client import InfluxDBClient</pre>
+    <button class="copy-btn" data-cmd="from influxdb_client import InfluxDBClient">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives from influxdb_client.client.write_api import SYNCHRONOUS">
+  <div class="cmd-main">
+    <pre>from influxdb_client.client.write_api import SYNCHRONOUS</pre>
+    <button class="copy-btn" data-cmd="from influxdb_client.client.write_api import SYNCHRONOUS">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives client = InfluxDBClient(">
+  <div class="cmd-main">
+    <pre>client = InfluxDBClient(</pre>
+    <button class="copy-btn" data-cmd="client = InfluxDBClient(">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives INFLUXD_BOLT_PATH=/var/lib/influxdb2/influxd.bolt">
+  <div class="cmd-main">
+    <pre>INFLUXD_BOLT_PATH=/var/lib/influxdb2/influxd.bolt</pre>
+    <button class="copy-btn" data-cmd="INFLUXD_BOLT_PATH=/var/lib/influxdb2/influxd.bolt">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives INFLUXD_ENGINE_PATH=/var/lib/influxdb2/engine">
+  <div class="cmd-main">
+    <pre>INFLUXD_ENGINE_PATH=/var/lib/influxdb2/engine</pre>
+    <button class="copy-btn" data-cmd="INFLUXD_ENGINE_PATH=/var/lib/influxdb2/engine">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives INFLUXD_QUERY_MEMORY_BYTES=536870912   # 512 MB">
+  <div class="cmd-main">
+    <pre>INFLUXD_QUERY_MEMORY_BYTES=536870912   # 512 MB</pre>
+    <button class="copy-btn" data-cmd="INFLUXD_QUERY_MEMORY_BYTES=536870912   # 512 MB">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives INFLUXD_QUERY_MAX_BUCKETS=20">
+  <div class="cmd-main">
+    <pre>INFLUXD_QUERY_MAX_BUCKETS=20</pre>
+    <button class="copy-btn" data-cmd="INFLUXD_QUERY_MAX_BUCKETS=20">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives influx backup /path/al/backup \">
+  <div class="cmd-main">
+    <pre>influx backup /path/al/backup \</pre>
+    <button class="copy-btn" data-cmd="influx backup /path/al/backup \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives influx restore /path/al/backup \">
+  <div class="cmd-main">
+    <pre>influx restore /path/al/backup \</pre>
+    <button class="copy-btn" data-cmd="influx restore /path/al/backup \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives influx backup /home/bernat/homelab/backup/influxdb-$(date +%F)">
+  <div class="cmd-main">
+    <pre>influx backup /home/bernat/homelab/backup/influxdb-$(date +%F)</pre>
+    <button class="copy-btn" data-cmd="influx backup /home/bernat/homelab/backup/influxdb-$(date +%F)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="InfluxDB Dades operatives influx bucket list --org bernatlab --token ELMEUTOKEN">
+  <div class="cmd-main">
+    <pre>influx bucket list --org bernatlab --token ELMEUTOKEN</pre>
+    <button class="copy-btn" data-cmd="influx bucket list --org bernatlab --token ELMEUTOKEN">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+</div>
+<div class="category" data-cat="LoRa i sensors">
+<h2>LoRa i sensors <span class="category-count">(3 comandes)</span></h2>
+<div class="cmd" data-text="LoRa i sensors LoRa Network Server (TTN o autoallotjat)">
+  <div class="cmd-main">
+    <pre>Network Server (TTN o autoallotjat)</pre>
+    <button class="copy-btn" data-cmd="Network Server (TTN o autoallotjat)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">LoRa</span>Capítol 23</div>
+</div>
+<div class="cmd" data-text="LoRa i sensors LoRa │   ├── Sí → LoRaWAN (amb TTN o ChirpStack)">
+  <div class="cmd-main">
+    <pre>│   ├── Sí → LoRaWAN (amb TTN o ChirpStack)</pre>
+    <button class="copy-btn" data-cmd="│   ├── Sí → LoRaWAN (amb TTN o ChirpStack)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">LoRa</span>Capítol 25</div>
+</div>
+<div class="cmd" data-text="LoRa i sensors Hort Osona en acció client.publish("lora/gateway/raw", json.dumps(payload))">
+  <div class="cmd-main">
+    <pre>client.publish(&quot;lora/gateway/raw&quot;, json.dumps(payload))</pre>
+    <button class="copy-btn" data-cmd="client.publish(&quot;lora/gateway/raw&quot;, json.dumps(payload))">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 65</div>
+</div>
+</div>
+<div class="category" data-cat="MQTT">
+<h2>MQTT <span class="category-count">(25 comandes)</span></h2>
+<div class="cmd" data-text="MQTT Fonaments │       ├── [pròxims: File Browser, Node-RED, Mosquitto, ...]   │">
+  <div class="cmd-main">
+    <pre>│       ├── [pròxims: File Browser, Node-RED, Mosquitto, ...]   │</pre>
+    <button class="copy-btn" data-cmd="│       ├── [pròxims: File Browser, Node-RED, Mosquitto, ...]   │">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 1</div>
+</div>
+<div class="cmd" data-text="MQTT Fonaments │   ├── iot/                     # Mosquitto, Node-RED, etc.">
+  <div class="cmd-main">
+    <pre>│   ├── iot/                     # Mosquitto, Node-RED, etc.</pre>
+    <button class="copy-btn" data-cmd="│   ├── iot/                     # Mosquitto, Node-RED, etc.">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="MQTT Fonaments │   ├── iot/          → mosquitto, node-red">
+  <div class="cmd-main">
+    <pre>│   ├── iot/          → mosquitto, node-red</pre>
+    <button class="copy-btn" data-cmd="│   ├── iot/          → mosquitto, node-red">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 6</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto_pub -h broker.local -t sensors/zona1/temperatura \">
+  <div class="cmd-main">
+    <pre>mosquitto_pub -h broker.local -t sensors/zona1/temperatura \</pre>
+    <button class="copy-btn" data-cmd="mosquitto_pub -h broker.local -t sensors/zona1/temperatura \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 12</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto_pub -h 100.115.134.76 -t test -m "hola"">
+  <div class="cmd-main">
+    <pre>mosquitto_pub -h 100.115.134.76 -t test -m &quot;hola&quot;</pre>
+    <button class="copy-btn" data-cmd="mosquitto_pub -h 100.115.134.76 -t test -m &quot;hola&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 12</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto_sub -h 100.115.134.76 -t "sensors/#" -v">
+  <div class="cmd-main">
+    <pre>mosquitto_sub -h 100.115.134.76 -t &quot;sensors/#&quot; -v</pre>
+    <button class="copy-btn" data-cmd="mosquitto_sub -h 100.115.134.76 -t &quot;sensors/#&quot; -v">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 12</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto_pub -h BROKER -t TOPIC -m MISSATGE">
+  <div class="cmd-main">
+    <pre>mosquitto_pub -h BROKER -t TOPIC -m MISSATGE</pre>
+    <button class="copy-btn" data-cmd="mosquitto_pub -h BROKER -t TOPIC -m MISSATGE">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 12</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto_sub -h BROKER -t TOPIC -v">
+  <div class="cmd-main">
+    <pre>mosquitto_sub -h BROKER -t TOPIC -v</pre>
+    <button class="copy-btn" data-cmd="mosquitto_sub -h BROKER -t TOPIC -v">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 12</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto_pub -h BROKER -t TOPIC -m MISSATGE -q 1 -r">
+  <div class="cmd-main">
+    <pre>mosquitto_pub -h BROKER -t TOPIC -m MISSATGE -q 1 -r</pre>
+    <button class="copy-btn" data-cmd="mosquitto_pub -h BROKER -t TOPIC -m MISSATGE -q 1 -r">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 12</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives │       ├── mosquitto.conf">
+  <div class="cmd-main">
+    <pre>│       ├── mosquitto.conf</pre>
+    <button class="copy-btn" data-cmd="│       ├── mosquitto.conf">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives └── mosquitto/    (volum persistent)">
+  <div class="cmd-main">
+    <pre>└── mosquitto/    (volum persistent)</pre>
+    <button class="copy-btn" data-cmd="└── mosquitto/    (volum persistent)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto:">
+  <div class="cmd-main">
+    <pre>mosquitto:</pre>
+    <button class="copy-btn" data-cmd="mosquitto:">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives image: eclipse-mosquitto:2.0">
+  <div class="cmd-main">
+    <pre>image: eclipse-mosquitto:2.0</pre>
+    <button class="copy-btn" data-cmd="image: eclipse-mosquitto:2.0">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives container_name: mosquitto">
+  <div class="cmd-main">
+    <pre>container_name: mosquitto</pre>
+    <button class="copy-btn" data-cmd="container_name: mosquitto">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro">
+  <div class="cmd-main">
+    <pre>- ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro</pre>
+    <button class="copy-btn" data-cmd="- ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives - ./passwordfile:/mosquitto/config/passwordfile:ro">
+  <div class="cmd-main">
+    <pre>- ./passwordfile:/mosquitto/config/passwordfile:ro</pre>
+    <button class="copy-btn" data-cmd="- ./passwordfile:/mosquitto/config/passwordfile:ro">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives - ./aclfile:/mosquitto/config/aclfile:ro">
+  <div class="cmd-main">
+    <pre>- ./aclfile:/mosquitto/config/aclfile:ro</pre>
+    <button class="copy-btn" data-cmd="- ./aclfile:/mosquitto/config/aclfile:ro">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives - /home/bernat/homelab/data/mosquitto:/mosquitto/data">
+  <div class="cmd-main">
+    <pre>- /home/bernat/homelab/data/mosquitto:/mosquitto/data</pre>
+    <button class="copy-btn" data-cmd="- /home/bernat/homelab/data/mosquitto:/mosquitto/data">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives - /home/bernat/homelab/data/mosquitto/log:/mosquitto/log">
+  <div class="cmd-main">
+    <pre>- /home/bernat/homelab/data/mosquitto/log:/mosquitto/log</pre>
+    <button class="copy-btn" data-cmd="- /home/bernat/homelab/data/mosquitto/log:/mosquitto/log">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives persistence_location /mosquitto/data/">
+  <div class="cmd-main">
+    <pre>persistence_location /mosquitto/data/</pre>
+    <button class="copy-btn" data-cmd="persistence_location /mosquitto/data/">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives log_dest file /mosquitto/log/mosquitto.log">
+  <div class="cmd-main">
+    <pre>log_dest file /mosquitto/log/mosquitto.log</pre>
+    <button class="copy-btn" data-cmd="log_dest file /mosquitto/log/mosquitto.log">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives password_file /mosquitto/config/passwordfile">
+  <div class="cmd-main">
+    <pre>password_file /mosquitto/config/passwordfile</pre>
+    <button class="copy-btn" data-cmd="password_file /mosquitto/config/passwordfile">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives acl_file /mosquitto/config/aclfile">
+  <div class="cmd-main">
+    <pre>acl_file /mosquitto/config/aclfile</pre>
+    <button class="copy-btn" data-cmd="acl_file /mosquitto/config/aclfile">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto_passwd -c passwordfile USUARI">
+  <div class="cmd-main">
+    <pre>mosquitto_passwd -c passwordfile USUARI</pre>
+    <button class="copy-btn" data-cmd="mosquitto_passwd -c passwordfile USUARI">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+<div class="cmd" data-text="MQTT Dades operatives mosquitto_passwd -b passwordfile USUARI CONTRASENYA">
+  <div class="cmd-main">
+    <pre>mosquitto_passwd -b passwordfile USUARI CONTRASENYA</pre>
+    <button class="copy-btn" data-cmd="mosquitto_passwd -b passwordfile USUARI CONTRASENYA">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 13</div>
+</div>
+</div>
+<div class="category" data-cat="Paquets (apt)">
+<h2>Paquets (apt) <span class="category-count">(6 comandes)</span></h2>
+<div class="cmd" data-text="Paquets (apt) Fonaments apt update && apt upgrade">
+  <div class="cmd-main">
+    <pre>apt update &amp;&amp; apt upgrade</pre>
+    <button class="copy-btn" data-cmd="apt update &amp;&amp; apt upgrade">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Paquets (apt) Fonaments apt install, apt remove">
+  <div class="cmd-main">
+    <pre>apt install, apt remove</pre>
+    <button class="copy-btn" data-cmd="apt install, apt remove">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="Paquets (apt) Dades operatives apt install mosquitto-clients">
+  <div class="cmd-main">
+    <pre>apt install mosquitto-clients</pre>
+    <button class="copy-btn" data-cmd="apt install mosquitto-clients">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 12</div>
+</div>
+<div class="cmd" data-text="Paquets (apt) Operativa 24/7 apt update">
+  <div class="cmd-main">
+    <pre>apt update</pre>
+    <button class="copy-btn" data-cmd="apt update">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+<div class="cmd" data-text="Paquets (apt) Operativa 24/7 apt upgrade -y">
+  <div class="cmd-main">
+    <pre>apt upgrade -y</pre>
+    <button class="copy-btn" data-cmd="apt upgrade -y">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+<div class="cmd" data-text="Paquets (apt) Operativa 24/7 apt autoremove -y">
+  <div class="cmd-main">
+    <pre>apt autoremove -y</pre>
+    <button class="copy-btn" data-cmd="apt autoremove -y">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+</div>
+<div class="category" data-cat="Prometheus">
+<h2>Prometheus <span class="category-count">(21 comandes)</span></h2>
+<div class="cmd" data-text="Prometheus Operativa 24/7 prometheus:">
+  <div class="cmd-main">
+    <pre>prometheus:</pre>
+    <button class="copy-btn" data-cmd="prometheus:">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 image: prom/prometheus:latest">
+  <div class="cmd-main">
+    <pre>image: prom/prometheus:latest</pre>
+    <button class="copy-btn" data-cmd="image: prom/prometheus:latest">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 container_name: prometheus">
+  <div class="cmd-main">
+    <pre>container_name: prometheus</pre>
+    <button class="copy-btn" data-cmd="container_name: prometheus">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml">
+  <div class="cmd-main">
+    <pre>- ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml</pre>
+    <button class="copy-btn" data-cmd="- ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - ./prometheus/data:/prometheus">
+  <div class="cmd-main">
+    <pre>- ./prometheus/data:/prometheus</pre>
+    <button class="copy-btn" data-cmd="- ./prometheus/data:/prometheus">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - '--config.file=/etc/prometheus/prometheus.yml'">
+  <div class="cmd-main">
+    <pre>- '--config.file=/etc/prometheus/prometheus.yml'</pre>
+    <button class="copy-btn" data-cmd="- '--config.file=/etc/prometheus/prometheus.yml'">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - '--storage.tsdb.path=/prometheus'">
+  <div class="cmd-main">
+    <pre>- '--storage.tsdb.path=/prometheus'</pre>
+    <button class="copy-btn" data-cmd="- '--storage.tsdb.path=/prometheus'">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - '--web.console.libraries=/usr/share/prometheus/console_libraries'">
+  <div class="cmd-main">
+    <pre>- '--web.console.libraries=/usr/share/prometheus/console_libraries'</pre>
+    <button class="copy-btn" data-cmd="- '--web.console.libraries=/usr/share/prometheus/console_libraries'">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - '--web.console.templates=/usr/share/prometheus/consoles'">
+  <div class="cmd-main">
+    <pre>- '--web.console.templates=/usr/share/prometheus/consoles'</pre>
+    <button class="copy-btn" data-cmd="- '--web.console.templates=/usr/share/prometheus/consoles'">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - prometheus">
+  <div class="cmd-main">
+    <pre>- prometheus</pre>
+    <button class="copy-btn" data-cmd="- prometheus">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - job_name: prometheus">
+  <div class="cmd-main">
+    <pre>- job_name: prometheus</pre>
+    <button class="copy-btn" data-cmd="- job_name: prometheus">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - name: Prometheus">
+  <div class="cmd-main">
+    <pre>- name: Prometheus</pre>
+    <button class="copy-btn" data-cmd="- name: Prometheus">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 type: prometheus">
+  <div class="cmd-main">
+    <pre>type: prometheus</pre>
+    <button class="copy-btn" data-cmd="type: prometheus">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 url: http://prometheus:9090">
+  <div class="cmd-main">
+    <pre>url: http://prometheus:9090</pre>
+    <button class="copy-btn" data-cmd="url: http://prometheus:9090">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 52</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml">
+  <div class="cmd-main">
+    <pre>- ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml</pre>
+    <button class="copy-btn" data-cmd="- ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 53</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 amtool silence add --alertmanager=http://localhost:9093 \">
+  <div class="cmd-main">
+    <pre>amtool silence add --alertmanager=http://localhost:9093 \</pre>
+    <button class="copy-btn" data-cmd="amtool silence add --alertmanager=http://localhost:9093 \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 53</div>
+</div>
+<div class="cmd" data-text="Prometheus Operativa 24/7 "prometheus:9090"">
+  <div class="cmd-main">
+    <pre>&quot;prometheus:9090&quot;</pre>
+    <button class="copy-btn" data-cmd="&quot;prometheus:9090&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+<div class="cmd" data-text="Prometheus Hort Osona en acció - ./prometheus/rules.yml:/etc/prometheus/rules.yml">
+  <div class="cmd-main">
+    <pre>- ./prometheus/rules.yml:/etc/prometheus/rules.yml</pre>
+    <button class="copy-btn" data-cmd="- ./prometheus/rules.yml:/etc/prometheus/rules.yml">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 67</div>
+</div>
+<div class="cmd" data-text="Prometheus Hort Osona en acció - ./data/prometheus:/prometheus">
+  <div class="cmd-main">
+    <pre>- ./data/prometheus:/prometheus</pre>
+    <button class="copy-btn" data-cmd="- ./data/prometheus:/prometheus">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 67</div>
+</div>
+<div class="cmd" data-text="Prometheus Hort Osona en acció expr: up{job=~"cadvisor|prometheus"} == 0">
+  <div class="cmd-main">
+    <pre>expr: up{job=~&quot;cadvisor|prometheus&quot;} == 0</pre>
+    <button class="copy-btn" data-cmd="expr: up{job=~&quot;cadvisor|prometheus&quot;} == 0">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 67</div>
+</div>
+<div class="cmd" data-text="Prometheus Hort Osona en acció from prometheus_client import start_http_server, Gauge">
+  <div class="cmd-main">
+    <pre>from prometheus_client import start_http_server, Gauge</pre>
+    <button class="copy-btn" data-cmd="from prometheus_client import start_http_server, Gauge">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 67</div>
+</div>
+</div>
+<div class="category" data-cat="Python">
+<h2>Python <span class="category-count">(7 comandes)</span></h2>
+<div class="cmd" data-text="Python IA local pip install chromadb">
+  <div class="cmd-main">
+    <pre>pip install chromadb</pre>
+    <button class="copy-btn" data-cmd="pip install chromadb">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 36</div>
+</div>
+<div class="cmd" data-text="Python IA local pip install -r requirements.txt  # fastapi, uvicorn, chromadb, requests">
+  <div class="cmd-main">
+    <pre>pip install -r requirements.txt  # fastapi, uvicorn, chromadb, requests</pre>
+    <button class="copy-btn" data-cmd="pip install -r requirements.txt  # fastapi, uvicorn, chromadb, requests">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 38</div>
+</div>
+<div class="cmd" data-text="Python IA local pip install faster-whisper">
+  <div class="cmd-main">
+    <pre>pip install faster-whisper</pre>
+    <button class="copy-btn" data-cmd="pip install faster-whisper">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 40</div>
+</div>
+<div class="cmd" data-text="Python IA local pip install openai-whisper">
+  <div class="cmd-main">
+    <pre>pip install openai-whisper</pre>
+    <button class="copy-btn" data-cmd="pip install openai-whisper">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 40</div>
+</div>
+<div class="cmd" data-text="Python IA local pip install piper-tts">
+  <div class="cmd-main">
+    <pre>pip install piper-tts</pre>
+    <button class="copy-btn" data-cmd="pip install piper-tts">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 40</div>
+</div>
+<div class="cmd" data-text="Python IA local pip install TTS">
+  <div class="cmd-main">
+    <pre>pip install TTS</pre>
+    <button class="copy-btn" data-cmd="pip install TTS">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 40</div>
+</div>
+<div class="cmd" data-text="Python Seguretat pip install gitleaks">
+  <div class="cmd-main">
+    <pre>pip install gitleaks</pre>
+    <button class="copy-btn" data-cmd="pip install gitleaks">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 46</div>
+</div>
+</div>
+<div class="category" data-cat="SSH i accés remot">
+<h2>SSH i accés remot <span class="category-count">(20 comandes)</span></h2>
+<div class="cmd" data-text="SSH i accés remot Fonaments ssh bernat@100.115.134.76">
+  <div class="cmd-main">
+    <pre>ssh bernat@100.115.134.76</pre>
+    <button class="copy-btn" data-cmd="ssh bernat@100.115.134.76">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 1</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Fonaments ssh-keygen -t ed25519 -C "bernat@bernatlab"">
+  <div class="cmd-main">
+    <pre>ssh-keygen -t ed25519 -C &quot;bernat@bernatlab&quot;</pre>
+    <button class="copy-btn" data-cmd="ssh-keygen -t ed25519 -C &quot;bernat@bernatlab&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Fonaments ssh-copy-id bernat@100.115.134.76">
+  <div class="cmd-main">
+    <pre>ssh-copy-id bernat@100.115.134.76</pre>
+    <button class="copy-btn" data-cmd="ssh-copy-id bernat@100.115.134.76">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Fonaments ssh bernat@hortosona">
+  <div class="cmd-main">
+    <pre>ssh bernat@hortosona</pre>
+    <button class="copy-btn" data-cmd="ssh bernat@hortosona">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Fonaments ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76">
+  <div class="cmd-main">
+    <pre>ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76</pre>
+    <button class="copy-btn" data-cmd="ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Fonaments ssh-keygen -t ed25519">
+  <div class="cmd-main">
+    <pre>ssh-keygen -t ed25519</pre>
+    <button class="copy-btn" data-cmd="ssh-keygen -t ed25519">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Fonaments ssh-copy-id bernat@hortosona">
+  <div class="cmd-main">
+    <pre>ssh-copy-id bernat@hortosona</pre>
+    <button class="copy-btn" data-cmd="ssh-copy-id bernat@hortosona">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat ssh-keygen -t ed25519 -C "bernat@bernat-mbp" -f ~/.ssh/bernatlab">
+  <div class="cmd-main">
+    <pre>ssh-keygen -t ed25519 -C &quot;bernat@bernat-mbp&quot; -f ~/.ssh/bernatlab</pre>
+    <button class="copy-btn" data-cmd="ssh-keygen -t ed25519 -C &quot;bernat@bernat-mbp&quot; -f ~/.ssh/bernatlab">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 46</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat ssh-copy-id -i ~/.ssh/bernatlab.pub bernat@hortosona">
+  <div class="cmd-main">
+    <pre>ssh-copy-id -i ~/.ssh/bernatlab.pub bernat@hortosona</pre>
+    <button class="copy-btn" data-cmd="ssh-copy-id -i ~/.ssh/bernatlab.pub bernat@hortosona">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 46</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat sudo systemctl restart sshd">
+  <div class="cmd-main">
+    <pre>sudo systemctl restart sshd</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl restart sshd">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 46</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat ssh-add ~/.ssh/bernatlab">
+  <div class="cmd-main">
+    <pre>ssh-add ~/.ssh/bernatlab</pre>
+    <button class="copy-btn" data-cmd="ssh-add ~/.ssh/bernatlab">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 46</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat sudo systemctl edit sshd">
+  <div class="cmd-main">
+    <pre>sudo systemctl edit sshd</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl edit sshd">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat ExecStart=/usr/sbin/sshd -D -i -e -f /etc/ssh/sshd_config">
+  <div class="cmd-main">
+    <pre>ExecStart=/usr/sbin/sshd -D -i -e -f /etc/ssh/sshd_config</pre>
+    <button class="copy-btn" data-cmd="ExecStart=/usr/sbin/sshd -D -i -e -f /etc/ssh/sshd_config">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat sudo fail2ban-client status sshd">
+  <div class="cmd-main">
+    <pre>sudo fail2ban-client status sshd</pre>
+    <button class="copy-btn" data-cmd="sudo fail2ban-client status sshd">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat sudo fail2ban-client set sshd unbanip 1.2.3.4">
+  <div class="cmd-main">
+    <pre>sudo fail2ban-client set sshd unbanip 1.2.3.4</pre>
+    <button class="copy-btn" data-cmd="sudo fail2ban-client set sshd unbanip 1.2.3.4">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat sudo fail2ban-client set sshd banip 1.2.3.4">
+  <div class="cmd-main">
+    <pre>sudo fail2ban-client set sshd banip 1.2.3.4</pre>
+    <button class="copy-btn" data-cmd="sudo fail2ban-client set sshd banip 1.2.3.4">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Seguretat journalctl -u sshd">
+  <div class="cmd-main">
+    <pre>journalctl -u sshd</pre>
+    <button class="copy-btn" data-cmd="journalctl -u sshd">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 49</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Operativa 24/7 journalctl -u sshd -n 100">
+  <div class="cmd-main">
+    <pre>journalctl -u sshd -n 100</pre>
+    <button class="copy-btn" data-cmd="journalctl -u sshd -n 100">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 56</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Hort Osona en acció ssh -i ~/.ssh/bernatlab bernat@hortosona">
+  <div class="cmd-main">
+    <pre>ssh -i ~/.ssh/bernatlab bernat@hortosona</pre>
+    <button class="copy-btn" data-cmd="ssh -i ~/.ssh/bernatlab bernat@hortosona">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+<div class="cmd" data-text="SSH i accés remot Hort Osona en acció ssh-add --apple-use-keychain ~/.ssh/bernatlab">
+  <div class="cmd-main">
+    <pre>ssh-add --apple-use-keychain ~/.ssh/bernatlab</pre>
+    <button class="copy-btn" data-cmd="ssh-add --apple-use-keychain ~/.ssh/bernatlab">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+</div>
+<div class="category" data-cat="Seguretat i tallafocs">
+<h2>Seguretat i tallafocs <span class="category-count">(7 comandes)</span></h2>
+<div class="cmd" data-text="Seguretat i tallafocs Seguretat sudo apt install fail2ban">
+  <div class="cmd-main">
+    <pre>sudo apt install fail2ban</pre>
+    <button class="copy-btn" data-cmd="sudo apt install fail2ban">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="Seguretat i tallafocs Seguretat sudo systemctl status fail2ban">
+  <div class="cmd-main">
+    <pre>sudo systemctl status fail2ban</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl status fail2ban">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="Seguretat i tallafocs Seguretat sudo fail2ban-client status">
+  <div class="cmd-main">
+    <pre>sudo fail2ban-client status</pre>
+    <button class="copy-btn" data-cmd="sudo fail2ban-client status">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="Seguretat i tallafocs Seguretat sudo tail -f /var/log/fail2ban.log">
+  <div class="cmd-main">
+    <pre>sudo tail -f /var/log/fail2ban.log</pre>
+    <button class="copy-btn" data-cmd="sudo tail -f /var/log/fail2ban.log">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="Seguretat i tallafocs Seguretat description: "Més de 10 intents fallits en 5 minuts. IP bloquejada per fail2ban."">
+  <div class="cmd-main">
+    <pre>description: &quot;Més de 10 intents fallits en 5 minuts. IP bloquejada per fail2ban.&quot;</pre>
+    <button class="copy-btn" data-cmd="description: &quot;Més de 10 intents fallits en 5 minuts. IP bloquejada per fail2ban.&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 49</div>
+</div>
+<div class="cmd" data-text="Seguretat i tallafocs Hort Osona en acció sudo nano /etc/fail2ban/jail.local">
+  <div class="cmd-main">
+    <pre>sudo nano /etc/fail2ban/jail.local</pre>
+    <button class="copy-btn" data-cmd="sudo nano /etc/fail2ban/jail.local">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+<div class="cmd" data-text="Seguretat i tallafocs Hort Osona en acció sudo systemctl restart fail2ban">
+  <div class="cmd-main">
+    <pre>sudo systemctl restart fail2ban</pre>
+    <button class="copy-btn" data-cmd="sudo systemctl restart fail2ban">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 60</div>
+</div>
+</div>
+<div class="category" data-cat="Tailscale">
+<h2>Tailscale <span class="category-count">(5 comandes)</span></h2>
+<div class="cmd" data-text="Tailscale Seguretat sudo ufw allow in on tailscale0  # permet tot des de Tailscale">
+  <div class="cmd-main">
+    <pre>sudo ufw allow in on tailscale0  # permet tot des de Tailscale</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow in on tailscale0  # permet tot des de Tailscale">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="Tailscale Seguretat sudo ufw allow in on tailscale0 to any port 22">
+  <div class="cmd-main">
+    <pre>sudo ufw allow in on tailscale0 to any port 22</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow in on tailscale0 to any port 22">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="Tailscale Seguretat sudo ufw allow in on tailscale0 to any port 9443  # Portainer">
+  <div class="cmd-main">
+    <pre>sudo ufw allow in on tailscale0 to any port 9443  # Portainer</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow in on tailscale0 to any port 9443  # Portainer">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="Tailscale Seguretat sudo ufw allow in on tailscale0 to any port 3000  # Homepage">
+  <div class="cmd-main">
+    <pre>sudo ufw allow in on tailscale0 to any port 3000  # Homepage</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow in on tailscale0 to any port 3000  # Homepage">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+<div class="cmd" data-text="Tailscale Seguretat sudo ufw allow in on tailscale0 to any port 3001  # Uptime Kuma">
+  <div class="cmd-main">
+    <pre>sudo ufw allow in on tailscale0 to any port 3001  # Uptime Kuma</pre>
+    <button class="copy-btn" data-cmd="sudo ufw allow in on tailscale0 to any port 3001  # Uptime Kuma">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 47</div>
+</div>
+</div>
+<div class="category" data-cat="Telegram">
+<h2>Telegram <span class="category-count">(4 comandes)</span></h2>
+<div class="cmd" data-text="Telegram Operativa 24/7 url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"">
+  <div class="cmd-main">
+    <pre>url = f&quot;https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage&quot;</pre>
+    <button class="copy-btn" data-cmd="url = f&quot;https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 53</div>
+</div>
+<div class="cmd" data-text="Telegram Operativa 24/7 send_telegram "⚠️ Còpia no s'ha executat avui"">
+  <div class="cmd-main">
+    <pre>send_telegram &quot;⚠️ Còpia no s'ha executat avui&quot;</pre>
+    <button class="copy-btn" data-cmd="send_telegram &quot;⚠️ Còpia no s'ha executat avui&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+<div class="cmd" data-text="Telegram Hort Osona en acció f"https://api.telegram.org/bot{TOKEN}/sendMessage",">
+  <div class="cmd-main">
+    <pre>f&quot;https://api.telegram.org/bot{TOKEN}/sendMessage&quot;,</pre>
+    <button class="copy-btn" data-cmd="f&quot;https://api.telegram.org/bot{TOKEN}/sendMessage&quot;,">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 66</div>
+</div>
+<div class="cmd" data-text="Telegram Hort Osona en acció f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",">
+  <div class="cmd-main">
+    <pre>f&quot;https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage&quot;,</pre>
+    <button class="copy-btn" data-cmd="f&quot;https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage&quot;,">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 67</div>
+</div>
+</div>
+<div class="category" data-cat="Xarxa (curl, wget)">
+<h2>Xarxa (curl, wget) <span class="category-count">(24 comandes)</span></h2>
+<div class="cmd" data-text="Xarxa (curl, wget) Fonaments curl -fsSL https://tailscale.com/install.sh | sh">
+  <div class="cmd-main">
+    <pre>curl -fsSL https://tailscale.com/install.sh | sh</pre>
+    <button class="copy-btn" data-cmd="curl -fsSL https://tailscale.com/install.sh | sh">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 4</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Fonaments curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg">
+  <div class="cmd-main">
+    <pre>curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg</pre>
+    <button class="copy-btn" data-cmd="curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 5</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Dades operatives curl -i -XPOST "http://100.115.134.76:8086/api/v2/write?org=bernatlab&bucket=hort-osona" \">
+  <div class="cmd-main">
+    <pre>curl -i -XPOST &quot;http://100.115.134.76:8086/api/v2/write?org=bernatlab&amp;bucket=hort-osona&quot; \</pre>
+    <button class="copy-btn" data-cmd="curl -i -XPOST &quot;http://100.115.134.76:8086/api/v2/write?org=bernatlab&amp;bucket=hort-osona&quot; \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 15</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Dades operatives curl -H "X-API-Key: CLAU" http://100.115.134.76:8000/zones">
+  <div class="cmd-main">
+    <pre>curl -H &quot;X-API-Key: CLAU&quot; http://100.115.134.76:8000/zones</pre>
+    <button class="copy-btn" data-cmd="curl -H &quot;X-API-Key: CLAU&quot; http://100.115.134.76:8000/zones">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 20</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Dades operatives curl -H "X-API-Key: CLAU" http://100.115.134.76:8000/zones/zona-tomateres/latest">
+  <div class="cmd-main">
+    <pre>curl -H &quot;X-API-Key: CLAU&quot; http://100.115.134.76:8000/zones/zona-tomateres/latest</pre>
+    <button class="copy-btn" data-cmd="curl -H &quot;X-API-Key: CLAU&quot; http://100.115.134.76:8000/zones/zona-tomateres/latest">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 20</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Dades operatives curl -H "X-API-Key: CLAU" https://api.bernatlab.cat/zones">
+  <div class="cmd-main">
+    <pre>curl -H &quot;X-API-Key: CLAU&quot; https://api.bernatlab.cat/zones</pre>
+    <button class="copy-btn" data-cmd="curl -H &quot;X-API-Key: CLAU&quot; https://api.bernatlab.cat/zones">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 21</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Dades operatives curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \">
+  <div class="cmd-main">
+    <pre>curl -X POST &quot;https://api.telegram.org/bot$BOT_TOKEN/sendMessage&quot; \</pre>
+    <button class="copy-btn" data-cmd="curl -X POST &quot;https://api.telegram.org/bot$BOT_TOKEN/sendMessage&quot; \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 22</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) LoRa curl -s http://100.115.134.76:3001/ | grep -q "concentratord" && echo "Gateway OK" || echo "Gateway FALL"">
+  <div class="cmd-main">
+    <pre>curl -s http://100.115.134.76:3001/ | grep -q &quot;concentratord&quot; &amp;&amp; echo &quot;Gateway OK&quot; || echo &quot;Gateway FALL&quot;</pre>
+    <button class="copy-btn" data-cmd="curl -s http://100.115.134.76:3001/ | grep -q &quot;concentratord&quot; &amp;&amp; echo &quot;Gateway OK&quot; || echo &quot;Gateway FALL&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">LoRa</span>Capítol 32</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local curl -fsSL https://ollama.com/install.sh | sh">
+  <div class="cmd-main">
+    <pre>curl -fsSL https://ollama.com/install.sh | sh</pre>
+    <button class="copy-btn" data-cmd="curl -fsSL https://ollama.com/install.sh | sh">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 34</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local curl http://localhost:11434/api/generate -d '{">
+  <div class="cmd-main">
+    <pre>curl http://localhost:11434/api/generate -d '{</pre>
+    <button class="copy-btn" data-cmd="curl http://localhost:11434/api/generate -d '{">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 34</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local curl http://<mac-tailscale-ip>:11434/api/tags">
+  <div class="cmd-main">
+    <pre>curl http://&lt;mac-tailscale-ip&gt;:11434/api/tags</pre>
+    <button class="copy-btn" data-cmd="curl http://&lt;mac-tailscale-ip&gt;:11434/api/tags">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 34</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local curl http://localhost:11434/api/embeddings -d '{">
+  <div class="cmd-main">
+    <pre>curl http://localhost:11434/api/embeddings -d '{</pre>
+    <button class="copy-btn" data-cmd="curl http://localhost:11434/api/embeddings -d '{">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 36</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local curl http://<mac-tailscale-ip>:8080/api/estadistiques">
+  <div class="cmd-main">
+    <pre>curl http://&lt;mac-tailscale-ip&gt;:8080/api/estadistiques</pre>
+    <button class="copy-btn" data-cmd="curl http://&lt;mac-tailscale-ip&gt;:8080/api/estadistiques">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 38</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local curl http://localhost:11434/api/tags">
+  <div class="cmd-main">
+    <pre>curl http://localhost:11434/api/tags</pre>
+    <button class="copy-btn" data-cmd="curl http://localhost:11434/api/tags">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 39</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local curl http://localhost:11434/api/chat -d '{">
+  <div class="cmd-main">
+    <pre>curl http://localhost:11434/api/chat -d '{</pre>
+    <button class="copy-btn" data-cmd="curl http://localhost:11434/api/chat -d '{">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 39</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local curl -X POST http://localhost:3001/api/monitors \">
+  <div class="cmd-main">
+    <pre>curl -X POST http://localhost:3001/api/monitors \</pre>
+    <button class="copy-btn" data-cmd="curl -X POST http://localhost:3001/api/monitors \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 39</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.json">
+  <div class="cmd-main">
+    <pre>wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.json</pre>
+    <button class="copy-btn" data-cmd="wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.json">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 40</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) IA local wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.onnx">
+  <div class="cmd-main">
+    <pre>wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.onnx</pre>
+    <button class="copy-btn" data-cmd="wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.onnx">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">IA local</span>Capítol 40</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Seguretat curl http://100.115.134.76:8080">
+  <div class="cmd-main">
+    <pre>curl http://100.115.134.76:8080</pre>
+    <button class="copy-btn" data-cmd="curl http://100.115.134.76:8080">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 44</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Seguretat curl -X POST "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" \">
+  <div class="cmd-main">
+    <pre>curl -X POST &quot;https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage&quot; \</pre>
+    <button class="copy-btn" data-cmd="curl -X POST &quot;https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage&quot; \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 45</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Operativa 24/7 curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \">
+  <div class="cmd-main">
+    <pre>curl -s -X POST &quot;https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage&quot; \</pre>
+    <button class="copy-btn" data-cmd="curl -s -X POST &quot;https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage&quot; \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 54</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Operativa 24/7 curl http://localhost:<port>">
+  <div class="cmd-main">
+    <pre>curl http://localhost:&lt;port&gt;</pre>
+    <button class="copy-btn" data-cmd="curl http://localhost:&lt;port&gt;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Operativa 24/7</span>Capítol 56</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Hort Osona en acció curl -fsSL https://get.docker.com -o get-docker.sh">
+  <div class="cmd-main">
+    <pre>curl -fsSL https://get.docker.com -o get-docker.sh</pre>
+    <button class="copy-btn" data-cmd="curl -fsSL https://get.docker.com -o get-docker.sh">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 61</div>
+</div>
+<div class="cmd" data-text="Xarxa (curl, wget) Hort Osona en acció curl -X POST "https://api.telegram.org/bot<TOKEN>/sendMessage" \">
+  <div class="cmd-main">
+    <pre>curl -X POST &quot;https://api.telegram.org/bot&lt;TOKEN&gt;/sendMessage&quot; \</pre>
+    <button class="copy-btn" data-cmd="curl -X POST &quot;https://api.telegram.org/bot&lt;TOKEN&gt;/sendMessage&quot; \">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Hort Osona en acció</span>Capítol 66</div>
+</div>
+</div>
+<div class="category" data-cat="systemd">
+<h2>systemd <span class="category-count">(25 comandes)</span></h2>
+<div class="cmd" data-text="systemd Fonaments systemctl status docker">
+  <div class="cmd-main">
+    <pre>systemctl status docker</pre>
+    <button class="copy-btn" data-cmd="systemctl status docker">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 2</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl list-units --type=service --state=running">
+  <div class="cmd-main">
+    <pre>systemctl list-units --type=service --state=running</pre>
+    <button class="copy-btn" data-cmd="systemctl list-units --type=service --state=running">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 2</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl status servei          # estat detallat">
+  <div class="cmd-main">
+    <pre>systemctl status servei          # estat detallat</pre>
+    <button class="copy-btn" data-cmd="systemctl status servei          # estat detallat">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl start servei           # iniciar">
+  <div class="cmd-main">
+    <pre>systemctl start servei           # iniciar</pre>
+    <button class="copy-btn" data-cmd="systemctl start servei           # iniciar">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl stop servei            # aturar">
+  <div class="cmd-main">
+    <pre>systemctl stop servei            # aturar</pre>
+    <button class="copy-btn" data-cmd="systemctl stop servei            # aturar">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl restart servei         # reiniciar">
+  <div class="cmd-main">
+    <pre>systemctl restart servei         # reiniciar</pre>
+    <button class="copy-btn" data-cmd="systemctl restart servei         # reiniciar">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl reload servei          # recarregar config sense parar">
+  <div class="cmd-main">
+    <pre>systemctl reload servei          # recarregar config sense parar</pre>
+    <button class="copy-btn" data-cmd="systemctl reload servei          # recarregar config sense parar">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl enable servei          # arrencar a l'inici">
+  <div class="cmd-main">
+    <pre>systemctl enable servei          # arrencar a l'inici</pre>
+    <button class="copy-btn" data-cmd="systemctl enable servei          # arrencar a l'inici">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl disable servei         # no arrencar a l'inici">
+  <div class="cmd-main">
+    <pre>systemctl disable servei         # no arrencar a l'inici</pre>
+    <button class="copy-btn" data-cmd="systemctl disable servei         # no arrencar a l'inici">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl is-active servei       # actiu? (yes/no)">
+  <div class="cmd-main">
+    <pre>systemctl is-active servei       # actiu? (yes/no)</pre>
+    <button class="copy-btn" data-cmd="systemctl is-active servei       # actiu? (yes/no)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl is-enabled servei      # habilitat? (yes/no)">
+  <div class="cmd-main">
+    <pre>systemctl is-enabled servei      # habilitat? (yes/no)</pre>
+    <button class="copy-btn" data-cmd="systemctl is-enabled servei      # habilitat? (yes/no)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl list-unit-files --type=service">
+  <div class="cmd-main">
+    <pre>systemctl list-unit-files --type=service</pre>
+    <button class="copy-btn" data-cmd="systemctl list-unit-files --type=service">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments journalctl -u servei                  # tots els logs">
+  <div class="cmd-main">
+    <pre>journalctl -u servei                  # tots els logs</pre>
+    <button class="copy-btn" data-cmd="journalctl -u servei                  # tots els logs">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments journalctl -u servei -f               # en directe (follow)">
+  <div class="cmd-main">
+    <pre>journalctl -u servei -f               # en directe (follow)</pre>
+    <button class="copy-btn" data-cmd="journalctl -u servei -f               # en directe (follow)">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments journalctl -u servei --since "1 hour ago"">
+  <div class="cmd-main">
+    <pre>journalctl -u servei --since &quot;1 hour ago&quot;</pre>
+    <button class="copy-btn" data-cmd="journalctl -u servei --since &quot;1 hour ago&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments journalctl -u servei --since today">
+  <div class="cmd-main">
+    <pre>journalctl -u servei --since today</pre>
+    <button class="copy-btn" data-cmd="journalctl -u servei --since today">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments journalctl -xe           # últims missatges amb explicacions">
+  <div class="cmd-main">
+    <pre>journalctl -xe           # últims missatges amb explicacions</pre>
+    <button class="copy-btn" data-cmd="journalctl -xe           # últims missatges amb explicacions">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments journalctl --since "1 hour ago"">
+  <div class="cmd-main">
+    <pre>journalctl --since &quot;1 hour ago&quot;</pre>
+    <button class="copy-btn" data-cmd="journalctl --since &quot;1 hour ago&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments journalctl -xe">
+  <div class="cmd-main">
+    <pre>journalctl -xe</pre>
+    <button class="copy-btn" data-cmd="journalctl -xe">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl status servei">
+  <div class="cmd-main">
+    <pre>systemctl status servei</pre>
+    <button class="copy-btn" data-cmd="systemctl status servei">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Fonaments systemctl restart servei">
+  <div class="cmd-main">
+    <pre>systemctl restart servei</pre>
+    <button class="copy-btn" data-cmd="systemctl restart servei">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Fonaments</span>Capítol 3</div>
+</div>
+<div class="cmd" data-text="systemd Dades operatives journalctl -u ssh --since "1 month ago"">
+  <div class="cmd-main">
+    <pre>journalctl -u ssh --since &quot;1 month ago&quot;</pre>
+    <button class="copy-btn" data-cmd="journalctl -u ssh --since &quot;1 month ago&quot;">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Dades operatives</span>Capítol 22</div>
+</div>
+<div class="cmd" data-text="systemd Seguretat journalctl --since today">
+  <div class="cmd-main">
+    <pre>journalctl --since today</pre>
+    <button class="copy-btn" data-cmd="journalctl --since today">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 49</div>
+</div>
+<div class="cmd" data-text="systemd Seguretat journalctl -p err">
+  <div class="cmd-main">
+    <pre>journalctl -p err</pre>
+    <button class="copy-btn" data-cmd="journalctl -p err">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 49</div>
+</div>
+<div class="cmd" data-text="systemd Seguretat journalctl -f">
+  <div class="cmd-main">
+    <pre>journalctl -f</pre>
+    <button class="copy-btn" data-cmd="journalctl -f">Copiar</button>
+  </div>
+  <div class="cmd-meta"><span class="topic">Seguretat</span>Capítol 49</div>
+</div>
+</div>
+</main>
+<footer>
+    <p>Generada automàticament des dels capítols del BernatLab · <a href="index.html">Tornar a la wiki</a> · <a href="https://github.com/BernatMora/bernatlab">Repo a GitHub</a></p>
+</footer>
+<script>
+// Cerca instantània
+const search = document.getElementById('search');
+const cmds = document.querySelectorAll('.cmd');
+const categories = document.querySelectorAll('.category');
+search.addEventListener('input', () => {
+    const q = search.value.toLowerCase().trim();
+    let visibleCount = 0;
+    cmds.forEach(el => {
+        const text = el.dataset.text.toLowerCase();
+        const matches = !q || text.includes(q);
+        el.style.display = matches ? '' : 'none';
+        if (matches) visibleCount++;
+    });
+    // Amagar categories buides
+    categories.forEach(cat => {
+        const any = Array.from(cat.querySelectorAll('.cmd')).some(c => c.style.display !== 'none');
+        cat.style.display = any ? '' : 'none';
+    });
+});
+
+// Copiar comanda
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('copy-btn')) {
+        const cmd = e.target.dataset.cmd;
+        // El text ve amb HTML entities escapades
+        const decoded = cmd.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+        navigator.clipboard.writeText(decoded).then(() => {
+            const orig = e.target.textContent;
+            e.target.textContent = '✓ Copiat!';
+            setTimeout(() => { e.target.textContent = orig; }, 1200);
+        });
+    }
+});
+
+// Drecera Ctrl+K per anar a la cerca
+document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault();
+        search.focus();
+    }
+});
+</script>
+</body>
+</html>

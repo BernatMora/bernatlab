@@ -2,103 +2,91 @@
 
 Llibre d'autoformació i consulta per al projecte BernatLab. S'escriu en
 **Markdown** (font de la veritat), es publica en **PDF** i **DOCX** (artefactes
-generats), i es pot consultar com a **wiki HTML estàtica** (navegable, allotjable
-a GitHub Pages).
+generats), es consulta com a **wiki HTML navegable**, i es complementa amb
+una **chuleta de comandes** per a ús immediat a la RPi.
 
-## Estructura
+## 🌐 Web pública
+
+El llibre té una web pública a **https://bernatmora.github.io/bernatlab/**
+amb portada, mòduls navegables, chuleta i descàrregues.
+
+## 📂 Estructura
 
 ```
 book/
-├── chapters/        ← Markdown (font de la veritat)
-│   ├── 01-que-es-bernatlab.md
-│   ├── 02-raspberry-pi.md
-│   ├── ...
-│   ├── 23-que-es-lora.md
-│   ├── ...
-│   └── 32-proves-camp.md
-├── output/          ← PDF i DOCX generats
-│   ├── BernatLab_Manual_Modul_1.pdf
-│   ├── BernatLab_Manual_Modul_1.docx
-│   ├── BernatLab_Manual_Modul_2.pdf
-│   ├── BernatLab_Manual_Modul_2.docx
-│   ├── BernatLab_Manual_Modul_3.pdf
-│   └── BernatLab_Manual_Modul_3.docx
-├── templates/       ← Plantilles Markdown per a nous capítols
-├── diagrams/        ← Esquemes Mermaid i imatges
-├── assets/          ← Recursos compartits (CSS, JS, icones)
+├── chapters/        ← Markdown (font de la veritat, 69 capítols)
 ├── images/          ← Captures i il·lustracions
-├── wiki/            ← Wiki HTML estàtica (generada)
+├── diagrams/        ← Esquemes Mermaid i altres
+├── output/          ← PDF i DOCX generats (7 mòduls × 2 formats)
+├── wiki/            ← Wiki HTML estàtica generada
 │   ├── index.html
-│   ├── modul-1.html
-│   ├── modul-2.html
-│   └── modul-3.html
-├── make_book.py     ← Genera PDF i DOCX
-├── build_wiki.py    ← Genera la wiki HTML
-├── index.md         ← Índex general del llibre
+│   ├── modul-1.html ... modul-7.html
+│   ├── css/wiki.css
+│   └── README.md
+├── index.html       ← Portada HTML (per a GitHub Pages)
+├── cheatsheet.html  ← Chuleta de comandes amb cerca (303 comandes)
+├── cheatsheet.md    ← Versió Markdown imprimible
+├── cheatsheet-data.json  ← Dades extretes
+├── extract_cheatsheet.py ← Extreu comandes dels capítols
+├── build_cheatsheet.py   ← Genera la chuleta
+├── make_book.py          ← Genera PDF i DOCX
+├── build_wiki.py         ← Genera la wiki HTML
 └── README.md        ← Aquest fitxer
 ```
 
-## Mòduls
+## 📚 Mòduls
 
-- **Mòdul 1 — Fonaments, contenidors i pràctica** (10 capítols, 84 pàgines)
-- **Mòdul 2 — Sensors, dades i visualització** (12 capítols, 122 pàgines)
-- **Mòdul 3 — LoRa, sensors remots i xarxa de camp** (10 capítols, 84 pàgines)
+| # | Mòdul | Capítols | Pàgines PDF |
+|---|---|---|---|
+| 1 | Fonaments, contenidors i pràctica | 10 | 84 |
+| 2 | Sensors, dades i visualització | 12 | 122 |
+| 3 | LoRa, sensors remots i xarxa de camp | 10 | 84 |
+| 4 | IA local amb Ollama i RAG | 10 | 76 |
+| 5 | Seguretat i còpies de seguretat | 8 | 63 |
+| 6 | Operativa 24/7, monitoratge i manteniment | 7 | 50 |
+| 7 | Hort Osona en acció (curs pràctic) | 12 | 83 |
+| **Total** | | **69** | **562** |
 
-Total: **32 capítols · 290 pàgines · 522 KB de text font**.
+## 🚀 Com regenerar els artefactes
 
-## Com regenerar els artefactes
-
-### PDF i DOCX
+Des del directori arrel del repo:
 
 ```bash
-# Tots tres mòduls
+# Activar el venv
+uv venv .venv
+uv pip install --python .venv/Scripts/python.exe reportlab python-docx pypdf
+
+# Generar un mòdul específic
+.venv/Scripts/python.exe book/make_book.py 1
+
+# Generar tots
 .venv/Scripts/python.exe book/make_book.py all
 
-# Un sol mòdul
-.venv/Scripts/python.exe book/make_book.py 3
-
-# Mòduls 1 i 2 (per compatibilitat)
-.venv/Scripts/python.exe book/make_book.py both
-```
-
-El script llegeix els capítols de `book/chapters/`, els processa amb un parser
-Markdown propi, i genera PDF (amb reportlab) i DOCX (amb python-docx).
-
-### Wiki HTML
-
-```bash
-.venv/Scripts/python.exe book/build_wiki.py
-.venv/Scripts/python.exe book/build_wiki.py --open  # obre al navegador
-```
-
-Genera un site HTML estàtic amb:
-
-- Portada amb índex dels tres mòduls.
-- Glossari de 47 termes clau (Docker, MQTT, LoRaWAN, etc.).
-- Un fitxer per mòdul amb tots els capítols.
-- Navegació lateral amb TOC.
-- CSS lleuger, sense JavaScript, allotjable a GitHub Pages.
-
-## Workflow de publicació
-
-Després d'editar o afegir capítols:
-
-```bash
-# 1. Validar i generar
-.venv/Scripts/python.exe book/make_book.py all
+# Regenerar la wiki HTML
 .venv/Scripts/python.exe book/build_wiki.py
 
-# 2. Publicar a GitHub
-git add book/
-git commit -m "Actualitza capítols i artefactes"
-git push origin main
+# Regenerar la chuleta
+.venv/Scripts/python.exe book/extract_cheatsheet.py
+.venv/Scripts/python.exe book/build_cheatsheet.py
 ```
 
-També tenim el script `homelab/scripts/publish.py` que automatitza tot el cicle.
+## 📋 Chuleta de comandes
 
-## Estil dels capítols
+La chuleta és un recull de les **303 comandes més útils** extretes
+automàticament dels capítols, organitzades en 20 categories (Docker, MQTT,
+Grafana, SSH, Tailscale, Seguretat, etc.).
 
-Cada capítol segueix una estructura comuna:
+- **Versió web**: `book/cheatsheet.html` — cerca instantània + botó copiar.
+- **Versió imprimible**: `book/cheatsheet.md` — totes les comandes en Markdown.
+
+## 🎯 A qui va dirigit
+
+- **Al pagès digital** que vol muntar un sistema complet per al seu hort.
+- **Al tècnic** que vol aprendre IoT, xarxes, i administració de sistemes amb un cas pràctic.
+- **A tu del futur** que oblidarà com es configurava tot. La documentació és per a tu d'aquí un any.
+- **A una altra persona** que vulgui replicar el BernatLab al seu hort.
+
+Cada capítol té 8 seccions estàndard:
 
 1. Explicació teòrica.
 2. Aplicació concreta al BernatLab.
@@ -109,8 +97,14 @@ Cada capítol segueix una estructura comuna:
 7. Exercicis pràctics.
 8. Resum final.
 
-Tots els capítols comencen amb una cita breu (en format Markdown blockquote)
-que resumeix l'esperit del capítol, i acaben amb un llistat de "Paraules clau".
+Tots els capítols comencen amb una cita breu que resumeix l'esperit del
+capítol, i acaben amb un resum i exercicis pràctics.
+
+## 🔗 Enllaços
+
+- **Web pública**: https://bernatmora.github.io/bernatlab/
+- **Repo a GitHub**: https://github.com/BernatMora/bernatlab
+- **Web d'Hort Osona**: https://bernatmora.github.io/hort-osona/
 
 ## Llicència
 
