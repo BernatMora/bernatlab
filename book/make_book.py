@@ -50,6 +50,10 @@ ROOT = Path(__file__).resolve().parent
 # gràcies a aquesta resolució relativa al __file__.
 CAP_DIR = ROOT / "chapters"
 
+PROLEG = [
+    ("00-proleg.md", "Pròleg — Com s'ha fet aquest llibre"),
+]
+
 CHAPTERS_M1 = [
     ("01-que-es-bernatlab.md", "Capítol 1 — Què és BernatLab"),
     ("02-raspberry-pi.md", "Capítol 2 — La Raspberry Pi 4 per dins"),
@@ -1040,44 +1044,44 @@ def main():
     if module in ("1", "both", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_1.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_1.docx"
-        build_pdf(CHAPTERS_M1, out_pdf, "Mòdul 1", "Fonaments, contenidors i pràctica")
-        build_docx(CHAPTERS_M1, out_docx, "Mòdul 1", "Fonaments, contenidors i pràctica")
+        build_pdf(PROLEG + CHAPTERS_M1, out_pdf, "Mòdul 1", "Fonaments, contenidors i pràctica")
+        build_docx(PROLEG + CHAPTERS_M1, out_docx, "Mòdul 1", "Fonaments, contenidors i pràctica")
 
     if module in ("2", "both", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_2.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_2.docx"
-        build_pdf(CHAPTERS_M2, out_pdf, "Mòdul 2", "Sensors, dades i visualització")
-        build_docx(CHAPTERS_M2, out_docx, "Mòdul 2", "Sensors, dades i visualització")
+        build_pdf(PROLEG + CHAPTERS_M2, out_pdf, "Mòdul 2", "Sensors, dades i visualització")
+        build_docx(PROLEG + CHAPTERS_M2, out_docx, "Mòdul 2", "Sensors, dades i visualització")
 
     if module in ("3", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_3.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_3.docx"
-        build_pdf(CHAPTERS_M3, out_pdf, "Mòdul 3", "LoRa, sensors remots i xarxa de camp")
-        build_docx(CHAPTERS_M3, out_docx, "Mòdul 3", "LoRa, sensors remots i xarxa de camp")
+        build_pdf(PROLEG + CHAPTERS_M3, out_pdf, "Mòdul 3", "LoRa, sensors remots i xarxa de camp")
+        build_docx(PROLEG + CHAPTERS_M3, out_docx, "Mòdul 3", "LoRa, sensors remots i xarxa de camp")
 
     if module in ("4", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_4.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_4.docx"
-        build_pdf(CHAPTERS_M4, out_pdf, "Mòdul 4", "IA local amb Ollama: RAG, veu i privadesa")
-        build_docx(CHAPTERS_M4, out_docx, "Mòdul 4", "IA local amb Ollama: RAG, veu i privadesa")
+        build_pdf(PROLEG + CHAPTERS_M4, out_pdf, "Mòdul 4", "IA local amb Ollama: RAG, veu i privadesa")
+        build_docx(PROLEG + CHAPTERS_M4, out_docx, "Mòdul 4", "IA local amb Ollama: RAG, veu i privadesa")
 
     if module in ("5", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_5.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_5.docx"
-        build_pdf(CHAPTERS_M5, out_pdf, "Mòdul 5", "Seguretat i còpies de seguretat")
-        build_docx(CHAPTERS_M5, out_docx, "Mòdul 5", "Seguretat i còpies de seguretat")
+        build_pdf(PROLEG + CHAPTERS_M5, out_pdf, "Mòdul 5", "Seguretat i còpies de seguretat")
+        build_docx(PROLEG + CHAPTERS_M5, out_docx, "Mòdul 5", "Seguretat i còpies de seguretat")
 
     if module in ("6", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_6.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_6.docx"
-        build_pdf(CHAPTERS_M6, out_pdf, "Mòdul 6", "Operativa 24/7, monitoratge i manteniment")
-        build_docx(CHAPTERS_M6, out_docx, "Mòdul 6", "Operativa 24/7, monitoratge i manteniment")
+        build_pdf(PROLEG + CHAPTERS_M6, out_pdf, "Mòdul 6", "Operativa 24/7, monitoratge i manteniment")
+        build_docx(PROLEG + CHAPTERS_M6, out_docx, "Mòdul 6", "Operativa 24/7, monitoratge i manteniment")
 
     if module in ("7", "all"):
         out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_7.pdf"
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_7.docx"
-        build_pdf(CHAPTERS_M7, out_pdf, "Mòdul 7", "Hort Osona en acció: implementar el BernatLab pas a pas")
-        build_docx(CHAPTERS_M7, out_docx, "Mòdul 7", "Hort Osona en acció: implementar el BernatLab pas a pas")
+        build_pdf(PROLEG + CHAPTERS_M7, out_pdf, "Mòdul 7", "Hort Osona en acció: implementar el BernatLab pas a pas")
+        build_docx(PROLEG + CHAPTERS_M7, out_docx, "Mòdul 7", "Hort Osona en acció: implementar el BernatLab pas a pas")
 
     print("[fet] Generació completada.")
 
