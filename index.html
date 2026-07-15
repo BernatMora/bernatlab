@@ -133,6 +133,44 @@ h2 {
     font-size: 0.95rem;
 }
 .about p { margin: 0.5rem 0; }
+
+.hort-card {
+    background: linear-gradient(135deg, var(--bg-card) 0%, #1f2a1f 100%);
+    border: 1px solid #3a5a3a;
+    border-left: 5px solid var(--accent);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    margin-top: 1rem;
+    box-shadow: 0 2px 12px rgba(127, 195, 160, 0.08);
+}
+.hort-content h3 {
+    color: var(--accent);
+    margin: 0 0 0.8rem 0;
+    font-size: 1.2rem;
+}
+.hort-content p {
+    color: var(--fg);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+.hort-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+.hort-feat {
+    background: rgba(127, 195, 160, 0.12);
+    color: var(--fg);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    border: 1px solid rgba(127, 195, 160, 0.25);
+}
+.hort-cta {
+    margin-top: 1rem;
+    text-align: left;
+}
 .features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -200,6 +238,26 @@ footer a:hover { text-decoration: underline; }
         <a href="book/wiki/index.html" class="btn">📖 Llegir el llibre</a>
         <a href="book/cheatsheet.html" class="btn btn-secondary">📋 Chuleta de comandes</a>
         <a href="https://github.com/BernatMora/bernatlab" class="btn btn-secondary">⭐ Repo a GitHub</a>
+    </div>
+</section>
+
+<section>
+    <h2>🌱 Hort Osona, la web pública del projecte</h2>
+    <div class="hort-card">
+        <div class="hort-content">
+            <h3>Una web que veu el món</h3>
+            <p><strong>Hort Osona</strong> és la cara pública d'aquest projecte. És on es publiquen les dades dels sensors del teu hort, els calendaris de sembra, les varietats que cultives, i tot el que vulguis compartir amb família, amics o la comunitat. La web és una <strong>PWA</strong> (funciona al mòbil com una app), està allotjada a GitHub Pages, i les dades viatgen des de la Raspberry passant per la cadena MQTT → InfluxDB → API fins a la web.</p>
+            <div class="hort-features">
+                <span class="hort-feat">📊 Dades en temps real dels sensors</span>
+                <span class="hort-feat">🌿 76 fitxes de varietats d'hort</span>
+                <span class="hort-feat">📅 Calendari de sembra</span>
+                <span class="hort-feat">📱 Funciona al mòbil (PWA)</span>
+                <span class="hort-feat">🆓 Dades obertes i replicables</span>
+            </div>
+            <div class="hort-cta">
+                <a href="https://bernatmora.github.io/hort-osona/" class="btn">Visita Hort Osona →</a>
+            </div>
+        </div>
     </div>
 </section>
 

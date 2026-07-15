@@ -56,6 +56,27 @@ h1 {
     font-size: 0.9rem;
     margin-bottom: 1rem;
 }
+.hort-banner {
+    background: linear-gradient(135deg, rgba(127, 195, 160, 0.1), rgba(58, 90, 58, 0.2));
+    border: 1px solid rgba(127, 195, 160, 0.3);
+    border-left: 4px solid var(--accent);
+    padding: 0.7rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.hort-banner a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px dashed var(--accent);
+}
+.hort-banner a:hover {
+    border-bottom-style: solid;
+}
 .search-box {
     width: 100%;
     padding: 0.6rem 0.9rem;
@@ -175,6 +196,10 @@ footer {
 <header>
     <h1>📋 BernatLab · Chuleta de comandes</h1>
     <div class="subtitle">""" + str(sum(len(v) for v in data.values())) + """ comandes extretes dels 7 mòduls del manual. Cerca amb <kbd>Ctrl+F</kbd> o el quadre de cerca.</div>
+    <div class="hort-banner">
+        <span>🌱</span>
+        <span>El BernatLab alimenta la web pública <a href="https://bernatmora.github.io/hort-osona/" target="_blank" rel="noopener">Hort Osona</a>, on es publiquen les dades dels sensors del teu hort.</span>
+    </div>
     <input type="text" id="search" class="search-box" placeholder="Cerca comandes (per text, categoria, tema...)" autofocus>
 </header>
 <main id="main">
