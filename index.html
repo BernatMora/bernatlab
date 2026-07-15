@@ -233,6 +233,20 @@ footer a:hover { text-decoration: underline; }
 </section>
 
 <section>
+    <h2>🤖 Com s'ha fet aquest llibre</h2>
+    <div class="about">
+        <p>El llibre s'ha generat íntegrament amb un flux de treball basat en IA local i al núvol, sota la supervisió de l'autor (Bernat Mora). Les eines utilitzades són:</p>
+        <ul>
+            <li><strong>Ollama</strong> — el motor que executa models de llenguatge localment (no pas per a aquest llibre, però sí per a l'assistent d'Hort Osona).</li>
+            <li><strong>Hermes</strong> — l'entorn de treball (un assistent d'escriptura i programació que connecta amb el model).</li>
+            <li><strong>MiniMax-M3:Cloud</strong> — el model de raonament que ha escrit la majoria dels capítols. Corre al núvol del proveïdor (no pas local), per limitacions tècniques — el plantejament del BernatLab defensa la privadesa i la IA local, com s'explica al M4.</li>
+        </ul>
+        <p>El flux ha estat iteratiu: l'autor planificava, jo (l'assistent) escrivia capítols, ell validava a mà, i jo corregia. Cada vegada que canviava un capítol, es regeneraven tots els artefactes (PDF, DOCX, HTML) amb un script propi (<code>make_book.py</code>) que és al repo.</p>
+        <p>El llibre és honest sobre els seus orígens i les seves limitacions. El <a href="https://github.com/BernatMora/bernatlab/blob/main/book/chapters/00-proleg.md">pròleg complet</a> explica el procés amb detall, incloent-hi el que la IA fa bé i el que no.</p>
+    </div>
+</section>
+
+<section>
     <h2>🚀 Comença aquí</h2>
     <div class="cta">
         <a href="book/wiki/index.html" class="btn">📖 Llegir el llibre</a>
