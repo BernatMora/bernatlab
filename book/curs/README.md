@@ -64,3 +64,7 @@ Aquest curs aplica el mètode de **repàs espaiat** (spaced repetition):
 - **Dia 45**: repassa 3-5 preguntes aleatòries.
 
 Això fixa els coneixements a la memòria de llarg termini. La ciència cognitiva diu que calen entre 3 i 5 repàs per retenir informació nova.
+
+## Recursos
+
+- [`recursos/recuperacio-emergencia-tailscale.md`](recursos/recuperacio-emergencia-tailscale.md) — Què fer si Tailscale falla i no pots accedir a la RPi.
