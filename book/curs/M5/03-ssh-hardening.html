@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 3. SSH Hardening — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🛡️ Cap 3. SSH Hardening</h1>
+        <p class="subtitle">Mòdul M5 · Seguretat</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>SSH es la porta d'entrada al servidor. Si un atacant entra per aqui, te control absolut. Per tant, hem de posar totes les barreres possibles: nomes autenticacio amb claus, port personalitzat per reduir soroll, fail2ban per bloquejar atacs automatitzats, i limitacions per evitar escalades. Es <strong>la mesura mes important</strong> despres de Tailscale.</p>
+
+            <h3>Per que SSH es un objectiu prioritari</h3>
+            <p>Tot i que Tailscale amaga el port 22, SSH continua sent el servei mes critic:</p>
+            <ul>
+                <li>Es l'entrada a la consola: shell d'administracio.</li>
+                <li>Te permisos de superusuari: un <code>sudo</code> et dona tot el control.</li>
+                <li>Es universal: qualsevol Linux te SSH.</li>
+                <li>Es el que mes saben atacar els bots.</li>
+            </ul>
+
+            <h3>Desactivar el login amb contrasenya</h3>
+            <p>Aixo es la mesura mes important. Per defecte OpenSSH accepta contrasenyes i claus. Si nomes acceptes claus, els atacs de bruteforce fallen sempre.</p>
+            <pre><code># 1. Genera una clau forta (CLIENT, no servidor)
+ssh-keygen -t ed25519 -C "bernat@bernatlab"
+
+# 2. Copia la clau publica al servidor
+ssh-copy-id -i ~/.ssh/id_ed25519.pub bernat@raspberry
+
+# 3. Desactiva les contrasenyes
+sudo nano /etc/ssh/sshd_config</code></pre>
+            <p>Edita <code>/etc/ssh/sshd_config</code>:</p>
+            <pre><code>PubkeyAuthentication yes
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+AuthenticationMethods publickey</code></pre>
+            <p>Aplica:</p>
+            <pre><code>sudo sshd -t   # valida la sintaxi
+sudo systemctl restart sshd</code></pre>
+            <p><strong>IMPORTANT</strong>: obre una segona sessio SSH abans de tancar la primera.</p>
+
+            <h3>Desactivar root login</h3>
+            <p>L'usuari <code>root</code> te permisos absoluts. No cal que un atacant hi entri directament.</p>
+            <pre><code>PermitRootLogin no</code></pre>
+            <p>Alternatives: <code>prohibit-password</code> (nomes claus) o <code>forced-commands-only</code> (nomes per scripts).</p>
+
+            <h3>Canviar el port</h3>
+            <pre><code>Port 5022</code></pre>
+            <p>El 95% dels bots nomes miren el port 22. Pero no es seguretat per si sola: un nmap el trobara. Es reduccio de soroll, no seguretat.</p>
+
+            <h3>fail2ban: el vigilant</h3>
+            <p><strong>fail2ban</strong> llegeix els logs i bloqueja IPs que fan massa intents fallits.</p>
+            <pre><code>sudo apt install fail2ban
+sudo nano /etc/fail2ban/jail.local</code></pre>
+            <p>Contingut:</p>
+            <pre><code>[DEFAULT]
+ignoreip = 127.0.0.1/8 100.64.0.0/10
+maxretry = 5
+findtime = 600
+bantime = 3600
+banaction = ufw
+
+[sshd]
+enabled = true
+port    = ssh
+filter  = sshd
+logpath = %(sshd_log)s</code></pre>
+            <p>Activar i veure:</p>
+            <pre><code>sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+sudo fail2ban-client status sshd
+
+# IPs bloquejades
+sudo fail2ban-client status sshd | grep "Banned IP list"
+
+# Desbloquejar manualment
+sudo fail2ban-client set sshd unbanip 1.2.3.4</code></pre>
+
+            <h3>Configuracio completa recomanada</h3>
+            <pre><code># /etc/ssh/sshd_config
+Port 5022
+AddressFamily inet
+Protocol 2
+
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+AuthenticationMethods publickey
+MaxAuthTries 3
+LoginGraceTime 30
+MaxSessions 3
+
+X11Forwarding no
+AllowTcpForwarding no
+GatewayPorts no
+PermitUserEnvironment no
+
+AcceptEnv LANG LC_*
+Banner /etc/issue.net</code></pre>
+
+            <h3>Com verificar la configuracio</h3>
+            <pre><code>sudo sshd -t               # valida sintaxi
+sudo sshd -T | head -30    # configuracio efectiva
+sudo sshd -T | grep authorizedkeys
+
+ssh -p 5022 -v bernat@raspberry</code></pre>
+
+            <h3>Bones practiques</h3>
+            <ul>
+                <li>Mai canviïs la configuracio amb una sola sessio oberta. Sempre dues.</li>
+                <li><code>sudo sshd -t</code> abans de reiniciar.</li>
+                <li>Copia de seguretat abans d'editar.</li>
+                <li>Tens una consola fisica com a salvavides.</li>
+                <li>Revisa els logs setmanalment.</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M1 Cap 4 - Xarxa i SSH: els basics.</li>
+                <li>M8 Cap 1 - SSH amb claus: ja ho tens.</li>
+                <li>Cap 2 d'aquest modul - Tailscale: amaga el port 22 a Internet.</li>
+                <li>Cap 4 d'aquest modul - Firewall: ufw es on fail2ban aplica les regles.</li>
+                <li>Cap 8 d'aquest modul - Monitoratge.</li>
+            </ul>
+
+            <h3>Conclusio: el triple combo</h3>
+            <p>SSH fort = <strong>Tailscale (amaga)</strong> + <strong>claus (autenticacio)</strong> + <strong>fail2ban (vigila)</strong>. Si tens aquestes tres coses, es quasi impossible que un atacant pugui entrar per SSH.</p>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m5 3</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que vol dir "SSH hardening"?</li>
+                <li>Que fa <code>PermitRootLogin no</code>?</li>
+                <li>Comanda per generar claus modernes?</li>
+                <li>Que fa <code>PasswordAuthentication no</code>?</li>
+                <li>Que es fail2ban?</li>
+                <li>Per que canviar el port?</li>
+                <li>Que controla <code>MaxAuthTries</code>?</li>
+                <li>On copiem la clau publica?</li>
+                <li>(Oberta) Escriu una configuracio sshd_config dura.</li>
+                <li>(Oberta) Com configuraries fail2ban al BernatLab?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Endurir el servei SSH de la RPi: desactivar contrasenyes, canviar el port, instal·lar fail2ban, i verificar que tot funciona.</p>
+
+            <h3>Pas 1: Assegura la teva clau (5 min)</h3>
+            <pre><code>ssh bernat@raspberry "cat ~/.ssh/authorized_keys"
+ssh-keygen -t ed25519 -C "bernat-backup@bernatlab"
+ssh-copy-id -i ~/.ssh/id_ed25519_backup.pub bernat@raspberry</code></pre>
+
+            <h3>Pas 2: Fes una copia de seguretat (5 min)</h3>
+            <pre><code>sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+sudo cp -r /etc/ssh /etc/ssh.bak</code></pre>
+
+            <h3>Pas 3: Aplica la nova configuracio (10 min)</h3>
+            <p>Edita <code>/etc/ssh/sshd_config</code>:</p>
+            <pre><code>Port 5022
+AddressFamily inet
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+AuthenticationMethods publickey
+MaxAuthTries 3
+LoginGraceTime 30
+MaxSessions 3
+X11Forwarding no
+AllowTcpForwarding no
+GatewayPorts no
+AcceptEnv LANG LC_*</code></pre>
+            <p><strong>IMPORTANT</strong>: obre una SEGONA sessio SSH.</p>
+
+            <h3>Pas 4: Valida i reinicia (5 min)</h3>
+            <pre><code>sudo sshd -t
+sudo sshd -T | grep -E "port|permitroot|password|pubkey|authmethods"
+sudo systemctl restart sshd
+sudo systemctl status sshd</code></pre>
+
+            <h3>Pas 5: Verifica la nova connexio (5 min)</h3>
+            <pre><code>ssh -p 5022 bernat@raspberry
+ssh -p 5022 -v bernat@raspberry 2&gt;&amp;1 | grep -i "auth"
+
+# Comprova que la contrasenya NO funciona
+sshpass -p "wrong" ssh -p 5022 -o PubkeyAuthentication=no bernat@raspberry</code></pre>
+
+            <h3>Pas 6: Instal·la i configura fail2ban (10 min)</h3>
+            <pre><code>sudo apt install -y fail2ban
+sudo nano /etc/fail2ban/jail.local</code></pre>
+            <pre><code>[DEFAULT]
+ignoreip = 127.0.0.1/8 100.64.0.0/10
+maxretry = 5
+findtime = 600
+bantime = 3600
+banaction = ufw
+
+[sshd]
+enabled = true
+port    = ssh
+filter  = sshd
+logpath = %(sshd_log)s</code></pre>
+            <pre><code>sudo systemctl enable fail2ban
+sudo systemctl restart fail2ban
+sudo fail2ban-client status sshd</code></pre>
+
+            <h3>Pas 7: Documenta (5 min)</h3>
+            <p>Al fitxer <code>inventari-seguretat.md</code>, afegeix una seccio "SSH hardening".</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has fet copia de seguretat de la configuracio original.</li>
+                <li>☐ Has aplicat la nova configuracio amb una segona sessio oberta.</li>
+                <li>☐ Pots connectar-te amb clau al port 5022.</li>
+                <li>☐ NO pots connectar-te amb contrasenya.</li>
+                <li>☐ fail2ban esta actiu i monitora SSH.</li>
+                <li>☐ Has documentat els canvis.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M5/03-ssh-hardening/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Hardening</strong> = aplicar mesures addicionals.</li>
+                <li><code>PermitRootLogin no</code> = no login directe com a root.</li>
+                <li><code>ssh-keygen -t ed25519</code> = generar claus modernes.</li>
+                <li><code>PasswordAuthentication no</code> = nomes claus.</li>
+                <li><strong>fail2ban</strong> = bloqueja IPs amb massa intents fallits.</li>
+                <li><strong>Canviar port</strong> = nomes reduccio de soroll.</li>
+                <li><code>MaxAuthTries</code> = maxim d'intents per sessio.</li>
+                <li><code>~/.ssh/authorized_keys</code> = on posem la clau publica.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

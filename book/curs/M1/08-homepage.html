@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 8. Homepage — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🏠 Cap 8. Homepage</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>Homepage</strong> és un dashboard self-hosted que centralitza tots els serveis del BernatLab en una sola pàgina. Porta d'entrada via <code>http://hortosona:3010</code>.</p>
+
+            <h3>Què és exactament?</h3>
+            <p>Aplicació web Next.js (React). Graella de targetes per servei, amb dades en temps real (latència, estat, pings, temperatures).</p>
+
+            <h3>Per què l'usem</h3>
+            <ul>
+                <li>Punt d'entrada únic.</li>
+                <li>Visió ràpida de tot.</li>
+                <li>Personalitzable.</li>
+                <li>Compartible selectivament.</li>
+                <li>Autoexplicatiu per a tercers.</li>
+            </ul>
+
+            <h3>Instal·lació</h3>
+            <pre><code>services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - "3010:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - homepage_config:/app/config
+    restart: unless-stopped
+
+volumes:
+  homepage_config:</code></pre>
+
+            <h3>Configuració YAML</h3>
+            <ul>
+                <li><code>settings.yaml</code>: títol, tema, fons, color d'accent.</li>
+                <li><code>services.yaml</code>: llista de serveis.</li>
+                <li><code>widgets.yaml</code>: widgets (resources, search, etc.).</li>
+                <li><code>bookmarks.yaml</code>: dreceres ràpides.</li>
+                <li><code>docker.yaml</code>: integració Docker.</li>
+            </ul>
+
+            <h3>Services.yaml bàsic</h3>
+            <pre><code>- BernatLab:
+    - Portainer:
+        href: http://hortosona:9000
+        description: Administracio Docker
+        icon: portainer
+        siteMonitor: http://hortosona:9000
+    - Uptime Kuma:
+        href: http://hortosona:3001
+        description: Monitoratge de serveis
+        icon: uptime-kuma
+        siteMonitor: http://hortosona:3001
+        widget:
+            type: uptime-kuma
+            url: http://uptime-kuma:3001
+            sitesMonitorSlug: bernatlab</code></pre>
+
+            <h3>Widgets destacats</h3>
+            <ul>
+                <li><strong>resources</strong>: CPU, RAM, disc, temperatura de la RPi.</li>
+                <li><strong>uptime-kuma</strong>: estat dels monitors.</li>
+                <li><strong>search</strong>: cerca ràpida DuckDuckGo.</li>
+                <li><strong>weather</strong>: temps (Open-Meteo, sense API key).</li>
+                <li><strong>docker</strong>: llista contenidors amb el seu estat.</li>
+            </ul>
+
+            <h3>Settings.yaml</h3>
+            <pre><code>title: BernatLab
+background:
+    opacity: 30
+    image: https://...
+color: slate
+theme: dark
+favicon: /icons/favicon.ico</code></pre>
+
+            <h3>Icones personalitzades</h3>
+            <p>Homepage té ~500 icones preconfigurades. Si el servei no n'hi té, munta una icona a <code>/app/config/icons/</code> (SVG, PNG, ICO).</p>
+
+            <h3>Hot-reload</h3>
+            <p>Editar YAML = recàrrega automàtica en 5-10 segons. Errors de sintaxi es veuen a <code>docker logs homepage</code>.</p>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 5-7 — Contenidor Docker que enllaça a Portainer i Uptime Kuma.</li>
+                <li>Cap 9 — La config YAML es pot versionar amb Git.</li>
+                <li>Cap 22 — Grafana dona mètriques més profundes que el widget de Resources.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 8</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què és Homepage?</li>
+                <li>Port per defecte (intern vs host).</li>
+                <li>Framework amb què està fet.</li>
+                <li>Nom del fitxer de serveis.</li>
+                <li>Avantatge d'integrar Docker.</li>
+                <li>Format de configuració.</li>
+                <li>Widget de recursos del sistema.</li>
+                <li>Què passa quan edites YAML.</li>
+                <li>(Oberta) Avantatge vs obrir cada servei.</li>
+                <li>(Oberta) services.yaml amb PiHole, Jellyfin i pàgina personal.</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Instal·lar Homepage, configurar serveis del BernatLab, deixar un dashboard personalitzat.</p>
+
+            <h3>Pas 1: Afegeix al compose (5 min)</h3>
+            <p>Edita <code>~/homelab/docker/docker-compose.yml</code> amb Homepage. Fes <code>docker compose up -d</code>.</p>
+
+            <h3>Pas 2: Accedeix (5 min)</h3>
+            <p>Obre <code>http://hortosona:3010</code>.</p>
+
+            <h3>Pas 3: Bind mount (10 min)</h3>
+            <p>Crea <code>~/homelab/config/homepage/</code>, copia la config del contenidor, munta al host.</p>
+
+            <h3>Pas 4: Services.yaml (15 min)</h3>
+            <p>Substitueix el fitxer amb BernatLab (Portainer, Uptime, Whoami) + grups externs.</p>
+
+            <h3>Pas 5: Widgets i settings (5 min)</h3>
+            <p>Configura <code>resources</code> + <code>search</code>, personalitza títol, tema, color.</p>
+
+            <h3>Pas 6: Comprova i documenta</h3>
+            <p>Comprova al navegador i al mòbil amb Tailscale. Documenta a <code>diari.md</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Homepage corre a <code>http://hortosona:3010</code>.</li>
+                <li>☐ Configuració persistent (bind mount).</li>
+                <li>☐ ≥ 5 serveis al dashboard.</li>
+                <li>☐ Widget <code>resources</code> funciona.</li>
+                <li>☐ Widget <code>search</code> funciona.</li>
+                <li>☐ Títol i tema personalitzats.</li>
+                <li>☐ Has documentat l'experiència.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/08-homepage/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li>Homepage = dashboard self-hosted.</li>
+                <li>Port intern 3000, host 3010.</li>
+                <li>Framework = Next.js (React).</li>
+                <li>Services = <code>services.yaml</code>.</li>
+                <li>Docker socket = widget Docker.</li>
+                <li>Format = YAML.</li>
+                <li>Widget = <code>resources</code>.</li>
+                <li>Edició = hot-reload automàtic.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. Arquitectura 24/7 — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🛡️ Cap 1. Arquitectura 24/7</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un servidor casola (la teva Raspberry Pi del BernatLab) no es un servidor professional amb doble font d'alimentacio, discos en RAID i un datacenter refrigerat. Pero volem que funcioni "sempre" - o almenys que sabem quan falla. Operativa 24/7 vol dir que tens les eines per detectar, reaccionar i recuperar. No es que mai caigui, es que quan cau te n'adones rapid i el tornes a aixecar.</p>
+
+            <h3>Que significa realment "24/7"?</h3>
+            <p>No es lo mateix tenir un servidor encès que tenir un servidor operatiu. Un servei 24/7 ha de complir quatre condicions basiques:</p>
+            <ul>
+                <li><strong>Disponible</strong>: la RPi esta encesa, el contenidor esta corrent, el port esta obert.</li>
+                <li><strong>Observable</strong>: tens alguna manera de saber si funciona (ping, dashboard, alerta).</li>
+                <li><strong>Recuperable</strong>: quan cau, el pots tornar a aixecar automaticament o amb un sol pas.</li>
+                <li><strong>Mantengut</strong>: el sistema s'actualitza, es neteja i no acaba morint ple de brossa al cap de 6 mesos.</li>
+            </ul>
+            <p>Si nomes compleixes la primera, tens un servidor "ences", no un servidor "24/7".</p>
+
+            <h3>Per que es diferent a la RPi?</h3>
+            <p>La Raspberry Pi es fantastica pero te limitacions importants que cal entendre:</p>
+            <ul>
+                <li><strong>MicroSD</strong>: es un punt unic de fallada. Les escriptures constants la maten. Cal moure logs i volums a un disc USB o SSD.</li>
+                <li><strong>Alimentacio</strong>: una pujada de tensio i la RPi es reinicia. Una font bona (5V/3A minim) es vital.</li>
+                <li><strong>Temperatura</strong>: sense dissipador, a l'estiu throttling i rendiment baix. A partir de 80 graus comences a perdre CPU.</li>
+                <li><strong>Xarxa</strong>: si el router es reinicia, la RPi pot perdre la IP fixa. Cal DHCP reservation o IP estatica.</li>
+                <li><strong>Sense IPMI/BMC</strong>: en un servidor professional tens una consola remota. Aqui nomes tens SSH (si arriba) o acces fisic.</li>
+            </ul>
+
+            <h3>Capes d'arquitectura 24/7</h3>
+            <p>Pensa en el sistema com a capes apilades. Si la capa de baix falla, la de sobre cau pero pots recuperar nomes la de baix:</p>
+            <ol>
+                <li><strong>Capa fisica</strong>: RPi, alimentacio, microSD, xarxa, temperatura.</li>
+                <li><strong>Capa sistema operatiu</strong>: Raspberry Pi OS, actualitzacions, serveis basics.</li>
+                <li><strong>Capa contenidors</strong>: Docker/Portainer, imatges, volums, xarxes.</li>
+                <li><strong>Capa aplicacio</strong>: els serveis del BernatLab (Home Assistant, InfluxDB, Grafana).</li>
+                <li><strong>Capa observabilitat</strong>: Prometheus, Grafana, Uptime Kuma.</li>
+                <li><strong>Capa alerta</strong>: Telegram, email - el que t'avisa QUAN falla.</li>
+                <li><strong>Capa manteniment</strong>: backups, neteja, actualitzacions.</li>
+            </ol>
+
+            <h3>Health checks basicos</h3>
+            <p>Abans de posar cap eina fancy, comença per lo basic. Un script que comprovi les coses vitals:</p>
+            <pre><code>#!/bin/bash
+# /opt/bernatlab/healthcheck.sh
+echo "=== Health check $(date) ==="
+
+# RPi viu?
+uptime
+
+# Temperatura (critic a l'estiu)
+vcgencmd measure_temp
+
+# Espai en disc
+df -h /
+
+# Memoria
+free -h
+
+# Serveis clau corrent?
+systemctl is-active docker
+systemctl is-active ssh
+
+# Contenidors BernatLab
+docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "homeassistant|grafana|influxdb"</code></pre>
+            <p>Executa-ho cada 5 minuts amb cron i guarda la sortida a un fitxer.</p>
+
+            <h3>Watchdog: la xarxa de seguretat</h3>
+            <p>Linux te un <strong>watchdog</strong> que pot reiniciar automaticament la RPi si el kernel penja:</p>
+            <pre><code>sudo apt install watchdog
+sudo systemctl enable watchdog
+sudo systemctl start watchdog
+sudo nano /etc/watchdog.conf</code></pre>
+            <pre><code>watchdog-device = /dev/watchdog
+max-load-1 = 24
+watchdog-timeout = 15</code></pre>
+            <p>Amb aixo, si la carrega del sistema passa de 24 o el sistema es queda penjat, el watchdog reiniciara la RPi.</p>
+
+            <h3>Reinici automatic de serveis</h3>
+            <p>systemd ja reinicia els seus serveis si cauen, pero Docker no. Per fer-ho, configura els teus contenidors amb <code>restart: always</code>:</p>
+            <pre><code>services:
+  homeassistant:
+    image: homeassistant/home-assistant:stable
+    restart: always</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 9 - Monitoritzacio de contenidors (primer pas cap a 24/7).</li>
+                <li>M2 Cap 8 - Backups: sense ells, 24/7 vol dir "24/7 fins que perds tot".</li>
+                <li>M2 Cap 7 - Actualitzacio de contenidors sense deixar el sistema caigut.</li>
+                <li>M3 Cap 1 - Estrategia de backup: complementa la recuperacio automatica.</li>
+                <li>M8 Cap 7 - Runbooks basics: com documentar que fer quan falla.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 1</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que vol dir exactament tenir un servei "24/7"?</li>
+                <li>Quin es el punt unic de fallada mes critic d'una RPi?</li>
+                <li>Que fa el watchdog de Linux?</li>
+                <li>Quina directiva de docker-compose fa que un contenidor es torni a aixecar sol?</li>
+                <li>Quina es la diferencia entre un servidor "encès" i un servidor "24/7"?</li>
+                <li>Quina ordre mostra la temperatura actual de la CPU a la RPi?</li>
+                <li>Quantes capes te l'arquitectura 24/7 que hem descrit?</li>
+                <li>Quin valor de max-load-1 al watchdog indica que el sistema esta sobrecarregat?</li>
+                <li>(Oberta) Enumera les 7 capes de l'arquitectura 24/7 i explica per que es important que cada capa tingui els seus propis monitors.</li>
+                <li>(Oberta) Enumera les 3 coses que hauries d'haver preparat per detectar i recuperar el sistema si la RPi es penja a les 3 de la matinada.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Posar les bases d'un sistema 24/7: crear un script de healthcheck, configurar el watchdog de Linux, i assegurar que els teus contenidors es reinicien automaticament.</p>
+
+            <h3>Pas 1: Crea el script de healthcheck (10 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo mkdir -p /opt/bernatlab
+sudo nano /opt/bernatlab/healthcheck.sh</code></pre>
+            </div>
+            <p>El script ha de comprovar: uptime, temperatura, espai, memoria, serveis basics i contenidors. Enganxa el contingut complet (veure resum.md per la versio completa) i fes-lo executable:</p>
+            <div class="code-block">
+                <pre><code>sudo chmod +x /opt/bernatlab/healthcheck.sh
+sudo /opt/bernatlab/healthcheck.sh
+sudo tail -20 /var/log/bernatlab-health.log</code></pre>
+            </div>
+
+            <h3>Pas 2: Programa el healthcheck cada 5 minuts (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo crontab -e
+# Afegeix:
+*/5 * * * * /opt/bernatlab/healthcheck.sh</code></pre>
+            </div>
+            <p>Espera 5 minuts i comprova que el log creix amb <code>sudo wc -l /var/log/bernatlab-health.log</code>.</p>
+
+            <h3>Pas 3: Configura el reinici automatic als contenidors (5 min)</h3>
+            <p>Edita el teu <code>docker-compose.yml</code> i afegeix <code>restart: always</code> a cada servei. Despres:</p>
+            <div class="code-block">
+                <pre><code>cd ~/bernatlab
+docker compose up -d</code></pre>
+            </div>
+            <p>O per un contenidor ja existent sense tocar el compose:</p>
+            <div class="code-block">
+                <pre><code>docker update --restart=always NOM_CONTENIDOR</code></pre>
+            </div>
+
+            <h3>Pas 4: Instal·la i configura el watchdog (10 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo apt update
+sudo apt install -y watchdog
+sudo nano /etc/watchdog.conf</code></pre>
+            </div>
+            <pre><code>watchdog-device = /dev/watchdog
+max-load-1 = 24
+watchdog-timeout = 15
+min-memory = 1</code></pre>
+            <div class="code-block">
+                <pre><code>sudo systemctl enable watchdog
+sudo systemctl start watchdog
+sudo systemctl status watchdog
+ls -l /dev/watchdog</code></pre>
+            </div>
+            <p>Si <code>/dev/watchdog</code> no existeix, afegeix <code>dtparam=watchdog=on</code> a <code>/boot/config.txt</code> i reinicia.</p>
+
+            <h3>Pas 5: Simula una fallada i comprova la recuperacio (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Atura un contenidor
+docker stop homeassistant
+sleep 5
+docker ps  # Hauria de tornar a estar "Up"
+
+# Mira el log del healthcheck
+sudo tail -30 /var/log/bernatlab-health.log</code></pre>
+            </div>
+
+            <h3>Pas 6: Documenta la teva arquitectura (5 min)</h3>
+            <p>Crea un fitxer <code>/opt/bernatlab/ARQUITECTURA.md</code> amb els serveis, ubicacio de dades, procediment de recuperacio i qui te acces.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Tens el script <code>/opt/bernatlab/healthcheck.sh</code> funcionant.</li>
+                <li>☐ El cron l'executa cada 5 minuts i el log creix.</li>
+                <li>☐ Tots els teus contenidors tenen <code>restart: always</code>.</li>
+                <li>☐ El watchdog de Linux esta actiu i configurat.</li>
+                <li>☐ Has provat que un contenidor es reinicia sol.</li>
+                <li>☐ Tens un document <code>ARQUITECTURA.md</code> basic.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="01-arquitectura-24-7/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>24/7</strong> = disponible + observable + recuperable + mantingut.</li>
+                <li><strong>Punt critic</strong> = microSD.</li>
+                <li><strong>Watchdog</strong> = reinicia el sistema si penja.</li>
+                <li><strong>Restart</strong> = <code>restart: always</code>.</li>
+                <li><strong>Diferencia</strong> = observabilitat, recuperacio, manteniment.</li>
+                <li><strong>Temperatura</strong> = <code>vcgencmd measure_temp</code>.</li>
+                <li><strong>Capes</strong> = 7.</li>
+                <li><strong>max-load-1</strong> = 24 o mes.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

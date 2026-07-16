@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 5. Docker des de zero — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🐳 Cap 5. Docker des de zero</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>Docker</strong> és l'eina que fa possible el BernatLab. Cada servei corre dins d'un <strong>contenidor</strong>: una capsa aïllada amb el programa i les seves dependències. Es pot aixecar, parar, moure o esborrar en segons.</p>
+
+            <h3>Què és un contenidor?</h3>
+            <p>Pensa en un contenidor com un <strong>apartament dins d'un edifici</strong>. L'edifici és el sistema operatiu (Debian 13). Cada apartament té el seu sistema de fitxers, xarxa, processos, CPU/RAM. Comparteixen el kernel però estan aïllats.</p>
+
+            <h3>Imatges vs contenidors</h3>
+            <ul>
+                <li><strong>Imatge</strong> = plantilla de només lectura (la "receta").</li>
+                <li><strong>Contenidor</strong> = instància viva d'una imatge (el "pis").</li>
+            </ul>
+            <pre><code>docker pull nginx:1.27-alpine
+docker images
+docker run -d --name web -p 8080:80 nginx:1.27-alpine</code></pre>
+
+            <h3>Comandes bàsiques</h3>
+            <pre><code>docker ps                 # contenidors actius
+docker ps -a              # tots els contenidors
+docker logs web           # veure logs
+docker logs -f web        # seguir logs en temps real
+docker stop web           # aturar
+docker start web          # arrencar
+docker restart web        # reiniciar
+docker rm -f web          # esborrar forçat
+docker stats              # CPU/RAM en temps real
+docker exec -it web sh    # entrar dins el contenidor</code></pre>
+
+            <h3>Volums: persistència</h3>
+            <p>Quan esborres un contenidor, es perden les dades. Per persistir-les, usem volums:</p>
+            <pre><code># Volum nombrat (Docker el gestiona)
+docker volume create dades-portainer
+docker run -d -p 9000:9000 -v dades-portainer:/data portainer/portainer-ce
+
+# Bind mount (carpeta del host)
+docker run -d -p 8080:80 -v /home/bernat/web:/usr/share/nginx/html nginx</code></pre>
+
+            <h3>Xarxes Docker</h3>
+            <pre><code>docker network create homelab
+docker run -d --network homelab --name db postgres:16
+docker run -d --network homelab --name portainer -p 9000:9000 portainer/portainer-ce
+# portainer pot accedir a "db" pel nom</code></pre>
+
+            <h3>Docker Compose: el tot-en-un</h3>
+            <pre><code># ~/homelab/docker/docker-compose.yml
+version: "3.9"
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+
+  uptime:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  portainer_data:
+  uptime_data:</code></pre>
+            <pre><code>cd ~/homelab/docker
+docker compose up -d          # aixeca tot
+docker compose down           # para i esborra
+docker compose ps             # estat
+docker compose logs -f        # logs agregats
+docker compose pull           # actualitza imatges
+docker compose up -d          # aplica canvis</code></pre>
+
+            <h3>Bones pràctiques</h3>
+            <ol>
+                <li>Un servei per contenidor.</li>
+                <li>Imatges Alpine quan sigui possible (5-10x més petites).</li>
+                <li>Volums per a dades: mai confiïs en el FS del contenidor.</li>
+                <li><code>restart: unless-stopped</code> perquè els serveis tornin sols.</li>
+                <li>Etiqueta amb versions: <code>nginx:1.27-alpine</code> en lloc de <code>nginx:latest</code>.</li>
+                <li>Fes servir Compose: un sol fitxer per a tot l'homelab.</li>
+            </ol>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 2-3 — Docker corre sobre Debian 13 a la RPi.</li>
+                <li>Cap 4 — Accedim als serveis via Tailscale.</li>
+                <li>Cap 6 — Portainer ens donarà una GUI per a tot això.</li>
+                <li>Cap 7-10 — Tots els serveis del BernatLab seran contenidors.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 5</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Diferència entre imatge i contenidor.</li>
+                <li>Què fa <code>docker run -d</code>?</li>
+                <li>Funció d'un volum Docker.</li>
+                <li>Nom estàndard del fitxer de Docker Compose.</li>
+                <li>Què fa <code>docker compose up -d</code>?</li>
+                <li>Avantatge d'una imatge Alpine respecte Debian.</li>
+                <li>Què mostra <code>docker ps -a</code>?</li>
+                <li>Política de restart recomanada per a serveis d'homelab.</li>
+                <li>(Oberta) Per què Docker és útil per a un homelab?</li>
+                <li>(Oberta) Afegir un nou servei al <code>docker-compose.yml</code>: passos.</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-60 min)</h2>
+            <p>Instal·lar Docker, practicar ordres bàsiques i muntar el primer <code>docker-compose.yml</code>.</p>
+
+            <h3>Pas 1: Instal·la Docker (10 min)</h3>
+            <div class="code-block">
+                <pre><code>curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker bernat
+newgrp docker
+docker --version
+docker compose version
+docker run hello-world</code></pre>
+            </div>
+
+            <h3>Pas 2: Primera experiència (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run -d --name prova-nginx -p 8080:80 nginx:alpine
+docker ps
+curl http://localhost:8080
+docker exec -it prova-nginx sh
+ls /usr/share/nginx/html/
+exit
+docker logs prova-nginx
+docker logs -f prova-nginx
+docker stop prova-nginx
+docker rm prova-nginx</code></pre>
+            </div>
+
+            <h3>Pas 3: Volums (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker volume create dades-prova
+docker run -d --name writer -v dades-prova:/dades alpine sh -c "while true; do date &gt;&gt; /dades/log.txt; sleep 5; done"
+docker exec writer cat /dades/log.txt
+sleep 15
+docker exec writer cat /dades/log.txt
+docker stop writer
+docker rm writer
+docker run --rm -v dades-prova:/dades alpine cat /dades/log.txt</code></pre>
+            </div>
+
+            <h3>Pas 4: Xarxes (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker network create homelab-xarxa
+docker run -d --name db --network homelab-xarxa -e POSTGRES_PASSWORD=secret postgres:16-alpine
+docker run -d --name web --network homelab-xarxa -p 8081:80 nginx:alpine
+docker exec web ping -c 2 db
+docker stop db web
+docker rm db web
+docker network rm homelab-xarxa</code></pre>
+            </div>
+
+            <h3>Pas 5: Primer docker-compose.yml (15 min)</h3>
+            <p>Crea <code>~/homelab/docker/docker-compose.yml</code>:</p>
+            <div class="code-block">
+                <pre><code>version: "3.9"
+
+services:
+  whoami:
+    image: traefik/whoami
+    container_name: whoami
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+
+volumes:
+  portainer_data:</code></pre>
+            </div>
+            <div class="code-block">
+                <pre><code>cd ~/homelab/docker
+docker compose up -d
+docker compose ps
+curl http://localhost:8080
+docker compose logs -f</code></pre>
+            </div>
+
+            <h3>Pas 6: Neteja i documenta</h3>
+            <div class="code-block">
+                <pre><code>cd ~/homelab/docker
+docker compose down</code></pre>
+            </div>
+            <p>Documenta a <code>book/curs/M1/05-docker-des-de-zero/diari.md</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Docker instal·lat i <code>hello-world</code> funciona.</li>
+                <li>☐ El teu usuari pot fer <code>docker ps</code> sense sudo.</li>
+                <li>☐ Has creat i esborrat contenidors.</li>
+                <li>☐ Volum demostrant persistència entre contenidors.</li>
+                <li>☐ Xarxa amb resolució per nom.</li>
+                <li>☐ <code>docker-compose.yml</code> amb dos serveis aixecat.</li>
+                <li>☐ Has documentat l'experiència.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/05-docker-des-de-zero/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li>Imatge = plantilla; contenidor = instància viva.</li>
+                <li><code>docker run -d</code> = executar en segon pla.</li>
+                <li>Volum = persistir dades més enllà del contenidor.</li>
+                <li>Compose = <code>docker-compose.yml</code>.</li>
+                <li><code>docker compose up -d</code> = aixecar serveis en background.</li>
+                <li>Alpine = 5-10x més petita.</li>
+                <li><code>docker ps -a</code> = tots els contenidors.</li>
+                <li><code>restart: unless-stopped</code> = recomanada.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 4. Arquitectura de l'Hort Osona - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🏗️ Cap 4. Arquitectura de l'Hort Osona</h1>
+        <p class="subtitle">Mòdul M7 · Hort Osona en acció</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>L'Hort Osona te una <strong>arquitectura modular</strong>: cada peça fa una cosa i la fa be, i totes es comuniquen a traves d'un <strong>bus de missatges (MQTT)</strong>. Es el patro <strong>pipe-and-filter</strong>. Si una peça falla, la resta continua.</p>
+
+            <h3>El pipeline de dades</h3>
+            <p>El flux te 6 etapes:</p>
+            <pre><code>Sensors -> Gateway -> MQTT broker -> Processadors -> Emmagatzematge -> API/Web
+MiFlora    RPi         Mosquitto     Python/Node      InfluxDB      PWA
+BME280     ESP32                     InfluxDB-relay   PostgreSQL    GitHub
+LoRa       gateway                                   MinIO         Pages</code></pre>
+
+            <h3>Diagrama complet</h3>
+            <pre><code>  MiFlora/BME280/SX1262 (Sensors)
+            |
+            v
+       RPi/ESP32 (Gateway)
+            |
+            v
+     Mosquitto MQTT (:1883)
+       |             |
+       v             v
+   InfluxDB      PostgreSQL
+       |             |
+       +-----+-------+
+             |
+             v
+        Flask API (:5000)
+             |
+             v
+        PWA (client)
+      GitHub Pages</code></pre>
+
+            <h3>Per que MQTT i no HTTP</h3>
+            <ul>
+                <li><strong>Push</strong> en lloc de pull: el sensor publica, el broker distribueix.</li>
+                <li><strong>Desacoblat</strong>: el sensor no sap qui consumeix les seves dades.</li>
+                <li><strong>QoS</strong>: pots garantir que el missatge arriba.</li>
+                <li><strong>LWT</strong>: pots saber si un sensor ha caigut.</li>
+                <li><strong>Buffer integrat</strong>: si el consumidor esta offline, el broker retè els missatges.</li>
+                <li><strong>Topic-based routing</strong>: pots subscriure't nomes als missatges que t'interessen.</li>
+            </ul>
+
+            <h3>Esquema de topics</h3>
+            <pre><code>hort-osona/
+   miflora/miflora-1B32
+   miflora/miflora-1B33
+   bme/hivernacle
+   bme/exterior
+   lora/node1
+   lora/node2
+   cmd/reg/toma-cherry
+   cmd/llum/hivernacle
+   status/gateway/rpi1</code></pre>
+
+            <h3>Les capes de software (Docker)</h3>
+            <p>A l'Hort Osona cada servei es un contenidor Docker. Exemple de <code>docker-compose.yml</code> amb Mosquitto, InfluxDB, mqtt-to-influx i Grafana.</p>
+
+            <h3>La RPi central</h3>
+            <p>Una <strong>RPi 4B (4 GB)</strong> corre Mosquitto, InfluxDB, PostgreSQL, MinIO, Flask API, gateways i Grafana. Molts serveis en una sola maquina, pero tots llegers (Mosquitto 30 MB, Grafana 200 MB).</p>
+
+            <h3>Alta disponibilitat</h3>
+            <p>Capes de tolerancia a falles:</p>
+            <ol>
+                <li>Sensor: pila nova o recanvi.</li>
+                <li>Gateway: si cau, missatges es perden (BLE sense buffer).</li>
+                <li>Mosquitto: te buffer a disc.</li>
+                <li>InfluxDB: te WAL (write-ahead log).</li>
+                <li>API/PWA: si cau, dades segueixen entrant.</li>
+            </ol>
+            <p>El pitjor cas es la RPi central. Solucio: SSD extern, backups diaries, mini PC o segona RPi per failover.</p>
+
+            <h3>Patrons de procesament</h3>
+            <ul>
+                <li><strong>Pipeline</strong>: sensor -> MQTT -> InfluxDB.</li>
+                <li><strong>Fan-out</strong>: un missatge a multiples consumidors (InfluxDB + alerta + PWA).</li>
+                <li><strong>Fan-in</strong>: multiples sensors agregats (e.g. temperatura mitjana de l'hort).</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M7 Cap 2, 3 - Sensors concrets que alimenten el pipeline.</li>
+                <li>M7 Cap 5 - MQTT es el bus central.</li>
+                <li>M7 Cap 6 - InfluxDB es on acaben les dades.</li>
+                <li>M7 Cap 7 - L'API exposa les dades a la web.</li>
+                <li>M7 Cap 8 - La PWA consumeix l'API.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m7 4</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin es el patro arquitectonic principal de l'Hort Osona?</li>
+                <li>Quin protocol s'usa com a bus de missatges?</li>
+                <li>Quantes etapes te el pipeline basic de dades?</li>
+                <li>Per que MQTT i no HTTP per al bus de missatges?</li>
+                <li>Quin es el port per defecte de Mosquitto?</li>
+                <li>Quin es l'esquema de topics MQTT que usa l'Hort Osona?</li>
+                <li>Que pasa si la RPi central es mor?</li>
+                <li>Quin patro fa que un missatge sigui processat per multiples serveis?</li>
+                <li>(Oberta) Descriu les 6 etapes amb exemple MiFlora.</li>
+                <li>(Oberta) L'API web cau, pero els sensors segueixen funcionant. Explica per que.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-60 min)</h2>
+            <p>Muntar l'arquitectura completa en local amb Docker Compose: Mosquitto + InfluxDB + script Python que escolta MQTT i escriu a InfluxDB.</p>
+
+            <h3>Pas 1: Estructura del projecte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/hort-osona/{mosquitto/config,mosquitto/data,influxdb,scripts,grafana,api}
+cd ~/hort-osona</code></pre>
+            </div>
+
+            <h3>Pas 2: Configura Mosquitto (5 min)</h3>
+            <p>Crea <code>mosquitto/config/mosquitto.conf</code> amb <code>persistence true</code>, port 1883, password_file, i log a stdout.</p>
+
+            <h3>Pas 3: Crea el docker-compose.yml (10 min)</h3>
+            <p>Defineix serveis: mosquitto (eclipse-mosquitto:2), influxdb (2.7 amb init org/bucket/retention 30d), mqtt-to-influx (build local), grafana (10.4).</p>
+
+            <h3>Pas 4: Crea el servei mqtt-to-influx (15 min)</h3>
+            <p>Script Python que subscriu a <code>hort-osona/#</code>, parseja el JSON, construeix un <code>Point</code> d'InfluxDB amb tags <code>device</code> i <code>topic</code>, i l'escriu amb <code>WriteOptions</code> de batch.</p>
+
+            <h3>Pas 5: Publica dades de prova (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mosquitto_pub -h localhost -p 1883 -u hort-osona -P secretpass \
+   -t "hort-osona/miflora/1B32" \
+   -m '{"device":"miflora-1B32","ts":"2026-04-12T12:00:00Z","soil_moisture":42,"soil_temp_c":18.5,"ec_us_cm":820,"lux":18000,"battery":87}'
+docker compose logs -f mqtt-to-influx</code></pre>
+            </div>
+
+            <h3>Pas 6: Verifica amb InfluxDB i Grafana (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker compose exec influxdb influx query \
+   'from(bucket:"hort-osona") |> range(start:-1h) |> filter(fn: (r) => r._measurement == "miflora")' \
+   --org bernatlab</code></pre>
+            </div>
+            <p>Configura Grafana a <code>http://&lt;ip-rpi&gt;:3000</code> amb data source InfluxDB i un dashboard basc.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has aixecat 4 serveis amb <code>docker compose up</code>.</li>
+                <li>☐ Has publicat un missatge amb <code>mosquitto_pub</code>.</li>
+                <li>☐ El servei mqtt-to-influx ha escrit el punt a InfluxDB.</li>
+                <li>☐ Has verificat amb <code>influx query</code>.</li>
+                <li>☐ Has configurat Grafana per visualitzar.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/04-arquitectura-hort/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Patro</strong> = pipe-and-filter amb bus MQTT.</li>
+                <li><strong>Bus</strong> = MQTT.</li>
+                <li><strong>Etapes</strong> = 6.</li>
+                <li><strong>MQTT</strong> = desacoblat, QoS, LWT, buffer.</li>
+                <li><strong>Port</strong> = 1883.</li>
+                <li><strong>Topics</strong> = jerarquic amb barres.</li>
+                <li><strong>RPi mor</strong> = historic es conserva, dades no entren.</li>
+                <li><strong>Fan-out</strong> = un missatge a multiples consumidors.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

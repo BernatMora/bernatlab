@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 6. Portainer — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🐳 Cap 6. Portainer</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>Portainer</strong> és una interfície gràfica web per administrar Docker. Veure contenidors, logs, volums, imatges, xarxes i fer operacions amb clics. Al BernatLab s'hi accedeix via <code>http://hortosona:9000</code> (o <code>http://100.115.134.76:9000</code> des de fora amb Tailscale).</p>
+
+            <h3>Què és exactament Portainer?</h3>
+            <p>Un contenidor Docker que administra altres contenidors. Comunica amb el dimoni Docker a través del socket <code>/var/run/docker.sock</code>. Versió Community (gratuïta) i Business (de pagament).</p>
+
+            <h3>Per què l'usem al BernatLab?</h3>
+            <ul>
+                <li><strong>Visibilitat</strong>: veure d'un cop d'ull tots els contenidors, el seu estat, CPU, RAM.</li>
+                <li><strong>Logs centralitzats</strong>: sense fer <code>docker logs</code>.</li>
+                <li><strong>Control</strong>: arrencar, parar, reiniciar, recrear amb botons.</li>
+                <li><strong>Editor de Compose</strong>: editar <code>docker-compose.yml</code> al navegador.</li>
+                <li><strong>Stack</strong>: gestionar múltiples serveis com una unitat.</li>
+                <li><strong>Consola web</strong>: entrar dins un contenidor amb un terminal al navegador.</li>
+            </ul>
+
+            <h3>Instal·lació</h3>
+            <pre><code>services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+
+volumes:
+  portainer_data:</code></pre>
+            <pre><code>cd ~/homelab/docker
+docker compose up -d portainer</code></pre>
+
+            <h3>Primer accés</h3>
+            <ol>
+                <li>Obre el navegador a <code>http://hortosona:9000</code>.</li>
+                <li>Crea l'usuari administrador (contrasenya forta).</li>
+                <li>Tria "Local" per administrar el Docker de la RPi.</li>
+                <li>Ja ets al tauler principal.</li>
+            </ol>
+
+            <h3>El tauler</h3>
+            <p>Seccions principals: Stacks, Containers, Images, Networks, Volumes.</p>
+
+            <h3>Gestió de contenidors</h3>
+            <ul>
+                <li>Estat (running, stopped, paused).</li>
+                <li>Mètriques en temps real (CPU%, RAM MB, xarxa).</li>
+                <li>Start / Stop / Restart / Kill.</li>
+                <li>Logs amb cerca i filtres.</li>
+                <li>Consola (shell dins del contenidor).</li>
+                <li>Detalls: env, volums, xarxes, ports.</li>
+                <li>Recrear / Esborrar.</li>
+            </ul>
+
+            <h3>Editor de Stacks (Compose)</h3>
+            <p>Stacks &gt; Add stack &gt; Web editor &gt; enganxa el YAML &gt; Deploy. Equivalent a fer <code>docker compose up -d</code>.</p>
+            <p><strong>Alerta</strong>: al BernatLab, tot el compose viu al sistema de fitxers. Només usem Portainer per visualitzar/operar, no per crear stacks nous.</p>
+
+            <h3>Volums i xarxes</h3>
+            <p>Secció "Volumes": veure mida, navegar contingut, esborrar (amb cura). Secció "Networks": veure quins contenidors estan connectats, però poques vegades tocarem res.</p>
+
+            <h3>Limites i advertències</h3>
+            <ul>
+                <li>Una sola màquina per instància Local (per a múltiples, cal Business o Agent).</li>
+                <li>No substitueix la terminal per a operacions avançades.</li>
+                <li>HTTP per defecte: acceptable via Tailscale, però a Internet caldria HTTPS.</li>
+            </ul>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 5 — Portainer és un contenidor que administra la resta.</li>
+                <li>Cap 7 — Uptime Kuma monitoritza si Portainer està actiu.</li>
+                <li>Cap 8 — Homepage mostrarà enllaços ràpids cap a Portainer.</li>
+                <li>Cap 22 — Monitoratge avançat deixa Portainer en segon pla.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 6</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què és Portainer?</li>
+                <li>Port per defecte.</li>
+                <li>Com accedir-hi al BernatLab.</li>
+                <li>Com comunica amb el dimoni Docker.</li>
+                <li>Què és un Stack.</li>
+                <li>Què pots fer dins d'un contenidor des de Portainer.</li>
+                <li>Avantatge respecte SSH.</li>
+                <li>Què passa si tens compose al FS i Stack amb el mateix nom.</li>
+                <li>(Oberta) Quan Portainer i quan SSH.</li>
+                <li>(Oberta) Afegir Gitea fent servir Només Portainer.</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Posar en marxa Portainer, accedir-hi, i practicar les operacions bàsiques d'administració.</p>
+
+            <h3>Pas 1: Afegeix Portainer al compose (10 min)</h3>
+            <p>Edita <code>~/homelab/docker/docker-compose.yml</code> amb el snippet de Portainer i <code>whoami</code>. Fes <code>docker compose up -d</code>.</p>
+
+            <h3>Pas 2: Primer accés (10 min)</h3>
+            <ol>
+                <li>Obre <code>http://hortosona:9000</code>.</li>
+                <li>Crea l'usuari admin (contrasenya forta).</li>
+                <li>Tria "Get Started" (entorn Local).</li>
+                <li>Explora el Dashboard.</li>
+            </ol>
+
+            <h3>Pas 3: Explora els contenidors (10 min)</h3>
+            <p>Vés a "Containers" &gt; <code>whoami</code> &gt; pestanyes Logs, Stats, Console. Fes <code>curl http://hortosona:8080</code> i mira els logs.</p>
+
+            <h3>Pas 4: Aturar i reiniciar (5 min)</h3>
+            <p>Stop <code>whoami</code> a Portainer, comprova amb <code>docker ps -a</code> per SSH, torna a Start.</p>
+
+            <h3>Pas 5: Volums (5 min)</h3>
+            <p>Secció "Volumes" &gt; <code>portainer_data</code> &gt; Browse.</p>
+
+            <h3>Pas 6: Stack des de Portainer (opcional, 10 min)</h3>
+            <p>Stacks &gt; Add stack &gt; <code>prova-stack</code> &gt; Web editor amb nginx &gt; Deploy. Comprova a <code>http://hortosona:8082</code>.</p>
+
+            <h3>Pas 7: Neteja i documenta</h3>
+            <p>Esborra el stack de prova. Documenta a <code>book/curs/M1/06-portainer/diari.md</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Portainer corre i hi accedeixes des del navegador.</li>
+                <li>☐ Has creat l'usuari admin.</li>
+                <li>☐ Has vist l'estat dels contenidors.</li>
+                <li>☐ Has vist els logs d'un contenidor.</li>
+                <li>☐ Has vist mètriques CPU/RAM.</li>
+                <li>☐ Has aturat i reiniciar un contenidor des de Portainer.</li>
+                <li>☐ Has navegat pels volums.</li>
+                <li>☐ (Opcional) Has creat un Stack des del Web editor.</li>
+                <li>☐ Has documentat l'experiència.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/06-portainer/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li>Portainer = GUI web per a Docker.</li>
+                <li>Port = 9000.</li>
+                <li>Accés = <code>http://hortosona:9000</code>.</li>
+                <li>Comunica via <code>/var/run/docker.sock</code>.</li>
+                <li>Stack = grup de serveis (compose).</li>
+                <li>Logs, mètriques, consola, start/stop, recrear.</li>
+                <li>Avantatge = visibilitat centralitzada amb clics.</li>
+                <li>Risc = conflictes si compose local + Stack Portainer.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

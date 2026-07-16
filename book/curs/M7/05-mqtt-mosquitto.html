@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 5. MQTT i Mosquitto - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📨 Cap 5. MQTT i Mosquitto</h1>
+        <p class="subtitle">Mòdul M7 · Hort Osona en acció</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>MQTT</strong> es un protocol de missatgeria del 1999 dissenyat per connectar sensors via satel·lit. Es basa en un patro <strong>pub/sub</strong> amb un broker central. <strong>Mosquitto</strong> es la implementacio de referencia, lleugera i apta per a RPi.</p>
+
+            <h3>El model publish/subscribe</h3>
+            <pre><code> Publisher A  ---\
+                    \
+ Publisher B  ------>[ Broker MQTT ] ---> Subscriber X
+                    /
+ Publisher C  ---/</code></pre>
+
+            <h3>Anatomia d'un missatge MQTT</h3>
+            <ul>
+                <li><strong>Topic</strong>: cadena jerarquica amb <code>/</code>.</li>
+                <li><strong>Payload</strong>: bytes (text JSON o binari).</li>
+                <li><strong>QoS</strong>: 0, 1 o 2.</li>
+                <li><strong>Retain</strong>: guarda l'ultim missatge per a nous subscribers.</li>
+            </ul>
+            <p>Exemple:</p>
+            <pre><code>mosquitto_pub -h localhost -p 1883 -u hort-osona -P secretpass \
+   -t "hort-osona/miflora/1B32" \
+   -m '{"device":"miflora-1B32","soil_moisture":42}' -q 1 -r</code></pre>
+
+            <h3>Wildcards</h3>
+            <ul>
+                <li><code>+</code> = un sol nivell. <code>hort-osona/miflora/+</code>.</li>
+                <li><code>#</code> = multiples nivells. <code>hort-osona/#</code>.</li>
+            </ul>
+
+            <h3>QoS: 3 nivells</h3>
+            <ul>
+                <li><strong>QoS 0</strong>: at most once. Telemetria no critica.</li>
+                <li><strong>QoS 1</strong>: at least once. Sensors normals.</li>
+                <li><strong>QoS 2</strong>: exactly once. Comandes critiques (electrovalvula).</li>
+            </ul>
+
+            <h3>Last Will and Testament (LWT)</h3>
+            <p>Missatge que el broker envia automaticament si el client cau abruptament. Serveix per saber si un gateway ha mort.</p>
+            <pre><code>client.will_set(
+   "hort-osona/status/gateway/rpi1",
+   '{"status":"offline"}',
+   qos=1, retain=True
+)</code></pre>
+
+            <h3>Retain</h3>
+            <p>El broker guarda l'ultim missatge amb retain i l'entrega als nous subscribers. Perfecte per a dashboards reactius.</p>
+
+            <h3>Persistencia i clean_session</h3>
+            <p>Amb <code>persistence true</code> i <code>clean_session=False</code>, el broker retè missatges per a subscribers offline (fins a <code>max_queued_messages</code>).</p>
+
+            <h3>Seguretat</h3>
+            <ul>
+                <li><strong>Autenticacio</strong>: usuari/password amb <code>password_file</code>.</li>
+                <li><strong>TLS</strong>: port 8883 amb certificats. Obligatori si el broker es accessible des d'internet.</li>
+            </ul>
+
+            <h3>Comandes utils</h3>
+            <pre><code># Publicar
+mosquitto_pub -h localhost -p 1883 -u u -P p -t "test/topic" -m "hola" -q 1 -r
+
+# Subscriure a tot
+mosquitto_sub -h localhost -p 1883 -u u -P p -t "#" -v
+
+# Subscriure nomes a un patro
+mosquitto_sub -h localhost -t "hort-osona/miflora/+" -v
+
+# Subscriure a un unic missatge i sortir
+mosquitto_sub -h localhost -t "test/+" -C 1</code></pre>
+
+            <h3>Instal·lacio</h3>
+            <p>A l'Hort Osona preferim Docker: <code>eclipse-mosquitto:2</code> amb volum a <code>/mosquitto/data</code> per persistencia. Alternatives: EMQX, HiveMQ, VerneMQ, AWS IoT.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M7 Cap 4 - L'arquitectura on MQTT es el bus central.</li>
+                <li>M7 Cap 6 - InfluxDB reb les dades via MQTT.</li>
+                <li>M7 Cap 7 - L'API tambe pot rebre missatges MQTT.</li>
+                <li>M7 Cap 10 - Cas real: alerta de gelada amb QoS 1.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m7 5</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin es el model de comunicacio de MQTT?</li>
+                <li>Quin es el broker MQTT mes utilizat i lleuger?</li>
+                <li>Quin wildcard escolta tots els missatges que comencen per <code>hort-osona/</code>?</li>
+                <li>Que significa el retain flag?</li>
+                <li>Quin QoS garanteix exactly-once delivery?</li>
+                <li>Que es el Last Will and Testament (LWT)?</li>
+                <li>Quin es el port per defecte de MQTT amb TLS?</li>
+                <li>Quina ordre pots fer servir per subscriure't a tots els missatges?</li>
+                <li>(Oberta) QoS per a: temp ambient, comanda electrovalvula, heartbeat, imatge camera.</li>
+                <li>(Oberta) Un sensor deixa d'apareixer durant 2h. 3 maneres de detectar-ho amb MQTT.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Muntar Mosquitto amb Docker, crear usuaris, practicar pub/sub, i fer una aplicacio Python amb QoS 1 i LWT.</p>
+
+            <h3>Pas 1: Inicia Mosquitto amb Docker (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/hort-osona/mosquitto/{config,data,log}
+docker run --rm -it eclipse-mosquitto:2 \
+   sh -c "mosquitto_passwd -c -b /tmp/passwd hort-osona secretpass && \
+          mosquitto_passwd -b /tmp/passwd gateway gwpassword && \
+          cat /tmp/passwd" > config/passwd
+docker run -d --name hort-mosquitto -p 1883:1883 \
+   -v $PWD/mosquitto/config:/mosquitto/config \
+   -v $PWD/mosquitto/data:/mosquitto/data eclipse-mosquitto:2</code></pre>
+            </div>
+
+            <h3>Pas 2: Primer test amb mosquitto_pub/sub (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mosquitto_sub -h localhost -p 1883 -u hort-osona -P secretpass -t "hort-osona/#" -v
+# En una altra terminal:
+mosquitto_pub -h localhost -p 1883 -u hort-osona -P secretpass \
+   -t "hort-osona/test/salutacio" -m "Hola!"</code></pre>
+            </div>
+
+            <h3>Pas 3: Practica wildcards (5 min)</h3>
+            <p>Subscriu amb <code>hort-osona/miflora/+</code> i publica a <code>hort-osona/miflora/1B32</code>, <code>hort-osona/bme/hivernacle</code>, <code>hort-osona/miflora/1B32/extra</code>. Comprova que nomes reps el primer.</p>
+
+            <h3>Pas 4: Practica retain (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mosquitto_pub -h localhost -p 1883 -u hort-osona -P secretpass \
+   -t "hort-osona/status/hort" -m "OK" -r
+mosquitto_sub -h localhost -p 1883 -u hort-osona -P secretpass \
+   -t "hort-osona/status/hort" -C 1 -v
+# Reps "OK" immediatament</code></pre>
+            </div>
+
+            <h3>Pas 5: Aplica Python amb QoS 1 i LWT (15 min)</h3>
+            <p>Script Python que publica heartbeat cada 5s amb QoS 1 i retain. Configura LWT per si el client cau. Subscriu a <code>hort-osona/cmd/#</code> per rebre comandes.</p>
+
+            <h3>Pas 6: Mesurar rendiment (5 min)</h3>
+            <p>Usa <code>mqttbench</code> per generar 1000 missatges a 10 msg/s i mira si la RPi aguanta el ritme.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has aixecat Mosquitto amb 2 usuaris.</li>
+                <li>☐ Has publicat i subscrit amb <code>mosquitto_pub/sub</code>.</li>
+                <li>☐ Has provat <code>+</code> i <code>#</code>.</li>
+                <li>☐ Has vist un missatge retain al subscriure't despres.</li>
+                <li>☐ Has executat el client Python amb QoS 1, LWT i retain.</li>
+                <li>☐ Has vist el LWT automatic al matar el proces.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/05-mqtt-mosquitto/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Model</strong> = publish/subscribe amb broker.</li>
+                <li><strong>Broker lleuger</strong> = Mosquitto.</li>
+                <li><strong>Wildcard</strong> = <code>#</code>.</li>
+                <li><strong>Retain</strong> = guarda ultim missatge per nous subs.</li>
+                <li><strong>Exactly once</strong> = QoS 2.</li>
+                <li><strong>LWT</strong> = missatge automatic si client cau.</li>
+                <li><strong>Port TLS</strong> = 8883.</li>
+                <li><strong>Sub tot</strong> = <code>mosquitto_sub -t "#" -v</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

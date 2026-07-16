@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 9. Actualitzacions segures — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🛡️ Cap 9. Actualitzacions segures</h1>
+        <p class="subtitle">Mòdul M5 · Seguretat</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>La majoria d'atacs exitosos aprofiten vulnerabilitats <strong>conegudes</strong> que tenen pegat disponible pero que no s'ha aplicat. Mantenir el sistema actualitzat es una de les mesures mes efectives, i alhora mes obvies. Al BernatLab volem un sistema que s'actualitzi sol, de forma controlada, sense trencar res, i que ens avisi quan hi ha pegats de seguretat pendents. Inclou tant el sistema operatiu (apt) com les imatges Docker (dependabot o Watchtower).</p>
+
+            <h3>Per que les actualitzacions son critiques</h3>
+            <p>Els <strong>CVE</strong> (Common Vulnerabilities and Exposures) son el registre public de vulnerabilitats conegudes. Quan es descobreix una, normalment tambe es publica una <strong>correcio</strong> (pegat). Si no apliques el pegat, la teva maquina queda exposada a un atac que <strong>ja es public</strong>.</p>
+            <p>Hi ha una regla empirica: el 80% dels atacs exitosos aprofiten pegats que estaven disponibles <strong>mesos abans</strong>. A mes, les actualitzacions:</p>
+            <ul>
+                <li><strong>Corregeixen errors</strong> de funcionalitat.</li>
+                <li><strong>Afegeixen funcionalitats noves</strong>.</li>
+                <li><strong>Milloren la performance</strong>.</li>
+                <li><strong>S'adapten a canvis de l'entorn</strong>.</li>
+            </ul>
+
+            <h3>Tipus d'actualitzacions al BernatLab</h3>
+            <p>Quatre tipus principals:</p>
+            <ul>
+                <li><strong>Sistema operatiu</strong> (Debian/Raspberry Pi OS): paquets apt.</li>
+                <li><strong>Imatges Docker</strong>: imatges base, imatges dels serveis.</li>
+                <li><strong>Aplicacions no Docker</strong>: scripts, eines instal·lades manualment.</li>
+                <li><strong>Firmware</strong>: del router, de la BIOS, del microcontrolador de la RPi.</li>
+            </ul>
+
+            <h3>apt: actualitzar el sistema</h3>
+            <p><code>apt</code> es el gestor de paquets de Debian/Ubuntu. Comandes essentials:</p>
+            <pre><code># Veure quines actualitzacions hi ha
+sudo apt update
+
+# Llistar les actualitzacions disponibles
+apt list --upgradable
+
+# Veure nomes les de seguretat
+apt list --upgradable 2&gt;/dev/null | grep -i security
+
+# Actualitzar tot
+sudo apt upgrade
+
+# Actualitzar tot, acceptant canvis "intrusius"
+sudo apt full-upgrade
+
+# Netejar paquets no usats
+sudo apt autoremove
+sudo apt autoclean</code></pre>
+            <p>Per saber quins pegats de seguretat s'han aplicat:</p>
+            <pre><code>cat /var/log/dpkg.log | grep "status installed" | grep security</code></pre>
+
+            <h3>Actualitzacions automatiques</h3>
+            <p>El dilema classic: actualitzar pot trencar coses. La solucio son les <strong>actualitzacions automatiques amb control</strong>:</p>
+            <pre><code>sudo apt install unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades</code></pre>
+            <p>Configuracio a <code>/etc/apt/apt.conf.d/50unattended-upgrades</code>:</p>
+            <pre><code>Unattended-Upgrade::Origins-Pattern {
+    "origin=Debian,codename=${distro_codename},label=Debian-Security";
+    "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+};
+
+Unattended-Upgrade::Package-Blacklist {
+    "vim";
+    "nginx";
+};
+
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "03:00";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+Unattended-Upgrade::Mail "bernat@bernatlab.cat";</code></pre>
+            <p>Aixo aplica actualitzacions de seguretat automaticament a la nit, i reinicia el sistema si cal.</p>
+
+            <h3>Dependabot: actualitzar imatges Docker</h3>
+            <p>Si tens un repo de GitHub amb Docker Compose o Dockerfiles, pots activar <strong>Dependabot</strong> per obrir Pull Requests automaticament quan hi ha versions noves de les imatges.</p>
+            <p><code>.github/dependabot.yml</code>:</p>
+            <pre><code>version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+    open-pull-requests-limit: 5</code></pre>
+            <p>Dependabot obrira PRs setmanalment. Tu les revisaries i fusionaries.</p>
+
+            <h3>Watchtower i Diun: actualitzar contenidors</h3>
+            <p><strong>Watchtower</strong> actualitza automaticament les imatges:</p>
+            <pre><code>docker run -d \
+  --name watchtower \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  containrrr/watchtower \
+  --cleanup \
+  --schedule "0 0 4 * * *"</code></pre>
+            <p><strong>Diun</strong> nomes t'avisa quan hi ha actualitzacions, no les aplica:</p>
+            <pre><code>docker run -d \
+  --name diun \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e DIUN_WATCH_SCHEDULE="0 9 * * *" \
+  -e DIUN_PROVIDERS_DOCKER=true \
+  ghcr.io/crazy-max/diun:latest</code></pre>
+
+            <h3>Com saber quines imatges tenen CVEs</h3>
+            <p>Eines com <strong>Trivy</strong> o <strong>Grype</strong>:</p>
+            <pre><code># Trivy
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy image bernatlab-api:latest
+
+# Grype
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  anchore/grype:latest bernatlab-api:latest</code></pre>
+
+            <h3>Bones practiques amb actualitzacions</h3>
+            <ul>
+                <li><strong>Aplica pegats de seguretat en 7-14 dies</strong> desde la publicacio.</li>
+                <li><strong>Prova primer en una maquina de staging</strong> si tens serveis critics.</li>
+                <li><strong>Fes backup abans d'actualitzar</strong> si la teva base de dades es critica.</li>
+                <li><strong>Automatitza pero monitora</strong>: les actualitzacions automatiques son be, pero vull saber quan fallen.</li>
+                <li><strong>Documenta les actualitzacions manuals</strong> al runbook.</li>
+                <li><strong>No actualitzis el kernel sense provar</strong>: un kernel trencat pot deixar el sistema inutilitzable.</li>
+            </ul>
+
+            <h3>Actualitzar la propia RPi</h3>
+            <pre><code>sudo apt update
+sudo apt full-upgrade
+sudo rpi-update   # nomes si vols el firmware mes recent (pot ser inestable)</code></pre>
+            <p>Per defecte, <code>rpi-update</code> no es recomanat perque porta el firmware mes recent pero menys provat.</p>
+
+            <h3>Comandes utils</h3>
+            <pre><code># Comprovar actualitzacions
+sudo apt update
+apt list --upgradable
+
+# Veure pegats de seguretat
+apt list --upgradable 2&gt;/dev/null | grep -i security
+sudo unattended-upgrade --dry-run
+
+# Veure quins serveis s'han reiniciat per una actualitzacio
+sudo needrestart
+
+# Llistar versions d'un paquet
+apt list --all-versions &lt;paquet&gt;</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M1 Cap 8 - Git: dependabot i PRs.</li>
+                <li>M2 Cap 7 - Actualitzacio de contenidors.</li>
+                <li>Cap 7 d'aquest modul - Backups: fer backup abans d'actualitzar.</li>
+                <li>Cap 10 d'aquest modul - Auditoria: revisar que tot esta actualitzat.</li>
+            </ul>
+
+            <h3>Conclusio</h3>
+            <p>Mantenir el sistema actualitzat es la mesura de seguretat mes rendible: zero cost, zero esforç, i cobreix el 80% dels atacs coneguts. La combinacio <strong>unattended-upgrades + Dependabot + Watchtower (o Diun)</strong> et dona tranquilitat sense perdre el control.</p>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m5 9</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Per que son importants les actualitzacions?</li>
+                <li>Comanda per llistar actualitzacions?</li>
+                <li>Que fa unattended-upgrades?</li>
+                <li>Que es Dependabot?</li>
+                <li>Que es Watchtower?</li>
+                <li>Risc de l'automatitzacio total?</li>
+                <li>Temps maxim per aplicar un pegat?</li>
+                <li>Eines per escanejar CVEs?</li>
+                <li>(Oberta) Estrategia d'actualitzacions.</li>
+                <li>(Oberta) Home Assistant critic.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Configurar un sistema d'actualitzacions automatiques per al sistema operatiu, mes una estrategia d'actualitzacio de les imatges Docker.</p>
+
+            <h3>Pas 1: Estat actual (5 min)</h3>
+            <pre><code>sudo apt update
+apt list --upgradable | head -20
+apt list --upgradable 2&gt;/dev/null | grep -i security
+sudo needrestart</code></pre>
+
+            <h3>Pas 2: Configura unattended-upgrades (15 min)</h3>
+            <pre><code>sudo apt install -y unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades
+sudo nano /etc/apt/apt.conf.d/50unattended-upgrades
+sudo unattended-upgrade --dry-run</code></pre>
+
+            <h3>Pas 3: Correu (10 min)</h3>
+            <pre><code>sudo apt install -y msmtp msmtp-mta
+sudo nano /etc/msmtprc
+sudo chmod 600 /etc/msmtprc
+echo "Prova" | mail -s "Test" bernat@bernatlab.cat</code></pre>
+
+            <h3>Pas 4: Dependabot (opcional) (10 min)</h3>
+            <p>Crea <code>.github/dependabot.yml</code> amb configuracio setmanal.</p>
+
+            <h3>Pas 5: Diun o Watchtower (10 min)</h3>
+            <pre><code># Diun (nomes alerta)
+docker run -d --name diun --restart always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e DIUN_WATCH_SCHEDULE="0 9 * * *" \
+  ghcr.io/crazy-max/diun:latest
+
+# Watchtower (aplica automaticament)
+docker run -d --name watchtower --restart always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  containrrr/watchtower --cleanup --schedule "0 0 4 * * *"</code></pre>
+
+            <h3>Pas 6: Trivy (5 min)</h3>
+            <pre><code>docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy image homeassistant/home-assistant:stable</code></pre>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has configurat unattended-upgrades.</li>
+                <li>☐ Rebs un correu quan hi ha actualitzacions.</li>
+                <li>☐ Tens Dependabot configurat.</li>
+                <li>☐ Tens Diun o Watchtower.</li>
+                <li>☐ Has escanejat una imatge amb Trivy.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M5/09-actualitzacions-segures/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Actualitzacions</strong> = tancant el 80% dels atacs coneguts.</li>
+                <li><code>apt list --upgradable</code>.</li>
+                <li><strong>unattended-upgrades</strong> = actualitzar automaticament.</li>
+                <li><strong>Dependabot</strong> = PRs automatics per a dependencies.</li>
+                <li><strong>Watchtower</strong> = actualitza imatges Docker.</li>
+                <li><strong>Risc</strong> = pot trencar serveis.</li>
+                <li><strong>7-14 dies</strong> = temps maxim recomanat.</li>
+                <li><strong>Trivy / Grype</strong> = escanejar CVEs.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

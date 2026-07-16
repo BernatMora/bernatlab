@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 3. Linux per administrar — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🐧 Cap 3. Linux per administrar</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un cop tens la Raspberry Pi en marxa amb Debian 13 Lite, toca aprendre a <strong>parlar amb ella</strong>. Ordres de terminal, gestió d'usuaris, instal·lació de programari, logs i serveis. Són les ordres bàsiques que faràs servir cada dia al BernatLab (hostname <code>hortosona</code>, IP Tailscale <code>100.115.134.76</code>).</p>
+
+            <h3>El sistema de fitxers</h3>
+            <pre><code>/home/bernat/homelab/    &lt;-- el teu homelab (on viurà tot)
+/etc/                     &lt;-- configuració del sistema
+/var/log/                 &lt;-- logs (registres d'activitat)
+/usr/bin/                 &lt;-- programes instal·lats
+/proc/                    &lt;-- informació del sistema i processos</code></pre>
+            <p>Les carpetes clau: <code>/home/bernat/</code> (la teva home), <code>/etc/</code> (configuració), <code>/var/log/</code> (logs), <code>/opt/</code> (programes manuals).</p>
+
+            <h3>Navegació i gestió de fitxers</h3>
+            <pre><code>pwd                       # On soc?
+ls -lah                   # Què hi ha aquí?
+cd /home/bernat/homelab   # Canvia de carpeta
+mkdir docker              # Crea carpeta
+touch notes.md            # Crea fitxer buit
+cp fitxer.txt copia.txt   # Copia
+mv fitxer.txt nou.txt     # Mou o reanomena
+rm fitxer.txt             # Esborra (compte, no hi ha paperera!)</code></pre>
+            <p><code>cd</code> sense arguments et porta a <code>/home/bernat/</code>. <code>cd ..</code> puja un nivell. <code>cd -</code> torna a l'anterior.</p>
+
+            <h3>Usuaris, grups i permisos</h3>
+            <p>Cada fitxer té un propietari (usuari), un grup, i tres permisos: <strong>llegir (r)</strong>, <strong>escriure (w)</strong>, <strong>executar (x)</strong>.</p>
+            <pre><code>ls -l notes.md
+# -rw-r--r-- 1 bernat bernat 1234 nov 12 10:30 notes.md
+# ^^^^^^^^^  ^^^^^^  ^^^^^^
+# permisos  usuari   grup</code></pre>
+            <p>La cadena <code>-rw-r--r--</code> es llegeix: tipus (-) + permissos del propietari (rw-) + del grup (r--) + d'altres (r--).</p>
+            <pre><code>chmod 755 script.sh       # rwxr-xr-x
+chmod 644 fitxer.txt      # rw-r--r-- (estàndard per a fitxers)
+chmod +x script.sh        # afegeix execució
+sudo chown bernat:bernat fitxer.txt</code></pre>
+
+            <h3>sudo: fer coses d'administrador</h3>
+            <pre><code>sudo apt update                    # actualitza la llista de paquets
+sudo systemctl restart ssh         # reinicia el servei SSH
+sudo nano /etc/hosts                # edita un fitxer del sistema</code></pre>
+            <p>La primera vegada et demana la contrasenya. Durant 15 minuts no te la torna a demanar. <strong>Compte</strong>: un <code>sudo rm -rf /</code> esborraria TOT el sistema.</p>
+
+            <h3>Gestió de paquets amb apt</h3>
+            <pre><code>sudo apt update              # descarrega la llista de paquets
+sudo apt upgrade             # instal·la les actualitzacions
+sudo apt install htop        # instal·la un programa
+sudo apt remove htop         # desinstal·la
+apt search "monitor"         # busca paquets</code></pre>
+            <p>Sempre <code>sudo apt update</code> abans d'instal·lar, i <code>sudo apt upgrade</code> un cop al mes.</p>
+
+            <h3>L'editor nano</h3>
+            <pre><code>nano /etc/hosts       # obre l'editor</code></pre>
+            <p>Dins de nano: <code>Ctrl+O</code> guarda, <code>Ctrl+X</code> surt, <code>Ctrl+K</code> talla, <code>Ctrl+W</code> busca, <code>Ctrl+C</code> cancel·la.</p>
+
+            <h3>Serveis amb systemd</h3>
+            <pre><code>sudo systemctl status ssh        # estat
+sudo systemctl start ssh         # arrenca
+sudo systemctl stop ssh          # para
+sudo systemctl restart ssh       # reinicia
+sudo systemctl enable ssh        # arrenca automàticament en boot
+systemctl list-units --type=service --state=running</code></pre>
+
+            <h3>Logs bàsics</h3>
+            <pre><code>sudo journalctl -u ssh --since today    # logs d'un servei
+sudo journalctl -u ssh -f               # tail -f amb journalctl
+sudo journalctl -p err -b               # errors des de l'últim boot
+tail -f /var/log/syslog                 # log general clàssic
+tail -f /var/log/auth.log               # autenticacions</code></pre>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 2 — Tot això corre sobre la Raspberry Pi 4 amb Debian 13.</li>
+                <li>Cap 4 — L'accés remot per SSH substitueix el terminal directe.</li>
+                <li>Cap 5 — Docker és un servei systemd (<code>docker.service</code>).</li>
+                <li>Cap 6 — Portainer és un contenidor Docker que administra la resta.</li>
+                <li>Cap 9 — Versionarem els fitxers de configuració amb Git.</li>
+                <li>Cap 22 — Monitoratge avançat llegeix els mateixos logs.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 3</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quina ordre et mostra el directori actual?</li>
+                <li>Quin és el permís numèric per a "tots els permisos per al propietari, lectura+execució per a grup i altres"?</li>
+                <li>Què fa <code>sudo</code>?</li>
+                <li>Quina ordre instal·la un paquet a Debian?</li>
+                <li>Quin és el permís <code>-rwxr-xr-x</code> en format numèric?</li>
+                <li>Què fa <code>systemctl enable ssh</code>?</li>
+                <li>Quina combinació de tecles guarda un fitxer a nano?</li>
+                <li>Quina ordre mostra els logs en temps real d'un servei amb systemd?</li>
+                <li>(Oberta) Diferència entre usuari i root. Per què no treballar sempre com a root?</li>
+                <li>(Oberta) Diagnosticar un contenidor caigut: passos i ordres.</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Practicar les ordres bàsiques de Linux al BernatLab: navegar, crear fitxers, permisos, instal·lar programari, mirar logs.</p>
+
+            <h3>Pas 1: Navega i crea estructura (10 min)</h3>
+            <div class="code-block">
+                <pre><code>cd ~
+mkdir -p homelab/{docker,config,notes,scripts,logs}
+ls -la homelab/
+tree homelab/ 2&gt;/dev/null || find homelab/ -type d
+cd homelab
+echo "# El meu homelab" &gt; README.md
+cat README.md</code></pre>
+            </div>
+
+            <h3>Pas 2: Permisos (10 min)</h3>
+            <div class="code-block">
+                <pre><code>cd ~/homelab/scripts
+nano hola.sh
+# Escriu:
+#!/bin/bash
+echo "Hola des del BernatLab!"
+# Ctrl+O per guardar, Ctrl+X per sortir
+
+ls -l hola.sh
+chmod +x hola.sh
+ls -l hola.sh
+./hola.sh
+
+touch secret.txt
+chmod 600 secret.txt
+ls -l secret.txt</code></pre>
+            </div>
+
+            <h3>Pas 3: Instal·la eines amb apt (10 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo apt update
+sudo apt install -y htop tree ncdu
+htop --version
+tree --version
+ncdu --version
+htop
+tree ~/homelab -L 2
+ncdu ~/homelab</code></pre>
+            </div>
+
+            <h3>Pas 4: Gestió de serveis (10 min)</h3>
+            <div class="code-block">
+                <pre><code>systemctl list-units --type=service --state=running | head -20
+sudo systemctl status ssh
+sudo journalctl -u ssh --since "1 hour ago" | tail -20
+sudo journalctl -u ssh -f</code></pre>
+            </div>
+
+            <h3>Pas 5: Documenta</h3>
+            <p>Crea <code>book/curs/M1/03-linux-per-administrar/diari.md</code> amb les ordres que més has fet servir i notes personals.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat l'estructura <code>homelab/{docker,config,notes,scripts,logs}</code>.</li>
+                <li>☐ Has fet executable un script amb <code>chmod +x</code> i l'has executat.</li>
+                <li>☐ Has canviat permisos a <code>600</code> i has comprovat la diferència.</li>
+                <li>☐ Has instal·lat <code>htop</code>, <code>tree</code> i <code>ncdu</code>.</li>
+                <li>☐ Has vist l'estat del servei SSH i els seus logs.</li>
+                <li>☐ Has documentat l'experiència a <code>diari.md</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/03-linux-per-administrar/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>pwd</strong> = Print Working Directory.</li>
+                <li><strong>755</strong> = rwxr-xr-x.</li>
+                <li><strong>sudo</strong> = eleva permisos temporalment.</li>
+                <li><strong>apt install</strong> a Debian/Ubuntu.</li>
+                <li><strong>755</strong> = rwxr-xr-x.</li>
+                <li><strong>systemctl enable</strong> = arrencada automàtica en boot.</li>
+                <li><strong>Ctrl+O</strong> = guardar a nano.</li>
+                <li><strong>journalctl -u servei -f</strong> = logs en temps real.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

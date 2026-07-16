@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 2. Sensors Xiaomi MiFlora - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🌿 Cap 2. Sensors Xiaomi MiFlora</h1>
+        <p class="subtitle">Mòdul M7 · Hort Osona en acció</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>El <strong>Xiaomi MiFlora (HHCCJCY10)</strong> es un sensor bluetooth que es clava al test i et diu si la planta te set, te calor, te nutrients i te llum. Es petit (~5 cm), te pila de botó que dura un any, i val uns 10-15€. Es el sensor favorit dels horts urbans perque es <strong>no-invasiu</strong> (no cal cablejat) i <strong>barat</strong> (10 plantes = 100€).</p>
+
+            <h3>Que es el MiFlora i que mesura</h3>
+            <p>El sensor es un tub de plastic blanc amb quatre sensors dins i una pila CR2032. Emet per BLE cada 5-10 min amb quatre lectures:</p>
+            <ul>
+                <li><strong>Soil moisture</strong> (%) - humitat del substrat</li>
+                <li><strong>Soil temperature</strong> (°C) - temperatura del soll</li>
+                <li><strong>EC / Fertility</strong> (µS/cm) - conductivitat, proxy de nutrients</li>
+                <li><strong>Light</strong> (lux) - lluminositat</li>
+            </ul>
+            <p>A mes: nivell de bateria i temps desde l'ultim reset.</p>
+
+            <h3>Per que BLE i no WiFi o Zigbee</h3>
+            <p>El MiFlora usa <strong>Bluetooth Low Energy (BLE)</strong> per raons d'estalvi energetic. La pila CR2032 aguanta un any transmetent cada pocs minuts. Si fos WiFi, la pila duraria dies. L'inconvenient es que <strong>la RPi ha d'estar a prop</strong> (10-20 metres).</p>
+
+            <h3>Integracio a la RPi</h3>
+            <p>La llibreria Python <code>miflora</code> combinada amb <code>paho-mqtt</code> es la solucio mes utilitzada:</p>
+            <pre><code>pip install miflora paho-mqtt</code></pre>
+            <p>Script minim que llegeix i publica a MQTT:</p>
+            <pre><code>from miflora.miflora_poller import MiFloraPoller
+from btlewrap.bluepy import BluepyBackend
+import paho.mqtt.client as mqtt
+import json
+
+poller = MiFloraPoller(mac="C4:7C:8D:65:1B:32", backend=BluepyBackend)
+moisture, temp, ec, light, battery = poller.parameter_value(MiFloraPoller.SERVICE_DATA)
+
+client = mqtt.Client("miflora-gateway")
+client.connect("localhost", 1883)
+client.publish("hort-osona/miflora/1B32",
+               json.dumps({"moisture": moisture, "temp": temp}),
+               qos=1)</code></pre>
+
+            <h3>Decodificacio del advertisement BLE</h3>
+            <p>El MiFlora envia un "service data" amb un format propietari Xiaomi. La llibreria <code>miflora</code> ja el descodifica. Format v3+: firma (1B) + seq (2B) + moisture (1B) + temp (2B signed LE) + EC (2B unsigned LE) + light (4B uint32 LE) + battery (1B).</p>
+
+            <h3>Bona praxis i limitacions</h3>
+            <ul>
+                <li>No submergir en aigua; treure abans de trasplantar; canviar pila cada any.</li>
+                <li>Alcance limitat 10-20 m; lent per arrancar (2-3 s); no apte per sòl argilós; no te datalogger intern.</li>
+            </ul>
+
+            <h3>Alternatives</h3>
+            <table>
+                <thead><tr><th>Sensor</th><th>Preu</th><th>Protocol</th><th>Pros</th><th>Contres</th></tr></thead>
+                <tbody>
+                    <tr><td>MiFlora</td><td>12€</td><td>BLE</td><td>Barat, fiable</td><td>No datalogger</td></tr>
+                    <tr><td>ESP32+soil</td><td>5€</td><td>WiFi</td><td>Totalment DIY</td><td>Cal soldar</td></tr>
+                    <tr><td>Atlas EZO</td><td>30€</td><td>I2C</td><td>Professional</td><td>Cal cablejar</td></tr>
+                    <tr><td>Sensoterra</td><td>100€</td><td>LoRa</td><td>Llarg abast</td><td>Car, professional</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M7 Cap 1 - Les dades que captura el MiFlora son les "de soll".</li>
+                <li>M7 Cap 3 - Si vols mes abast, combina MiFlora amb LoRa.</li>
+                <li>M7 Cap 5 - Les dades del MiFlora es publiquen a MQTT.</li>
+                <li>M7 Cap 10 - Cas real: detectar reg excessiu mirant EC.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m7 2</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que mesura el sensor MiFlora?</li>
+                <li>Quin protocol de comunicacio fa servir el MiFlora?</li>
+                <li>Quant dura aproximadament la pila CR2032 del MiFlora?</li>
+                <li>Quin es l'abast habitual d'un MiFlora amb un adapter BLE USB normal?</li>
+                <li>Quina llibreria Python s'usa habitualment per llegir el MiFlora?</li>
+                <li>Quina ordre pots fer servir per descobrir les MAC dels sensors BLE?</li>
+                <li>Que passa si poses el sensor en sol molt argilos?</li>
+                <li>Quina es una limitacio important del MiFlora vs un sensor amb SD?</li>
+                <li>(Oberta) Per que BLE i no WiFi? Avantatges/inconvenients vs Zigbee o LoRa.</li>
+                <li>(Oberta) Hort de 100 m: 10 MiFlora amb RPi central o 5 LoRa amb gateway? 3 pros/contres.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Connectar un sensor MiFlora a la RPi, llegir les seves dades cada 15 min i publicar-les a un broker MQTT.</p>
+
+            <h3>Pas 1: Verifica el Bluetooth (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo apt install bluetooth bluez bluez-tools
+sudo systemctl status bluetooth
+sudo hcitool lescan</code></pre>
+            </div>
+            <p>Apunta la MAC del teu MiFlora: <code>C4:7C:8D:xx:xx:xx</code>.</p>
+
+            <h3>Pas 2: Instal·la les dependencies (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/hort-osona/services/miflora
+cd ~/hort-osona/services/miflora
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install miflora paho-mqtt pyyaml</code></pre>
+            </div>
+
+            <h3>Pas 3: Primer test del sensor (10 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo python3 test_miflora.py C4:7C:8D:65:1B:32</code></pre>
+            </div>
+            <p>Sortida esperada: humitat, temperatura, EC, llum i bateria.</p>
+
+            <h3>Pas 4: Crea el servei continu (15 min)</h3>
+            <p>Crea <code>miflora_service.py</code> amb el bucle de 15 min que publica a MQTT, i <code>config.yaml</code> amb les MACs i credencials del broker.</p>
+
+            <h3>Pas 5: Prova el servei (5 min)</h3>
+            <div class="code-block">
+                <pre><code>source .venv/bin/activate
+sudo python3 miflora_service.py
+mosquitto_sub -h localhost -t "hort-osona/miflora/#" -v</code></pre>
+            </div>
+
+            <h3>Pas 6: Fer-lo correr com a dimoni (5 min)</h3>
+            <p>Crea <code>/etc/systemd/system/hort-miflora.service</code> amb Type=simple, Restart=on-failure i WantedBy=multi-user.target. Activa'l amb <code>systemctl enable</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has descobert la MAC amb <code>hcitool lescan</code>.</li>
+                <li>☐ Has llegit el sensor amb <code>test_miflora.py</code>.</li>
+                <li>☐ El servei publica cada 15 min a MQTT.</li>
+                <li>☐ Has vist els missatges amb <code>mosquitto_sub</code>.</li>
+                <li>☐ El servei systemd esta actiu.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/02-sensors-miflora/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>MiFlora</strong> = humitat, temp, EC, llum del soll.</li>
+                <li><strong>Protocol</strong> = BLE.</li>
+                <li><strong>Pila</strong> = 1 any.</li>
+                <li><strong>Abast</strong> = 10-20 m.</li>
+                <li><strong>Llibreria</strong> = <code>miflora</code>.</li>
+                <li><strong>Scan</strong> = <code>sudo hcitool lescan</code>.</li>
+                <li><strong>Argila</strong> = lectures menys fiables.</li>
+                <li><strong>Limitacio</strong> = sense datalogger intern.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

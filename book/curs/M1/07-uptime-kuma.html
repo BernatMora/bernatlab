@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 7. Uptime Kuma — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📡 Cap 7. Uptime Kuma</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>Uptime Kuma</strong> és el "quadre de comandament" del BernatLab: vigila si els teus serveis estan vius, mesura el temps de resposta, i t'avisa per Telegram quan algo cau. S'hi accedeix via <code>http://hortosona:3001</code>.</p>
+
+            <h3>Què és Uptime Kuma?</h3>
+            <p>Aplicació web self-hosted per monitorar serveis. Tipus de monitors: HTTP(s), Ping, TCP port, DNS, Docker Container, Push, SQL/Mongo/Redis/Postgres, certificat SSL, i més.</p>
+
+            <h3>Per què l'usem</h3>
+            <ul>
+                <li>Saber ràpid si algo ha caigut (sense esperar que ho noti un visitant).</li>
+                <li>Mesurar uptime (% de temps actiu).</li>
+                <li>Detectar degradació (latència creixent).</li>
+                <li>Rebre alertes al mòbil (Telegram).</li>
+                <li>Visualitzar tendències (gràfiques).</li>
+                <li>Pàgina pública d'estat.</li>
+            </ul>
+
+            <h3>Instal·lació</h3>
+            <pre><code>services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  uptime_data:</code></pre>
+
+            <h3>Primers monitors</h3>
+            <ol>
+                <li><strong>RPi ping</strong>: Ping a <code>127.0.0.1</code>, 60s.</li>
+                <li><strong>Portainer</strong>: HTTP a <code>http://localhost:9000</code>, 60s.</li>
+                <li><strong>Internet</strong>: HTTP a <code>https://1.1.1.1</code>, 5 min.</li>
+                <li><strong>SSH</strong>: TCP port 22, 60s.</li>
+                <li><strong>Homepage</strong> (quan el tinguis): HTTP a <code>http://localhost:3010</code>.</li>
+            </ol>
+
+            <h3>Alertes: Telegram</h3>
+            <ol>
+                <li>Parla amb <code>@BotFather</code> a Telegram.</li>
+                <li>Envia <code>/newbot</code>, posa nom + username.</li>
+                <li>Guarda el <strong>token</strong>.</li>
+                <li>Inicia conversa amb el bot.</li>
+                <li>Obté el <strong>chat_id</strong> amb <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code>.</li>
+                <li>A Uptime Kuma: Settings &gt; Notifications &gt; Telegram.</li>
+                <li>Test, desa.</li>
+            </ol>
+
+            <h3>Altres canals</h3>
+            <p>Email, Discord, Slack, Teams, Pushover, Gotify, Webhook genèric. Al BernatLab: <strong>Telegram + Email</strong> de backup.</p>
+
+            <h3>Status Page</h3>
+            <p>Status Pages &gt; New &gt; nom + slug + monitors. URL: <code>http://hortosona:3001/status/&lt;slug&gt;</code>. Pública per compartir amb família/amics.</p>
+
+            <h3>Correlació amb Portainer</h3>
+            <ul>
+                <li><strong>Portainer</strong>: operacions manuals + visualització.</li>
+                <li><strong>Uptime Kuma</strong>: vigilància passiva + alertes.</li>
+            </ul>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 5-6 — Uptime Kuma és un contenidor Docker.</li>
+                <li>Cap 8 — Homepage tindrà un widget d'estat.</li>
+                <li>Cap 22 — Prometheus + Grafana per a mètriques profundes.</li>
+                <li>Cap 23 — Pàgines de status avançades.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 7</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què és Uptime Kuma?</li>
+                <li>Port per defecte.</li>
+                <li>Tipus de monitor que comprova 200 OK.</li>
+                <li>Canal d'alertes recomanat al BernatLab.</li>
+                <li>Primer pas per Telegram.</li>
+                <li>Què és una Status Page.</li>
+                <li>Freqüència recomanada dels monitors.</li>
+                <li>Avantatge de muntar el socket Docker.</li>
+                <li>(Oberta) Quins 4-5 serveis monitoraries i per què cada tipus.</li>
+                <li>(Oberta) Alerta de Telegram quan Portainer cau: flux complet.</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (45-60 min)</h2>
+            <p>Posar en marxa Uptime Kuma, configurar monitors, alertes Telegram i Status Page.</p>
+
+            <h3>Pas 1: Afegeix al compose (10 min)</h3>
+            <p>Edita <code>~/homelab/docker/docker-compose.yml</code> amb Uptime Kuma, Portainer i whoami. Fes <code>docker compose up -d</code>.</p>
+
+            <h3>Pas 2: Configuració inicial (5 min)</h3>
+            <p>Obre <code>http://hortosona:3001</code>, crea admin.</p>
+
+            <h3>Pas 3: Crea 5 monitors (15 min)</h3>
+            <ul>
+                <li>RPi ping a <code>127.0.0.1</code>.</li>
+                <li>Portainer HTTP a <code>http://localhost:9000</code>.</li>
+                <li>Whoami HTTP a <code>http://localhost:8080</code>.</li>
+                <li>SSH TCP port 22.</li>
+                <li>Internet HTTPS a <code>https://1.1.1.1</code>.</li>
+            </ul>
+
+            <h3>Pas 4: Crea el bot de Telegram (10 min)</h3>
+            <p><code>@BotFather</code> &gt; <code>/newbot</code> &gt; nom + username &gt; token. Inicia conversa. Obté chat_id amb <code>getUpdates</code>.</p>
+
+            <h3>Pas 5: Configura alerta (10 min)</h3>
+            <p>Settings &gt; Notifications &gt; Telegram &gt; token + chat_id &gt; Test &gt; Save.</p>
+
+            <h3>Pas 6: Connecta alertes als monitors (5 min)</h3>
+            <p>Edita cada monitor, afegeix notificació Telegram amb "When down" + "When up".</p>
+
+            <h3>Pas 7: Prova (10 min)</h3>
+            <p><code>docker stop whoami</code>, espera 60-180s, comprova alerta al mòbil. <code>docker start whoami</code>, comprova "UP".</p>
+
+            <h3>Pas 8: Status Page (5 min)</h3>
+            <p>Status Pages &gt; New &gt; slug <code>bernatlab</code> &gt; afegeix tots els monitors.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Uptime Kuma corre a <code>http://hortosona:3001</code>.</li>
+                <li>☐ Tens almenys 5 monitors actius.</li>
+                <li>☐ Bot de Telegram creat amb token + chat_id.</li>
+                <li>☐ Alerta de Telegram configurada i provada.</li>
+                <li>☐ Status Page pública.</li>
+                <li>☐ Has documentat a <code>diari.md</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/07-uptime-kuma/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li>Uptime Kuma = self-hosted monitoring + alertes.</li>
+                <li>Port = 3001.</li>
+                <li>HTTP(s) = comprova 200 OK.</li>
+                <li>Telegram = canal recomanat.</li>
+                <li><code>@BotFather</code> &gt; <code>/newbot</code> &gt; token.</li>
+                <li>Status Page = pàgina pública d'estat.</li>
+                <li>Freqüència = 30-300s.</li>
+                <li>Socket Docker = permet monitors de tipus contenidor.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

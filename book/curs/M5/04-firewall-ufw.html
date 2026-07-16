@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 4. Firewall i ufw — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🛡️ Cap 4. Firewall i ufw</h1>
+        <p class="subtitle">Mòdul M5 · Seguretat</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un firewall es la barrera que decideix quin trafic pot entrar i sortir del servidor. Tailscale amaga el servidor a Internet, pero el firewall es la defensa local: controla quins serveis escolten a quines xarxes, i quines connexions son permeses. A Linux tenim tres tecnologies: <strong>iptables</strong> (el classic), <strong>nftables</strong> (el modern) i <strong>ufw</strong> (l'abstraccio senzilla). Al BernatLab farem servir ufw.</p>
+
+            <h3>Que es un firewall</h3>
+            <p>Un firewall es un programa que inspecciona cada paquet de xarxa que entra o surt del sistema i decideix si el deixa passar o el bloqueja. Les regles es defineixen segons:</p>
+            <ul>
+                <li><strong>Adreça IP d'origen o desti</strong>.</li>
+                <li><strong>Port</strong> (servei).</li>
+                <li><strong>Protocol</strong> (TCP, UDP, ICMP).</li>
+                <li><strong>Interficie de xarxa</strong> (eth0, tailscale0, wlan0...).</li>
+            </ul>
+            <p>Per defecte, un firewall be configurat ha de ser <strong>deny-by-default</strong>: tot esta bloquejat, i nomes obrim el que realment cal.</p>
+
+            <h3>iptables, nftables, ufw</h3>
+            <p>A Linux tenim tres maneres de fer firewall:</p>
+            <ul>
+                <li><strong>iptables</strong>: el classic. Funciona, pero la sintaxi es feixuga i les regles son llargues. Es mantingut per compatibilitat.</li>
+                <li><strong>nftables</strong>: el successor modern d'iptables. Sintaxi mes neta, mes rapid. Es el futur.</li>
+                <li><strong>ufw</strong> (Uncomplicated Firewall): una eina que genera regles d'iptables o nftables per sota, pero amb una sintaxi molt mes simple. Es la que usarem al BernatLab.</li>
+            </ul>
+            <p>Per veure quina usa ufw al teu sistema:</p>
+            <pre><code>sudo update-alternatives --query iptables
+# o be
+sudo iptables --version
+# Si diu "nf_tables" es que nftables es el backend</code></pre>
+
+            <h3>ufw: comandes basiques</h3>
+            <p>Instal·lat per defecte a Ubuntu/Raspberry Pi OS, si no:</p>
+            <pre><code>sudo apt install ufw</code></pre>
+            <p>Comandes essencials:</p>
+            <pre><code># Estat
+sudo ufw status
+sudo ufw status verbose
+sudo ufw status numbered
+
+# Politica per defecte: denegar entrada, permetre sortida
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Permetre un port
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# Permetre un port nomes a una IP
+sudo ufw allow from 192.168.1.50 to any port 22
+
+# Permetre nomes a Tailscale
+sudo ufw allow in on tailscale0 to any port 22
+
+# Denegar un port explicitament
+sudo ufw deny 3306
+
+# Eliminar una regla
+sudo ufw delete allow 80/tcp
+sudo ufw delete 3  # numero de la regla
+
+# Activar / desactivar
+sudo ufw enable
+sudo ufw disable
+
+# Reset (nuclear: esborra totes les regles)
+sudo ufw reset</code></pre>
+
+            <h3>Aplicar ufw al BernatLab</h3>
+            <p>Pas a pas (assegura't d'estar per Tailscale o amb consola fisica):</p>
+            <pre><code># 1. Politica per defecte
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# 2. SSH (important!)
+sudo ufw allow 22/tcp comment "SSH"
+
+# 3. Web
+sudo ufw allow 80/tcp comment "HTTP"
+sudo ufw allow 443/tcp comment "HTTPS"
+
+# 4. Tailscale: permetre tot el trafic desde la xarxa Tailscale
+sudo ufw allow in on tailscale0
+
+# 5. DNS local
+sudo ufw allow in on tailscale0 to any port 53
+
+# 6. Activar
+sudo ufw enable
+# Et dira "Command may disrupt existing ssh connections. Proceed (y|n)?"
+# Digues y nomes si estas connectat per Tailscale o tens consola fisica.
+
+# 7. Comprovar
+sudo ufw status verbose</code></pre>
+
+            <h3>Regles aplicades: nftables/iptables</h3>
+            <p>ufw no es mes que un frontend. Les regles reals estan a nftables o iptables. Pots veure-les amb:</p>
+            <pre><code># Si ufw fa servir nftables
+sudo nft list ruleset
+
+# Si fa servir iptables
+sudo iptables -L -n -v
+sudo iptables -t nat -L -n</code></pre>
+
+            <h3>Per que importa aixo a Tailscale</h3>
+            <p>Tailscale crea una interficie de xarxa anomenada <code>tailscale0</code>. Es una interficie **virtual** sobre Internet, pero el sistema la veu com una interficie de xarxa real. Per tant, podem fer regles de firewall especifiques per aquesta interficie.</p>
+            <p>Exemple: volem que SSH nomes sigui accessible desde Tailscale (mai des d'Internet):</p>
+            <pre><code>sudo ufw allow in on tailscale0 to any port 22 proto tcp
+sudo ufw deny 22/tcp
+# Ara el port 22 nomes es accessible desde 100.x.y.z</code></pre>
+
+            <h3>Bones practiques</h3>
+            <ul>
+                <li><strong>Deny-by-default</strong>: tanca tot per defecte, obre nomes el que cal.</li>
+                <li><strong>Documenta cada regla</strong> amb un comment al ufw.</li>
+                <li><strong>Agrupa per interficie</strong> (tailscale0, eth0) per claredat.</li>
+                <li><strong>Audita periodicament</strong>: `ufw status numbered` cada mes.</li>
+                <li><strong>No desactivis el firewall</strong> per "depurar". Millor temporalment permet el trafic i mira els logs.</li>
+                <li><strong>Logs</strong>: `sudo ufw logging on` per veure que passa.</li>
+            </ul>
+
+            <h3>Comandes utils</h3>
+            <pre><code># Veure les regles
+sudo ufw status verbose
+sudo ufw status numbered
+
+# Comptar connexions bloquejades
+sudo iptables -L -n -v | grep DROP
+
+# Veure el backend
+sudo update-alternatives --query iptables
+
+# Logs del firewall
+sudo journalctl -k -f | grep UFW
+# o be
+sudo tail -f /var/log/ufw.log
+
+# Aplicar una regla nomes si tens la IP correcta
+sudo ufw allow from 100.64.0.0/10 to any port 22</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>Cap 2 - Tailscale: amaga el servidor, el firewall local ho complementa.</li>
+                <li>Cap 3 - SSH: el firewall es on fail2ban aplica les regles.</li>
+                <li>Cap 8 - Monitoratge: els logs del firewall son font d'informacio.</li>
+                <li>M1 Cap 4 - Xarxa: conceptes basics.</li>
+            </ul>
+
+            <h3>Conclusio</h3>
+            <p>El firewall es la **barrera local** despres de Tailscale. Amb el combo Tailscale + ufw, el servidor nomes te ports oberts on realment toca. Si mai tens dubtes sobre quin port deixar obert, recorda la regla d'or: <strong>si no cal, tanca</strong>.</p>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m5 4</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que es un firewall?</li>
+                <li>Que vol dir deny-by-default?</li>
+                <li>Que es ufw?</li>
+                <li>Com permetes un port?</li>
+                <li>Que es tailscale0?</li>
+                <li>Com veus les regles?</li>
+                <li>Que passa si poses default allow incoming?</li>
+                <li>Com permets nomes desde Tailscale?</li>
+                <li>(Oberta) Escriu les regles ufw pel BernatLab.</li>
+                <li>(Oberta) Per que tenir ufw si ja tens Tailscale?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Configurar ufw a la RPi amb una politica deny-by-default i nomes els ports estrictament necessaris.</p>
+
+            <h3>Pas 1: Estat actual (5 min)</h3>
+            <pre><code>sudo ufw status verbose
+sudo iptables -L -n -v | head -30</code></pre>
+
+            <h3>Pas 2: Politica per defecte (5 min)</h3>
+            <pre><code>sudo ufw default deny incoming
+sudo ufw default allow outgoing</code></pre>
+
+            <h3>Pas 3: Regles basiques (10 min)</h3>
+            <pre><code>sudo ufw allow 22/tcp comment "SSH"
+sudo ufw allow 80/tcp comment "HTTP"
+sudo ufw allow 443/tcp comment "HTTPS"</code></pre>
+
+            <h3>Pas 4: Tailscale (10 min)</h3>
+            <pre><code>sudo ufw allow in on tailscale0 comment "Tailscale network"
+sudo ufw allow in on tailscale0 to any port 53 comment "DNS via Tailscale"</code></pre>
+
+            <h3>Pas 5: Activa i verifica (10 min)</h3>
+            <pre><code>sudo ufw enable
+sudo ufw status verbose
+sudo ufw status numbered</code></pre>
+            <p>Des d'un altre dispositiu, comprova que pots accedir als serveis permesos i que els altres estan bloquejats.</p>
+
+            <h3>Pas 6: Logs (5 min)</h3>
+            <pre><code>sudo ufw logging on
+sudo tail -f /var/log/ufw.log</code></pre>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ ufw esta actiu amb default deny incoming.</li>
+                <li>☐ Tens les regles per a SSH, HTTP, HTTPS.</li>
+                <li>☐ Tens una regla que permet trafic des de tailscale0.</li>
+                <li>☐ Pots accedir als serveis permesos des de Tailscale.</li>
+                <li>☐ Els logs del firewall funcionen.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M5/04-firewall-ufw/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Firewall</strong> = barrera que filtra trafic segons regles.</li>
+                <li><strong>Deny-by-default</strong> = tot bloquejat, obrim nomes el que cal.</li>
+                <li><strong>ufw</strong> = frontend simple per a iptables/nftables.</li>
+                <li><code>ufw allow 22/tcp</code> = permetre el port 22.</li>
+                <li><strong>tailscale0</strong> = interficie virtual de Tailscale.</li>
+                <li><code>ufw status numbered</code> = veure regles.</li>
+                <li><strong>Perill</strong>: tot accessible des d'Internet.</li>
+                <li><code>ufw allow in on tailscale0</code> = nomes Tailscale.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

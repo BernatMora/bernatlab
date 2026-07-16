@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. Amenaces comunes — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🛡️ Cap 1. Amenaces comunes al servidor</h1>
+        <p class="subtitle">Mòdul M5 · Seguretat</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Una Raspberry Pi exposada a Internet (encara que sigui a traves de Tailscale) esta sotmesa a un flux constant d'amenaces automatitzades. No es paranoia: son bots que escanegen totes les adreces IP del planeta cada pocs minuts. Si el servidor te el port 22 obert, <strong>ja t'estan atacant</strong>, tant si ho veus com si no. Aquest capitol es per entendre quines son aquestes amenaces, com es manifesten, i quina es la superficie d'atac de la RPi del BernatLab.</p>
+
+            <h3>La superficie d'atac del BernatLab</h3>
+            <p>La "superficie d'atac" es el conjunt de punts per on un atacant podria entrar. A la nostra RPi, de partida es aquesta:</p>
+            <ul>
+                <li><strong>Port 22 (SSH)</strong>: obert per defecte a totes les IP publiques.</li>
+                <li><strong>Port 80/443 (HTTP/HTTPS)</strong>: si hi ha un reverse proxy com Nginx o Caddy.</li>
+                <li><strong>Serveis Dockers exposats</strong>: Home Assistant, Portainer, Gitea, etc.</li>
+                <li><strong>Tailscale</strong>: xarxa privada WireGuard, pero si les ACLs son permissives, es una porta oberta igual.</li>
+                <li><strong>Subdominis DNS</strong>: si tens un domini tipus <code>bernatlab.cat</code>, els bots el troben rapid.</li>
+            </ul>
+            <p>A la practica, el risc mes gran es <strong>SSH</strong>, perque es l'entrada mes universal i on mes eines d'atac automatic existeixen.</p>
+
+            <h3>SSH bruteforce: el perill numero 1</h3>
+            <p>Un atac de <strong>bruteforce</strong> consisteix a provar milers de combinacions d'usuari i contrasenya fins a encertar la bona. Eines com <strong>Hydra</strong>, <strong>Medusa</strong> o <strong>SSHPass</strong> automatitzen el proces. Els bots mes sofisticats fan <strong>credential stuffing</strong>: proven combinacions conegudes que han fugit d'altres incidents.</p>
+            <p>Com es manifesta? Mira-ho tu mateix:</p>
+            <pre><code># Compta quants intents fallits ha tingut SSH desde l'inici
+sudo journalctl -u ssh --no-pager | grep "Failed password" | wc -l
+
+# Ultims 20 intents
+sudo journalctl -u ssh -n 20 | grep "Failed"
+
+# Usuaris mes intentats
+sudo journalctl -u ssh --no-pager | grep "Failed password" | awk '{print $9}' | sort | uniq -c | sort -rn | head</code></pre>
+            <p>En una RPi nova, en 24 hores pots tenir <strong>milers</strong> d'intents. Els mes comuns van contra <code>root</code>, <code>pi</code>, <code>admin</code>, <code>ubuntu</code>, <code>user</code>.</p>
+
+            <h3>Ports oberts: el nmap dels dolents</h3>
+            <p>Un cop un bot sap la teva IP, fa un <strong>port scan</strong> per veure quins serveis exposes. L'eina es diu <strong>nmap</strong>, i n'hi ha una versio "dolenta" que fan servir tots els scripts kiddies:</p>
+            <pre><code># El mateix que farien contra la teva RPi (desde un altre equip)
+nmap -sV -p 1-1000 bernatlab.ddns.net
+
+# Escaneig rapid dels 100 ports mes comuns
+nmap -F bernatlab.ddns.net</code></pre>
+            <p>Si el resultat es <code>22/tcp open ssh OpenSSH 9.2</code>, ja saben on atacar. Per això un dels principis basics es <strong>no exposar mes del que cal</strong>. Cada port obert es un risc.</p>
+
+            <h3>Vulnerabilitats conegudes: CVE</h3>
+            <p>Quan es descobreix una fallada en un programa, se li assigna un identificador unic: el <strong>CVE</strong> (Common Vulnerabilities and Exposures). Com saber si el teu sistema te vulnerabilitats?</p>
+            <ul>
+                <li><code>apt list --upgradable</code>: paquets del sistema amb pegats nous.</li>
+                <li><code>docker scan bernatlab-api:latest</code>: Trivy, Snyk per a imatges Docker.</li>
+                <li><strong>Debian Security Tracker</strong>: <a href="https://security-tracker.debian.org/">security-tracker.debian.org</a>.</li>
+            </ul>
+            <p>No cal obsessionar-se, pero si tenir un sistema d'alertes basic: saber quan hi ha un pegat critic i aplicar-lo en dies, no en mesos.</p>
+
+            <h3>Amenaces mes enlla del SSH</h3>
+            <ul>
+                <li><strong>Exploits en aplicacions web</strong>: Home Assistant, Gitea, Nextcloud tenen la seva historia de CVEs.</li>
+                <li><strong>Docker APIs exposades</strong>: mai exposar el socket de Docker sense autenticacio.</li>
+                <li><strong>Credencials per defecte</strong>: canviar <code>admin/admin</code> de Home Assistant, Portainer, etc. immediatament.</li>
+                <li><strong>Acces fisic</strong>: algú amb acces a la RPi pot extreure la SD i llegir les dades.</li>
+            </ul>
+
+            <h3>El model d'amenaca del BernatLab</h3>
+            <p>Al BernatLab el model es:</p>
+            <ul>
+                <li><strong>Confidencialitat alta</strong> (dades de sensors, fitxers personals).</li>
+                <li><strong>Integritat alta</strong> (backups no corromputs).</li>
+                <li><strong>Disponibilitat mitjana</strong> (no es critic si la RPi cau 1 hora).</li>
+                <li><strong>Atacant tipus</strong>: bots automatitzats, curiosos, possiblement algun script kiddie.</li>
+                <li><strong>NO soc objectiu d'un APT</strong>: no cal paranoia de nivell estatal.</li>
+            </ul>
+            <p>Aixo ens permet triar un nivell de seguretat <strong>bo</strong> pero no <strong>paranòic</strong>.</p>
+
+            <h3>Com defensar-se: visio general</h3>
+            <p>Les defenses que veurem al llarg del modul son:</p>
+            <ol>
+                <li><strong>Xarxa privada amb Tailscale</strong> (Cap 2).</li>
+                <li><strong>SSH hardening</strong> (Cap 3).</li>
+                <li><strong>Firewall</strong> (Cap 4).</li>
+                <li><strong>TLS</strong> (Cap 5).</li>
+                <li><strong>Secrets</strong> (Cap 6).</li>
+                <li><strong>Backups xifrats</strong> (Cap 7).</li>
+                <li><strong>Monitoratge</strong> (Cap 8).</li>
+                <li><strong>Actualitzacions</strong> (Cap 9).</li>
+                <li><strong>Auditoria</strong> (Cap 10).</li>
+            </ol>
+            <p>Aquestes defenses son <strong>capes d'una ceba</strong>: cap es suficient per si sola, pero juntes formen una barrera robusta.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M1 Cap 4 - Xarxa i SSH: els basics que ja coneixem.</li>
+                <li>M3 Cap 9 - Privadesa i xifrat: el xifratge es la base d'algunes defenses.</li>
+                <li>M2 Cap 6 - Seguretat en contenidors: molt relacionat amb el que veurem.</li>
+                <li>M8 Cap 1 - SSH amb claus: ja ho tens mig fet, ara cal enfortir-ho.</li>
+                <li>Cap 2 d'aquest modul - Tailscale es la primera linea de defensa.</li>
+            </ul>
+
+            <h3>Comandes utils</h3>
+            <pre><code># Comprovar intents de login fallits
+sudo lastb | head -20
+
+# Qui esta connectat ara
+who
+w
+
+# Veure totes les connexions TCP actives
+ss -tan
+
+# Buscar CVEs coneguts al teu sistema
+sudo apt list --upgradable 2>/dev/null | grep -i security
+
+# Escanejar la teva propia RPi
+nmap -sV localhost</code></pre>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m5 1</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què és un atac de "bruteforce" contra SSH?</li>
+                <li>Quin es el port per defecte del servei SSH?</li>
+                <li>Què significa "superficie d'atac"?</li>
+                <li>Quin usuari es el mes atacat per defecte en una RPi?</li>
+                <li>Que vol dir "CVE"?</li>
+                <li>Quina ordre mostra els ultims intents de login fallits?</li>
+                <li>Per que es dolent exposar mes ports dels necessaris?</li>
+                <li>Quina eina fan servir els atacants per descobrir serveis?</li>
+                <li>(Oberta) Descriu les principals amenaces al BernatLab.</li>
+                <li>(Oberta) Explica que vol dir "defensa en profunditat".</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Auditar l'estat actual de seguretat de la RPi del BernatLab: veure quins intents d'intrusio ha rebut, quins ports te oberts, i quin perfil d'amenaces tenim.</p>
+
+            <h3>Pas 1: Inventari de serveis i ports (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Tots els ports TCP oberts
+sudo ss -tlnp
+
+# Versio mes humana amb nom de servei
+sudo ss -tlnp | awk 'NR&gt;1 {print $4, $6}'
+
+# Que esta escoltant nomes per IP
+sudo lsof -i -P -n | grep LISTEN</code></pre>
+            </div>
+            <p>Crea un fitxer <code>inventari-seguretat.md</code> al teu repo d'Obsidian amb el que has trobat.</p>
+
+            <h3>Pas 2: Comptar els intents de login fallits (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Total d'intents fallits
+sudo journalctl -u ssh --no-pager | grep "Failed password" | wc -l
+
+# Ultims 50 intents
+sudo journalctl -u ssh --no-pager | grep "Failed password" | tail -50
+
+# Top 10 usuaris mes intentats
+sudo journalctl -u ssh --no-pager | grep "Failed password" | awk '{print $9}' | sort | uniq -c | sort -rn | head
+
+# Adreces IP dels atacants (top 20)
+sudo journalctl -u ssh --no-pager | grep "Failed password" | awk '{print $11}' | sort | uniq -c | sort -rn | head -20</code></pre>
+            </div>
+
+            <h3>Pas 3: Escanejar la teva propia maquina (10 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo apt install -y nmap
+
+# Escaneig basic dels 1000 ports mes comuns
+nmap localhost
+
+# Escaneig amb deteccio de versio
+nmap -sV localhost
+
+# Si tens Tailscale actiu
+tailscale ip -4
+nmap $(tailscale ip -4)</code></pre>
+            </div>
+
+            <h3>Pas 4: Buscar patrons sospitosos (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Logins exitosos
+sudo last -20
+
+# Logins fallits
+sudo lastb -20
+
+# Autenticacions SSH exitoses
+sudo journalctl -u ssh | grep "Accepted"
+
+# Usuaris amb shell interactiva
+grep -v "nologin\|false" /etc/passwd
+
+# Processos actius sospitosos
+ps auxf | head -50
+
+# Connexions xarxa actives cap a fora
+sudo ss -tnp | grep ESTAB</code></pre>
+            </div>
+
+            <h3>Pas 5: Redacta el baseline (5 min)</h3>
+            <p>Al fitxer <code>inventari-seguretat.md</code>, escriu una seccio "Baseline" amb:</p>
+            <ul>
+                <li>Data i hora de l'auditoria</li>
+                <li>Versio del sistema (<code>cat /etc/os-release</code>)</li>
+                <li>Versio del kernel (<code>uname -r</code>)</li>
+                <li>Llista de serveis i ports</li>
+                <li>Total d'intents SSH fallits</li>
+                <li>Adreces IP atacants principals</li>
+                <li>Connexions actives actuals</li>
+                <li>Conclusions: quines son les prioritats</li>
+            </ul>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has fet un inventari complet de serveis i ports oberts.</li>
+                <li>☐ Has comptabilitzat els intents de login fallits.</li>
+                <li>☐ Has identificat els usuaris mes atacats.</li>
+                <li>☐ Has fet un escaneig amb nmap i l'has comparat amb l'inventari.</li>
+                <li>☐ Has creat el document <code>inventari-seguretat.md</code> amb el baseline.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M5/01-amenaces-comunes/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Bruteforce</strong> = provar milers de contrasenyes automaticament.</li>
+                <li><strong>Port 22</strong> es el port per defecte de SSH.</li>
+                <li><strong>Superficie d'atac</strong> = punts d'entrada potencials al sistema.</li>
+                <li><strong>Usuari pi</strong> es el mes atacat a la RPi (compte per defecte).</li>
+                <li><strong>CVE</strong> = Common Vulnerabilities and Exposures.</li>
+                <li><strong>Comanda</strong> = <code>sudo lastb</code>.</li>
+                <li><strong>Menys ports</strong> = menys vectors d'entrada.</li>
+                <li><strong>Eina</strong> = <code>nmap</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

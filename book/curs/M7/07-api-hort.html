@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 7. API REST per a l'Hort Osona - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔌 Cap 7. API REST per a l'Hort Osona</h1>
+        <p class="subtitle">Mòdul M7 · Hort Osona en acció</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>L'<strong>API REST</strong> es el pont entre les dades guardades (InfluxDB, PostgreSQL) i el mon exterior. Es una interficie HTTP amb verbs estandard (GET, POST, PUT, DELETE) que respon amb JSON. A l'Hort Osona la implementem amb <strong>Flask</strong>.</p>
+
+            <h3>Que es una API REST</h3>
+            <ul>
+                <li><strong>Recursos per URLs</strong>: <code>/api/v1/sensors/1B32</code>.</li>
+                <li><strong>Verbs HTTP</strong>: GET (llegir), POST (crear), PUT (actualitzar), DELETE.</li>
+                <li><strong>Stateless</strong>: cada peticio es independent.</li>
+                <li><strong>JSON</strong> per a respostes.</li>
+            </ul>
+
+            <h3>Per que Flask</h3>
+            <p>API de 5-15 endpoints, l'equip ja el coneix, ecosistema madur. Alternatives: FastAPI (mes modern), Django REST (overkill), Bottle (massa minimalista).</p>
+
+            <h3>Estructura dels endpoints</h3>
+            <pre><code>/api/v1/
+  /sensors
+    GET    /sensors/                   -> llista tots els sensors
+    GET    /sensors/&lt;id&gt;              -> info d'un sensor
+    GET    /sensors/&lt;id&gt;/latest       -> ultima lectura
+    GET    /sensors/&lt;id&gt;/history?h=24 -> historic
+  /sectors
+    GET    /sectors                    -> sectors de l'hort
+    GET    /sectors/&lt;id&gt;/summary
+  /calendar
+    GET    /calendar/&lt;year&gt;/&lt;month&gt;
+    POST   /calendar/events
+  /alerts
+    GET    /alerts/active
+    POST   /alerts/acknowledge/&lt;id&gt;</code></pre>
+
+            <h3>Exemple d'endpoint</h3>
+            <pre><code>@app.route("/api/v1/sensors/&lt;device_id&gt;/latest", methods=["GET"])
+@require_api_key
+def get_sensor_latest(device_id):
+    flux = f'''
+    from(bucket: "hort-osona")
+      |> range(start: -1h)
+      |> filter(fn: (r) => r.device == "{device_id}")
+      |> last()
+    '''
+    result = query_api.query(flux)
+    if not result or not result[0].records:
+        return jsonify({"error": "No data"}), 404
+    data = {"device": device_id, "ts": None, "fields": {}}
+    for record in result[0].records:
+        data["ts"] = record.get_time().isoformat()
+        data["fields"][record.get_field()] = record.get_value()
+    return jsonify(data), 200</code></pre>
+
+            <h3>CORS: el pont entre origens</h3>
+            <p>Si la PWA esta a <code>github.io</code> i l'API a la teva RPi, el navegador bloqueja. Solucio amb <code>flask-cors</code>:</p>
+            <pre><code>from flask_cors import CORS
+CORS(app, origins=["https://hort-osona.github.io", "http://localhost:*"])</code></pre>
+
+            <h3>Autenticacio: API key</h3>
+            <p>Decorator que valida el header <code>X-API-Key</code>:</p>
+            <pre><code>def require_api_key(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        key = request.headers.get("X-API-Key")
+        if not key or key != API_KEY:
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return decorated</code></pre>
+
+            <h3>Documentacio OpenAPI</h3>
+            <p>Fitxer <code>openapi.yaml</code> amb tots els endpoints, parametres i respostes. Visualitzable a <a href="https://editor.swagger.io">editor.swagger.io</a>.</p>
+
+            <h3>Deployment amb Docker</h3>
+            <pre><code>FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:5000", "app:app"]</code></pre>
+
+            <h3>Proves amb curl</h3>
+            <pre><code>curl http://localhost:5000/api/v1/health
+curl -H "X-API-Key: hort-osona-test-key-2026" \
+   http://localhost:5000/api/v1/sectors</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M7 Cap 4 - L'API es la capa 6 del pipeline.</li>
+                <li>M7 Cap 6 - Llegeix d'InfluxDB per construir respostes.</li>
+                <li>M7 Cap 8 - La PWA consumeix aquesta API.</li>
+                <li>M7 Cap 9 - Els endpoints de calendar serveixen per al frontend.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m7 7</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que vol dir REST?</li>
+                <li>Quin framework Python hem triat per a l'API?</li>
+                <li>Quin verb HTTP s'usa per obtenir una lectura d'un sensor?</li>
+                <li>Que es CORS?</li>
+                <li>Quin header HTTP fem servir per enviar la clau de l'API?</li>
+                <li>Quin es l'avantatge de FastAPI respecte Flask?</li>
+                <li>Que vol dir que una API es "stateless"?</li>
+                <li>Quin port escolta el servidor Flask per defecte?</li>
+                <li>(Oberta) Per que Flask i no Django o FastAPI?</li>
+                <li>(Oberta) Problema CORS i solucio amb flask-cors.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-60 min)</h2>
+            <p>Construir una API REST amb Flask que llegeix d'InfluxDB i exposa 4 endpoints: <code>/sensors</code>, <code>/sensors/&lt;id&gt;/latest</code>, <code>/sensors/&lt;id&gt;/history</code>, i <code>/health</code>.</p>
+
+            <h3>Pas 1: Prepara el projecte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/hort-osona/api && cd ~/hort-osona/api
+python3 -m venv .venv && source .venv/bin/activate
+pip install flask flask-cors influxdb-client gunicorn python-dotenv</code></pre>
+            </div>
+            <p>Crea <code>.env</code> amb <code>HORT_API_KEY=hort-osona-test-key-2026</code> i <code>CORS_ORIGINS</code>.</p>
+
+            <h3>Pas 2: L'API basica (15 min)</h3>
+            <p>Script <code>app.py</code> amb 4 endpoints, decorator <code>require_api_key</code>, helper <code>run_query</code> i una llista hardcoded de sectors.</p>
+
+            <h3>Pas 3: Prova l'API (5 min)</h3>
+            <div class="code-block">
+                <pre><code>python3 app.py
+# En una altra terminal:
+curl http://localhost:5000/api/v1/health
+curl -H "X-API-Key: hort-osona-test-key-2026" http://localhost:5000/api/v1/sectors
+curl -H "X-API-Key: hort-osona-test-key-2026" http://localhost:5000/api/v1/sensors/miflora-1B32/latest
+curl -H "X-API-Key: hort-osona-test-key-2026" "http://localhost:5000/api/v1/sensors/miflora-1B32/history?h=168&field=soil_moisture&window=1h"</code></pre>
+            </div>
+
+            <h3>Pas 4: Dockerfile i docker-compose (10 min)</h3>
+            <p>Dockerfile amb <code>python:3.12-slim</code> i gunicorn (2 workers, port 5000). Afegeix al <code>docker-compose.yml</code> amb <code>env_file</code> i <code>depends_on: influxdb</code>.</p>
+
+            <h3>Pas 5: Documentacio OpenAPI (10 min)</h3>
+            <p>Crea <code>openapi.yaml</code> amb la definicio dels 4 endpoints, parametres, security (ApiKey) i respostes. Visualitza-la a https://editor.swagger.io.</p>
+
+            <h3>Pas 6: Tests amb pytest (10 min)</h3>
+            <p>Script <code>test_app.py</code> amb 4 tests: health (no auth), sectors (sense i amb API key), sector not found. Executa amb <code>pytest -v</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has aixecat l'API Flask amb 4 endpoints.</li>
+                <li>☐ Tots els endpoints responen correctament amb <code>curl</code>.</li>
+                <li>☐ L'autenticacio amb API key funciona (401 sense, 200 amb).</li>
+                <li>☐ Has creat un Dockerfile i integrat a docker-compose.</li>
+                <li>☐ Has escrit l'OpenAPI i els tests amb pytest.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/07-api-hort/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>REST</strong> = Representational State Transfer.</li>
+                <li><strong>Framework</strong> = Flask.</li>
+                <li><strong>Verb lectura</strong> = GET.</li>
+                <li><strong>CORS</strong> = seguretat entre origens.</li>
+                <li><strong>Header clau</strong> = <code>X-API-Key</code>.</li>
+                <li><strong>FastAPI</strong> = type hints, validacio, OpenAPI.</li>
+                <li><strong>Stateless</strong> = peticio independent.</li>
+                <li><strong>Port Flask</strong> = 5000.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

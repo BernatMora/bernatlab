@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 4. Xarxa, SSH i Tailscale — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🌐 Cap 4. Xarxa, SSH i Tailscale</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>SSH (terminal remot) + Tailscale (VPN) = accés segur al BernatLab des de qualsevol lloc. La RPi (<code>hortosona</code>) té IP Tailscale <code>100.115.134.76</code>.</p>
+
+            <h3>Conceptes de xarxa</h3>
+            <ul>
+                <li><strong>IP</strong>: identificador del dispositiu (p. ex. <code>100.115.134.76</code>).</li>
+                <li><strong>Port</strong>: número de servei (22=SSH, 80=HTTP, 443=HTTPS, 9000=Portainer, 3001=Uptime Kuma).</li>
+                <li><strong>DNS</strong>: tradueix noms a IPs.</li>
+                <li><strong>NAT / port forwarding</strong>: el que caldria tocar al router si no tinguéssim Tailscale.</li>
+            </ul>
+
+            <h3>SSH: la porta d'entrada</h3>
+            <pre><code>ssh bernat@hortosona
+# o per IP
+ssh bernat@100.115.134.76
+ssh bernat@192.168.1.50</code></pre>
+            <p>Primera vegada: confirma la fingerprint del servidor. Després: contrasenya. Sortir: <code>exit</code> o <code>Ctrl+D</code>.</p>
+
+            <h3>Claus SSH: sense contrasenya (i més segur)</h3>
+            <p>Parell de claus: <strong>privada</strong> (al portàtil, com una master key) i <strong>pública</strong> (al servidor, com un pany).</p>
+            <pre><code># Generar al portàtil
+ssh-keygen -t ed25519 -C "bernat@portatil-2026"
+
+# Copiar la pública a la RPi (Linux/Mac/WSL)
+ssh-copy-id bernat@hortosona
+
+# Windows PowerShell
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh bernat@hortosona "mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 600 ~/.ssh/authorized_keys"</code></pre>
+
+            <h3>Configuració SSH al portàtil</h3>
+            <p>Edita <code>~/.ssh/config</code>:</p>
+            <pre><code>Host hortosona
+    HostName 100.115.134.76
+    User bernat
+    IdentityFile ~/.ssh/id_ed25519
+    ServerAliveInterval 60
+
+Host rpi
+    HostName hortosona
+    User bernat</code></pre>
+            <p>Ara <code>ssh hortosona</code> o <code>ssh rpi</code> funcionen directament.</p>
+
+            <h3>Tailscale: la xarxa màgica</h3>
+            <p>VPN basada en WireGuard. Crea una xarxa privada entre dispositius sense tocar el router.</p>
+            <pre><code># A la RPi
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+sudo tailscale status
+tailscale ip -4</code></pre>
+            <p>Avantatges: sense port forwarding, xifrat d'extrem a extrem, MagicDNS, gratuït fins a 100 dispositius.</p>
+
+            <h3>MagicDNS</h3>
+            <p>Gràcies a Tailscale, pots fer <code>ssh bernat@hortosona</code> en lloc d'usar la IP. Tailscale resol el nom a la IP correcta automàticament.</p>
+
+            <h3>Comandes útils</h3>
+            <pre><code>tailscale ip -4                    # la meva IP Tailscale
+tailscale status                   # dispositius de la xarxa
+sudo tailscale serve 3000          # compartir servei temporal
+ping 8.8.8.8                       # test Internet
+curl -I https://google.com         # test HTTPS</code></pre>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 3 — Les ordres de Linux les executarem per SSH.</li>
+                <li>Cap 5 — Docker exposarà serveis que accedirem via Tailscale.</li>
+                <li>Cap 6 — Portainer al port 9000 via <code>http://hortosona:9000</code>.</li>
+                <li>Cap 7 — Uptime Kuma al port 3001.</li>
+                <li>Cap 8 — Homepage al port 3010, el punt d'entrada gràfic.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 4</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin port usa SSH per defecte?</li>
+                <li>Format correcte per connectar-se: <code>ssh ____@____</code>.</li>
+                <li>Què és Tailscale?</li>
+                <li>Quin és el rang d'IPs que assigna Tailscale?</li>
+                <li>Quina ordre genera un parell de claus SSH?</li>
+                <li>Què és MagicDNS?</li>
+                <li>Avantatge principal de Tailscale vs. obrir ports al router.</li>
+                <li>On es desa la clau pública autoritzada?</li>
+                <li>(Oberta) Per què és millor usar claus SSH que contrasenya?</li>
+                <li>(Oberta) Des d'una cafeteria: què tens preparat i què executes per entrar?</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Configurar l'accés remot segur a la RPi amb claus SSH i Tailscale. Acabaràs podent entrar amb <code>ssh bernat@hortosona</code> sense contrasenya.</p>
+
+            <h3>Pas 1: Instal·la Tailscale a la RPi (10 min)</h3>
+            <div class="code-block">
+                <pre><code>curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+sudo tailscale status
+tailscale ip -4</code></pre>
+            </div>
+
+            <h3>Pas 2: Instal·la Tailscale al portàtil</h3>
+            <p>Des de <a href="https://tailscale.com/download" target="_blank" rel="noopener">tailscale.com/download</a>. Autentica't amb el MATEIX compte que a la RPi.</p>
+
+            <h3>Pas 3: Genera una clau SSH al portàtil (10 min)</h3>
+            <div class="code-block">
+                <pre><code>ssh-keygen -t ed25519 -C "bernat@portatil-2026"</code></pre>
+            </div>
+
+            <h3>Pas 4: Copia la clau pública a la RPi (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Linux/Mac/WSL
+ssh-copy-id bernat@hortosona
+
+# Windows PowerShell
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh bernat@hortosona "mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 600 ~/.ssh/authorized_keys"</code></pre>
+            </div>
+
+            <h3>Pas 5: Configura ~/.ssh/config (5 min)</h3>
+            <div class="code-block">
+                <pre><code>Host hortosona
+    HostName 100.115.134.76
+    User bernat
+    IdentityFile ~/.ssh/id_ed25519
+    ServerAliveInterval 60
+
+Host rpi
+    HostName hortosona
+    User bernat</code></pre>
+            </div>
+
+            <h3>Pas 6: Desactiva autenticació per contrasenya (opcional)</h3>
+            <p>Edita <code>/etc/ssh/sshd_config</code> a la RPi: <code>PasswordAuthentication no</code> i <code>sudo systemctl restart ssh</code>. <strong>Compte</strong>: fes-ho NOMÉS quan la clau funcioni.</p>
+
+            <h3>Pas 7: Documenta</h3>
+            <p>Crea <code>book/curs/M1/04-xarxa-ssh-tailscale/configuracio.md</code> amb les IPs, la fingerprint i captures de <code>tailscale status</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Tailscale instal·lat a RPi i portàtil amb el mateix compte.</li>
+                <li>☐ <code>tailscale status</code> mostra ambdós dispositius.</li>
+                <li>☐ Has generat una clau SSH al portàtil.</li>
+                <li>☐ La clau pública és a <code>~/.ssh/authorized_keys</code> de la RPi.</li>
+                <li>☐ <code>ssh bernat@hortosona</code> entra sense contrasenya.</li>
+                <li>☐ Has configurat <code>~/.ssh/config</code> al portàtil.</li>
+                <li>☐ Has documentat la configuració.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/04-xarxa-ssh-tailscale/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>SSH</strong> = port 22.</li>
+                <li><strong>Format</strong> = <code>usuari@màquina</code>.</li>
+                <li><strong>Tailscale</strong> = VPN basada en WireGuard.</li>
+                <li><strong>Rang</strong> = 100.64.0.0/10 (la teva RPi té <code>100.115.134.76</code>).</li>
+                <li><strong>Generar claus</strong> = <code>ssh-keygen -t ed25519</code>.</li>
+                <li><strong>MagicDNS</strong> = resol noms a IPs Tailscale automàticament.</li>
+                <li><strong>Avantatge</strong> = sense tocar el router (NAT/port forwarding).</li>
+                <li><strong>Clau pública</strong> = <code>~/.ssh/authorized_keys</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

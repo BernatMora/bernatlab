@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 8. Manteniment programat — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🧹 Cap 8. Manteniment programat</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un sistema 24/7 no s'ha de tocar mai? No, al reves. S'ha de TOCAR de forma regular pero PLANIFICADA. Si nomes toques el servidor quan algo es trenca, acabaràs fent canvis urgents amb presses, sense proves, i amb mes possibilitats de nous problemes. El manteniment programat es la "medicina preventiva".</p>
+
+            <h3>Que es el manteniment programat?</h3>
+            <p>Son tasques que fas amb una <strong>periodicitat fixa</strong> (setmanal, mensual, trimestral) per mantenir el sistema sa:</p>
+            <ul>
+                <li><strong>Setmanal</strong>: revisar alertes, netejar brossa, mirar logs nous.</li>
+                <li><strong>Mensual</strong>: actualitzar manualment, revisar backups, netejar imatges.</li>
+                <li><strong>Trimestral</strong>: revisar capacitat, analitzar tendencies, planificar.</li>
+                <li><strong>Anual</strong>: canvis majors, neteja fisica, revisio general.</li>
+            </ul>
+
+            <h3>Per que es important?</h3>
+            <p>Quan un sistema porta mes de 6 mesos sense manteniment:</p>
+            <ul>
+                <li><strong>Disc ple</strong>: logs antics, imatges no usades, paquets de cache.</li>
+                <li><strong>Vulnerabilitats</strong>: paquets no actualitzats amb CVEs coneguts.</li>
+                <li><strong>Contenidors zombies</strong>: contenidors aturats que ningu neteja.</li>
+                <li><strong>Backups no verificats</strong>: creus que tens backups pero potser no funcionen.</li>
+                <li><strong>Petits problemes que creixen</strong>: warnings que ningu mira.</li>
+            </ul>
+
+            <h3>Tasques setmanals (30 min)</h3>
+            <pre><code># 1. Mirar quins serveis fallen
+docker ps -a --filter "status=exited"
+
+# 2. Comprovar espai en disc
+df -h
+du -sh /var/lib/docker/
+
+# 3. Netejar logs antics de journald
+sudo journalctl --vacuum-time=14d
+
+# 4. Netejar imatges Docker no usades
+docker image prune -a
+
+# 5. Mirar les ultimes alertes</code></pre>
+
+            <h3>Tasques mensuals (1-2 hores)</h3>
+            <pre><code># 1. Actualitzar manualment el sistema
+sudo apt update &amp;&amp; sudo apt upgrade
+sudo apt autoremove
+
+# 2. Mirar si hi ha imatges noves
+docker images --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}"
+
+# 3. Comprovar l'estat dels teus backups
+restic check
+
+# 4. Fer una "prova de foc": restaurar un backup
+restic restore latest --target /tmp/test-restore
+
+# 5. Mirar els logs per patrons nous
+journalctl --since "1 month ago" | grep -i error | head</code></pre>
+
+            <h3>Tasques trimestrals (2-3 hores)</h3>
+            <ul>
+                <li><strong>Mirar el creixement de dades</strong>: si els logs creixen mes del compte.</li>
+                <li><strong>Revisar els volums Docker</strong>: quin esta creixent mes?</li>
+                <li><strong>Analitzar les tendencies</strong>: temperatura a l'estiu, memoria, etc.</li>
+                <li><strong>Actualitzar imatges amb nous tags</strong>: passar de 2024.5 a 2024.10.</li>
+                <li><strong>Revisar runbooks</strong>: actualitzar si cal.</li>
+                <li><strong>Netejar configuracio morta</strong>: dashboards que ja no uses.</li>
+            </ul>
+
+            <h3>Neteja del sistema</h3>
+
+            <h4>Logs</h4>
+            <pre><code>sudo journalctl --vacuum-time=14d
+sudo journalctl --vacuum-size=200M
+sudo logrotate -f /etc/logrotate.conf</code></pre>
+
+            <h4>Imatges Docker</h4>
+            <pre><code>docker system df
+docker image prune       # dangling
+docker image prune -a    # totes les no usades
+docker system prune -a --volumes  # ATENCIO</code></pre>
+
+            <h4>Volums Docker</h4>
+            <pre><code>docker volume ls
+docker system df -v
+docker volume prune</code></pre>
+
+            <h4>Cache apt</h4>
+            <pre><code>sudo apt clean
+sudo apt autoclean</code></pre>
+
+            <h3>Cron jobs per netejar automaticament</h3>
+            <pre><code># Cada diumenge a les 3:00 AM, netejar imatges Docker no usades
+0 3 * * 0 docker image prune -a -f
+
+# Cada dia a les 4:00 AM, netejar logs antics
+0 4 * * * journalctl --vacuum-time=14d
+
+# Cada mes, netejar cache apt
+0 5 1 * * apt clean</code></pre>
+
+            <h3>Backups: la part mes important</h3>
+            <p>El backup nomes serveix si pots <strong>recuperar</strong>:</p>
+            <ol>
+                <li><strong>Fer backups regulars</strong>: almenys diari per dades critiques.</li>
+                <li><strong>Verificar que el backup es valid</strong>: restaurar en entorn de test.</li>
+                <li><strong>Guardar fora de la RPi</strong>: si la RPi mor.</li>
+                <li><strong>Documentar com restaurar</strong>: al runbook (cap 10).</li>
+            </ol>
+
+            <h3>Tendencies: el que la gent no mira</h3>
+            <ul>
+                <li><strong>Disc ple d'aqui a X mesos?</strong> Si creix 1 GB al mes, tens 12 mesos. Si creix 10 GB, tens 1 mes.</li>
+                <li><strong>El contenidor d'X creixent la memoria?</strong> Pot ser una fuita.</li>
+                <li><strong>Els logs creixen descontroladament?</strong> Aplicacio amb un bucle d'errors.</li>
+                <li><strong>Les temperatures pujant?</strong> Ventilacio o pols.</li>
+            </ul>
+
+            <h3>Calendari de manteniment</h3>
+            <table>
+                <thead>
+                    <tr><th>Periode</th><th>Tasca</th><th>Temps</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Setmanal</td><td>Revisar alertes, netejar brossa</td><td>30 min</td></tr>
+                    <tr><td>Mensual</td><td>Actualitzar manualment, verificar backups</td><td>1-2 h</td></tr>
+                    <tr><td>Trimestral</td><td>Tendencies, actualitzar imatges</td><td>2-3 h</td></tr>
+                    <tr><td>Semestral</td><td>Auditoria completa, runbooks</td><td>1 dia</td></tr>
+                    <tr><td>Anual</td><td>Canvis majors, neteja fisica</td><td>1-2 dies</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Eines utils</h3>
+            <ul>
+                <li><strong>Restic</strong>: backups amb deduplicacio.</li>
+                <li><strong>Logrotate</strong>: rotacio automatica de logs.</li>
+                <li><strong>Watchtower</strong> (cap 7): actualitzacio automatica.</li>
+                <li><strong>Cron</strong>: programacio de tasques.</li>
+                <li><strong>netdata</strong>: alternativa a Prometheus+Grafana.</li>
+                <li><strong>Glances</strong>: monitor de sistema per terminal.</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M3 Cap 1-2 - Estrategia de backup i restic.</li>
+                <li>M6 Cap 7 - Actualitzacio segura.</li>
+                <li>M6 Cap 10 - Runbooks: per documentar totes aquestes tasques.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 8</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Per que es important el manteniment programat?</li>
+                <li>Cada quant s'hauria de fer un backup de dades critiques?</li>
+                <li>Quina comanda llista les imatges Docker amb la mida que ocupen?</li>
+                <li>Quina comanda neteja els logs antics de journald mes antics de 14 dies?</li>
+                <li>Quina comanda neteja imatges Docker no usades?</li>
+                <li>Quin es el risc de no verificar mai els backups?</li>
+                <li>Quina eina s'encarrega de la rotacio automatica de logs tradicionals?</li>
+                <li>Cada quant es recomana netejar fisicament la RPi?</li>
+                <li>(Oberta) Defineix un calendari de manteniment per al BernatLab amb temps estimat.</li>
+                <li>(Oberta) Explica per que els backups son la part mes important i que cal fer perque funcionin.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Crear un script de manteniment setmanal, configurar-lo en un cron, i practicar una neteja del sistema.</p>
+
+            <h3>Pas 1: Mira l'estat actual del sistema (5 min)</h3>
+            <div class="code-block">
+                <pre><code>df -h
+free -h
+docker system df
+journalctl --disk-usage</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea el script de manteniment setmanal (10 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo nano /opt/bernatlab/maintenance.sh
+sudo chmod +x /opt/bernatlab/maintenance.sh</code></pre>
+            </div>
+            <p>El script ha de: netejar imatges dangling, volums no usats, xarxes, journald, apt cache. Apunta espai abans/despres.</p>
+
+            <h3>Pas 3: Prova el script (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo /opt/bernatlab/maintenance.sh
+sudo cat /var/log/bernatlab-maintenance.log</code></pre>
+            </div>
+
+            <h3>Pas 4: Programa el script cada diumenge a les 3:00 AM (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo crontab -e
+# Afegeix:
+0 3 * * 0 /opt/bernatlab/maintenance.sh</code></pre>
+            </div>
+
+            <h3>Pas 5: Verifica els teus backups (10 min)</h3>
+            <div class="code-block">
+                <pre><code>restic check
+restic snapshots --last 5
+restic restore latest --target /tmp/test-restore
+ls -la /tmp/test-restore/
+sudo rm -rf /tmp/test-restore</code></pre>
+            </div>
+
+            <h3>Pas 6: Fes una auditoria dels teus serveis (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker ps -a
+docker stats --no-stream</code></pre>
+            </div>
+            <p>Crea un document <code>SERVICIOS.md</code> amb els teus serveis i la seva criticitat.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat el script <code>/opt/bernatlab/maintenance.sh</code> i funciona.</li>
+                <li>☐ Esta programat al cron cada diumenge a les 3:00 AM.</li>
+                <li>☐ Has alliberat espai en disc (compara amb el valor inicial).</li>
+                <li>☐ Has verificat els teus backups amb <code>restic check</code>.</li>
+                <li>☐ Tens un document <code>SERVICIOS.md</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="08-manteniment-programat/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Per que</strong> = netejar i revisar evita problemes majors.</li>
+                <li><strong>Frequencia</strong> = diari o segons criticitat.</li>
+                <li><strong>Comanda</strong> = <code>docker system df</code>.</li>
+                <li><strong>Journald</strong> = <code>journalctl --vacuum-time=14d</code>.</li>
+                <li><strong>Imatges</strong> = <code>docker image prune -a</code>.</li>
+                <li><strong>Risc</strong> = backup corrupte quan el necessitis.</li>
+                <li><strong>Rotacio</strong> = logrotate.</li>
+                <li><strong>Neteja fisica</strong> = cada 6-12 mesos.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 3. Protocol LoRa (SX1262 868 MHz) - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📡 Cap 3. Protocol LoRa (SX1262 868 MHz)</h1>
+        <p class="subtitle">Mòdul M7 · Hort Osona en acció</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>LoRa</strong> (Long Range) es un modulacio de radio dissenyada per enviar <strong>pocs bytes a molta distancia</strong> consumint <strong>molt poca energia</strong>. Un sensor LoRa amb pila pot durar 5 anys enviant dades cada 15 min a 5 km de distancia. A l'Hort Osona l'usem per cobrir els sectors mes allunyats on el BLE no arriba.</p>
+
+            <h3>Que es LoRa i que no es</h3>
+            <p>LoRa es <strong>unicament la capa fisica</strong>. Per sobre hi ha:</p>
+            <ul>
+                <li><strong>LoRaWAN</strong>: protocol de xarxa amb gateways, servidors, AppKeys.</li>
+                <li><strong>LoRa P2P</strong>: nomes LoRa, sense xarxa. Dos dispositius parlen directament.</li>
+            </ul>
+            <p>A l'Hort Osona fem <strong>LoRa P2P</strong> perque nomes tenim 4-5 sensors.</p>
+
+            <h3>Especificacions del SX1262 868 MHz</h3>
+            <ul>
+                <li><strong>Frequencia</strong>: 868 MHz (Europa). EUA usa 915 MHz.</li>
+                <li><strong>Modulacio</strong>: LoRa (CSS - Chirp Spread Spectrum).</li>
+                <li><strong>Potencia TX</strong>: fins +22 dBm; limit legal UE +14 dBm.</li>
+                <li><strong>Sensibilitat RX</strong>: fins -148 dBm.</li>
+                <li><strong>Consum TX</strong>: ~100 mA a +14 dBm. Consum RX: ~5 mA. Repos: <1 µA.</li>
+                <li><strong>Bitrate</strong>: 0.3 a 50 kbps segons SF.</li>
+            </ul>
+
+            <h3>LoRa vs altres tecnologies</h3>
+            <table>
+                <thead><tr><th>Tecnologia</th><th>Abast</th><th>Consum TX</th><th>Preu radio</th><th>Us a hort</th></tr></thead>
+                <tbody>
+                    <tr><td>BLE</td><td>10-20m</td><td>15 mA</td><td>4€</td><td>Sensors propers</td></tr>
+                    <tr><td>WiFi</td><td>50 m</td><td>250 mA</td><td>5€</td><td>Gateway, no sensors</td></tr>
+                    <tr><td>LoRa</td><td>5 km</td><td>100 mA</td><td>5€</td><td>Sensors lluny</td></tr>
+                    <tr><td>Cellular</td><td>km</td><td>300 mA</td><td>20€</td><td>Sense cobertura WiFi</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Spreading Factor: la clau de l'abast</h3>
+            <p>El <strong>SF</strong> controla el trade-off entre abast i velocitat:</p>
+            <table>
+                <thead><tr><th>SF</th><th>Bitrate</th><th>Temps a 10 bytes</th><th>Abast relatiu</th></tr></thead>
+                <tbody>
+                    <tr><td>SF7</td><td>5.5 kbps</td><td>50 ms</td><td>1x</td></tr>
+                    <tr><td>SF9</td><td>1.8 kbps</td><td>200 ms</td><td>1.7x</td></tr>
+                    <tr><td>SF12</td><td>0.25 kbps</td><td>1600 ms</td><td>3.5x</td></tr>
+                </tbody>
+            </table>
+            <p>A l'Hort Osona usem <strong>SF9</strong> amb BW 125 kHz, CR 4/5 i sync word 0x12.</p>
+
+            <h3>Hardware: el modul i l'antena</h3>
+            <p>Opcions populars: <strong>Waveshare SX1262</strong> (12€), <strong>Lilygo LoRa32</strong> (25€, ESP32+SX1262+OLED), <strong>RAK3172</strong> (10€). L'antena SMA 868 MHz de 1/4 d'ona (~8.6 cm) es critica.</p>
+
+            <h3>Exemple de node amb ESP32</h3>
+            <pre><code>#include <RadioLib.h>
+SX1262 radio = new Module(5, 14, 33, 26);
+void setup() {
+  radio.begin(868.0, 125.0, 9, 5, 0x12, 14);
+}
+void loop() {
+  radio.transmit("T=21.3 H=58.0");
+  delay(900000);  // 15 min
+}</code></pre>
+
+            <h3>Avantatges i limitacions</h3>
+            <p><strong>Pros</strong>: cobertura km, autonomia 2-5 anys, robust, sense infraestructura, legal ISM, barat (10€ node).</p>
+            <p><strong>Contres</strong>: duty cycle 1%, banda estreta (pocs kbps), sensible a interferencies, SF/BW han de coincidir als dos extrems, no es IP, P2P no te ACK garantit.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M7 Cap 2 - MiFlora usa BLE; LoRa es per sectors mes llunyans.</li>
+                <li>M7 Cap 4 - L'arquitectura integra MiFlora i LoRa.</li>
+                <li>M7 Cap 5 - Tots dos acaben publicant a MQTT.</li>
+                <li>M7 Cap 7 - L'API pot oferir dades BLE i LoRa unificats.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m7 3</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que es LoRa?</li>
+                <li>A quina frequencia opera LoRa a Europa?</li>
+                <li>Quin es el modul radio mes utilizat actualment per LoRa?</li>
+                <li>Que pasa si augmentes el Spreading Factor de SF7 a SF12?</li>
+                <li>Quina es la potencia maxima de TX permesa a 868 MHz sense llicencia?</li>
+                <li>Quant dura un sensor LoRa amb 2 piles AA enviant cada 15 min?</li>
+                <li>Que es el duty cycle a 868 MHz i quin es el limit?</li>
+                <li>Quina diferencia hi ha entre LoRa i LoRaWAN?</li>
+                <li>(Oberta) Trade-off SF, BW i abast. Quins valors per a 500 m?</li>
+                <li>(Oberta) 3 sectors a 50/500 m/3 km: tecnologia per a cada un.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-60 min)</h2>
+            <p>Muntar un node LoRa amb ESP32+SX1262, enviar una lectura de temperatura cada minut, i rebre-la a la RPi gateway.</p>
+
+            <h3>Pas 1: Connecta el SX1262 a l'ESP32 (10 min)</h3>
+            <p>Cablejat SPI: CS=5, RST=14, DIO1=33, BUSY=26, SCK=18, MISO=19, MOSI=23. Connecta l'antena SMA 868 MHz <strong>abans d'encendre</strong>.</p>
+
+            <h3>Pas 2: Configura el PlatformIO (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/proves-lora/node1
+cd ~/proves-lora/node1
+pio init --board esp32dev</code></pre>
+            </div>
+            <p>Edita <code>platformio.ini</code> afegint <code>jgromes/RadioLib@^6.0.0</code> i <code>adafruit/Adafruit BME280 Library</code>.</p>
+
+            <h3>Pas 3: Escriu el codi del node (15 min)</h3>
+            <div class="code-block">
+                <pre><code>#include <RadioLib.h>
+SX1262 radio = new Module(5, 14, 33, 26);
+Adafruit_BME280 bme;
+uint16_t seq = 0;
+
+void setup() {
+  radio.begin(868.0, 125.0, 9, 5, 0x12, 14);
+}
+
+void loop() {
+  char p[64];
+  snprintf(p, 64, "{\"dev\":\"node1\",\"seq\":%u,\"t\":%.1f}",
+           seq++, bme.readTemperature());
+  radio.transmit(p);
+  delay(60000);
+}</code></pre>
+            </div>
+            <div class="code-block">
+                <pre><code>pio run -t upload && pio device monitor</code></pre>
+            </div>
+
+            <h3>Pas 4: Munta el receptor a la RPi (15 min)</h3>
+            <p>Connecta un altre SX1262 als pins SPI de la RPi. Activa SPI amb <code>raspi-config</code>. Crea <code>gateway_lora.py</code> amb <code>pySX126x</code> i <code>paho-mqtt</code>.</p>
+
+            <h3>Pas 5: Prova el sistema (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo python3 gateway_lora.py
+mosquitto_sub -h localhost -t "hort-osona/lora/#" -v</code></pre>
+            </div>
+
+            <h3>Pas 6: Mesura l'abast (10 min)</h3>
+            <p>Canvia el delay a 5 segons, surt al carrer amb l'ESP32 i un powerbank, i mira a quants metres es perd la senyal.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has connectat el SX1262 a l'ESP32 i a la RPi amb l'antena.</li>
+                <li>☐ El node envia un JSON cada minut.</li>
+                <li>☐ La RPi rep el missatge i el publica a MQTT.</li>
+                <li>☐ Veus el payload amb <code>mosquitto_sub</code>.</li>
+                <li>☐ Has fet una prova d'abast reial.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/03-protocol-lora/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>LoRa</strong> = modulacio de radio de llarg abast.</li>
+                <li><strong>Freq Europa</strong> = 868 MHz.</li>
+                <li><strong>Modul</strong> = SX1262.</li>
+                <li><strong>SF alt</strong> = mes lent pero mes abast.</li>
+                <li><strong>TX max UE</strong> = +14 dBm.</li>
+                <li><strong>Autonomia</strong> = 2-3 anys amb piles AA.</li>
+                <li><strong>Duty cycle</strong> = limit 1% a 868 MHz.</li>
+                <li><strong>LoRa vs LoRaWAN</strong> = capa fisica vs protocol xarxa.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

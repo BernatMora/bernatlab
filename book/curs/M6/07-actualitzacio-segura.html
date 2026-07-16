@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 7. Actualitzacio segura — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔄 Cap 7. Actualitzacio segura</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un sistema que no s'actualitza es un sistema vulnerable. Un sistema que s'actualitza MAL pot deixar-te amb serveis caiguts, dades corrompudes, o problemes de compatibilitat. La gràcia de l'actualitzacio segura es actualitzar AMB CONFIANCA: saber que passa, tenir plan B, i poder tornar enrrere si cal.</p>
+
+            <h3>Per que es vital actualitzar</h3>
+            <ol>
+                <li><strong>Seguretat</strong>: les vulnerabilitats es descobreixen constantment.</li>
+                <li><strong>Estabilitat</strong>: les noves versions corregeixen bugs que poden fer-te caure.</li>
+                <li><strong>Funcionalitats</strong>: nous serveis, millor rendiment.</li>
+            </ol>
+
+            <h3>Apt: el gestor de paquets</h3>
+            <pre><code>sudo apt update
+apt list --upgradable
+sudo apt upgrade -y
+sudo apt full-upgrade -y
+sudo apt autoremove -y
+sudo apt autoclean</code></pre>
+
+            <h3>unattended-upgrades: actualitzacions automatiques</h3>
+            <pre><code>sudo apt install -y unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades</code></pre>
+            <p>Configuracio a <code>/etc/apt/apt.conf.d/50unattended-upgrades</code>:</p>
+            <pre><code>Unattended-Upgrade::Allowed-Origins {
+    "origin=Debian,codename=${distro_codename},label=Debian-Security";
+    "origin=Raspbian,codename=${distro_codename},label=Raspbian-Security";
+};
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+Unattended-Upgrade::MinimalSteps "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "false";
+Unattended-Upgrade::Automatic-Reboot-Time "03:00";</code></pre>
+
+            <h3>Watchtower: actualitzacio automatica de contenidors</h3>
+            <pre><code>  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - '--label-enable'
+      - '--include-stopped'
+      - '--schedule'
+      - '0 0 4 * * *'  # Cada dia a les 4:00 AM</code></pre>
+            <p>Label per permetre l'actualitzacio:</p>
+            <pre><code>services:
+  homeassistant:
+    image: homeassistant/home-assistant:stable
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"</code></pre>
+
+            <h3>Dependabot: actualitzacio dels teus repositoris</h3>
+            <p>Configuracio a <code>.github/dependabot.yml</code>:</p>
+            <pre><code>version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"</code></pre>
+
+            <h3>Blue-Green deployment</h3>
+            <p>Tecnica per actualitzar sense temps d'inactivitat. Tens dos entorns (blue i green), un esta actiu i l'altre es la nova versio.</p>
+            <pre><code># Desplega la nova versio amb port diferent
+docker run -d --name servei-green -p 8081:80 servei:v2
+# Comprova
+curl http://localhost:8081
+# Atura vella, arranca nova al port original
+docker stop servei-blue
+docker rm servei-blue
+docker run -d --name servei-blue -p 8080:80 servei:v2
+# Neteja
+docker stop servei-green
+docker rm servei-green</code></pre>
+
+            <h3>Rolling Updates: mes realista</h3>
+            <ol>
+                <li><strong>Abans</strong>: fer backup.</li>
+                <li><strong>Llegir CHANGELOG</strong>: que canvia?</li>
+                <li><strong>Provar en local</strong> si es pot.</li>
+                <li><strong>En hores de baixa activitat</strong>.</li>
+                <li><strong>Un sol servei a la vegada</strong>.</li>
+                <li><strong>Verificar</strong>: curl, grafana, logs.</li>
+                <li><strong>Si algo va malament</strong>: rollback.</li>
+            </ol>
+
+            <h3>El fitxer CHANGELOG</h3>
+            <p>SEMPRE mira el CHANGELOG abans d'actualitzar. Busca "BREAKING" o "breaking change".</p>
+            <pre><code>v2.5.0 (2026-05-01):
+  BREAKING: canvi en la configuracio de xarxa
+  Nova opcio: --new-feature
+  Bugfix: corregit memory leak a HA</code></pre>
+
+            <h3>Pinning de versions</h3>
+            <pre><code># BE
+image: homeassistant/home-assistant:2024.5.0
+
+# MAL
+image: homeassistant/home-assistant:latest
+
+# Rang: sempre la ultima 2024.X
+image: homeassistant/home-assistant:2024</code></pre>
+
+            <h3>Estrategia de versions</h3>
+            <ul>
+                <li><strong>MAJOR</strong> (v1 -&gt; v2): canvis incompatibles. Cal planificar.</li>
+                <li><strong>MINOR</strong> (v1.5 -&gt; v1.6): noves funcionalitats, generalment compatibles.</li>
+                <li><strong>PATCH</strong> (v1.5.3 -&gt; v1.5.4): correccions. Sempre aplicar.</li>
+            </ul>
+            <ul>
+                <li>Sempre actualitza PATCH.</li>
+                <li>Regularment actualitza MINOR (cada 1-3 mesos).</li>
+                <li>Amb molta cura actualitza MAJOR (1 cop l'any, amb proves).</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 7 - Actualitzacio de contenidors (Docker basic).</li>
+                <li>M2 Cap 8 - Backups: SEMPRE fer backup abans d'actualitzar.</li>
+                <li>M6 Cap 4 - Alertes: rebràs alertes si una actualitzacio trenca alguna cosa.</li>
+                <li>M3 Cap 1 - Estrategia de backup: xarxa de seguretat.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 7</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quina comanda actualitza la llista de paquets disponibles a apt?</li>
+                <li>Quin paquet s'encarrega de les actualitzacions automatiques de seguretat?</li>
+                <li>Quina eina s'encarrega d'actualitzar automaticament els contenidors Docker?</li>
+                <li>Quina label de Docker cal posar perque Watchtower actualitzi un contenidor?</li>
+                <li>Per que es mala idea fer <code>image: servei:latest</code>?</li>
+                <li>Quina eina de GitHub revisa automaticament dependencies i envia PRs?</li>
+                <li>Quina tecnica permet actualitzar sense temps d'inactivitat?</li>
+                <li>Quin tipus d'actualitzacio es pot aplicar sempre sense riscos?</li>
+                <li>(Oberta) Estrategia per actualitzar els serveis: quins automatitzaries i quins manuals?</li>
+                <li>(Oberta) Procediment per actualitzar HA amb canvis incompatibles.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Configurar actualitzacions automatiques de seguretat, instal·lar Watchtower i practicar un rollback.</p>
+
+            <h3>Pas 1: Configura actualitzacions automatiques del sistema (10 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo apt update
+sudo apt install -y unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades
+sudo nano /etc/apt/apt.conf.d/50unattended-upgrades
+sudo unattended-upgrades --dry-run -d</code></pre>
+            </div>
+
+            <h3>Pas 2: Configura notificacio per correu (5 min)</h3>
+            <p>Afegeix <code>Unattended-Upgrade::Mail "bernat@exemple.com";</code> a la configuracio.</p>
+
+            <h3>Pas 3: Instal·la Watchtower (10 min)</h3>
+            <p>Afegeix el servei watchtower al <code>docker-compose.yml</code> amb el schedule. Puja amb <code>docker compose up -d watchtower</code>.</p>
+
+            <h3>Pas 4: Marca els teus serveis per Watchtower (5 min)</h3>
+            <p>Afegeix label <code>com.centurylinklabs.watchtower.enable=true</code> als serveis stateless. Deixa sense label les bases de dades.</p>
+
+            <h3>Pas 5: Comprova que Watchtower funciona (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker logs watchtower
+docker exec watchtower /watchtower --run-once</code></pre>
+            </div>
+
+            <h3>Pas 6: Practica un rollback (10 min)</h3>
+            <p>Comprova versio actual, baixa versio antiga coneguda, atura+esborra contenidor, aixeca amb versio antiga. Comprova que funciona.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ <code>unattended-upgrades</code> esta configurat i funciona.</li>
+                <li>☐ Watchtower esta corrent amb schedule.</li>
+                <li>☐ Has marcat els serveis adequats amb label.</li>
+                <li>☐ Has deixat sense label les bases de dades.</li>
+                <li>☐ Has practicat un rollback manual amb exit.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="07-actualitzacio-segura/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>apt update</strong> = actualitza la llista.</li>
+                <li><strong>unattended-upgrades</strong> = automatic seguretat.</li>
+                <li><strong>Watchtower</strong> = automatic contenidors.</li>
+                <li><strong>Label</strong> = <code>com.centurylinklabs.watchtower.enable=true</code>.</li>
+                <li><strong>Per que no latest</strong> = mutable, trencadis.</li>
+                <li><strong>Dependabot</strong> = PRs automatics.</li>
+                <li><strong>Blue-Green</strong> = sense temps d'inactivitat.</li>
+                <li><strong>PATCH</strong> = sempre segur.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

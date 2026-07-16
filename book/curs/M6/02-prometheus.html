@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 2. Prometheus — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📊 Cap 2. Prometheus</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Prometheus es una base de dades de series temporals (time series database) que recull metricas dels teus serveis a intervals regulars. Es el "cervell" del monitoratge: ell pregunta "com estas?" a cada servei, guarda la resposta amb marca de temps, i permet fer consultes com "quina ha estat la CPU mitjana de la RPi aquesta setmana?".</p>
+
+            <h3>Que es exactament una metrica?</h3>
+            <p>Una metrica es un valor numeric associat a un instant de temps. Per exemple:</p>
+            <ul>
+                <li><code>cpu_usage_percent{host="rpi", core="0"} 42.5 @ 1716000000</code></li>
+                <li><code>memory_free_bytes 1530000000 @ 1716000000</code></li>
+                <li><code>docker_container_up{name="homeassistant"} 1 @ 1716000000</code></li>
+            </ul>
+            <p>Prometheus guarda milers d'aquestes "mostres" i tu pots fer consultes tipus PromQL:</p>
+            <pre><code># CPU mitjana dels ultims 5 minuts
+100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+# Contenidors caiguts
+docker_container_up == 0</code></pre>
+
+            <h3>L'arquitectura pull de Prometheus</h3>
+            <p>A diferencia d'altres sistemes (que reben dades - "push"), Prometheus va a buscar-les ("pull"). Cada 15 segons (per defecte) Prometheus fa una peticio HTTP a un endpoint de cada servei.</p>
+            <pre><code>[Prometheus] --GET /metrics--&gt; [Node Exporter a RPi]
+[Prometheus] --GET /metrics--&gt; [cAdvisor dins Docker]
+[Prometheus] --GET /metrics--&gt; [HA, InfluxDB, etc.]</code></pre>
+            <p>Avantatges: visibilitat, deteccio automatica de fallades, configuracio centralitzada. Desavantatges: serveis darrere NAT son complicats.</p>
+
+            <h3>Els exporters</h3>
+            <p>Un "exporter" es un petit programa que converteix l'estat intern d'un servei en metriques Prometheus. A la RPi del BernatLab en tindras uns quants:</p>
+            <ul>
+                <li><strong>node_exporter</strong>: CPU, memoria, disc, xarxa, temperatura. El mes important.</li>
+                <li><strong>cadvisor</strong>: metricas dels contenidors Docker.</li>
+                <li><strong>nginx_exporter</strong>: peticions, errors, latencia del proxy invers.</li>
+                <li><strong>blackbox_exporter</strong>: probes HTTP, TCP, ICMP per serveis externs.</li>
+            </ul>
+
+            <h3>Instal·lacio a la RPi</h3>
+            <pre><code>services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=2GB'
+    ports:
+      - "9090:9090"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    ports:
+      - "9100:9100"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "8080:8080"</code></pre>
+
+            <h3>Configuracio prometheus.yml</h3>
+            <pre><code>global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+  - job_name: 'homeassistant'
+    static_configs:
+      - targets: ['homeassistant:8123']
+    metrics_path: /api/prometheus</code></pre>
+            <p>Despres accedeix a <code>http://IP_RPI:9090</code> i comprova "Status" -&gt; "Targets".</p>
+
+            <h3>PromQL: el llenguatge de consultes</h3>
+            <p>PromQL es sorprenentment poderos:</p>
+            <pre><code># Memoria lliure en GB
+node_memory_MemAvailable_bytes / 1024 / 1024 / 1024
+
+# Espai en disc lliure (%)
+(node_filesystem_avail_bytes{mountpoint="/"} * 100) / node_filesystem_size_bytes{mountpoint="/"}
+
+# Temperatura CPU (RPi)
+node_thermal_zone_temp
+
+# Taxa d'errors HTTP per minut
+rate(http_requests_total{status=~"5.."}[5m])</code></pre>
+
+            <h3>Retencio i emmagatzematge</h3>
+            <p>Per defecte Prometheus guarda 15 dies. A la RPi volem ser conservadors:</p>
+            <pre><code>--storage.tsdb.retention.time=30d
+--storage.tsdb.retention.size=2GB</code></pre>
+
+            <h3>Limitacions de la RPi</h3>
+            <ul>
+                <li>No posis masses targets: cada target son mes series i mes CPU.</li>
+                <li><code>scrape_interval</code> mes alt: 30s en lloc de 15s alleugereix la carrega.</li>
+                <li>Cardinality baixa: no creis labels dinamics.</li>
+                <li>Retencio curta: evita que el disc s'ompli.</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M6 Cap 1 - L'arquitectura 24/7 on Prometheus es la capa d'observabilitat.</li>
+                <li>M6 Cap 3 - Grafana consumeix les dades de Prometheus per fer dashboards.</li>
+                <li>M6 Cap 4 - Alertmanager s'encarrega d'enviar les alertes.</li>
+                <li>M2 Cap 9 - Monitoritzacio de contenidors amb cAdvisor.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 2</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que es exactament una metrica per a Prometheus?</li>
+                <li>Quin model d'arquetip fa servir Prometheus per recollir dades?</li>
+                <li>Que es un exporter?</li>
+                <li>Cada quan recull metricas Prometheus per defecte?</li>
+                <li>Quin exporter fa servir Prometheus per obtenir metricas dels contenidors Docker?</li>
+                <li>Quin llenguatge de consultes utilitza Prometheus?</li>
+                <li>Quin parametre limita la mida maxima de la base de dades de Prometheus?</li>
+                <li>A quin port escolta Prometheus per defecte?</li>
+                <li>(Oberta) Explica la diferencia entre els models pull i push. Per que Prometheus va triar pull?</li>
+                <li>(Oberta) Quins 3 exporters afegiries a la teva RPi del BernatLab i per que?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (45-60 min)</h2>
+            <p>Instal·lar Prometheus, node-exporter i cAdvisor a la teva RPi. Configurar els seus targets i fer les primeres consultes PromQL.</p>
+
+            <h3>Pas 1: Crea l'estructura de carpetes (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cd ~/bernatlab
+mkdir -p prometheus/data
+ls -la prometheus/</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea el fitxer prometheus.yml (10 min)</h3>
+            <div class="code-block">
+                <pre><code>nano prometheus/prometheus.yml</code></pre>
+            </div>
+            <pre><code>global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']</code></pre>
+
+            <h3>Pas 3: Afegeix els serveis al docker-compose (10 min)</h3>
+            <p>Edita el teu <code>docker-compose.yml</code> i afegeix els tres serveis nous (Prometheus, node-exporter, cAdvisor). Despres:</p>
+            <div class="code-block">
+                <pre><code>docker compose up -d prometheus node-exporter cadvisor
+docker ps | grep -E "prometheus|exporter|cadvisor"</code></pre>
+            </div>
+
+            <h3>Pas 4: Verifica que tot funciona (10 min)</h3>
+            <p>Accedeix a <code>http://IP_RPI:9090/targets</code>. Hauries de veure 3-4 targets, tots amb estat "UP" en verd. Si algun esta "DOWN", comprova els logs amb <code>docker logs prometheus</code>.</p>
+
+            <h3>Pas 5: Fes les primeres consultes PromQL (15 min)</h3>
+            <p>A <code>http://IP_RPI:9090/graph</code>, prova aquestes consultes:</p>
+            <pre><code># 1. CPU en us (per core, en %)
+100 - (avg by(cpu)(rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100)
+
+# 2. Memoria disponible en GB
+node_memory_MemAvailable_bytes / 1024 / 1024 / 1024
+
+# 3. Espai lliure al disc principal (%)
+(node_filesystem_avail_bytes{mountpoint="/"} * 100) / node_filesystem_size_bytes{mountpoint="/"}
+
+# 4. Temperatura de la CPU (RPi)
+node_thermal_zone_temp
+
+# 5. Bytes rebuts a la xarxa
+rate(node_network_receive_bytes_total{device!="lo"}[5m])
+
+# 6. Memoria usada per contenidor
+container_memory_usage_bytes{name=~".+"}</code></pre>
+
+            <h3>Pas 6: Mira les metricas raw (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Metricas de la RPi
+curl -s http://localhost:9100/metrics | grep node_thermal
+
+# Metricas dels contenidors
+curl -s http://localhost:8080/metrics | grep container_memory
+
+# Comptador de series
+curl -s http://localhost:9090/api/v1/status/tsdb | python3 -m json.tool</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Prometheus, node-exporter i cAdvisor corren com a contenidors.</li>
+                <li>☐ Els targets apareixen com a "UP" a la UI.</li>
+                <li>☐ Has fet almenys 5 consultes PromQL amb resultats.</li>
+                <li>☐ Pots veure la temperatura de la RPi.</li>
+                <li>☐ Pots veure l'ús de memoria i CPU per contenidor.</li>
+                <li>☐ Has explorat l'endpoint <code>/metrics</code> directament.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="02-prometheus/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Metrica</strong> = valor numeric + timestamp + labels opcionals.</li>
+                <li><strong>Model</strong> = pull (Prometheus truca al servei).</li>
+                <li><strong>Exporter</strong> = adaptador que exposa metricas en format Prometheus.</li>
+                <li><strong>Interval</strong> = 15 segons per defecte.</li>
+                <li><strong>Docker</strong> = cadvisor.</li>
+                <li><strong>Llenguatge</strong> = PromQL.</li>
+                <li><strong>Mida</strong> = <code>--storage.tsdb.retention.size</code>.</li>
+                <li><strong>Port</strong> = 9090.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

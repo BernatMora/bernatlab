@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 7. Backups segurs — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🛡️ Cap 7. Backups segurs</h1>
+        <p class="subtitle">Mòdul M5 · Seguretat</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un backup no es un luxe, es la diferencia entre un incident i una catastrofe. Pero un backup nomes es valid si es pot <strong>restaurar</strong>. I nomes es segur si esta <strong>xifrat</strong> i <strong>fora del servidor</strong>. Al BernatLab farem servir <strong>Restic</strong>: una eina moderna que fa copies incrementals, xifrades, deduplicades, i que es pot enviar a multiples destins (local, S3, SFTP, B2, etc.).</p>
+
+            <h3>La regla 3-2-1</h3>
+            <p>La regla d'or dels backups:</p>
+            <ul>
+                <li><strong>3</strong> copies de les dades (l'original + 2 backups).</li>
+                <li><strong>2</strong> tipus de mitjans diferents (disc local + núvol).</li>
+                <li><strong>1</strong> copia fora de casa (cloud, casa d'un amic, etc.).</li>
+            </ul>
+            <p>Aquesta regla ens protegeix contra fallada de hardware, errors humans, ransomware, catastrofes naturals, i robatori.</p>
+
+            <h3>Que cal backupejar al BernatLab</h3>
+            <ul>
+                <li><strong>Bases de dades</strong>: Postgres, InfluxDB, SQLite, MariaDB.</li>
+                <li><strong>Volums Docker</strong>: carpetes <code>/var/lib/docker/volumes/...</code>.</li>
+                <li><strong>Configuracions</strong>: <code>/etc/nginx</code>, <code>/opt/*/docker-compose.yml</code>, <code>.env</code>.</li>
+                <li><strong>Secrets</strong> (xifrats!): claus SSH, configuracio de Tailscale.</li>
+                <li><strong>Dades personals</strong>: documents, fotos, configuracio de Home Assistant.</li>
+                <li><strong>Repositoris Git locals</strong>: Gitea, etc.</li>
+            </ul>
+
+            <h3>Restic: l'eina que recomano</h3>
+            <p><strong>Restic</strong> es una eina de backup moderna i senzilla:</p>
+            <ul>
+                <li><strong>Xifratge</strong>: AES-256, autenticacio amb contrasenya o fitxer de claus.</li>
+                <li><strong>Incremental</strong>: nomes copia el que ha canviat.</li>
+                <li><strong>Deduplicacio</strong>: si un fitxer esta en diversos llocs, no el duplica.</li>
+                <li><strong>Multi-desti</strong>: local, S3, SFTP, Backblaze B2, etc.</li>
+                <li><strong>Open source</strong>: llicencia BSD.</li>
+            </ul>
+            <pre><code>sudo apt install restic</code></pre>
+
+            <h3>Primer backup amb Restic</h3>
+            <pre><code># Inicialitza un repositori
+export RESTIC_REPOSITORY=/var/backups/homelab
+export RESTIC_PASSWORD="una_contrasenya_llarga_i_aleatoria"
+restic init
+
+# Fes la primera copia
+restic backup /opt/homelab /opt/gitea /etc/nginx
+
+# Comprova
+restic snapshots
+restic stats
+
+# Restaura
+restic restore latest --target /tmp/restore</code></pre>
+            <p>Guarda la <code>RESTIC_PASSWORD</code> al vault (capitol 6). Si la perds, no podràs restaurar mai.</p>
+
+            <h3>Restic amb un desti remot</h3>
+            <pre><code># SFTP
+export RESTIC_REPOSITORY=sftp:user@backup.bernatlab.cat:/backups/restic
+
+# S3 (AWS, Minio, Backblaze B2)
+export RESTIC_REPOSITORY=s3:s3.amazonaws.com/bernatlab-backup</code></pre>
+            <p>Backends suportats: <code>local</code>, <code>sftp</code>, <code>s3</code>, <code>b2</code>, <code>azure</code>, <code>gs</code>, <code>rclone</code>.</p>
+
+            <h3>Politica de retencio</h3>
+            <pre><code>restic forget \
+  --keep-hourly 24 \
+  --keep-daily 7 \
+  --keep-weekly 4 \
+  --keep-monthly 6 \
+  --prune</code></pre>
+            <p>Mantindra 24 hores, 7 dies, 4 setmanes, 6 mesos. Esborra les mes antigues.</p>
+
+            <h3>Automatitzacio amb cron o systemd</h3>
+            <p>Script d'exemple <code>/opt/homelab/scripts/backup.sh</code>:</p>
+            <pre><code>#!/bin/bash
+set -e
+set -a
+source /opt/homelab/.env
+set +a
+
+restic backup /opt/homelab /opt/gitea /etc/nginx
+restic forget --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune</code></pre>
+            <p>Cron:</p>
+            <pre><code>0 3 * * * /opt/homelab/scripts/backup.sh &gt;&gt; /var/log/backup.log 2&gt;&amp;</code></pre>
+            <p>Systemd (mes net):</p>
+            <pre><code># /etc/systemd/system/backup.timer
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true</code></pre>
+
+            <h3>Bones practiques</h3>
+            <ul>
+                <li><strong>Automatitza SEMPRE</strong>. No confiïs en la memoria.</li>
+                <li><strong>Monitora els backups</strong>: correu o webhook si fallen.</li>
+                <li><strong>Prova la restauracio periodicament</strong> (cada 3-6 mesos).</li>
+                <li><strong>Xifratge obligatori</strong>.</li>
+                <li><strong>Multiples destins</strong>: local + núvol.</li>
+                <li><strong>Custodia de la clau</strong>: si la perds, no pots recuperar res.</li>
+                <li><strong>Documenta la politica de retencio</strong>.</li>
+                <li><strong>Audita la mida</strong>: creixement sobtat = possible problema.</li>
+            </ul>
+
+            <h3>Proves de restauracio</h3>
+            <p>Un backup no es valid fins que no l'has restaurat. Crea un entorn de test:</p>
+            <pre><code>mkdir -p /tmp/restore-test
+restic restore latest --target /tmp/restore-test
+ls -la /tmp/restore-test/opt/homelab/
+rm -rf /tmp/restore-test</code></pre>
+
+            <h3>Comandes utils</h3>
+            <pre><code># Llistar snapshots
+restic snapshots
+
+# Veure fitxers d'un snapshot
+restic ls latest
+
+# Estadistiques
+restic stats
+
+# Restaurar
+restic restore latest --target /tmp/restore
+
+# Esborrar antics
+restic forget --keep-daily 7 --prune
+
+# Comprovar integritat
+restic check
+
+# Mount (navegar el backup)
+mkdir /mnt/restic
+restic mount /mnt/restic
+fusermount -u /mnt/restic</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M3 Cap 1-2 - Estrategia de backup i Restic.</li>
+                <li>M2 Cap 8 - Backup de contenidors.</li>
+                <li>Cap 6 d'aquest modul - Secrets.</li>
+                <li>Cap 8 d'aquest modul - Monitoratge.</li>
+            </ul>
+
+            <h3>Conclusio</h3>
+            <p>Els backups son la <strong>xarxa de seguretat</strong> que et permet dormir tranquil. Restic + bona politica de retencio + automatitzacio + proves de restauracio es el minim per estar protegit. Recorda: <strong>un backup no es un backup fins que no l'has restaurat amb exit</strong>.</p>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m5 7</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quina es la regla 3-2-1?</li>
+                <li>Que es Restic?</li>
+                <li>Per que xifrar els backups?</li>
+                <li>Que pasa si perds la clau de xifratge?</li>
+                <li>Comanda per llistar snapshots?</li>
+                <li>Que vol dir incremental?</li>
+                <li>Risc del backup sense proves?</li>
+                <li>Backend mes economic?</li>
+                <li>(Oberta) Politica de backups pel BernatLab.</li>
+                <li>(Oberta) Lliço après d'un backup mal ubicat.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Configurar Restic per fer backups automatics del BernatLab amb una politica de retencio, un desti extern, i una prova de restauracio.</p>
+
+            <h3>Pas 1: Inventaria que cal backupejar (5 min)</h3>
+            <pre><code>ls -la /opt
+ls -la /var/lib/docker/volumes/
+docker ps --format '{{.Names}}:{{.Image}}'</code></pre>
+
+            <h3>Pas 2: Instal·la Restic (5 min)</h3>
+            <pre><code>sudo apt install restic
+restic version</code></pre>
+
+            <h3>Pas 3: Inicialitza el repositori (10 min)</h3>
+            <pre><code>sudo mkdir -p /var/backups/homelab
+sudo chown bernat:bernat /var/backups/homelab
+
+export RESTIC_PASSWORD=$(openssl rand -base64 32)
+echo "Guarda aquesta clau al vault: $RESTIC_PASSWORD"
+export RESTIC_REPOSITORY=/var/backups/homelab
+restic init</code></pre>
+
+            <h3>Pas 4: Fes el primer backup (5 min)</h3>
+            <pre><code>restic backup /opt/homelab /opt/gitea /etc/nginx
+restic snapshots
+restic stats</code></pre>
+
+            <h3>Pas 5: Politica de retencio (5 min)</h3>
+            <pre><code>restic forget --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune</code></pre>
+
+            <h3>Pas 6: Script d'automatitzacio (10 min)</h3>
+            <pre><code>#!/bin/bash
+set -e
+set -a
+source /opt/homelab/.env
+set +a
+
+restic backup /opt/homelab /opt/gitea /etc/nginx
+restic forget --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune</code></pre>
+
+            <h3>Pas 7: Cron o systemd (5 min)</h3>
+            <pre><code>echo "0 3 * * * /opt/homelab/scripts/backup.sh &gt;&gt; /var/log/backup.log 2&gt;&amp;1" | sudo tee /etc/cron.d/backup</code></pre>
+
+            <h3>Pas 8: Nuvol (opcional) (5 min)</h3>
+            <pre><code>export RESTIC_REPOSITORY=s3:s3.eu-central-003.backblazeb2.com/bernatlab-backup
+restic init
+restic backup /opt/homelab</code></pre>
+
+            <h3>Pas 9: Prova la restauracio (5 min)</h3>
+            <pre><code>mkdir -p /tmp/restore-test
+restic restore latest --target /tmp/restore-test
+ls -la /tmp/restore-test/opt/homelab/
+rm -rf /tmp/restore-test</code></pre>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Restic esta instal·lat.</li>
+                <li>☐ Has inicialitzat un repositori.</li>
+                <li>☐ Has fet un primer backup.</li>
+                <li>☐ La politica de retencio esta configurada.</li>
+                <li>☐ El backup esta automatitzat.</li>
+                <li>☐ Has provat la restauracio amb exit.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M5/07-backups-segurs/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>3-2-1</strong> = 3 copies, 2 mitjans, 1 fora de casa.</li>
+                <li><strong>Restic</strong> = eina moderna, xifrada, incremental.</li>
+                <li><strong>Xifrar</strong> = perque si es filtra, no es llegeix.</li>
+                <li><strong>Perdre clau</strong> = restaurar mai mes.</li>
+                <li><code>restic snapshots</code> = llistar.</li>
+                <li><strong>Incremental</strong> = nomes canvis.</li>
+                <li><strong>Risc</strong> = no poder restaurar.</li>
+                <li><strong>Backblaze B2</strong> = mes economic.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

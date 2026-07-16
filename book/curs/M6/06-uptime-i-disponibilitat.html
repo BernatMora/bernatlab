@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 6. Uptime i disponibilitat — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📡 Cap 6. Uptime i disponibilitat</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Podem tenir tota la monitoritzacio interna que volguem (Prometheus, Grafana, Loki), pero si la RPi queda penjada o el router es reinicia, els nostres monitors tampoc funcionen. Cal un <strong>monitor extern</strong> que vigili els nostres serveis des de FORA, independent de la nostra infraestructura. Es com tenir un segon ull que mira des de fora.</p>
+
+            <h3>Que es un SLA?</h3>
+            <p>SLA = Service Level Agreement. Es un compromis sobre la disponibilitat:</p>
+            <ul>
+                <li><strong>99%</strong> ("two nines"): 3.65 dies d'inactivitat per any.</li>
+                <li><strong>99.9%</strong> ("three nines"): 8.76 hores d'inactivitat per any.</li>
+                <li><strong>99.99%</strong> ("four nines"): 52.6 minuts d'inactivitat per any.</li>
+                <li><strong>99.999%</strong> ("five nines"): 5.26 minuts d'inactivitat per any.</li>
+            </ul>
+
+            <h3>Que es el temps d'uptime?</h3>
+            <p><strong>Uptime</strong> es el percentatge de temps que un servei ha estat disponible:</p>
+            <pre><code>uptime = (temps_total - temps_caigut) / temps_total * 100</code></pre>
+            <p>Exemple: 5 minuts caigut cada dia = 35 min/setmana = 99.65% uptime.</p>
+
+            <h3>Per que cal un monitor EXTERN</h3>
+            <p>Si nomes monitors des de dins, tens dos problemes:</p>
+            <ol>
+                <li><strong>El monitor cau amb el sistema</strong>: si la RPi es penja, el monitor tambe.</li>
+                <li><strong>No detecta fallades de xarxa</strong>: si el router es reinicia, la RPi esta be pero no es accessible.</li>
+            </ol>
+
+            <h3>Uptime Kuma: el monitor del BernatLab</h3>
+            <p>Uptime Kuma es una eina open source auto-allotjada. Es l'alternativa a Pingdom, UptimeRobot, etc. pero GRATIS i a casa teva.</p>
+            <p>Avantatges: gratis, privat, sense limits, multiples tipus de probes, UI bonica, alertes integrades. Desavantatges: si es a la mateixa RPi, cau amb el sistema.</p>
+
+            <h3>Instal·lacio d'Uptime Kuma</h3>
+            <pre><code>  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - ./uptime-kuma/data:/app/data
+    ports:
+      - "3001:3001"</code></pre>
+            <p>Accedeix a <code>http://IP_RPI:3001</code>.</p>
+
+            <h3>Configurar els monitors basics</h3>
+            <ol>
+                <li><strong>"Add New Monitor"</strong></li>
+                <li><strong>Tipus</strong>: HTTP(s)</li>
+                <li><strong>URL</strong>: <code>http://192.168.1.50:8123</code></li>
+                <li><strong>Heartbeat interval</strong>: 60 segons</li>
+                <li><strong>Retries</strong>: 3</li>
+                <li><strong>Save</strong></li>
+            </ol>
+            <p>Repeteix per a: Grafana, Prometheus, Home Assistant, Loki, Router (Ping), DNS, Internet.</p>
+
+            <h3>Status page publica</h3>
+            <p>Uptime Kuma pot generar una <strong>status page</strong> publica amb l'estat de tots els teus serveis.</p>
+            <p>A "Status Page" -&gt; "New Status Page":</p>
+            <ol>
+                <li>Nom: "BernatLab"</li>
+                <li>Slug: <code>bernatlab</code></li>
+                <li>Titol: "Serveis del BernatLab"</li>
+                <li>Descripcio: "Estat dels serveis de la Raspberry Pi de casa"</li>
+                <li>Tema: clar o fosc</li>
+                <li>Afegeix els monitors</li>
+                <li>Guarda</li>
+            </ol>
+            <p>URL: <code>http://IP_RPI:3001/status/bernatlab</code></p>
+
+            <h3>Alertes integrades</h3>
+            <p>Uptime Kuma te integracio amb Telegram:</p>
+            <ol>
+                <li>"Settings" -&gt; "Notifications"</li>
+                <li>"Setup Notification" -&gt; "Telegram"</li>
+                <li>Bot Token i Chat ID del cap 4</li>
+                <li>"Test" per verificar</li>
+                <li>"Save"</li>
+            </ol>
+
+            <h3>Alternativa: serveis cloud</h3>
+            <p>Si vols un monitor REALMENT extern:</p>
+            <ul>
+                <li><strong>UptimeRobot</strong> (free: 50 monitors, 5 min).</li>
+                <li><strong>Cronitor</strong> (free limitat).</li>
+                <li><strong>Healthchecks.io</strong> (free: 20 monitors, per cron jobs).</li>
+                <li><strong>Hetrixtools</strong> (free: 15 monitors).</li>
+            </ul>
+
+            <h3>Probes importants</h3>
+            <ul>
+                <li><strong>HTTP amb keyword</strong>: comprova que la pagina conté un text esperat.</li>
+                <li><strong>HTTP amb JSON i jq</strong>: valida resposta JSON.</li>
+                <li><strong>TCP</strong>: comprova que un port esta obert.</li>
+                <li><strong>DNS</strong>: comprova que un domini resol correctament.</li>
+                <li><strong>Push</strong>: tu envies un senyal periodicament (ideal per backups).</li>
+            </ul>
+
+            <h3>Mesurar el teu uptime real</h3>
+            <p>Uptime Kuma calcula l'uptime per monitor: Last 24 hours, 7 days, 30 days, 365 days. Es MOLT valuos per veure tendencies.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M6 Cap 1 - Arquitectura 24/7: el monitor extern es la capa externa.</li>
+                <li>M6 Cap 4 - Alertes: Uptime Kuma pot enviar alertes a Telegram.</li>
+                <li>M2 Cap 9 - Monitoritzacio interna vs externa.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 6</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que es un SLA?</li>
+                <li>Quin SLA correspon a "3 nines" (99.9%)?</li>
+                <li>Per que cal un monitor EXTERN i no nomes un intern?</li>
+                <li>Quin es el nom de l'eina de monitoratge auto-allotjada?</li>
+                <li>A quin port escolta Uptime Kuma per defecte?</li>
+                <li>Que es una "status page" publica?</li>
+                <li>Quin tipus de probe per comprovar el port 22?</li>
+                <li>Quin servei cloud gratuit permet fins a 50 monitors?</li>
+                <li>(Oberta) Explica per que un monitor INTERN nomes no es suficient.</li>
+                <li>(Oberta) Quins 7-10 monitors configuraries per al BernatLab?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Instal·lar Uptime Kuma, configurar monitors, crear una status page i configurar alertes a Telegram.</p>
+
+            <h3>Pas 1: Afegeix Uptime Kuma al docker-compose (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cd ~/bernatlab
+mkdir -p uptime-kuma/data</code></pre>
+            </div>
+            <p>Edita <code>docker-compose.yml</code>, afegeix el servei uptime-kuma, i puja amb <code>docker compose up -d uptime-kuma</code>.</p>
+
+            <h3>Pas 2: Configura el compte admin (3 min)</h3>
+            <p>Accedeix a <code>http://IP_RPI:3001</code> i crea l'usuari admin amb una bona contrasenya.</p>
+
+            <h3>Pas 3: Crea els monitors basics (15 min)</h3>
+            <p>Per cada un: Router (Ping), DNS Google, Internet, Grafana, Prometheus, Home Assistant, SSH (TCP). Substitueix <code>192.168.1.50</code> per la IP de la teva RPi.</p>
+
+            <h3>Pas 4: Configura alerta a Telegram (5 min)</h3>
+            <p>"Settings" -&gt; "Notifications" -&gt; "Setup Notification" -&gt; "Telegram" amb el token i chat ID del cap 4. Fes un test.</p>
+
+            <h3>Pas 5: Crea una status page publica (10 min)</h3>
+            <p>"Status Page" -&gt; "New Status Page" amb nom "BernatLab" i slug "bernatlab". Afegeix els 7 monitors.</p>
+
+            <h3>Pas 6: Configura un monitor "push" per backups (5 min)</h3>
+            <p>"Add New Monitor" tipus "Push", heartbeat 86400. Despres integra'l al teu script de backups amb <code>curl</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Uptime Kuma esta corrent al port 3001.</li>
+                <li>☐ Has creat almenys 5 monitors basics.</li>
+                <li>☐ Has configurat l'alerta de Telegram i has rebut un missatge de test.</li>
+                <li>☐ Has creat una status page publica.</li>
+                <li>☐ Has configurat un monitor push per backups.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="06-uptime-i-disponibilitat/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>SLA</strong> = acord sobre disponibilitat.</li>
+                <li><strong>99.9%</strong> = 8.76 hores/any.</li>
+                <li><strong>Monitor extern</strong> = veu fallades que l'intern no veu.</li>
+                <li><strong>Eina</strong> = Uptime Kuma.</li>
+                <li><strong>Port</strong> = 3001.</li>
+                <li><strong>Status page</strong> = pagina publica amb estat dels serveis.</li>
+                <li><strong>Port 22</strong> = TCP.</li>
+                <li><strong>Cloud gratuit</strong> = UptimeRobot.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

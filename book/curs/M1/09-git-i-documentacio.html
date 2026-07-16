@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 9. Git i documentació — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📜 Cap 9. Git i documentació</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un homelab sense versionat és com cuinar sense recepta. <strong>Git</strong> et dona historial complet, capacitat de tornar enrere, i documentació viva. Versiones tot <code>/home/bernat/homelab/</code> amb README, CHANGELOG i decisions.</p>
+
+            <h3>Què és Git?</h3>
+            <p>Sistema de control de versions distribuït. Permet guardar instantànies, veure què ha canviat, tornar enrere, treballar en branques, col·laborar. Tres estats: working directory, staging area, repository.</p>
+
+            <h3>Per què versionar l'homelab?</h3>
+            <ul>
+                <li>Backup si la SD es trenca.</li>
+                <li>Comparar versions.</li>
+                <li>Experimentar en branques sense por.</li>
+                <li>Reproduir l'homelab en una altra màquina.</li>
+                <li>Ensenyar-ho a altres.</li>
+            </ul>
+
+            <h3>Estructura esperada</h3>
+            <pre><code>/home/bernat/homelab/
+├── docker/docker-compose.yml
+├── config/{homepage,portainer,uptime-kuma}/
+├── scripts/
+├── notes/{README,CHANGELOG,decisions,incidencies}.md
+├── docs/
+└── .gitignore</code></pre>
+
+            <h3>Configuració inicial</h3>
+            <pre><code>sudo apt install git
+git config --global user.name "Bernat Mora"
+git config --global user.email "bernat@hortosona.local"
+git config --global init.defaultBranch main
+git config --global core.editor nano
+cd ~/homelab
+git init</code></pre>
+
+            <h3>.gitignore essencial</h3>
+            <pre><code>*.db *.sqlite *.sqlite3
+.env .env.*
+**/secrets/ **/passwords/ **/*.key **/*.pem
+**/token **/api_key
+*.log logs/
+.DS_Store *.swp *~</code></pre>
+
+            <h3>El flux diari</h3>
+            <pre><code>cd ~/homelab
+git status          # què he canviat
+git diff            # veure els canvis
+git add .           # preparar
+git commit -m "Missatge clar"
+git push            # (opcional) pujar al remot</code></pre>
+
+            <h3>README.md: la porta del projecte</h3>
+            <p>Cada bon projecte té un README amb: visió general, estructura, com començar, enllaços útils.</p>
+
+            <h3>CHANGELOG.md: què ha canviat</h3>
+            <p>Registre cronològic de canvis. Format: data, versió, llista d'afegits/canvis/correccions. Estàndard: <a href="https://keepachangelog.com/" target="_blank" rel="noopener">Keep a Changelog</a>.</p>
+
+            <h3>notes/decisions.md (ADR)</h3>
+            <p>Per a cada decisió arquitectònica: context, decisió, conseqüències. Exemple: per què Debian 13 i no Ubuntu. Per què Tailscale i no WireGuard.</p>
+
+            <h3>notes/incidencies.md (postmortem)</h3>
+            <p>Per a cada incident: símptomes, diagnòstic, solució, lliçó.</p>
+
+            <h3>Allotjar el repo</h3>
+            <p>Opcions: GitHub, GitLab, Codeberg, Gitea self-hosted, Forgejo. Recomanació al BernatLab: Gitea allotjat a la pròpia RPi.</p>
+
+            <h3>Comandos útils</h3>
+            <pre><code>git log --oneline          # historial curt
+git log --graph --all      # visual amb branques
+git show &lt;hash&gt;            # veure un commit
+git revert &lt;hash&gt;          # desfer un commit (commit invers)
+git reset --hard &lt;hash&gt;    # PERILLOS: esborra canvis
+git checkout -b nova        # crear i canviar a branca
+git merge nova              # fusionar branca
+git stash                   # guardar canvis temporalment</code></pre>
+
+            <h3>Bones pràctiques</h3>
+            <ol>
+                <li>Commits petits i freqüents.</li>
+                <li>Missatges clars (què i per què).</li>
+                <li>Commit al final de cada sessió.</li>
+                <li>Mai secrets al repo (.gitignore + .env).</li>
+                <li>Branques per a experiments.</li>
+                <li>Documenta el "per què".</li>
+                <li>Backups regulars (repo + còpia fora de la RPi).</li>
+            </ol>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 5 — El docker-compose.yml que has de versionar.</li>
+                <li>Cap 6-8 — Config de Portainer, Uptime, Homepage.</li>
+                <li>Cap 10 — El "full de ruta" serà una entrada al CHANGELOG.</li>
+                <li>Cap 35 — CI/CD.</li>
+                <li>Cap 40 — Gitea self-hosted.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 9</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què és Git?</li>
+                <li>Ordre per inicialitzar un repo.</li>
+                <li>Què és l'estat "staging".</li>
+                <li>Fitxer per excloure.</li>
+                <li>Ordre per afegir tots els canvis.</li>
+                <li>Ordre per historial curt.</li>
+                <li>Risc de <code>git reset --hard</code>.</li>
+                <li>Per a què serveix CHANGELOG.md.</li>
+                <li>(Oberta) Per què versionar l'homelab.</li>
+                <li>(Oberta) Afegir PiHole versionat correctament.</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (45-60 min)</h2>
+            <p>Posar tot l'homelab sota control de versions amb Git i crear la documentació bàsica.</p>
+
+            <h3>Pas 1: Inicialitza el repo (10 min)</h3>
+            <p>Instal·la git, configura identitat, <code>cd ~/homelab &amp;&amp; git init</code>.</p>
+
+            <h3>Pas 2: .gitignore (5 min)</h3>
+            <p>Cobreix secrets, logs, volums, fitxers temporals.</p>
+
+            <h3>Pas 3: Estructura de notes (10 min)</h3>
+            <p>Crea <code>notes/</code> amb README, CHANGELOG, decisions, incidencies. Crea <code>docs/</code> i <code>scripts/</code>.</p>
+
+            <h3>Pas 4: Primer commit (5 min)</h3>
+            <p><code>git add . &amp;&amp; git commit -m "Estat inicial..."</code></p>
+
+            <h3>Pas 5: Flux diari (15 min)</h3>
+            <p>Crea <code>scripts/info-rpi.sh</code>, fes-lo executable, commita'l.</p>
+
+            <h3>Pas 6: Canvi al compose (opcional, 10 min)</h3>
+            <p>Afegeix un comentari, commita'l.</p>
+
+            <h3>Pas 7: Documenta</h3>
+            <p>Crea <code>book/curs/M1/09-git-i-documentacio/diari.md</code> amb sortida de <code>git log --oneline</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Git inicialitzat a <code>~/homelab/</code>.</li>
+                <li>☐ <code>.gitignore</code> cobreix secrets, logs, volums.</li>
+                <li>☐ Tens <code>notes/README.md</code>, <code>CHANGELOG.md</code>, <code>decisions.md</code>, <code>incidencies.md</code>.</li>
+                <li>☐ Almenys 2 commits.</li>
+                <li>☐ Practicat el flux complet (status, add, diff, commit).</li>
+                <li>☐ <code>git log</code> mostra historial.</li>
+                <li>☐ Has documentat a <code>diari.md</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/09-git-i-documentacio/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li>Git = VCS distribuït.</li>
+                <li><code>git init</code> = inicialitzar.</li>
+                <li>Staging = àrea intermitja working &gt; repo.</li>
+                <li><code>.gitignore</code> = exclou fitxers.</li>
+                <li><code>git add .</code> = afegir tots.</li>
+                <li><code>git log --oneline</code> = historial curt.</li>
+                <li><code>reset --hard</code> = esborra canvis irreversiblement.</li>
+                <li>CHANGELOG = registre cronològic de canvis.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

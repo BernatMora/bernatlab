@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 3. Grafana i dashboards — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📈 Cap 3. Grafana i dashboards</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Prometheus es la base de dades de metricas pero la seva UI es funcional, no maca. Grafana es la capa visual: agafa les dades de Prometheus (o altres fonts) i les presenta en dashboards bonics amb grafs interactius, mapes de calor, gauges i taules. A mes a mes, Grafana tambe pot crear alertes.</p>
+
+            <h3>Que es Grafana?</h3>
+            <p>Grafana es una eina open source per visualitzar dades de series temporals. Suporta moltes fonts:</p>
+            <ul>
+                <li><strong>Prometheus</strong> (la que usarem)</li>
+                <li><strong>InfluxDB</strong> (cap 6 del M3)</li>
+                <li><strong>MySQL/PostgreSQL</strong> (cap 5 del M3)</li>
+                <li><strong>Loki</strong> (per logs, ho veurem al cap 5)</li>
+            </ul>
+            <p>El que veus a Grafana es un <strong>dashboard</strong> compost per <strong>panells</strong>. Cada panell es un graf, un numero, una taula, o un mapa que consulta dades d'una font.</p>
+
+            <h3>Instal·lacio a la RPi</h3>
+            <pre><code>  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=canviar_aixo
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"</code></pre>
+            <p>Accedeix a <code>http://IP_RPI:3000</code>.</p>
+
+            <h3>Afegir Prometheus com a font de dades</h3>
+            <p>A la UI de Grafana:</p>
+            <ol>
+                <li>Ves a "Connections" -&gt; "Data sources" -&gt; "Add data source"</li>
+                <li>Tria "Prometheus"</li>
+                <li>A "URL" posa <code>http://prometheus:9090</code> (el nom del servei a docker, no localhost!)</li>
+                <li>Activa "Default" perque sigui la font per defecte</li>
+                <li>Guarda i testeja (hauria de dir "Data source is working")</li>
+            </ol>
+
+            <h3>Crear el primer panell</h3>
+            <ol>
+                <li>Ves a "Dashboards" -&gt; "New" -&gt; "New dashboard"</li>
+                <li>Clica "Add visualization"</li>
+                <li>Escriu una consulta PromQL, per exemple: <code>100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)</code></li>
+                <li>Tria el tipus de graf a la dreta</li>
+                <li>A "Title" posa algo descriptiu</li>
+                <li>Clica "Apply" i despres "Save dashboard"</li>
+            </ol>
+
+            <h3>Tipus de panell comuns</h3>
+            <ul>
+                <li><strong>Time series</strong>: graf de linies en el temps. Perfecte per CPU, memoria, xarxa.</li>
+                <li><strong>Stat</strong>: un numero gran amb color segons el valor.</li>
+                <li><strong>Gauge</strong>: velocimetre semicircular.</li>
+                <li><strong>Bar chart</strong>: barres per comparacio.</li>
+                <li><strong>Table</strong>: taula amb files i columnes.</li>
+                <li><strong>Heatmap</strong>: mapa de calor per patrons temporals.</li>
+            </ul>
+
+            <h3>Variables: dashboards parametric</h3>
+            <p>Pas a pas per crear una variable "contenidor":</p>
+            <ol>
+                <li>"Settings" -&gt; "Variables" -&gt; "New variable"</li>
+                <li>Nom: <code>contenidor</code></li>
+                <li>Type: "Query"</li>
+                <li>Data source: Prometheus</li>
+                <li>Query: <code>label_values(container_last_seen{name=~".+"}, name)</code></li>
+                <li>"Multi-value" i "Include All option" activats</li>
+                <li>Guarda</li>
+            </ol>
+            <p>Ara pots fer consultes tipus <code>container_memory_usage_bytes{name="$contenidor"}</code>.</p>
+
+            <h3>Provisioning: configuracio com a codi</h3>
+            <pre><code># grafana/provisioning/datasources/prometheus.yml
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true</code></pre>
+            <pre><code># grafana/provisioning/dashboards/bernatlab.yml
+apiVersion: 1
+providers:
+  - name: 'BernatLab'
+    orgId: 1
+    folder: 'BernatLab'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards</code></pre>
+
+            <h3>Dashboards essencials del BernatLab</h3>
+            <ol>
+                <li><strong>Vista general del sistema</strong>: CPU, memoria, disc, xarxa, temperatura, uptime.</li>
+                <li><strong>Contenidors Docker</strong>: llista amb estat, CPU per contenidor, memoria.</li>
+                <li><strong>Serveis aplicacio</strong>: Home Assistant, InfluxDB, Grafana.</li>
+                <li><strong>Xarxa</strong>: latencia al router, DNS resolution time.</li>
+            </ol>
+
+            <h3>Compartir dashboards</h3>
+            <p>IDs utils de grafana.com:</p>
+            <ul>
+                <li><strong>1860</strong>: Node Exporter Full (complet del sistema).</li>
+                <li><strong>893</strong>: Docker Container (basat en cAdvisor).</li>
+                <li><strong>13639</strong>: Blackbox Exporter (probes HTTP/TCP).</li>
+            </ul>
+
+            <h3>Alertes basiques a Grafana</h3>
+            <p>Encara que Alertmanager es l'eina "pura" d'alertes de Prometheus, Grafana tambe pot crear alertes directament editant un panell, pestanya "Alert". Es mes facil pero menys flexible.</p>
+
+            <h3>Limitacions a la RPi</h3>
+            <ul>
+                <li>No abusis dels dashboards: cada panell es una consulta a Prometheus.</li>
+                <li>Desactiva les auto-refresh molt seguides: 30s en lloc de 10s.</li>
+                <li>Limita el periode: no posis "Last 30 days" si no cal.</li>
+                <li>Rendering: compte amb multiples usuaris obrint Grafana al movil.</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M6 Cap 2 - Prometheus, la font de dades principal.</li>
+                <li>M6 Cap 4 - Alertes: Grafana pot crear-les o pots usar Alertmanager.</li>
+                <li>M3 Cap 6 - InfluxDB tambe es pot visualitzar amb Grafana.</li>
+                <li>M3 Cap 10 - Visualitzacio de dades amb altres eines.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 3</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quina es la funcio principal de Grafana?</li>
+                <li>Quin es el port per defecte de Grafana?</li>
+                <li>Com es diu l'element basic d'un dashboard de Grafana?</li>
+                <li>Quin tipus de panell mostraria un sol numero gran?</li>
+                <li>Quines son les variables a Grafana?</li>
+                <li>Que es el provisioning a Grafana?</li>
+                <li>Quin ID de grafana.com correspon al dashboard "Node Exporter Full"?</li>
+                <li>Quina es la URL correcta per afegir Prometheus dins Docker?</li>
+                <li>(Oberta) Explica que son les variables a Grafana i posa un exemple concret per monitorar contenidors.</li>
+                <li>(Oberta) Descriu un dashboard basic per la RPi amb 4-6 panells essentials.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (45-60 min)</h2>
+            <p>Instal·lar Grafana, connectar-lo a Prometheus, i crear el teu primer dashboard amb panells basics del sistema.</p>
+
+            <h3>Pas 1: Afegeix Grafana al docker-compose (10 min)</h3>
+            <p>Edita el teu <code>docker-compose.yml</code> i afegeix el servei grafana. Despres:</p>
+            <div class="code-block">
+                <pre><code>cd ~/bernatlab
+mkdir -p grafana/data grafana/provisioning/datasources grafana/provisioning/dashboards
+docker compose up -d grafana</code></pre>
+            </div>
+            <p>Accedeix a <code>http://IP_RPI:3000</code>.</p>
+
+            <h3>Pas 2: Connecta Prometheus a Grafana (5 min)</h3>
+            <p>"Connections" -&gt; "Data sources" -&gt; "Add data source" -&gt; "Prometheus" -&gt; URL <code>http://prometheus:9090</code>.</p>
+
+            <h3>Pas 3: Crea el teu primer panell (15 min)</h3>
+            <p>Consulta CPU: <code>100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)</code></p>
+            <p>Type: Time series, Unit: Percent (0-100).</p>
+
+            <h3>Pas 4: Afegeix 4 panells mes (15 min)</h3>
+            <p>Memoria (Gauge), Disc lliure (Stat), Temperatura (Stat), Contenidors (Table). Veure exercici.md per les consultes exactes.</p>
+
+            <h3>Pas 5: Importa un dashboard de la comunitat (10 min)</h3>
+            <p>"Dashboards" -&gt; "New" -&gt; "Import" -&gt; ID <code>1860</code>. Explora'l i esborra el que no necessitis.</p>
+
+            <h3>Pas 6: Configura el provisioning (5 min)</h3>
+            <p>Crea els fitxers <code>grafana/provisioning/datasources/prometheus.yml</code> i <code>grafana/provisioning/dashboards/bernatlab.yml</code>. Despres <code>docker compose restart grafana</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Grafana esta corrent i accessible al port 3000.</li>
+                <li>☐ Has connectat Prometheus com a data source.</li>
+                <li>☐ Tens un dashboard "BernatLab Sistema" amb almenys 5 panells.</li>
+                <li>☐ Has importat el dashboard 1860 (Node Exporter Full).</li>
+                <li>☐ Has creat els fitxers de provisioning.</li>
+                <li>☐ Has canviat la contrasenya d'admin per defecte.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="03-grafana-dashboards/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Funcio</strong> = visualitzar dades.</li>
+                <li><strong>Port</strong> = 3000.</li>
+                <li><strong>Element basic</strong> = panell.</li>
+                <li><strong>Numero gran</strong> = Stat.</li>
+                <li><strong>Variables</strong> = parametres amb desplegable.</li>
+                <li><strong>Provisioning</strong> = configuracio amb YAML.</li>
+                <li><strong>Node Exporter Full</strong> = ID 1860.</li>
+                <li><strong>URL Docker</strong> = <code>http://prometheus:9090</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

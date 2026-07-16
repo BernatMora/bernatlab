@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 6. InfluxDB per a l'Hort Osona - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>💾 Cap 6. InfluxDB per a l'Hort Osona</h1>
+        <p class="subtitle">Mòdul M7 · Hort Osona en acció</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>InfluxDB</strong> es la base de dades de series temporals (TSDB) que l'Hort Osona fa servir per guardar totes les lectures de sensors. Es com una base de dades SQL pero optimitzada per a <strong>milions de punts amb timestamp</strong> i consultes sobre intervals de temps.</p>
+
+            <h3>Que es una TSDB</h3>
+            <p>Una TSDB te un model de dades especialitzat:</p>
+            <ul>
+                <li><strong>Measurement</strong>: el "tipus" de dada.</li>
+                <li><strong>Tags</strong>: indexats, per agrupar (device, sector).</li>
+                <li><strong>Fields</strong>: els valors numerics.</li>
+                <li><strong>Time</strong>: timestamp nanosecond-precision.</li>
+            </ul>
+
+            <h3>Per que InfluxDB i no PostgreSQL</h3>
+            <table>
+                <thead><tr><th>Aspecte</th><th>PostgreSQL</th><th>InfluxDB</th></tr></thead>
+                <tbody>
+                    <tr><td>Tipus</td><td>Relacional</td><td>Time series</td></tr>
+                    <tr><td>Consultes "ultims 7 dies"</td><td>Lent</td><td>Rapidisim</td></tr>
+                    <tr><td>Compressio</td><td>Baixa</td><td>~10x</td></tr>
+                    <tr><td>Retencio automatica</td><td>Scripts</td><td>Natiu</td></tr>
+                </tbody>
+            </table>
+
+            <h3>InfluxDB 1.x vs 2.x vs 3.x</h3>
+            <ul>
+                <li><strong>1.x</strong>: classic, InfluxQL, estable.</li>
+                <li><strong>2.x</strong>: UI web, tasks, checks, dashboards basics. La mes utilitzada.</li>
+                <li><strong>3.0 (IOx)</strong>: Rust, columnar, SQL natiu. Nou.</li>
+            </ul>
+            <p>A l'Hort Osona usem <strong>2.7</strong>.</p>
+
+            <h3>Arquitectura d'InfluxDB 2.x</h3>
+            <ul>
+                <li><strong>Organization (Org)</strong>: contenidor aillat, e.g. <code>bernatlab</code>.</li>
+                <li><strong>Bucket</strong>: contenidor de dades amb retencio. E.g. <code>hort-osona</code> raw 30d + <code>hort-osona-downsampled</code> 1h 365d.</li>
+                <li><strong>Task</strong>: proces automatic (downsample, neteja).</li>
+                <li><strong>Check + Notification</strong>: alerta quan una query passa un llindar.</li>
+            </ul>
+
+            <h3>El llenguatge Flux</h3>
+            <pre><code>from(bucket: "hort-osona")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "miflora")
+  |> filter(fn: (r) => r._field == "soil_moisture")
+  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
+  |> yield(name: "mitjana")</code></pre>
+
+            <h3>Escriure dades amb Python</h3>
+            <pre><code>from influxdb_client import InfluxDBClient, Point, WriteOptions
+client = InfluxDBClient(url="http://localhost:8086", token="...", org="bernatlab")
+write_api = client.write_api(write_options=WriteOptions(batch_size=500))
+point = Point("miflora").tag("device", "miflora-1B32") \
+    .field("soil_moisture", 42.0) \
+    .field("soil_temp_c", 18.5).time(datetime.now(timezone.utc))
+write_api.write(bucket="hort-osona", org="bernatlab", record=point)</code></pre>
+
+            <h3>Consultar dades amb Python</h3>
+            <pre><code>query_api = client.query_api()
+result = query_api.query('from(bucket: "hort-osona") |> range(start: -1h) |> filter(fn: (r) => r._measurement == "miflora")')
+for table in result:
+    for record in table.records:
+        print(f"{record.get_time()} {record.get_field()}={record.get_value()}")</code></pre>
+
+            <h3>Retention i downsampling</h3>
+            <p>Raw 30 dies + downsample 1h 365 dies + downsample 1d 5 anys. Les tasks agreguen automaticament:</p>
+            <pre><code>option task = {name: "downsample_1h", every: 1h}
+from(bucket: "hort-osona")
+  |> range(start: -1h, stop: now())
+  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
+  |> to(bucket: "hort-osona-downsampled", org: "bernatlab")</code></pre>
+
+            <h3>Alertes</h3>
+            <p><strong>Check</strong> = consulta que s'avalua periodicament. <strong>Notification Rule</strong> = accio quan passa (email, webhook, Telegram). A l'Hort Osona tenim una alerta de gelada a <code>bme/temp_c < 2.0</code> que envia a ntfy.sh.</p>
+
+            <h3>Line Protocol</h3>
+            <pre><code>curl -XPOST "http://localhost:8086/api/v2/write?org=bernatlab&bucket=hort-osona" \
+   -H "Authorization: Token adminsecret" \
+   --data 'miflora,device=miflora-1B32 soil_moisture=42,soil_temp_c=18.5 1712926800000000000'</code></pre>
+
+            <h3>Backups</h3>
+            <pre><code>docker exec hort-influxdb influx backup /tmp/backup
+docker cp hort-influxdb:/tmp/backup ./influxdb-backup-$(date +%Y%m%d)</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M7 Cap 1 - InfluxDB es on acaben les dades de sensors.</li>
+                <li>M7 Cap 4 - El pipeline acaba aqui.</li>
+                <li>M7 Cap 5 - Les dades arriben via MQTT.</li>
+                <li>M7 Cap 7 - L'API consulta InfluxDB.</li>
+                <li>M7 Cap 10 - Casos reals amb queries.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m7 6</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que vol dir TSDB?</li>
+                <li>Quins son els tres conceptes basics d'InfluxDB?</li>
+                <li>Quin es el llenguatge de consulta d'InfluxDB 2.x?</li>
+                <li>Quin es l'avantatge principal respecte a PostgreSQL?</li>
+                <li>Que es un bucket a InfluxDB 2.x?</li>
+                <li>Que es un task a InfluxDB?</li>
+                <li>Quin es el port per defecte de la API HTTP?</li>
+                <li>Que fa el line protocol?</li>
+                <li>(Oberta) Explica el model de dades amb exemple BME280.</li>
+                <li>(Oberta) Estrategia retencio i downsampling per 5 anys.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-60 min)</h2>
+            <p>Instal·lar InfluxDB 2.7 amb Docker, crear buckets, escriure dades amb Python, fer consultes amb Flux, i muntar una task de downsampling.</p>
+
+            <h3>Pas 1: Inicia InfluxDB amb Docker (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run -d --name hort-influxdb -p 8086:8086 \
+   -v influxdb-data:/var/lib/influxdb2 \
+   -e DOCKER_INFLUXDB_INIT_MODE=setup \
+   -e DOCKER_INFLUXDB_INIT_USERNAME=admin \
+   -e DOCKER_INFLUXDB_INIT_PASSWORD=adminsecret \
+   -e DOCKER_INFLUXDB_INIT_ORG=bernatlab \
+   -e DOCKER_INFLUXDB_INIT_BUCKET=hort-osona \
+   -e DOCKER_INFLUXDB_INIT_RETENTION=30d \
+   influxdb:2.7</code></pre>
+            </div>
+            <p>Accedeix a <code>http://&lt;ip-rpi&gt;:8086</code> amb admin/adminsecret. Crea <code>hort-osona-downsampled</code> amb retencio 365d.</p>
+
+            <h3>Pas 2: Instal·la dependencies Python (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/hort-osona/scripts && cd ~/hort-osona/scripts
+python3 -m venv .venv && source .venv/bin/activate
+pip install influxdb-client pyyaml python-dotenv</code></pre>
+            </div>
+
+            <h3>Pas 3: Escriu dades d'exemple (10 min)</h3>
+            <p>Script <code>seed_data.py</code> que genera 1000 punts fake dels ultims 7 dies amb 3 sensors. Comprova a la UI que apareixen.</p>
+
+            <h3>Pas 4: Consulta amb Python (10 min)</h3>
+            <p>Script <code>query_data.py</code> amb consulta Flux: mitjana horaria de <code>soil_moisture</code> per device, i comptatge de lectures per device.</p>
+
+            <h3>Pas 5: Crea una task de downsampling (15 min)</h3>
+            <p>A la UI, Tasks -&gt; Create Task. Flux que cada hora agrega raw a 1h al bucket <code>hort-osona-downsampled</code>. Comprova amb <code>influx query</code>.</p>
+
+            <h3>Pas 6: Crea una alerta de gelada (10 min)</h3>
+            <p>Check amb query: <code>mean(bme/temp_c, -10m) &lt; 2.0</code>. Notification Rule a ntfy.sh. Prova enviant una temperatura baixa amb curl.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has iniciat InfluxDB amb Docker i creat el token.</li>
+                <li>☐ Has generat 1000 punts fake i els veus a la UI.</li>
+                <li>☐ Has executat una consulta Flux amb Python.</li>
+                <li>☐ Has creat la task de downsampling i funciona.</li>
+                <li>☐ Has configurat una alerta i has vist la notificacio.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/06-influxdb-hort/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>TSDB</strong> = Time Series Database.</li>
+                <li><strong>Conceptes</strong> = measurement, tags, fields.</li>
+                <li><strong>Llenguatge</strong> = Flux.</li>
+                <li><strong>Avantatge</strong> = compressio 10x, consultes sobre temps rapidissimes.</li>
+                <li><strong>Bucket</strong> = contenidor amb retencio.</li>
+                <li><strong>Task</strong> = proces automatic que transforma dades.</li>
+                <li><strong>Port API</strong> = 8086.</li>
+                <li><strong>Line protocol</strong> = format text per escriure punts.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

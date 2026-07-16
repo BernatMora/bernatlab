@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 2. Tailscale i ACLs — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🛡️ Cap 2. Tailscale i ACLs</h1>
+        <p class="subtitle">Mòdul M5 · Seguretat</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Tailscale ens dona una <strong>xarxa privada</strong> (una VPN basada en WireGuard) entre tots els nostres dispositius. Pero Tailscale nomes es la meitat del joc: nomes connecta. Qui pot accedir a quines maquines, per quins ports, i en quines condicions, ho decideixen les <strong>ACLs</strong>. Una configuracio de Tailscale sense ACLs es com un edifici amb portes obertes a tothom que hi entra.</p>
+
+            <h3>Que es Tailscale (repàs rapid)</h3>
+            <p><strong>Tailscale</strong> crea una xarxa privada entre els teus dispositius sense obrir ports al router. Utilitza <strong>WireGuard</strong> i un servidor de coordinacio per intercanviar claus.</p>
+            <pre><code># Instal·la a Debian/Ubuntu
+curl -fsSL https://tailscale.com/install.sh | sh
+
+# Arrenca
+sudo tailscale up
+
+# Estat
+tailscale status
+
+# IP assignada
+tailscale ip -4</code></pre>
+            <p>Cada maquina te una IP del rang 100.x.y.z. Entre elles es comuniquen xifrat punt a punt.</p>
+
+            <h3>MagicDNS: noms en lloc d'IPs</h3>
+            <p>Tailscale inclou un servei de DNS automatic anomenat <strong>MagicDNS</strong>:</p>
+            <pre><code># En lloc de ssh pi@100.64.0.1
+ssh pi@raspberry
+
+# O amb domini complet
+ssh pi@raspberry.tailnet-xxxx.ts.net</code></pre>
+            <p>Molt util per scripts i per accedir al servidor des de qualsevol lloc.</p>
+
+            <h3>Que son les ACLs</h3>
+            <p>Les <strong>ACLs</strong> (Access Control Lists) son regles que diuen a Tailscale "qui pot accedir a què". Son un fitxer en format <strong>HuJSON</strong> (JSON amb comentaris) que es penja a https://login.tailscale.com/admin/acls/file.</p>
+            <p>Exemple minimal:</p>
+            <pre><code>{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["autogroup:members"],
+      "dst": ["raspberry:22"]
+    }
+  ]
+}</code></pre>
+            <p>Aixo diu: "tots els membres del tailnet poden accedir al port 22 de <code>raspberry</code>". Tot el que no esta permes, esta denegat per defecte.</p>
+
+            <h3>Anatomia d'una ACL</h3>
+            <p>Una regla te quatre parts principals:</p>
+            <ul>
+                <li><strong>action</strong>: "accept" (permetre) o "deny" (bloquejar).</li>
+                <li><strong>src</strong>: qui intenta accedir (usuari, grup, etiqueta).</li>
+                <li><strong>dst</strong>: a quina maquina i port (format <code>machine:port</code>).</li>
+                <li><strong>proto</strong>: protocol (tcp, udp, icmp). Per defecte tcp.</li>
+            </ul>
+            <p>Exemple mes complet:</p>
+            <pre><code>{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["autogroup:members"],
+      "dst": [
+        "raspberry:22",
+        "raspberry:80,443",
+        "raspberry:8123"
+      ]
+    },
+    {
+      "action": "deny",
+      "src": ["*"],
+      "dst": ["raspberry:*"]
+    }
+  ]
+}</code></pre>
+
+            <h3>Etiquetes (tags): segmentacio per rol</h3>
+            <p>Les <strong>etiquetes</strong> permeten agrupar maquines per funcio:</p>
+            <pre><code>{
+  "tagOwners": {
+    "tag:server":   ["autogroup:admin"],
+    "tag:iot":      ["autogroup:admin"],
+    "tag:personal": ["autogroup:admin"]
+  }
+}</code></pre>
+            <p>I despres fer regles tipus:</p>
+            <pre><code>{
+  "action": "accept",
+  "src": ["tag:personal"],
+  "dst": ["tag:server:22,80,443"]
+}</code></pre>
+            <p>Aixi, encara que algun dispositiu IoT sigui compromes, no pot accedir a la resta.</p>
+
+            <h3>Com aplicar ACLs al BernatLab</h3>
+            <ol>
+                <li>Ves a https://login.tailscale.com/admin/acls/file.</li>
+                <li>Edita el fitxer amb les teves regles.</li>
+                <li>Guarda. Tailscale aplica les noves regles en segons.</li>
+            </ol>
+            <p>Exemple aplicat:</p>
+            <pre><code>{
+  "tagOwners": {
+    "tag:server": ["autogroup:admin"],
+    "tag:homelab": ["autogroup:admin"]
+  },
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["autogroup:admin"],
+      "dst": ["tag:server:*"]
+    },
+    {
+      "action": "accept",
+      "src": ["user:marina@bernatlab.cat"],
+      "dst": ["tag:server:22"]
+    }
+  ]
+}</code></pre>
+
+            <h3>Bones practiques amb ACLs</h3>
+            <ul>
+                <li><strong>Principi de minim privilege</strong>: dona nomes el que cada usuari necessita.</li>
+                <li><strong>Etiqueta per funcio</strong>, no per maquina.</li>
+                <li><strong>Documenta cada regla</strong> amb comentaris al HuJSON.</li>
+                <li><strong>Audita periodicament</strong> cada 3 mesos.</li>
+                <li><strong>No deixis "all ports"</strong> si no es absolutament necessari.</li>
+                <li><strong>Combina amb ufw</strong>: les ACLs son una capa, el firewall una altra.</li>
+            </ul>
+
+            <h3>Comandes utils</h3>
+            <pre><code># Estat general
+tailscale status
+
+# Ping a una maquina per Tailscale
+tailscale ping raspberry
+
+# Treure una maquina temporalment
+sudo tailscale down
+
+# Reactivar
+sudo tailscale up</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M1 Cap 4 - Xarxa i SSH: la base.</li>
+                <li>Cap 3 d'aquest modul - SSH hardening: ACLs + claus = seguretat real.</li>
+                <li>Cap 4 d'aquest modul - Firewall: la segona capa despres de Tailscale.</li>
+                <li>Cap 8 d'aquest modul - Monitoratge: veure qui intenta accedir.</li>
+            </ul>
+
+            <h3>Conclusio: per que Tailscale + ACLs es la millor inversio</h3>
+            <p>Si nomes poguessim triar <strong>una sola mesura</strong> de seguretat, seria aquesta. Perque:</p>
+            <ol>
+                <li><strong>Amaga el servidor a Internet</strong>: el port 22 deixa d'estar obert al mon.</li>
+                <li><strong>Autenticacio forta nomes per a tu</strong>: cap altre IP pot intentar entrar.</li>
+                <li><strong>Zero configuracio de xarxa</strong>: no cal tocar el router.</li>
+                <li><strong>Funciona des de qualsevol lloc</strong>: cafe, hotel, mobil, igual.</li>
+            </ol>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m5 2</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que es Tailscale?</li>
+                <li>Quin protocol utilitza Tailscale?</li>
+                <li>Que es MagicDNS?</li>
+                <li>Quin format te el fitxer d'ACLs?</li>
+                <li>Que vol dir <code>dst: ["raspberry:22,80,443"]</code>?</li>
+                <li>Que son les "tag"?</li>
+                <li>Quina es la politica per defecte?</li>
+                <li>Comanda per veure la IP?</li>
+                <li>(Oberta) Explica el minim privilege aplicat a ACLs.</li>
+                <li>(Oberta) Per que Tailscale es la millor primera defensa?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Configurar Tailscale a la RPi (si no ho tens), crear un grup d'etiquetes, i definir les ACLs mes adequades al BernatLab.</p>
+
+            <h3>Pas 1: Verifica o instal·la Tailscale (5 min)</h3>
+            <div class="code-block">
+                <pre><code>tailscale status 2&gt;/dev/null || echo "No instal·lat"
+
+# Si no
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+tailscale status</code></pre>
+            </div>
+
+            <h3>Pas 2: Dona d'alta una segona maquina (5 min)</h3>
+            <p>Instal·la Tailscale al teu portatil o telefon. Verifica que es veuen entre elles:</p>
+            <div class="code-block">
+                <pre><code>tailscale ping portatil-bernat
+tailscale ip</code></pre>
+            </div>
+
+            <h3>Pas 3: Crea les etiquetes (10 min)</h3>
+            <p>Ves a https://login.tailscale.com/admin/acls/file. Canvia <code>tagOwners</code>:</p>
+            <pre><code>{
+  "tagOwners": {
+    "tag:server":   ["autogroup:admin"],
+    "tag:homelab":  ["autogroup:admin"],
+    "tag:personal": ["autogroup:admin"]
+  }
+}</code></pre>
+            <p>Guarda. Assigna <code>tag:server</code> a la RPi des de la consola (Edit machine).</p>
+
+            <h3>Pas 4: Escriu les ACLs adequades (10 min)</h3>
+            <pre><code>{
+  "tagOwners": {
+    "tag:server":   ["autogroup:admin"],
+    "tag:homelab":  ["autogroup:admin"],
+    "tag:personal": ["autogroup:admin"]
+  },
+  "acls": [
+    {
+      "action": "accept",
+      "src":    ["tag:personal"],
+      "dst":    ["tag:server:22,80,443"]
+    },
+    {
+      "action": "accept",
+      "src":    ["tag:personal"],
+      "dst":    ["tag:server:8123"]
+    }
+  ]
+}</code></pre>
+            <p>Guarda i prova:</p>
+            <pre><code># Hauria de funcionar
+ssh bernat@raspberry
+curl http://raspberry:8123
+
+# Hauria de fallar
+curl http://raspberry:3306</code></pre>
+
+            <h3>Pas 5: Documenta la configuracio (10 min)</h3>
+            <p>Crea <code>tailscale-acls.md</code> amb:</p>
+            <ul>
+                <li>IPs de cada maquina i la seva etiqueta</li>
+                <li>Captura de pantalla de la consola</li>
+                <li>Explicacio de cada regla</li>
+                <li>Data de la propera revisio</li>
+            </ul>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Tailscale esta actiu a la RPi i a un segon dispositiu.</li>
+                <li>☐ Has creat les etiquetes (tag:server, tag:personal, etc.).</li>
+                <li>☐ Les ACLs permeten nomes el que tu vols.</li>
+                <li>☐ Pots accedir a la RPi des del portatil per Tailscale.</li>
+                <li>☐ Has documentat la configuracio.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M5/02-tailscale-acls/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Tailscale</strong> = VPN amb WireGuard entre dispositius.</li>
+                <li><strong>Protocol</strong> = WireGuard.</li>
+                <li><strong>MagicDNS</strong> = noms en lloc d'IPs.</li>
+                <li><strong>Format</strong> = HuJSON.</li>
+                <li><strong>dst: machine:port</strong> = aquesta maquina, aquest port.</li>
+                <li><strong>Tag</strong> = etiqueta per agrupar.</li>
+                <li><strong>Per defecte</strong> = denegat.</li>
+                <li><strong>Comanda</strong> = <code>tailscale ip</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

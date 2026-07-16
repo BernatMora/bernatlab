@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 5. Logs centralitzats — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📜 Cap 5. Logs centralitzats</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Els logs son el "diari de bord" del sistema. Tot el que passa, queda escrit. Pero si tens 5 contenidors, mes el sistema operatiu, mes journald, mes sshd... acabes amb logs dispersos per 10 fitxers i contenidors diferents. Els logs centralitzats els uneixen tots en un sol lloc on els pots buscar, filtrar i visualitzar.</p>
+
+            <h3>Que es un log?</h3>
+            <p>Un log es una linia de text amb un instant de temps i un missatge. Exemples:</p>
+            <pre><code>2026-05-12T14:32:11 rpi kernel: [12345.678] usb 1-1: new high-speed USB device
+2026-05-12T14:32:15 homeassistant ERROR: Connection refused to influxdb
+2026-05-12T14:32:18 grafana INFO: dashboard loaded by user admin</code></pre>
+            <p>Cada linia te un <strong>timestamp</strong>, una <strong>font</strong>, un <strong>nivell</strong> (INFO, WARNING, ERROR) i un <strong>missatge</strong>.</p>
+
+            <h3>On son els logs a una RPi amb Docker?</h3>
+            <ol>
+                <li><strong>journald</strong>: el sistema systemd guarda els logs del sistema aqui.</li>
+                <li><strong>Fitxers de log tradicionals</strong>: <code>/var/log/syslog</code>, <code>/var/log/auth.log</code>.</li>
+                <li><strong>Logs de Docker</strong>: cada contenidor te el seu log accessible amb <code>docker logs</code>.</li>
+            </ol>
+            <pre><code>docker logs homeassistant --tail 100
+docker logs -f grafana
+journalctl -u docker --since "1 hour ago"
+journalctl -f</code></pre>
+
+            <h3>Per que centralitzar?</h3>
+            <ul>
+                <li><strong>Un sol lloc</strong> on buscar.</li>
+                <li><strong>Filtratge potent</strong>: per data, servei, nivell, text.</li>
+                <li><strong>Correlacio</strong>: veure que precedeix un error.</li>
+                <li><strong>Retencio configurable</strong>: 7 dies, 30, 1 any.</li>
+                <li><strong>Alertes sobre logs</strong>: avisar si surt l'error XYZ mes de 10 cops per hora.</li>
+            </ul>
+
+            <h3>Opcions de stack de logs</h3>
+            <p>Tres opcions principals, de menys a mes complexe:</p>
+            <ul>
+                <li><strong>journald + logrotate</strong>: nomes terminal, la mes simple.</li>
+                <li><strong>Grafana Loki + Promtail</strong>: la que recomanem. Lleuger, integra amb Grafana.</li>
+                <li><strong>ELK Stack</strong>: Elasticsearch + Logstash + Kibana. Massa pesat per RPi.</li>
+            </ul>
+
+            <h3>Instal·lacio de Grafana Loki</h3>
+            <pre><code>  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - ./loki/data:/loki
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /run/docker.sock:/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml</code></pre>
+
+            <h3>Configuracio de Loki</h3>
+            <pre><code>auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  retention_period: 30d
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20</code></pre>
+
+            <h3>Configuracio de Promtail</h3>
+            <pre><code>server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        target_label: 'container'
+        regex: '/(.*)'
+  - job_name: journal
+    journal:
+      max_age: 12h
+      labels:
+        job: systemd
+    relabel_configs:
+      - source_labels: ['__journal__systemd_unit']
+        target_label: 'unit'
+  - job_name: syslog
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: syslog
+          __path__: /var/log/*.log</code></pre>
+
+            <h3>Visualitzar a Grafana</h3>
+            <p>"Connections" -&gt; "Data sources" -&gt; "Add data source" -&gt; "Loki", URL <code>http://loki:3100</code>.</p>
+            <p>Consultes LogQL utils:</p>
+            <pre><code># Tots els errors de Home Assistant les ultimes 24h
+{container="homeassistant"} |= "error" | json | line_format "{{.message}}"
+
+# Logs de grafana amb nivell ERROR
+{container="grafana"} |= "ERROR"
+
+# Logs de sshd (intents fallits d'autenticacio)
+{unit="sshd.service"} |= "Failed password"</code></pre>
+
+            <h3>Rotacio de logs a la RPi</h3>
+            <pre><code># /etc/logrotate.d/bernatlab
+/var/log/bernatlab-health.log {
+    daily
+    rotate 7
+    compress
+    missingok
+    notifempty
+    create 0640 root root
+}</code></pre>
+
+            <h3>journald: configuracio de retencio</h3>
+            <pre><code>[Journal]
+SystemMaxUse=200M
+SystemKeepFree=1G
+SystemMaxFileSize=20M
+MaxRetentionSec=2week</code></pre>
+            <pre><code>sudo systemctl restart systemd-journald</code></pre>
+
+            <h3>Comandes utils</h3>
+            <pre><code># Cerca logs per paraula clau
+journalctl -u docker | grep -i error
+
+# Logs del ultim reboot
+journalctl -b -1
+
+# Coneix el tamany del journal
+journalctl --disk-usage
+
+# Forçar neteja del journal
+sudo journalctl --vacuum-size=100M
+sudo journalctl --vacuum-time=7d</code></pre>
+
+            <h3>Bones practiques</h3>
+            <ul>
+                <li><strong>No posis informacio sensible als logs</strong>: claus API, contrasenyes, tokens.</li>
+                <li><strong>Usa nivells</strong>: DEBUG, INFO, WARNING, ERROR.</li>
+                <li><strong>Estructura els missatges</strong>: usa JSON quan puguis.</li>
+                <li><strong>No t'obsessions amb tots els logs</strong>: comença amb els 2-3 serveis mes importants.</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 8 - Backups: tambe hauries de fer backup dels logs importants.</li>
+                <li>M6 Cap 3 - Grafana tambe serveix per visualitzar logs (via Loki).</li>
+                <li>M3 Cap 7 - Gestio de fitxers, on parlem de retencio.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 5</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que es un log?</li>
+                <li>Quin servei de Linux s'encarrega de recollir els logs del sistema?</li>
+                <li>Quina comanda mostra els logs d'un contenidor Docker?</li>
+                <li>Quin es l'equivalent a Prometheus pero per logs?</li>
+                <li>Quin agent s'encarrega d'enviar els logs a Loki?</li>
+                <li>Quin llenguatge de consultes utilitza Loki?</li>
+                <li>Quin operador a LogQL vol dir "conté el text"?</li>
+                <li>Quina eina s'encarrega de rotar els fitxers de log tradicionals a Linux?</li>
+                <li>(Oberta) Explica les tres opcions de stack de logs i per que Loki es la millor per a una RPi.</li>
+                <li>(Oberta) Com investigaries un error a HA utilitzant Loki + Grafana, pas a pas?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (45-60 min)</h2>
+            <p>Instal·lar Loki i Promtail, connectar-los a Grafana, i aprendre a buscar en els logs.</p>
+
+            <h3>Pas 1: Prepara l'estructura de carpetes (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cd ~/bernatlab
+mkdir -p loki/data
+mkdir -p promtail</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea la configuracio de Loki (5 min)</h3>
+            <p>Edita <code>loki/loki-config.yml</code> amb la configuracio. Veure resum.md per el contingut complet.</p>
+
+            <h3>Pas 3: Crea la configuracio de Promtail (5 min)</h3>
+            <p>Edita <code>promtail/promtail-config.yml</code> amb la configuracio.</p>
+
+            <h3>Pas 4: Afegeix Loki i Promtail al docker-compose (10 min)</h3>
+            <p>Edita <code>docker-compose.yml</code>, afegeix els dos serveis i puja'ls amb <code>docker compose up -d loki promtail</code>.</p>
+
+            <h3>Pas 5: Connecta Loki a Grafana (5 min)</h3>
+            <p>"Connections" -&gt; "Data sources" -&gt; "Add data source" -&gt; "Loki", URL <code>http://loki:3100</code>.</p>
+
+            <h3>Pas 6: Fes les primeres consultes LogQL (15 min)</h3>
+            <p>A Grafana Explore -&gt; Loki, prova: <code>{container="homeassistant"}</code>, <code>{container="homeassistant"} |= "error"</code>, <code>{unit="sshd.service"} |= "Failed"</code>.</p>
+
+            <h3>Pas 7: Limita la mida del journald (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo nano /etc/systemd/journald.conf
+# Afegeix:
+# [Journal]
+# SystemMaxUse=200M
+sudo systemctl restart systemd-journald
+journalctl --disk-usage</code></pre>
+            </div>
+
+            <h3>Pas 8: Configura logrotate (5 min)</h3>
+            <p>Crea <code>/etc/logrotate.d/bernatlab</code> amb la configuracio del resum.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Loki i Promtail corren com a contenidors.</li>
+                <li>☐ Has afegit Loki com a data source a Grafana.</li>
+                <li>☐ Pots veure logs dels teus contenidors a Grafana Explore.</li>
+                <li>☐ Has fet almenys 5 consultes LogQL amb resultats.</li>
+                <li>☐ Has limitat la mida del journald a 200 MB.</li>
+                <li>☐ Has creat la configuracio de logrotate pel teu log.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="05-logs-centralitzats/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Log</strong> = linia amb timestamp + missatge.</li>
+                <li><strong>Servei</strong> = journald (systemd-journald).</li>
+                <li><strong>Docker</strong> = <code>docker logs</code>.</li>
+                <li><strong>Equivalent Prometheus</strong> = Loki.</li>
+                <li><strong>Agent</strong> = Promtail.</li>
+                <li><strong>Llenguatge</strong> = LogQL.</li>
+                <li><strong>Conté text</strong> = <code>|=</code>.</li>
+                <li><strong>Rotacio</strong> = logrotate.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

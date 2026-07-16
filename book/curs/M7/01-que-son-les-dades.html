@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. Que son les dades d'un hort - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🌱 Cap 1. Que son les dades d'un hort</h1>
+        <p class="subtitle">Mòdul M7 · Hort Osona en acció</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un hort genera <strong>dades constants</strong> que avui, amb sensors barats i una RPi, podem capturar, guardar i visualitzar. El que abans era "el pagès mira el cel i toca la terra", ara es tradueix a grafiques, alertes i calendaris. Aquest capitol posa les bases: quines dades existeixen, com les classifiquem i per que serveixen.</p>
+
+            <h3>Tipus de dades d'un hort</h3>
+            <p>Podem classificar les dades en quatre grans families:</p>
+            <ol>
+                <li><strong>Ambientals</strong>: temperatura, humitat relativa, pressio atmosferica, luminositat, pluviometria, vent.</li>
+                <li><strong>De soll</strong>: humitat del terreny, temperatura del soll, conductivitat electrica (EC), pH.</li>
+                <li><strong>De cultiu</strong>: alçada de la planta, diametre del tronc, nombre de fulles, presencia de plagues.</li>
+                <li><strong>De gestio</strong>: regs fets, quantitat d'aigua, fertilitzants aplicats, dates de sembra i collita.</li>
+            </ol>
+
+            <h3>Dades ambientals</h3>
+            <p>Les mesura un sensor tipus <strong>BME280</strong> o <strong>DHT22</strong> connectat a la RPi o a un node LoRa. Em serveixen per detectar gelades, planificar regs i alertes de vent. Exemple:</p>
+            <pre><code>{
+  "device": "hort-osona-bme-01",
+  "ts": "2026-04-12T08:30:00Z",
+  "temp_c": 3.2,
+  "humidity": 88.1,
+  "pressure_hpa": 1014.3,
+  "lux": 12500
+}</code></pre>
+
+            <h3>Dades de soll</h3>
+            <p>El sensor estrella es el <strong>Xiaomi MiFlora</strong>. Mesura humitat del soll, temperatura del soll, conductivitat (EC) i lluminositat. Aquestes dades son les mes importants: et diuen si la planta beu, si te calor a les arrels i si te nutrients.</p>
+            <pre><code>{
+  "device": "miflora-toma-01",
+  "ts": "2026-04-12T09:00:00Z",
+  "soil_moisture": 42.0,
+  "soil_temp_c": 16.5,
+  "ec_us_cm": 850,
+  "lux": 18000
+}</code></pre>
+
+            <h3>Dades de cultiu i de gestio</h3>
+            <p>Les de cultiu es capturen amb camara (RPi Camera v3) o sensors visuals. Les de gestio les introdueix l'hortola: calendar de sembra, regs, fertilitzacio. Exemple de reg:</p>
+            <pre><code>{
+  "ts": "2026-04-12T07:00:00Z",
+  "sector": "toma-cherry",
+  "duration_s": 600,
+  "litres": 48.2,
+  "trigger": "schedule"
+}</code></pre>
+
+            <h3>Frequencia de captura</h3>
+            <p>La regla es: <strong>captura tan sovint com necessitis, pero no mes</strong>. Temperatura ambient cada 5 min, humitat soll cada 15 min, pluja cada minut, camera cada 10 min, collita quan passa.</p>
+
+            <h3>Emmagatzematge: on va cada cosa</h3>
+            <table>
+                <thead>
+                    <tr><th>Dada</th><th>Magatzem</th><th>Per que</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Series temporals (sensors)</td><td>InfluxDB</td><td>Optimitzat per time-series</td></tr>
+                    <tr><td>Imatges camera</td><td>MinIO (S3)</td><td>Fitxers binaris grans</td></tr>
+                    <tr><td>Calendar / regs</td><td>PostgreSQL</td><td>Dades relacionals</td></tr>
+                    <tr><td>Cache consultes</td><td>Redis</td><td>Rapid per a grafiques</td></tr>
+                    <tr><td>Configuracio</td><td>Fitxers YAML</td><td>Facil de versionar</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M7 Cap 2 - El sensor MiFlora ens dona les dades de soll.</li>
+                <li>M7 Cap 4 - L'arquitectura completa que mou aquestes dades.</li>
+                <li>M7 Cap 6 - InfluxDB es el magatzem de series temporals.</li>
+                <li>M7 Cap 9 - El calendari organitza les dades de cultiu.</li>
+                <li>M7 Cap 10 - Casos reals on aquestes dades salven collites.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m7 1</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quines son les quatre families principals de dades d'un hort?</li>
+                <li>Quin sensor s'utilitza per mesurar temperatura i humitat ambient?</li>
+                <li>Que indica la conductivitat electrica (EC) del soll?</li>
+                <li>A quina freqüencia es raonable capturar dades de temperatura ambient?</li>
+                <li>On guardaries les imatges de la camera time-lapse?</li>
+                <li>Per que es recomana NO capturar dades a 1 Hz si no cal?</li>
+                <li>Quina dada es considera "de gestio"?</li>
+                <li>Quin es el magatzem mes adequat per series temporals de sensors?</li>
+                <li>(Oberta) Diferencia entre dades ambientals i de soll (exemple tomàquet).</li>
+                <li>(Oberta) Escriu una taula amb 4 sensors i la frequencia que triaries.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Inventariar tots els punts de dades del teu hort i decidir com les capturaras, a quina freqüencia i on les guardaras.</p>
+
+            <h3>Pas 1: Inventari dels sectors (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/hort-osona/docs
+nano ~/hort-osona/docs/sectors.md</code></pre>
+            </div>
+            <p>Descriu els sectors. Exemple Hort Osona:</p>
+            <pre><code>1. toma-cherry - 8 plantes, hivernacle, reg automatic
+2. enciam-fulla - 20 plantes, exterior, reg manual
+3. pebrot-italia - 6 plantes, exterior, reg automatic
+4. carxofa - 4 plantes, exterior, reg gota a gota
+5. herbes (basilica, orenga, menta) - exterior, test</code></pre>
+
+            <h3>Pas 2: Llista de sensors per sector (10 min)</h3>
+            <pre><code>| Sector        | Ambient (BME) | Soll (MiFlora) | Camera | Pluja |
+|---------------|---------------|----------------|--------|-------|
+| toma-cherry   | Si (interior) | Si (1 per test) | Si     | No    |
+| enciam-fulla  | Si (compartit)| No             | No     | Si    |
+| pebrot-italia | Si (compartit)| Si (1 per test) | No     | Si    |
+| carxofa       | No            | Si             | No     | Si    |
+| herbes        | No            | No             | No     | No    |</code></pre>
+
+            <h3>Pas 3: Decideix frequencies (10 min)</h3>
+            <pre><code>| Sensor              | Freq     | Justificacio                       |
+|---------------------|----------|------------------------------------|
+| BME280 hivernacle   | 5 min    | Canvi lent, volem gelades          |
+| BME280 exterior     | 5 min    | Compartit                          |
+| MiFlora tomàquet    | 15 min   | El soll canviadespacio             |
+| Camera              | 10 min   | Time-lapse visual                  |
+| Pluviometre         | 1 min    | Xàfecs curts                       |
+| EC soll             | 30 min   | Canvi molt lent                    |</code></pre>
+
+            <h3>Pas 4: Escull l'emmagatzematge (10 min)</h3>
+            <pre><code>| Dada                | Magatzem    | Per que                      |
+|---------------------|-------------|------------------------------|
+| Temperatura BME280  | InfluxDB    | Serie temporal               |
+| Humitat MiFlora     | InfluxDB    | Serie temporal               |
+| Imatges camera      | MinIO       | Fitxers binaris grans       |
+| Calendar de sembra  | PostgreSQL  | Dades relacionals            |
+| Registre de regs    | PostgreSQL  | Auditoria                    |
+| Ultima lectura      | Redis       | Cache per la web             |
+| Configuracio        | YAML git    | Versionable                  |</code></pre>
+
+            <h3>Pas 5: Crea el fitxer de configuracio (5 min)</h3>
+            <pre><code>hort:
+  nom: "Hort Osona"
+  localitat: "Vic"
+  sectors:
+    - id: toma-cherry
+      cultiu: "tomàquet cherry"
+      hivernacle: true
+      reg: "automatic"
+
+sensors:
+  bme280:
+    freq_s: 300
+  miflora:
+    freq_s: 900
+  camera:
+    freq_s: 600
+    desti: "minio/hort-osona/camera/"
+
+magatzem:
+  influxdb:
+    bucket: "hort-osona"
+    org: "bernatlab"
+  postgres:
+    db: "hort_osona"
+  minio:
+    bucket: "hort-osona"</code></pre>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has inventariat 3 o mes sectors del teu hort.</li>
+                <li>☐ Has omplert una taula de sensors per sector.</li>
+                <li>☐ Has decidit frequencies raonables.</li>
+                <li>☐ Has creat la taula d'emmagatzematge amb 4 o mes tipus de dada.</li>
+                <li>☐ Tienes un fitxer <code>dades.yaml</code> amb sectors, sensors i frequencies.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/01-que-son-les-dades/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Families</strong> = ambientals, soll, cultiu, gestio.</li>
+                <li><strong>Sensor ambient</strong> = BME280.</li>
+                <li><strong>EC</strong> = salinitat / nutrients.</li>
+                <li><strong>Freq temp</strong> = cada 5 min.</li>
+                <li><strong>Imatges</strong> = MinIO / filesystem.</li>
+                <li><strong>No 1 Hz</strong> = base de dades creix massa.</li>
+                <li><strong>Gestio</strong> = registre de reg.</li>
+                <li><strong>Series temporals</strong> = InfluxDB.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

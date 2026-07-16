@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 10. Full de ruta — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🗺️ Cap 10. Full de ruta</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Aquest capítol no introdueix una sola eina, sinó que dibuixa el <strong>mapa del que vindrà</strong> després del Mòdul 1. Visió panoràmica de les eines que afegirem al BernatLab complet.</p>
+
+            <h3>El BernatLab en una pàgina</h3>
+            <pre><code>                        [Homepage 3010]
+                              |
+            +-----------------+------------------+
+            |                 |                  |
+       [Portainer 9000] [Uptime Kuma 3001] [File Browser 8082]
+            |                 |                  |
+   +--------+------+   +-----+-------+    +-----+------+
+   |  Docker     |   |  Monitors   |    |  SMB/NFS  |
+   +-----+-------+   +-------------+    +------------+</code></pre>
+
+            <h3>File Browser — navegador de fitxers web</h3>
+            <p>Interfície web per navegar, pujar, baixar, editar i compartir fitxers. Com un "Google Drive" però allotjat a casa. <strong>Cap M2-12</strong>.</p>
+
+            <h3>Node-RED — el Lego de l'automatització</h3>
+            <p>Eina de programació visual low-code basada en fluxos. Connectes nodes per crear automatitzacions. <strong>Cap M3-19</strong>.</p>
+
+            <h3>MQTT — protocol de missatgeria IoT</h3>
+            <p>Protocol publish/subscribe lleuger. Broker Eclipse Mosquitto. Topic, payload, QoS, retain. <strong>Cap M4-25</strong>.</p>
+
+            <h3>InfluxDB — base de dades de sèries temporals</h3>
+            <p>TSDB optimitzada per dades amb marca temporal. Milions de punts/dia, agregacions eficients. <strong>Cap M4-26</strong>.</p>
+
+            <h3>Grafana — el rei de les gràfiques</h3>
+            <p>Plataforma de visualització. Dashboards, gràfiques, alertes. Suporta 50+ fonts de dades. <strong>Cap M4-27</strong>.</p>
+
+            <h3>PostgreSQL — base de dades relacional</h3>
+            <p>Open-source SQL avançat. Transaccions ACID. Per a Gitea, Nextcloud, Paperless, Bookstack, Authentik. <strong>Cap M2-15</strong>.</p>
+
+            <h3>LoRa / LoRaWAN — comunicació de llarg abast</h3>
+            <p>Ràdio de baix consum i llarg abast (1-10 km). 868 MHz a Europa. Gateway + ChirpStack + sensors. <strong>Cap M5-31</strong>.</p>
+
+            <h3>Mapa complet</h3>
+            <pre><code>M1 (Fonaments) ......... JA FET (caps 1-10)
+M2 (Productivitat) ..... File Browser, PostgreSQL, Nextcloud, Gitea, Paperless, Bookstack
+M3 (Automatitzacio) .... Node-RED, Home Assistant, scripts
+M4 (Dades) ............. MQTT, InfluxDB, Grafana, Prometheus
+M5 (IoT) ............... LoRaWAN, sensors, Hort Osona</code></pre>
+
+            <h3>Recursos addicionals</h3>
+            <ul>
+                <li>Docker Hub: <a href="https://hub.docker.com" target="_blank" rel="noopener">hub.docker.com</a></li>
+                <li>Awesome-Selfhosted: <a href="https://github.com/awesome-selfhosted/awesome-selfhosted" target="_blank" rel="noopener">github.com/awesome-selfhosted</a></li>
+            </ul>
+
+            <h3>Connexions</h3>
+            <ul>
+                <li>Cap 1-9 — Tots els fonaments que ja tens.</li>
+                <li>M2 (cap 11+) — Productivitat.</li>
+                <li>M3 (cap 17+) — Automatització.</li>
+                <li>M4 (cap 24+) — Dades i visualització.</li>
+                <li>M5 (cap 30+) — IoT i Hort Osona.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 10</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Rol de File Browser.</li>
+                <li>Tipus d'eina de Node-RED.</li>
+                <li>Què és MQTT.</li>
+                <li>Per a què serveix InfluxDB.</li>
+                <li>Rol de Grafana.</li>
+                <li>Diferència InfluxDB vs PostgreSQL.</li>
+                <li>Què és LoRa.</li>
+                <li>Freqüència LoRa a Europa.</li>
+                <li>(Oberta) Flux MQTT → InfluxDB → Grafana per a temperatura de l'hort.</li>
+                <li>(Oberta) Projecte preferit del curs M2-M5.</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Planificar el teu BernatLab personal: quins serveis, amb quin ordre, quins objectius. Més de reflexió que de teclejar ordres.</p>
+
+            <h3>Pas 1: Inventari actual (10 min)</h3>
+            <p>Crea <code>book/curs/M1/10-full-de-ruta/inventari.md</code> amb hardware, serveis actius, limitacions.</p>
+
+            <h3>Pas 2: Visió a 6 mesos (15 min)</h3>
+            <p>Crea <code>visio-6-mesos.md</code> amb serveis desitjats, mòdul prioritari, projecte concret, recursos addicionals.</p>
+
+            <h3>Pas 3: Primer pas concret (10 min)</h3>
+            <p>Defineix el primer pas concret que faràs la setmana vinent. Afegeix-lo a la visió a 6 mesos.</p>
+
+            <h3>Pas 4: Planifica l'arquitectura (10 min)</h3>
+            <p>Dibuixa l'arquitectura desitjada (ASCII, draw.io, o a mà). Desa a <code>docs/arquitectura-futura.md</code>.</p>
+
+            <h3>Pas 5: Documenta i commita (5 min)</h3>
+            <p><code>git add &amp;&amp; git commit -m "Documenta inventari i visio..."</code></p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Inventari actual complet.</li>
+                <li>☐ Visió a 6 mesos redactada.</li>
+                <li>☐ Primer pas concret definit.</li>
+                <li>☐ Arquitectura futura dibuixada.</li>
+                <li>☐ Commit fet al repo.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/10-full-de-ruta/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li>File Browser = navegar fitxers web.</li>
+                <li>Node-RED = low-code visual.</li>
+                <li>MQTT = publish/subscribe IoT.</li>
+                <li>InfluxDB = sèries temporals.</li>
+                <li>Grafana = visualitzar dades.</li>
+                <li>InfluxDB = temps; PostgreSQL = estructurat.</li>
+                <li>LoRa = ràdio llarg abast baix consum.</li>
+                <li>Europa = 868 MHz.</li>
+            </ol>
+
+            <h2>🎉 Felicitats!</h2>
+            <p>Has acabat el Mòdul 1 (Fonaments) del curs del BernatLab. Ara ve el millor: construir un homelab de veritat.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

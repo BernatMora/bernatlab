@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 10. Runbooks avançats — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📘 Cap 10. Runbooks avançats</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Els runbooks son documents que expliquen PAS A PAS com fer una tasca concreta del sistema. Son la diferencia entre "estic preparat per a tot" i "tinc un manual per cada situacio". Un bon runbook et permet actuar de forma ordenada, sense oblidar passos, fins i tot quan estas nervios perque alguna cosa falla a les 3 de la matinada.</p>
+
+            <h3>Que es exactament un runbook?</h3>
+            <p>Un runbook es un document estructurat amb:</p>
+            <ul>
+                <li><strong>Titol</strong>: que fa aquest runbook.</li>
+                <li><strong>Quan usar-lo</strong>: en quina situacio.</li>
+                <li><strong>Requisits</strong>: que necessites tenir abans.</li>
+                <li><strong>Passos numerats</strong>: l'ordre exacte.</li>
+                <li><strong>Verificacio</strong>: com saber que ha funcionat.</li>
+                <li><strong>Rollback</strong>: que fer si algo va malament.</li>
+                <li><strong>Contactes</strong>: qui avisar si necessites ajuda.</li>
+            </ul>
+
+            <h3>Tipus de runbook</h3>
+            <ul>
+                <li><strong>Runbook operatiu</strong>: tasques de manteniment.</li>
+                <li><strong>Runbook d'incidencia</strong>: que fer quan passa X.</li>
+                <li><strong>Runbook de recuperacio</strong>: com restaurar des de backup.</li>
+                <li><strong>Runbook de desplegament</strong>: com instal·lar un servei nou.</li>
+                <li><strong>Runbook de seguretat</strong>: que fer en cas d'intrusio.</li>
+            </ul>
+
+            <h3>Estructura recomanada</h3>
+            <pre><code># Titol del runbook
+
+## Resum
+Quina situacio cobreix aquest runbook.
+
+## Símptomes
+Com saps que estàs en aquesta situacio.
+
+## Severitat
+- P1: servei critic caigut
+- P2: degradacio important
+- P3: problema menor
+
+## Diagnostic pas a pas
+1. Comprovar X amb Y comanda
+2. Si veus A, continua. Si veus B, salta al pas 5.
+
+## Solucio
+1. Aplicar canvi X
+2. Esperar Y segons
+3. Verificar amb Z
+
+## Verificacio
+- [ ] El servei torna a respondre
+- [ ] Les alertes s'han netejat
+- [ ] Les metricas son normals
+
+## Rollback
+Si algo va malament:
+1. Desfer canvi X
+2. Tornar a la versio anterior
+3. Avisar a Y
+
+## Referencies
+- Dashboard: http://...
+- Documentacio oficial: https://...</code></pre>
+
+            <h3>Exemple: Runbook "Contenidor caigut"</h3>
+            <p>Estructura: Resum, Símptomes, Severitat (P1 si es HA de dia, P2 nit), Diagnostic (docker ps, logs), Solucio (config, restart), Verificacio (servei, alerta, Grafana), Rollback (revertir, restaurar).</p>
+
+            <h3>Exemple: Runbook "Disc ple"</h3>
+            <p>Símptomes: alerta "DiscPle", errors "No space left on device". Solucio: veure que ocupa mes, netejar imatges/volums, netejar logs, netejar apt. Solucio a llarg termini: SSD, logrotate millor, volums separats.</p>
+
+            <h3>Exemple: Runbook "Recuperar des de backup"</h3>
+            <p>Quan: HA no arranca, canviar versio, microSD morta. Requisits: backup recent. Passos: aturar, fer backup actual, restaurar amb rsync, reiniciar, verificar amb curl.</p>
+
+            <h3>Postmortem: que fer DESPRES d'un incident</h3>
+            <p>Un postmortem es un document que escrius DESPRES d'un incident important. La gracia es:</p>
+            <ol>
+                <li><strong>Aprendre dels errors</strong>: que ha fallat exactament?</li>
+                <li><strong>Evitar que torni a passar</strong>: que cal canviar?</li>
+                <li><strong>Compartir el coneixement</strong>: que sap tothom.</li>
+            </ol>
+            <p>Estructura: Resum, Timeline, Causa arrel, Impacte, Que ha anat be, Que ha anat malament, Accions preventives.</p>
+
+            <h3>Eines per gestionar runbooks</h3>
+            <ul>
+                <li><strong>Obsidian</strong>: notes en markdown.</li>
+                <li><strong>Notion</strong>: mes collaboratiu pero cloud.</li>
+                <li><strong>MkDocs</strong>: generar una web amb els runbooks.</li>
+                <li><strong>Markdown + Git</strong>: versioning al repositori.</li>
+                <li><strong>Gitea / GitHub Pages</strong>: allotjar els runbooks com a wiki.</li>
+            </ul>
+
+            <h3>Bones practiques</h3>
+            <ul>
+                <li><strong>Escriu els runbooks QUAN tot va be</strong>: en calent tens la info, enfred no recordes res.</li>
+                <li><strong>Fes-los curts</strong>: 1-2 pagines per runbook. Si es mes llarg, parteix-lo.</li>
+                <li><strong>Un runbook = una tasca</strong>: no barregis temes.</li>
+                <li><strong>Actualitza'ls regularment</strong>: quan canvia una IP, un port, una eina.</li>
+                <li><strong>Inclou exemples reals</strong>: ordres reals que funcionen a la teva RPi.</li>
+                <li><strong>Vincula'ls al monitoring</strong>: links als runbooks desde les alertes.</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M8 Cap 7 - Runbooks basics: introduccio als runbooks.</li>
+                <li>M6 Cap 9 - Troubleshooting: els runbooks son el resultat del troubleshooting.</li>
+                <li>M6 Cap 1 - Arquitectura 24/7: cada component pot tenir el seu runbook.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 10</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que es un runbook?</li>
+                <li>Quina es la diferencia entre un runbook i un tutorial?</li>
+                <li>Quina informacio NO hauria de faltar en un runbook?</li>
+                <li>Quin es el millor moment per escriure un runbook?</li>
+                <li>Que es un postmortem?</li>
+                <li>Quina estructura ha de tenir un postmortem?</li>
+                <li>Per que son importants els runbooks?</li>
+                <li>Quin es el tamany ideal d'un runbook?</li>
+                <li>(Oberta) Descriu l'estructura ideal d'un runbook d'incidencia.</li>
+                <li>(Oberta) Escriu un postmortem d'un incident amb timeline, causa arrel i accions.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (60-90 min)</h2>
+            <p>Crear 3-4 runbooks operatius, un postmortem, i organitzar-ho en un directori.</p>
+
+            <h3>Pas 1: Crea l'estructura de directoris (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/bernatlab/runbooks/{incidents,operations,deployment,recovery,postmortems}</code></pre>
+            </div>
+
+            <h3>Pas 2-6: Escriu 5 runbooks (55 min)</h3>
+            <p>Escriu:</p>
+            <ol>
+                <li>Contenidor caigut (incidents)</li>
+                <li>Disc ple (incidents)</li>
+                <li>RPi no arranca (incidents)</li>
+                <li>Neteja setmanal (operations)</li>
+                <li>Restaurar HA (recovery)</li>
+            </ol>
+            <p>Adapta cada un amb les teves IPs, serveis reals, i ordres exactes que funcionen.</p>
+
+            <h3>Pas 7: Escriu un postmortem (15 min)</h3>
+            <p>Pot ser un incident real que has tingut o un inventat pero realista. Inclou timeline amb hores, causa arrel, impacte, que va anar be, que va anar malament, accions preventives.</p>
+
+            <h3>Pas 8: Crea l'index (5 min)</h3>
+            <p>Crea <code>~/bernatlab/runbooks/README.md</code> amb la llista de tots els runbooks.</p>
+
+            <h3>Pas 9: Puja al repositori (5 min)</h3>
+            <p>git add + commit (no push, nomes commit local).</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Tens 3-4 runbooks d'incidents escrits.</li>
+                <li>☐ Tens 1 runbook operatiu (neteja).</li>
+                <li>☐ Tens 1 runbook de recuperacio.</li>
+                <li>☐ Tens 1 postmortem (real o inventat).</li>
+                <li>☐ Tens un README.md que indexa tots els runbooks.</li>
+                <li>☐ Els runbooks son REALISTES amb les teves dades reals.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="10-runbooks-avancats/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Runbook</strong> = instruccions pas a pas per una tasca.</li>
+                <li><strong>Diferencia</strong> = tutorial ensenya, runbook instruccions.</li>
+                <li><strong>Parts essencials</strong> = requisits, passos, verificacio, rollback.</li>
+                <li><strong>Millor moment</strong> = quan tot va be.</li>
+                <li><strong>Postmortem</strong> = analisi post-incident.</li>
+                <li><strong>Estructura</strong> = resum, timeline, causa arrel, impacte, accions.</li>
+                <li><strong>Per que</strong> = actuar ordenadament sota estres.</li>
+                <li><strong>Tamany ideal</strong> = 1-2 pagines.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

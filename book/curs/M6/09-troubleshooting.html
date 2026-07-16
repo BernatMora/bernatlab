@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 9. Troubleshooting — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔍 Cap 9. Troubleshooting</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Tots els sistemes fallen. La diferencia entre un administrador de sistemes bo i un de dolent no es que el primer no tingui fallades, sino que SAP diagnosticar-les i arreglar-les rapid. El troubleshooting es l'art d'identificar l'arrel del problema quan tot va malament, sense perdre hores buscant a cegues.</p>
+
+            <h3>La metodologia: divideix i venceras</h3>
+            <ol>
+                <li><strong>Definir el problema</strong>: QUE falla exactament?</li>
+                <li><strong>Recollir dades</strong>: QUAN ha passat? Desde quan? Que ha canviat?</li>
+                <li><strong>Identificar la capa</strong>: fisica, SO, xarxa, contenidors, aplicacio?</li>
+                <li><strong>Aillar la causa</strong>: que SI funciona? que NO funciona?</li>
+                <li><strong>Aplicar la solucio</strong>: nomes un canvi a la vegada.</li>
+                <li><strong>Verificar</strong>: ha tornat a funcionar? Romandrá estable?</li>
+                <li><strong>Documentar</strong>: escriu al runbook que ha passat.</li>
+            </ol>
+
+            <h3>Les capes del sistema (model OSI aplicat)</h3>
+            <pre><code>[7. Aplicacio]      El servei concret (HA, Grafana, etc.)
+[6. Configuracio]   docker-compose.yml, .env
+[5. Contenidor]     Docker engine, imatges
+[4. Sistema]        Processos, serveis, fitxers
+[3. Xarxa]          IP, DNS, ports, firewall
+[2. Hardware]       Disc, RAM, USB, sensors
+[1. Fisica]         Alimentacio, temperatura, cables</code></pre>
+
+            <h3>Comandes essentials de diagnostic</h3>
+
+            <h4>Sistema basic</h4>
+            <pre><code>uptime
+top
+htop
+free -h
+df -h
+vcgencmd measure_temp
+cat /sys/thermal/thermal_zone0/temp
+journalctl -f
+journalctl -u docker --since "1 hour ago"</code></pre>
+
+            <h4>Xarxa</h4>
+            <pre><code>ip a
+ip route
+cat /etc/resolv.conf
+nslookup google.com
+ss -tulnp
+ping 8.8.8.8
+curl -v http://192.168.1.50:8123</code></pre>
+
+            <h4>Docker</h4>
+            <pre><code>docker ps -a
+docker stats
+docker logs homeassistant
+docker logs homeassistant -f
+docker inspect homeassistant
+docker top homeassistant
+docker exec -it homeassistant /bin/bash</code></pre>
+
+            <h4>Recursos</h4>
+            <pre><code>ps aux --sort=-%cpu | head
+ps aux --sort=-%mem | head
+du -sh /var/lib/docker/volumes/
+ncdu /</code></pre>
+
+            <h3>Eines visuals</h3>
+            <ul>
+                <li><strong>htop</strong>: gestor de processos interactiu.</li>
+                <li><strong>glances</strong>: monitor complet amb CPU, RAM, xarxa, disc.</li>
+                <li><strong>ctop</strong>: monitor de contenidors Docker.</li>
+                <li><strong>lazydocker</strong>: UI de terminal per Docker.</li>
+                <li><strong>ncdu</strong>: explorador de disc interactiu.</li>
+            </ul>
+
+            <h3>Troubleshooting per categoria</h3>
+
+            <h4>"La RPi no respon"</h4>
+            <ol>
+                <li><strong>Ping</strong>: <code>ping IP_RPI</code>. Si no respon, es xarxa.</li>
+                <li><strong>SSH</strong>: si la xarxa va be, intenta per SSH.</li>
+                <li><strong>Monitor + teclat</strong>: si tampoc va per SSH.</li>
+                <li><strong>Corrent</strong>: desendolla i reendolla.</li>
+                <li><strong>Hardware</strong>: microSD o font d'alimentacio.</li>
+            </ol>
+
+            <h4>"Un contenidor esta exited"</h4>
+            <ol>
+                <li><code>docker ps -a</code> per veure tots els contenidors.</li>
+                <li><code>docker logs NOM</code> per veure que ha dit.</li>
+                <li><code>docker inspect NOM</code> per veure la configuracio.</li>
+                <li>Prova: <code>docker compose up NOM</code> per tornar a aixecar.</li>
+            </ol>
+
+            <h4>"El sistema va lent"</h4>
+            <ol>
+                <li><code>top</code> o <code>htop</code> per veure processos.</li>
+                <li><code>docker stats</code> per veure contenidors.</li>
+                <li><code>vcgencmd measure_temp</code> per veure temperatura.</li>
+                <li>Si la CPU es 100%, mira quin proces.</li>
+            </ol>
+
+            <h4>"No puc accedir des de fora"</h4>
+            <ol>
+                <li>Servei corrent? <code>docker ps</code>.</li>
+                <li>Port obert? <code>ss -tulnp</code>.</li>
+                <li>Firewall? <code>sudo ufw status</code>.</li>
+                <li>Port forwarding al router?</li>
+                <li>DDNS apunta correctament?</li>
+            </ol>
+
+            <h4>"La microSD es corromp"</h4>
+            <p>Senyals: errors d'I/O, sistema inestable, <code>dmesg</code> amb errors EXT4. Solucio: mou a USB/SSD, activa <code>noatime</code>.</p>
+
+            <h4>"El contenidor fa coses rares"</h4>
+            <ol>
+                <li>Atura: <code>docker stop NOM</code>.</li>
+                <li>Logs: <code>docker logs NOM</code>.</li>
+                <li>Entra: <code>docker exec -it NOM /bin/bash</code>.</li>
+                <li>Processos: <code>ps aux</code>.</li>
+                <li>Fitxers: <code>ls -la /config/</code>.</li>
+            </ol>
+
+            <h3>El concepte de "checkpoint"</h3>
+            <p>Quan un sistema funciona BE, documenta l'estat. Guarda-ho a <code>~/bernatlab/CHECKPOINT.md</code> amb versio de cada imatge, configuracio de xarxa, espai en disc, llista de serveis actius, etc.</p>
+
+            <h3>Buscar ajuda</h3>
+            <ol>
+                <li><strong>Google</strong>: <code>error especific + versio</code>.</li>
+                <li><strong>GitHub issues</strong>: busca el projecte.</li>
+                <li><strong>Forums especialitzats</strong>: HA Community, RPi Forums.</li>
+                <li><strong>StackOverflow</strong>: nomes si es generic.</li>
+                <li><strong>ChatGPT/Claude</strong>: ajuda pero SEMPRE verifica.</li>
+            </ol>
+            <p>Sigues especific. "No em funciona HA" no serveix. "HA 2024.5 falla al arrancar amb error 'config integration not found'" si.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M6 Cap 1 - Arquitectura 24/7: les capes que hem vist aqui.</li>
+                <li>M6 Cap 5 - Logs centralitzats: on buscar els missatges d'error.</li>
+                <li>M6 Cap 10 - Runbooks: per documentar el troubleshooting.</li>
+                <li>M8 Cap 7 - Runbooks basics (introduccio).</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 9</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin es el primer pas en troubleshooting?</li>
+                <li>Quina ordre mostra els procesos actius amb la seva CPU i memoria?</li>
+                <li>Quina comanda Docker mostra els logs d'un contenidor?</li>
+                <li>Quina comanda mostra la temperatura de la CPU a la RPi?</li>
+                <li>Quina ordre Docker permet entrar dins d'un contenidor?</li>
+                <li>Quin es el millor enfocament quan un sistema va lent?</li>
+                <li>Quin fitxer mostra la configuracio DNS?</li>
+                <li>Quina eina es un monitor complet en una sola pantalla?</li>
+                <li>(Oberta) Descriu la metodologia de troubleshooting pas a pas. Per que no provar coses a l'atzar?</li>
+                <li>(Oberta) La RPi no respon al ping. Enumera els 5-6 punts a comprovar.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (45-60 min)</h2>
+            <p>Aprendre a fer troubleshooting aplicat amb simulacions de fallades.</p>
+
+            <h3>Pas 1: Instal·la eines de diagnostic (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo apt update
+sudo apt install -y htop glances ncdu nethogs
+htop
+glances
+nethogs</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea un checkpoint del sistema (10 min)</h3>
+            <p>Crea <code>~/bernatlab/CHECKPOINT.md</code> amb: versio OS, kernel, CPU, RAM, disc, temperatura, xarxa, contenidors actius, imatges, volums, xarxes. Veure exercici.md per la plantilla.</p>
+
+            <h3>Pas 3: Simula una fallada de CPU (10 min)</h3>
+            <div class="code-block">
+                <pre><code>yes &gt; /dev/null &amp;
+yes &gt; /dev/null &amp;
+yes &gt; /dev/null &amp;
+yes &gt; /dev/null &amp;
+ps aux --sort=-%cpu | head
+htop
+killall yes</code></pre>
+            </div>
+
+            <h3>Pas 4: Simula una fallada d'espai (10 min)</h3>
+            <div class="code-block">
+                <pre><code>dd if=/dev/zero of=/tmp/gran_fitxer bs=1M count=5000
+df -h
+docker system df
+rm /tmp/gran_fitxer</code></pre>
+            </div>
+
+            <h3>Pas 5: Simula una fallada de xarxa (10 min)</h3>
+            <p>Comprova: ping, IP, gateway, ports oberts, DNS, curl.</p>
+
+            <h3>Pas 6: Simula una fallada de contenidor (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker stop homeassistant
+docker ps -a --filter "status=exited"
+docker logs homeassistant --tail 20
+docker start homeassistant</code></pre>
+            </div>
+
+            <h3>Pas 7: Practica un diagnostic complet (10 min)</h3>
+            <p>Per un servei concret (p.ex. Grafana), segueix: <code>docker ps</code> -&gt; <code>docker logs</code> -&gt; <code>ss -tulnp</code> -&gt; <code>docker exec</code> -&gt; <code>curl -v</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has instal·lat htop, glances, ncdu, nethogs.</li>
+                <li>☐ Has creat un CHECKPOINT.md de l'estat actual.</li>
+                <li>☐ Has practicat les 4 simulacions de fallada.</li>
+                <li>☐ Has fet un diagnostic complet d'un servei concret.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="09-troubleshooting/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Primer pas</strong> = definir el problema exactament.</li>
+                <li><strong>Processos</strong> = top o htop.</li>
+                <li><strong>Logs contenidor</strong> = <code>docker logs NOM</code>.</li>
+                <li><strong>Temperatura</strong> = <code>vcgencmd measure_temp</code>.</li>
+                <li><strong>Entrar contenidor</strong> = <code>docker exec -it NOM /bin/bash</code>.</li>
+                <li><strong>Sistema lent</strong> = identificar el proces.</li>
+                <li><strong>DNS</strong> = <code>/etc/resolv.conf</code>.</li>
+                <li><strong>Monitor complet</strong> = glances.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 4. Alertes amb Telegram — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📲 Cap 4. Alertes amb Telegram</h1>
+        <p class="subtitle">Mòdul M6 · Operativa 24/7</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Tenir un dashboard bonic no serveix de res si no mires la pantalla. El sistema 24/7 ha de ser PROACTIU: t'ha d'avisar QUAN alguna cosa va malament, no esperar que tu miris. Telegram es perfecte per aixo perque el portem al movil sempre, es gratis, i permet crear bots i grups amb pocs passos.</p>
+
+            <h3>Per que Telegram i no altres?</h3>
+            <ul>
+                <li><strong>Sempre el portem al movil</strong>: l'alerta arriba a la butxatera.</li>
+                <li><strong>Gratis i sense limits</strong>: fins a 30 missatges/segon per bot.</li>
+                <li><strong>API senzilla</strong>: pots enviar un missatge amb una sola crida HTTP.</li>
+                <li><strong>Grups</strong>: pots tenir un grup "BernatLab Alertes" amb qui vulguis.</li>
+                <li><strong>Markdown i botons</strong>: pots enviar missatges rics amb links als dashboards.</li>
+                <li><strong>Sense registre complicat</strong>: nomes cal un numero de telefon.</li>
+            </ul>
+
+            <h3>Anatomia d'una alerta</h3>
+            <p>Una alerta te quatre parts:</p>
+            <ol>
+                <li><strong>Condicio</strong>: QUAN passa alguna cosa. P.ex. "CPU &gt; 80% durant 5 minuts".</li>
+                <li><strong>Avaluacio</strong>: cada quan es comprova.</li>
+                <li><strong>Destinacio</strong>: ON s'envia. Telegram, email, etc.</li>
+                <li><strong>Missatge</strong>: QUE es diu. Text amb dades de l'incident.</li>
+            </ol>
+            <p>Tambe te cicles de vida: <strong>Inactive</strong> (tot be), <strong>Pending</strong> (condicio activa pero no prou temps), <strong>Firing</strong> (s'envia l'alerta), <strong>Resolved</strong> (s'ha resolt).</p>
+
+            <h3>Alertmanager: el carter de Prometheus</h3>
+            <p>Alertmanager es un servei independent que rep les alertes de Prometheus, les agrupa, silencia, i envia al canal que toqui. Es separa de Prometheus perque si Prometheus reinicia, Alertmanager recorda quines alertes estan actives.</p>
+            <pre><code>  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    ports:
+      - "9093:9093"</code></pre>
+
+            <h3>Crear el bot de Telegram</h3>
+            <ol>
+                <li>Obre Telegram i busca <code>@BotFather</code>.</li>
+                <li>Envia <code>/newbot</code>.</li>
+                <li>Dona un nom (per exemple "BernatLab Alerts").</li>
+                <li>Dona un username unic (acabant en <code>bot</code>).</li>
+                <li>Rebràs un <strong>token</strong>. Guarda'l!</li>
+            </ol>
+            <p>Per obtenir el chat_id:</p>
+            <ol>
+                <li>Afegeix el bot a un grup o usa el teu xat privat.</li>
+                <li>Envia qualsevol missatge al grup.</li>
+                <li>Visita <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code>.</li>
+                <li>Busca el <code>chat.id</code> al JSON.</li>
+            </ol>
+
+            <h3>Configuracio d'Alertmanager</h3>
+            <pre><code>global:
+  resolve_timeout: 5m
+
+route:
+  receiver: 'telegram-bernatlab'
+  group_by: ['alertname', 'instance']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: 'telegram-bernatlab'
+    telegram_configs:
+      - bot_token: 'EL_TELEGRAM_BOT_TOKEN'
+        chat_id: EL_CHAT_ID
+        parse_mode: 'Markdown'
+        message: |
+          🚨 *{{ .GroupLabels.alertname }}*
+          {{ .CommonAnnotations.summary }}
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']</code></pre>
+
+            <h3>Regles d'alerta a Prometheus</h3>
+            <pre><code>groups:
+  - name: bernatlab_sistema
+    interval: 30s
+    rules:
+      - alert: CPUAlta
+        expr: 100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) &gt; 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU alta a {{ $labels.instance }}"
+          description: "CPU al {{ $value }}% durant 5 minuts"
+
+      - alert: DiscPle
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 &lt; 10
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disc ple a {{ $labels.instance }}"
+          description: "Nomes queden {{ $value }}% d'espai"
+
+      - alert: RPiDown
+        expr: up{job="node"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RPi no respon"
+          description: "Node Exporter no respon desde fa 1 minut"</code></pre>
+
+            <h3>Bones practiques d'alertes</h3>
+            <ul>
+                <li><strong>No t'espamegis</strong>: 5 alertes MOLT significatives millor que 20 sorolloses.</li>
+                <li><strong>Usa <code>for:</code></strong>: 5-10 min evita falses alarmes per pics puntuals.</li>
+                <li><strong>Descripcions utils</strong>: "CPU al 95% a rpi-bernatlab desde les 14:32".</li>
+                <li><strong>Links als dashboards</strong>: amb un click veus el context.</li>
+                <li><strong>Inhibit rules</strong>: si un node esta caigut, no cal avisar dels seus contenidors.</li>
+                <li><strong>Resolve_timeout</strong>: s'envia un "Resolved" quan tot torna a la normalitat.</li>
+            </ul>
+
+            <h3>Alertes per SMS o telefonada</h3>
+            <p>Per a coses CRITIQUES (incendi, intrusio, pujada de temperatura extrema):</p>
+            <ul>
+                <li><strong>Twilio</strong>: API de telefonada/SMS, amb free tier limitat.</li>
+                <li><strong>Alertmanager + twilio</strong>: integracions no oficials.</li>
+                <li><strong>Pushover</strong>: app de pagament (5 EUR) amb notificacions critiques amb so fort.</li>
+            </ul>
+
+            <h3>Silenci temporal (silences)</h3>
+            <p>Quan estàs treballant en la RPi i toques coses, no vols rebre alertes constants:</p>
+            <ol>
+                <li>Accedeix a <code>http://IP:9093</code>.</li>
+                <li>Clica "New Silence".</li>
+                <li>Tria el match (per exemple, totes les alertes d'una instancia).</li>
+                <li>Posa durada (per exemple, 1 hora).</li>
+                <li>Clica "Create".</li>
+            </ol>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M6 Cap 2 - Prometheus recull les metricas.</li>
+                <li>M6 Cap 3 - Grafana mostra l'estat pero no avisa.</li>
+                <li>M6 Cap 6 - Uptime Kuma tambe pot enviar alertes a Telegram directament.</li>
+                <li>M6 Cap 9 - Troubleshooting: quan arriba una alerta, cal saber actuar.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m6 4</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Per que Telegram es una bona opcio per alertes de la RPi?</li>
+                <li>Quin servei s'encarrega d'enviar les alertes de Prometheus al canal?</li>
+                <li>Quina ordre cal donar a @BotFather per crear un bot?</li>
+                <li>Quin parametre a una alerta evita falsos positius?</li>
+                <li>Quin es el port per defecte d'Alertmanager?</li>
+                <li>Quin es l'estat d'una alerta quan la condicio es compleix pero encara no ha passat el temps minim?</li>
+                <li>Que fan les "inhibit rules" a Alertmanager?</li>
+                <li>Quin camp de la regla Prometheus conte la durada minima d'una alerta?</li>
+                <li>(Oberta) Explica el cicle de vida d'una alerta a Prometheus passant per tots els estats.</li>
+                <li>(Oberta) Escriu 5 regles d'alerta concretes (amb expr, for, labels i annotations) per al BernatLab.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (45-60 min)</h2>
+            <p>Crear un bot de Telegram, configurar Alertmanager, i afegir regles d'alerta a Prometheus.</p>
+
+            <h3>Pas 1: Crea el bot de Telegram (5 min)</h3>
+            <p>Busca <code>@BotFather</code>, envia <code>/newbot</code>, segueix les instruccions i guarda el token.</p>
+
+            <h3>Pas 2: Obte el chat_id (3 min)</h3>
+            <p>Envia un missatge al bot i visita <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code>. Busca el <code>chat.id</code>.</p>
+
+            <h3>Pas 3: Instal·la Alertmanager (10 min)</h3>
+            <p>Crea <code>~/bernatlab/alertmanager/alertmanager.yml</code> amb la configuracio. Afegeix el servei al <code>docker-compose.yml</code>. Puja amb <code>docker compose up -d alertmanager</code>.</p>
+
+            <h3>Pas 4: Crea regles d'alerta a Prometheus (10 min)</h3>
+            <p>Crea <code>~/bernatlab/prometheus/rules/bernatlab.yml</code> amb 5 regles: CPU, memoria, disc, temperatura, RPiDown.</p>
+
+            <h3>Pas 5: Activa les regles i Alertmanager a Prometheus (5 min)</h3>
+            <p>Edita <code>prometheus/prometheus.yml</code> i afegeix <code>rule_files</code> i <code>alerting</code>. Reinicia Prometheus.</p>
+
+            <h3>Pas 6: Prova que funciona forçant una alerta (15 min)</h3>
+            <div class="code-block">
+                <pre><code># En una terminal SSH
+yes &gt; /dev/null &amp;
+# Espera 6 minuts i hauries de rebre el missatge
+killall yes</code></pre>
+            </div>
+            <p>Comprova a <code>http://IP:9090/alerts</code> i a Telegram.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat el bot amb BotFather i tens el token.</li>
+                <li>☐ Alertmanager esta corrent al port 9093.</li>
+                <li>☐ Prometheus carrega les 5 regles del fitxer bernatlab.yml.</li>
+                <li>☐ Has forçat una alerta artificial i has rebut el missatge a Telegram.</li>
+                <li>☐ Has rebut el missatge "Resolved" quan tot torna a la normalitat.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="04-alertes-telegram/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Telegram</strong> = gratis + sempre al movil + API senzilla.</li>
+                <li><strong>Alertmanager</strong> = el carter de Prometheus.</li>
+                <li><strong>BotFather</strong> = <code>/newbot</code>.</li>
+                <li><strong>Evitar falsos positius</strong> = <code>for</code>.</li>
+                <li><strong>Port Alertmanager</strong> = 9093.</li>
+                <li><strong>Estat transitori</strong> = Pending.</li>
+                <li><strong>Inhibit rules</strong> = suprimeixen warning quan hi ha critical.</li>
+                <li><strong>Durada minima</strong> = <code>for</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>
