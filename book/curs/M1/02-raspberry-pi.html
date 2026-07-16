@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 2. La Raspberry Pi 4 per dins — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔧 Cap 2. La Raspberry Pi 4 per dins</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>La Raspberry Pi 4 Model B és un <strong>ordinador complet en una placa</strong> del tamany d'una targeta de crèdit. Costa ~55 €, gasta 5-10 W, i té prou potència per a un servidor domèstic. El <strong>BernatLab</strong> en té una (4 GB de RAM) amb Debian 13 Lite i arquitectura arm64.</p>
+
+            <h3>Què és exactament?</h3>
+            <ul>
+                <li><strong>SBC</strong> (Single-Board Computer): tot en una placa — CPU, RAM, ports, xarxa.</li>
+                <li><strong>4 GB de RAM LPDDR4</strong> (la teva versió; n'hi ha de 1, 2, 4 i 8 GB).</li>
+                <li><strong>CPU ARM Cortex-A72</strong> (4 nuclis a 1.5 GHz, arquitectura arm64).</li>
+                <li><strong>GPU VideoCore VI</strong> (per a vídeo, no l'aprofitem al servidor).</li>
+                <li><strong>MicroSD com a disc</strong> (no té disc dur intern).</li>
+                <li><strong>Sense ventilador</strong> (disseny passiu, refrigeració per dissipador).</li>
+            </ul>
+
+            <h3>La CPU ARM</h3>
+            <p>ARM (Advanced RISC Machine) és una arquitectura de CPU diferent de la x86 (Intel/AMD). Característiques:</p>
+            <ul>
+                <li><strong>RISC</strong> (Reduced Instruction Set Computer) — poques instruccions simples.</li>
+                <li><strong>Eficient energèticament</strong> — gasta molt menys que un PC x86.</li>
+                <li><strong>arm64</strong> (AArch64) — la versió de 64 bits.</li>
+                <li><strong>No tots els programes x86 funcionen</strong> — cal binari ARM o compilació creuada.</li>
+            </ul>
+            <p><strong>A la pràctica</strong>: per a servidors petits, ARM és perfecte. Per a jocs o edició de vídeo, x86 és millor.</p>
+
+            <h3>La RAM</h3>
+            <ul>
+                <li><strong>4 GB LPDDR4</strong> — la que tens.</li>
+                <li><strong>Soldada a la placa</strong> — no es pot ampliar.</li>
+                <li><strong>Compartida amb la GPU</strong> — per defecte 64 MB, es pot ajustar a 128-256 MB.</li>
+            </ul>
+            <p><strong>Què hi cap?</strong>: perfecte per a uns 5-10 contenidors Docker petits. Si vols Kubernetes o bases de dades grosses, et quedarà curta.</p>
+
+            <h3>La microSD</h3>
+            <ul>
+                <li><strong>32 GB o més</strong> — recomanat 32-64 GB classe A2.</li>
+                <li><strong>Sistema operatiu</strong> — Debian 13 Lite hi cap perfectament (~4 GB).</li>
+                <li><strong>Dades</strong> — millor no posar dades importants a la SD (es pot trencar).</li>
+                <li><strong>Vida útil limitada</strong> — les SD tenen ~10.000 cicles d'escriptura. Usa volums Docker per minimitzar escriptura.</li>
+            </ul>
+            <p><strong>Alternatives</strong>: disc SSD USB 3.0 (molt més ràpid i durable, ~30 €).</p>
+
+            <h3>Ports i connectivitat</h3>
+            <ul>
+                <li><strong>USB-C</strong> — Alimentació (5V, 3A recomanat)</li>
+                <li><strong>2× USB 3.0 + 2× USB 2.0</strong> — Perifèrics, disc SSD extern</li>
+                <li><strong>Ethernet Gigabit</strong> — Xarxa cablejada (recomanable per a servidor)</li>
+                <li><strong>Wi-Fi 802.11ac</strong> — Alternativa a Ethernet (menys estable)</li>
+                <li><strong>Bluetooth 5.0</strong> — No l'aprofitem al servidor</li>
+                <li><strong>2× micro-HDMI</strong> — Per connectar monitor (tampoc l'aprofitem)</li>
+                <li><strong>GPIO 40 pins</strong> — Per a sensors IoT (el futur Hort Osona)</li>
+            </ul>
+
+            <h3>Temperatura i refrigeració</h3>
+            <ul>
+                <li><strong>Sense càrrega</strong>: ~45-50°C.</li>
+                <li><strong>Amb càrrega moderada</strong>: ~60-70°C.</li>
+                <li><strong>Llindar tèrmic</strong>: 80°C (la CPU redueix velocitat).</li>
+                <li><strong>Crític</strong>: 85°C (es pot danyar).</li>
+            </ul>
+            <p><strong>Refrigeració recomanada</strong>: dissipador d'alumini + ventilació. Si la teva RPi està en un armari tancat, vigila la temperatura.</p>
+            <p><strong>Comprovació</strong>: <code>vcgencmd measure_temp</code> (no sempre disponible).</p>
+
+            <h3>Procés d'arrencada</h3>
+            <pre><code>1. Pre-boot (firmware)
+   ↓
+2. Bootloader (a la microSD)
+   ↓
+3. Kernel Linux (a la microSD)
+   ↓
+4. systemd (primer procés, PID 1)
+   ↓
+5. Serveis i contenidors Docker</code></pre>
+            <ul>
+                <li><strong>Firmware</strong>: xip EEPROM a la placa, no es toca.</li>
+                <li><strong>Bootloader</strong>: stub a la microSD, carrega el kernel.</li>
+                <li><strong>Kernel</strong>: nucli Linux compilat per a ARM.</li>
+                <li><strong>systemd</strong>: el "mestre de cerimònies" — arrenca tots els serveis.</li>
+            </ul>
+
+            <h3>Per què Debian Lite?</h3>
+            <ul>
+                <li><strong>Estable</strong> — Debian té el cicle de release més estable del món Linux.</li>
+                <li><strong>Sense entorn gràfic</strong> — Lite = sense X11 ni GNOME. Estalvia ~300 MB de RAM i ~2 GB de disc.</li>
+                <li><strong>Comunitat gran</strong> — qualsevol problema té solució a Internet.</li>
+                <li><strong>arm64 natiu</strong> — paquets compilats específicament per a l'arquitectura.</li>
+                <li><strong>Alternatives</strong>: Raspberry Pi OS Lite, Ubuntu Server Lite. Debian és la meva tria per estabilitat.</li>
+            </ul>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — Per què hem triat una RPi com a cor del BernatLab.</li>
+                <li>Cap 3 — Com administrar el sistema operatiu (Debian) que hi corre.</li>
+                <li>Cap 4 — La xarxa i SSH, que va per la interfície Ethernet/WiFi.</li>
+                <li>Cap 5 — Docker corre com un servei systemd sobre el sistema base.</li>
+                <li>Cap 22 — Com monitoritzar temperatura, ús de CPU/RAM, espai de disc.</li>
+                <li>Cap 47 — Seguretat física i networking de la RPi.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 2</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què és una Raspberry Pi?</li>
+                <li>Quina arquitectura de CPU té la RPi 4?</li>
+                <li>Quanta RAM té la teva Raspberry Pi 4 al BernatLab?</li>
+                <li>On s'emmagatzema el sistema operatiu de la RPi?</li>
+                <li>Quin és el consum aproximat d'una RPi 4?</li>
+                <li>Quina és la temperatura crítica (perill de dany) de la RPi 4?</li>
+                <li>Quin és el primer procés que arranca al sistema (PID 1)?</li>
+                <li>Quin port s'usa per alimentar la RPi 4?</li>
+                <li>(Oberta) Explica: per què una RPi és adequada per a un homelab però NO per a un servidor de producció professional?</li>
+                <li>(Oberta) Imagina que vols muntar un servidor web per a una botiga amb 1000 visites diaries. La RPi 4 seria adequada?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (20-30 min)</h2>
+            <p>Recollir informació detallada del <strong>hardware</strong> de la teva Raspberry Pi. Això et servirà per saber què tens, què pots afegir, i on tens els límits.</p>
+
+            <h3>Pas 1: Identifica el hardware (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Model de la RPi
+cat /sys/firmware/devicetree/base/model
+# Hauria de dir: Raspberry Pi 4 Model B Rev 1.4
+
+# Versio del firmware
+vcgencmd version 2>/dev/null || echo "vcgencmd no disponible"
+
+# Numero de serie (unic per placa)
+cat /proc/cpuinfo | grep Serial</code></pre>
+            </div>
+
+            <h3>Pas 2: CPU i nuclis (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Informacio de la CPU
+lscpu | head -20
+
+# Numero de nuclis actius
+nproc
+
+# Freq actual
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq 2>/dev/null</code></pre>
+            </div>
+
+            <h3>Pas 3: Memòria i swap (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Memoria RAM total i usada
+free -h
+
+# Detall de la swap
+swapon --show
+
+# Memoria compartida amb GPU
+vcgencmd get_mem gpu 2>/dev/null || echo "vcgencmd no disponible"</code></pre>
+            </div>
+
+            <h3>Pas 4: Emmagatzematge (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Espai de disc
+df -h
+
+# Detall del sistema de fitxers
+mount | grep "on / "
+
+# Grandaria de la microSD (estimada)
+lsblk
+
+# Test de velocitat de la SD (opcional)
+sudo hdparm -Tt /dev/mmcblk0</code></pre>
+            </div>
+
+            <h3>Pas 5: Temperatura (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Temperatura actual
+vcgencmd measure_temp 2>/dev/null || \
+  cat /sys/class/thermal/thermal_zone0/temp | awk '{print $1/1000 "C"}'
+
+# Sensors (si esta instal·lat)
+sensors 2>/dev/null || echo "Paquet lm-sensors no instal·lat"</code></pre>
+            </div>
+
+            <h3>Pas 6: Xarxa (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Interficies de xarxa
+ip addr show
+
+# Velocitat de la connexio Ethernet
+sudo ethtool eth0 | grep Speed</code></pre>
+            </div>
+
+            <h3>Pas 7: Documenta-ho</h3>
+            <p>Crea <code>book/curs/M1/02-raspberry-pi/inventari-hardware.md</code> amb tota la informació recollida.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Saps quin model exacte de RPi tens.</li>
+                <li>☐ Coneixes la freq de la CPU.</li>
+                <li>☐ Has vist la RAM total i l'ús actual.</li>
+                <li>☐ Has mesurat la temperatura.</li>
+                <li>☐ Has documentat la informació a <code>inventari-hardware.md</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/02-raspberry-pi/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>RPi</strong> = SBC (ordinador complet en una placa).</li>
+                <li><strong>CPU</strong> = ARM (arm64).</li>
+                <li><strong>RAM</strong> = 4 GB LPDDR4.</li>
+                <li><strong>Disc</strong> = microSD.</li>
+                <li><strong>Consum</strong> = 5-10 W.</li>
+                <li><strong>Temp crítica</strong> = 85°C.</li>
+                <li><strong>PID 1</strong> = systemd.</li>
+                <li><strong>Alimentació</strong> = USB-C.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>
