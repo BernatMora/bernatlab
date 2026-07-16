@@ -8,7 +8,7 @@
 </head>
 <body>
     <header>
-        <h1>🌱 Cap 10. Casos reals</h1>
+        <h1>🌾 Cap 10. Casos reals de l'Hort Osona</h1>
         <p class="subtitle">Mòdul M7 · Hort Osona en acció</p>
         <nav>
             <a href="../index.html">← Tornar a l'índex</a>
@@ -22,26 +22,220 @@
     <main>
         <section id="resum">
             <h2>📖 Resum del capítol</h2>
-            <p>El resum complet està al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/10-casos-reals/resum.md" target="_blank" rel="noopener">resum.md</a>.</p>
+
+            <h3>La idea clau</h3>
+            <p>Aquest capitol es el <strong>resum practic</strong> de tot el modul M7. Veurem <strong>3 casos reals</strong> que han passat a l'Hort Osona (o horts similars) i com els sensors, el calendari, les alertes i la PWA han ajudat a <strong>detectar, diagnosticar i resoldre</strong> problemes reals. Son exemples d'<strong>enginyeria aplicada</strong>: no nomes tenir dades, sino <strong>actuar</strong> en consequencia.</p>
+            <p>Els 3 casos:</p>
+            <ol>
+                <li><strong>Deteccio de gelada tardana</strong> (abril 2025) - salvar 40 tomàquets.</li>
+                <li><strong>Optimitzacio del reg</strong> (juliol 2025) - estalvi de 30% d'aigua.</li>
+                <li><strong>Alerta de bomba d'aigua avariada</strong> (setembre 2025) - evitar perdua de cultiu.</li>
+            </ol>
+
+            <h3>Cas 1: Gelada tardana del 19 d'abril de 2025</h3>
+            <p><strong>Context</strong>: el 18 d'abril la previsio del Meteocat anunciava -2°C a 850 m. A l'Hort Osona tenim <strong>30 plantes de tomàquet</strong> trasplantades feia 3 dies (massa aviat) i <strong>10 pebrots</strong> al viver.</p>
+            <p><strong>El que van veure els sensors</strong>: a les 22:00 marcava 6°C i queia 0.5°C/h. A les 02:00, 1.2°C. A les 04:30, -0.8°C. A les 06:00, -1.5°C.</p>
+            <p><strong>El que va fer el sistema</strong>:</p>
+            <ol>
+                <li>L'script <code>gelada_watch.py</code> va enviar una <strong>alerta a Telegram</strong> a les 22:00: "Risc de gelada en 6 hores".</li>
+                <li>Vaig cobrir els tomàquets amb <strong>manta termica</strong> i vaig posar <strong>ampolles d'aigua</strong> als pebros del viver. Tambe vaig regar abundantment el sol.</li>
+                <li>A les 06:00, quan el sol va sortir, vaig retirar les mantes. <strong>Cap planta morta</strong>.</li>
+            </ol>
+            <p><strong>Lliçons apreses</strong>:</p>
+            <ul>
+                <li><strong>Les alertes automatiques salven collites</strong>. Sense l'alerta, hauria descobert la gelada al mati.</li>
+                <li><strong>Trasplantar massa aviat es arriscat</strong>. Hauria d'haver esperat fins a finals d'abril.</li>
+                <li><strong>La manta termica val or</strong>. 20€ gastats, 30 plantes salvades.</li>
+                <li><strong>El reg anti-gelada funciona</strong> pero nomes si ja tens un sistema de reg.</li>
+            </ul>
+            <p><strong>Millora al sistema</strong>: despres d'aquest cas vaig afegir <strong>doble font de previsio</strong> (Meteocat + OpenWeather), <strong>alerta a les 18:00</strong> del dia anterior, i <strong> sondeig de T a 5 cm i 50 cm</strong>.</p>
+
+            <h3>Cas 2: Optimitzacio del reg (juliol 2025)</h3>
+            <p><strong>Context</strong>: juliol es el mes mes caloros a Osona (32-36°C). Els tomàquets i pebrots necessiten 4-6 L/m2 al dia. L'hort te 80 m2, amb sensors als sectors A i C pero no als B i D. El reg es per degoteig amb programador a 2 zones.</p>
+            <p><strong>Problema detectat</strong>: les plantes del sector A (tomàquets) es pansien a les 14:00 tot i tenir reg programat a les 06:00 i 20:00. Les fulles es pansien pero es recuperen al vespre. El sector A te <strong>molta mes exposicio al sol de tarda</strong>.</p>
+            <p><strong>Analisi amb sensors</strong>:</p>
+            <ul>
+                <li><strong>00:00 - 06:00</strong>: humitat puja de 35% a 65% (nit).</li>
+                <li><strong>06:00 - 10:00</strong>: baixa de 65% a 50% (matinada).</li>
+                <li><strong>10:00 - 16:00</strong>: baixa de 50% a 28% (sol fort, evapotranspiracio maxima).</li>
+                <li><strong>16:00 - 20:00</strong>: baixa de 28% a 22% (tarda calorosa).</li>
+                <li><strong>20:00 - 24:00</strong>: puja de 22% a 35% (reg automatic).</li>
+            </ul>
+            <p><strong>Conclusio</strong>: les plantes del sector A pateixen <strong>estres hidric a la tarda</strong>. L'humitat baixa de 22% al vespre, per sota del llindar critic (25-30%).</p>
+            <p><strong>Solucio implementada</strong>:</p>
+            <ol>
+                <li><strong>Reg curt a les 14:00</strong> (5 min, 0.5 L/m2) - "refresc".</li>
+                <li><strong>Mulch de palla</strong> de 5 cm al sector A. Redueix l'evaporacio un 40-60%.</li>
+                <li><strong>Augmentar el temps de reg del mati i del vespre</strong> un 20%.</li>
+                <li><strong>Moure el reg a les 05:00 i 21:00</strong> (hores menys caloroses).</li>
+            </ol>
+            <p><strong>Resultats</strong>:</p>
+            <ul>
+                <li>Humitat minima del sector A: de 22% a 35% (millora de 13 punts).</li>
+                <li>Cap planta pansida a la tarda.</li>
+                <li><strong>Consum d'aigua</strong>: de 5.2 a 3.6 L/m2/dia (<strong>estalvi del 30%</strong>).</li>
+                <li><strong>Collita</strong>: 18% mes de tomàquets (menys estrés = mes fruits).</li>
+            </ul>
+            <p><strong>Lliçons</strong>: <strong>mesurar es clau</strong>, <strong>mulch es la inversio mes rendible</strong>, <strong>l'hora del reg importa</strong>, <strong>comparar sectors ajuda</strong>.</p>
+
+            <h3>Cas 3: Bomba d'aigua avariada (setembre 2025)</h3>
+            <p><strong>Context</strong>: el 12 de setembre a les 11:00, el sector A i B es queden sense reg. A les 15:00 rebo una <strong>alerta de Telegram</strong>: "Humitat sector A: 18% (llindar critic 25%). Tendencia: baixa desde les 09:00".</p>
+            <p><strong>Investigacio</strong>: la bomba esta engegada pero no bomba aigua. <strong>S'ha espatllat</strong>. Tinc 2 alternatives: comprar una bomba nova (200€, 3 dies) o regar manual amb manguera. Decideixo <strong>regar manualment</strong> durant 3 dies.</p>
+            <p><strong>L'impacte al sistema</strong>:</p>
+            <ul>
+                <li>Sense sensors hauria trigat mes a detectar el problema.</li>
+                <li>L'alerta automatica va reduir el temps de reaccio de ~6h a &lt;1h.</li>
+                <li>Les plantes del sector A (amb sensors) van rebre aigua manual 2h despres. Van aguantar be.</li>
+                <li>El sector D (sense sensors) va passar 8h sense reg. Es va perdre un 20% de la collita de col de Bruxelles.</li>
+            </ul>
+            <p><strong>Lliçons apreses</strong>:</p>
+            <ul>
+                <li><strong>Alertes automatiques salven collites</strong>. Pero nomes si el sistema es robust.</li>
+                <li><strong>Cal sensors a TOTS els sectors</strong>, no nomes a alguns.</li>
+                <li><strong>Cal un pla B per a la bomba</strong>. Ara tinc una <strong>bomba de recanvi</strong>.</li>
+                <li><strong>L'hortola ha d'estar disponible</strong> per actuar quan arriba l'alerta.</li>
+            </ul>
+            <p><strong>Millora al sistema</strong>: <strong>sensors d'humitat a tots els sectors</strong>, <strong>alerta escalada</strong> (si no hi ha resposta en 30 min, avisa a un amic), <strong>indicador de "bomba activa"</strong> amb GPIO, <strong>registre de regs</strong> a InfluxDB.</p>
+
+            <h3>Comportament general del sistema</h3>
+            <p>Ara que porto <strong>2 anys amb l'Hort Osona</strong> automatitzat, el patro es clar:</p>
+            <ol>
+                <li>Els sensors <strong>recullen dades</strong> (temperatura, humitat, EC, llum).</li>
+                <li>InfluxDB les <strong>emmagatzema</strong> a llarg termini.</li>
+                <li>Grafana mostra els <strong>grafics</strong> de tendencia.</li>
+                <li>Les alertes de Telegram <strong>avisen</strong> quan algo va malament.</li>
+                <li>El calendari <strong>recorda</strong> les feines de cada setmana.</li>
+                <li>La PWA <strong>ho integra tot</strong> en una sola interficie.</li>
+            </ol>
+            <p>Aixi es un <strong>circuit tancat</strong>: detectar -> alertar -> actuar -> mesurar -> aprendre.</p>
+
+            <h3>Patrons que es repeteixen</h3>
+            <p>Despres de 2 anys he vist patrons que es repeteixen:</p>
+            <ul>
+                <li><strong>Gelades tardanes</strong>: sempre a l'abril-maig. Cal estar preparat.</li>
+                <li><strong>Onades de calor</strong>: juliol-agost. Cal anticipar regs.</li>
+                <li><strong>Pluja excessiva</strong>: octubre-novembre. Cal drenatge.</li>
+                <li><strong>Plaques de pugons</strong>: maig i setembre. Cal tractament preventiu.</li>
+                <li><strong>Bolqueda d'enciams</strong>: juny-juliol. Cal canviar a varietats resistents.</li>
+            </ul>
+            <p>Tots aquests patrons son <strong>previsibles</strong> si tens 2-3 anys de dades. El calendari es pot <strong>ajustar</strong> any rere any.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li><strong>M7 Cap 1</strong> - Les dades que recollim son la base de tot.</li>
+                <li><strong>M7 Cap 2</strong> - Els sensors MiFlora detecten els canvis d'humitat.</li>
+                <li><strong>M7 Cap 4</strong> - L'arquitectura permet rebre alertes en temps real.</li>
+                <li><strong>M7 Cap 6</strong> - InfluxDB guarda l'historic que permet veure patrons.</li>
+                <li><strong>M7 Cap 7</strong> - L'API exposa les dades per a la PWA.</li>
+                <li><strong>M7 Cap 8</strong> - La PWA mostra els grafics i les alertes.</li>
+                <li><strong>M7 Cap 9</strong> - El calendari ens recorda les feines.</li>
+            </ul>
+
+            <h3>Conclusio</h3>
+            <p>Aquest modul ha estat un viatge: hem passat de <strong>dades</strong> (cap 1) a <strong>casos reals</strong> (cap 10). L'objectiu final es que la tecnologia <strong>servesqui a l'hortola</strong>, no al reves. Els sensors son una eina, no una finalitat. Si gracies a ells pots dormir mes tranquil, estalviar aigua, o salvar una collita, ja ha valgut la pena.</p>
         </section>
 
         <section id="quiz">
             <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
             <div class="code-block">
                 <p>Per fer el quiz d'aquest capítol:</p>
                 <pre><code>cd C:\Users\iadmin\bernatlab
 .venv\Scripts\python.exe book/curs/quiz.py --m7 10</code></pre>
             </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin es el llindar critic d'humitat del soll per a tomàquet?</li>
+                <li>Quina tecnica s'usa per protegir plantes de gelada alliberant calor latent?</li>
+                <li>Quin es el millor moment del dia per regar en zones caloroses?</li>
+                <li>Quin percentatge d'aigua estalvia el mulch de palla?</li>
+                <li>Quin es el risc principal de trasplantar tomàquets massa aviat?</li>
+                <li>Quin sensor hauria de tenir tots els sectors per detectar fallades de reg?</li>
+                <li>Quin canal es recomana per alertes critiques 24/7?</li>
+                <li>Quants anys de dades calen per veure patrons climatics fiables?</li>
+                <li>(Oberta) Descriu un cas real on els sensors haurien salvat una collita.</li>
+                <li>(Oberta) La bomba s'ha espatllat. Explica el teu pla d'actuacio pas a pas.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
         </section>
 
         <section id="exercici">
             <h2>🛠️ Exercici pràctic (60-90 min)</h2>
-            <p>L'exercici complet està al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/10-casos-reals/exercici.md" target="_blank" rel="noopener">exercici.md</a>.</p>
+            <p>Implementar un <strong>sistema d'alerta de gelada</strong> amb Python, que llegeix el sensor de temperatura i envia una alerta a Telegram. Sistema real que pots aplicar al teu hort.</p>
+
+            <h3>Pas 1: Estructura del projecte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/hort-osona/alertes
+cd ~/hort-osona/alertes
+python3 -m venv .venv
+source .venv/bin/activate
+pip install requests influxdb-client python-dotenv</code></pre>
+            </div>
+
+            <h3>Pas 2: Configuracio del bot de Telegram (5 min)</h3>
+            <p>Crea <code>~/hort-osona/alertes/.env</code> amb el token del bot (de <code>@BotFather</code>), el chat_id, les credencials d'InfluxDB, i les coordenades. <strong>Mai</strong> posis tokens al codi, sempre al <code>.env</code> (afegeix-lo a <code>.gitignore</code>).</p>
+
+            <h3>Pas 3: Script que llegeix la temperatura actual (10 min)</h3>
+            <p>Crea <code>llegir_temperatura.py</code> que utilitzi la llibreria <code>influxdb-client</code> per fer una query Flux a InfluxDB. La query ha de filtrar per measurement <code>ambient</code>, field <code>temp_c</code>, i agafar l'ultim registre.</p>
+
+            <h3>Pas 4: Funcio que avalua el risc de gelada (10 min)</h3>
+            <p>Crea <code>risc_gelada.py</code> amb una funcio que calculi la <strong>tendencia</strong> (pendent de regressio lineal) de les ultimes 6 hores i predigui la temperatura d'aqui a 6 h. Retorna un nivell: <code>alt</code> (&lt;0°C), <code>mig</code> (&lt;2°C), <code>baix</code> (&lt;5°C), o <code>cap</code>.</p>
+
+            <h3>Pas 5: Funcio que envia alerta a Telegram (10 min)</h3>
+            <p>Crea <code>alerta_telegram.py</code> amb un POST a <code>https://api.telegram.org/bot&lt;TOKEN&gt;/sendMessage</code> que enviï un missatge Markdown al chat configurat.</p>
+
+            <h3>Pas 6: Script principal que integra tot (15 min)</h3>
+            <p>Crea <code>gelada_watch.py</code> que integri els 3 moduls anteriors. Ha de:</p>
+            <ul>
+                <li>Executar cada 30 min (bucle amb <code>time.sleep(1800)</code>).</li>
+                <li>Avaluar el risc amb la tendencia.</li>
+                <li>Enviar alerta nomes si puja de nivell o fa mes de 6h del darrer avis.</li>
+                <li>Guardar log a <code>/var/log/hort-gelada.log</code>.</li>
+            </ul>
+
+            <h3>Pas 7: Prova'l amb dades simulades (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Insereix una temperatura baixa a InfluxDB per simular gelada
+influx write -b hort-osona -m ambient -f temp_c=-1.5 --time $(date +%s)000000000
+
+# Executa
+python3 gelada_watch.py --once</code></pre>
+            </div>
+            <p>Hauries de rebre una alerta a Telegram amb el missatge de risc <strong>alt</strong>.</p>
+
+            <h3>Pas 8: Fer-lo correr com a dimoni (5 min)</h3>
+            <p>Crea <code>/etc/systemd/system/hort-gelada.service</code> amb <code>Type=simple</code>, <code>Restart=on-failure</code>, <code>RestartSec=60</code>. Activa'l amb <code>systemctl enable --now</code> i comprova amb <code>journalctl -u hort-gelada.service -f</code>.</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ El script <code>llegir_temperatura.py</code> retorna temperatures valides.</li>
+                <li>☐ El script <code>risc_gelada.py</code> avalua correctament amb dades reals.</li>
+                <li>☐ Has rebut un missatge de test a Telegram.</li>
+                <li>☐ El script <code>gelada_watch.py --once</code> envia una alerta amb risc alt simulat.</li>
+                <li>☐ El servei systemd esta actiu i reinicia automaticament.</li>
+                <li>☐ Les alertes son graduades (baix, mig, alt) i no spam.</li>
+                <li>☐ Tots els secrets estan al <code>.env</code> (no al codi).</li>
+            </ul>
         </section>
 
         <section id="respostes">
             <h2>✅ Respostes</h2>
-            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/10-casos-reals/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M7/10-casos-reals/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Llindar humitat tomàquet</strong> = 25-30%.</li>
+                <li><strong>Calor latent</strong> = regar el sol al vespre.</li>
+                <li><strong>Millor hora reg</strong> = matinades i capvespres.</li>
+                <li><strong>Estalvi mulch</strong> = 40-60%.</li>
+                <li><strong>Risc trasplantar aviat</strong> = gelada tardana.</li>
+                <li><strong>Sensor tots sectors</strong> = humitat del soll.</li>
+                <li><strong>Canal alertes 24/7</strong> = Telegram.</li>
+                <li><strong>Anys per patrons</strong> = 2-3 anys.</li>
+            </ol>
         </section>
     </main>
 
