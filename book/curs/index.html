@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Curs del BernatLab - Raspberry Pi, Docker, IA, Hort Osona. Aprèn al teu ritme.">
+    <title>Curs del BernatLab</title>
+    <link rel="stylesheet" href="curs.css">
+</head>
+<body>
+    <header>
+        <h1>📚 Curs del BernatLab</h1>
+        <p class="subtitle">Aprèn al teu ritme amb resums, qüestionaris i exercicis pràctics</p>
+        <nav>
+            <a href="#moduls">Mòduls</a>
+            <a href="#metode">Mètode</a>
+            <a href="#com-fer">Com fer-lo</a>
+            <a href="https://github.com/BernatMora/bernatlab/tree/main/book/curs" target="_blank" rel="noopener">Codi font ↗</a>
+            <a href="https://bernatmora.github.io/bernatlab/" target="_blank" rel="noopener">BernatLab ↗</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="progres">
+            <h2>📊 El teu progrés</h2>
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat">
+                    <div class="stat-value" id="stat-attempts">0</div>
+                    <div class="stat-label">Quizzos fets</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="stat-correct">0</div>
+                    <div class="stat-label">Encerts</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="stat-percent">0%</div>
+                    <div class="stat-label">Percentatge</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="stat-streak">0</div>
+                    <div class="stat-label">Dies seguits</div>
+                </div>
+            </div>
+            <p class="hint">Les estadístiques es desen al <strong>localStorage</strong> del navegador. Si vols mantenir-les en canviar de dispositiu, fes el quiz per terminal amb <code>quiz.py --stats</code>.</p>
+        </section>
+
+        <section id="metode">
+            <h2>🧠 Mètode d'aprenentatge</h2>
+            <p>Aquest curs aplica el mètode de <strong>repàs espaiat</strong> (spaced repetition) — la ciència cognitiva diu que calen entre 3 i 5 repàs per retenir informació nova. Per cada capítol:</p>
+            <ol>
+                <li><strong>Dia 0</strong> — Llegeix el resum (5-10 min) + fes el quiz per terminal (15-20 min) + fes l'exercici pràctic al teu servidor (20-60 min).</li>
+                <li><strong>Dia 3</strong> — Repassa les preguntes que has fallat.</li>
+                <li><strong>Dia 15</strong> — Fes 3-5 preguntes aleatòries del capítol.</li>
+                <li><strong>Dia 45</strong> — Repassa 3-5 preguntes aleatòries més.</li>
+            </ol>
+            <p>El sistema et preguntarà per les coses just quan les estàs a punt d'oblidar. Així fixes el coneixement a la memòria de llarg termini.</p>
+        </section>
+
+        <section id="com-fer">
+            <h2>🚀 Com fer-lo servir</h2>
+            <div class="code-block">
+                <p><strong>Pas 1.</strong> Clona el BernatLab al teu PC (si no el tens):</p>
+                <pre><code>git clone https://github.com/BernatMora/bernatlab.git
+cd bernatlab</code></pre>
+
+                <p><strong>Pas 2.</strong> Activa el Python virtual:</p>
+                <pre><code># Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+
+# Windows (bash / Git Bash)
+source .venv/Scripts/activate
+
+# macOS / Linux
+source .venv/bin/activate</code></pre>
+
+                <p><strong>Pas 3.</strong> Fes el quiz del capítol que vulguis:</p>
+                <pre><code># Llistar tots els capítols disponibles
+python book/curs/quiz.py --list
+
+# Fer el quiz del M1, capítol 1
+python book/curs/quiz.py --m1 1
+
+# Veure estadístiques globals
+python book/curs/quiz.py --stats
+
+# Repàs espaçat (5 preguntes aleatòries de les que has fallat)
+python book/curs/quiz.py --review</code></pre>
+            </div>
+        </section>
+
+        <section id="moduls">
+            <h2>📖 Mòduls del curs</h2>
+            <p>El curs té 7 mòduls basats en el llibre. Comencem pel <strong>M1 (Fonaments)</strong> que és el pilot.</p>
+
+            <div class="modul" data-module="M1">
+                <div class="modul-header">
+                    <h3>M1 · Fonaments</h3>
+                    <span class="badge badge-progress">En curs · 1/10 capítols</span>
+                </div>
+                <p class="modul-desc">Què és un homelab, la Raspberry Pi 4, Linux bàsic, xarxa i SSH, contenidors, Portainer, Uptime Kuma, Homepage, Git, full de ruta.</p>
+
+                <ul class="capitol-list">
+                    <li class="capitol" data-key="M1/01-que-es-bernatlab">
+                        <a href="M1/01-que-es-bernatlab.html" class="capitol-link">
+                            <strong>Cap 1.</strong> Què és BernatLab
+                        </a>
+                        <span class="capitol-status" data-cap-key="M1/01-que-es-bernatlab">— No fet —</span>
+                    </li>
+                    <li class="capitol coming-soon"><span>Cap 2. La Raspberry Pi 4 per dins</span></li>
+                    <li class="capitol coming-soon"><span>Cap 3. Linux per administrar un servidor</span></li>
+                    <li class="capitol coming-soon"><span>Cap 4. Xarxa, SSH i Tailscale</span></li>
+                    <li class="capitol coming-soon"><span>Cap 5. Docker des de zero</span></li>
+                    <li class="capitol coming-soon"><span>Cap 6. Portainer</span></li>
+                    <li class="capitol coming-soon"><span>Cap 7. Uptime Kuma</span></li>
+                    <li class="capitol coming-soon"><span>Cap 8. Homepage</span></li>
+                    <li class="capitol coming-soon"><span>Cap 9. Git i documentació</span></li>
+                    <li class="capitol coming-soon"><span>Cap 10. Full de ruta del BernatLab</span></li>
+                </ul>
+            </div>
+
+            <div class="modul disabled" data-module="M2">
+                <div class="modul-header">
+                    <h3>M2 · Contenidors</h3>
+                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                </div>
+                <p class="modul-desc">Aprofundint en Docker: contenidors avançats, xarxes, volums, imatges, registre, seguretat.</p>
+            </div>
+
+            <div class="modul disabled" data-module="M3">
+                <div class="modul-header">
+                    <h3>M3 · Dades</h3>
+                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                </div>
+                <p class="modul-desc">Bases de dades, InfluxDB, còpies de seguretat, gestió de fitxers, documentació.</p>
+            </div>
+
+            <div class="modul disabled" data-module="M4">
+                <div class="modul-header">
+                    <h3>M4 · Intel·ligència</h3>
+                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                </div>
+                <p class="modul-desc">Ollama, RAG, models locals, xat amb la teva base de coneixement, embeddings.</p>
+            </div>
+
+            <div class="modul disabled" data-module="M5">
+                <div class="modul-header">
+                    <h3>M5 · Seguretat</h3>
+                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                </div>
+                <p class="modul-desc">SSH avançat, claus, Tailscale, firewall, VPN, fail2ban, actualitzacions.</p>
+            </div>
+
+            <div class="modul disabled" data-module="M6">
+                <div class="modul-header">
+                    <h3>M6 · Operativa</h3>
+                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                </div>
+                <p class="modul-desc">Monitorització 24/7, alertes, manteniment, recuperació, escalat, còpies de seguretat.</p>
+            </div>
+
+            <div class="modul disabled" data-module="M7">
+                <div class="modul-header">
+                    <h3>M7 · Hort Osona</h3>
+                    <span class="badge badge-disabled">Pendent · 0/12</span>
+                </div>
+                <p class="modul-desc">Sistema IoT, sensors LoRa, MQTT, gràfiques, alerts al mòbil, integració amb el BernatLab.</p>
+            </div>
+        </section>
+
+        <section id="per-aprofundir">
+            <h2>🎯 Per aprofundir</h2>
+            <ul>
+                <li><a href="https://github.com/BernatMora/bernatlab/tree/main/book" target="_blank" rel="noopener">Llibre complet al GitHub</a> (562 pàgines, 7 mòduls, 69 capítols)</li>
+                <li><a href="https://bernatmora.github.io/bernatlab/" target="_blank" rel="noopener">Web pública del BernatLab</a></li>
+                <li><a href="https://bernatmora.github.io/hort-osona/" target="_blank" rel="noopener">Hort Osona</a> (la web pública del projecte)</li>
+                <li><a href="https://bernatmora.github.io/bernatlab/book/cheatsheet.html" target="_blank" rel="noopener">Chuleta de comandes</a> (303 comandes)</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p><strong>Curs del BernatLab</strong> · Basat en el llibre "BernatLab — Construint el meu servidor intel·ligent".</p>
+        <p>Generat amb Ollama + Hermes + MiniMax-M3:Cloud. Més informació al <a href="https://github.com/BernatMora/bernatlab/tree/main/book/curs/README.md" target="_blank" rel="noopener">README</a>.</p>
+    </footer>
+
+    <script src="curs.js"></script>
+</body>
+</html>

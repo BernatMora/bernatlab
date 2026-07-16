@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. Què és BernatLab — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📖 Cap 1. Què és BernatLab</h1>
+        <p class="subtitle">Mòdul M1 · Fonaments</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un <strong>homelab</strong> és un servidor personal a casa teva, amb el qual aprens, experimentes i automatitzes coses. El <strong>BernatLab</strong> és l'homelab de Bernat Mora: una Raspberry Pi 4 amb Debian 13, Docker, Tailscale, MQTT, sensors, IA local, i una web pública (Hort Osona).</p>
+
+            <h3>Per què construir un servidor propi?</h3>
+            <p>Tres motius clars:</p>
+            <ol>
+                <li><strong>Aprenentatge real</strong> — Res és tan efectiu com tenir un sistema que funciona a casa teva. Llegeixes sobre Docker, proves Docker, entens Docker.</li>
+                <li><strong>Privadesa</strong> — Les teves dades (temperatura, humitat, fotos, calendaris) són a casa teva, no pas a Google o Amazon.</li>
+                <li><strong>Independència</strong> — No depens de ningú. Si vols canviar una cosa, la canvies. Si vols afegir una cosa, l'afegeixes.</li>
+            </ol>
+
+            <h3>Arquitectura general del BernatLab</h3>
+            <pre><code>┌─────────────────────────────────────────────────────────┐
+│                      Internet                            │
+└────────────────────────┬────────────────────────────────┘
+                         │
+                         ▼
+              ┌──────────────────────┐
+              │       Tailscale       │   ← VPN privada,
+              │   (100.x.x.x IPs)     │     sense obrir
+              │                       │     ports al router
+              └──────────┬───────────┘
+                         │
+                         ▼
+         ┌──────────────────────────────┐
+         │   Raspberry Pi 4 (4 GB RAM)  │
+         │   Debian 13 Lite · arm64     │
+         │   hostname: hortosona        │
+         ├──────────────────────────────┤
+         │                               │
+         │  ┌─────┐  ┌─────┐  ┌──────┐ │
+         │  │Portn│  │Uptm │  │Homep │ │   ← Serveis
+         │  │9443 │  │3001 │  │3000  │ │     Docker
+         │  └─────┘  └─────┘  └──────┘ │
+         │                               │
+         │  ┌─────┐  ┌─────┐  ┌──────┐ │
+         │  │Dockr│  │Tails│  │MQTT  │ │   ← Infra
+         │  └─────┘  └─────┘  └──────┘ │
+         │                               │
+         └──────────────────────────────┘
+</code></pre>
+
+            <h3>Els 7 serveis que ja tens desplegats</h3>
+            <ul>
+                <li><strong>Tailscale</strong> — VPN privada per accedir des de fora.</li>
+                <li><strong>Docker</strong> — Contenidors (aïlla serveis).</li>
+                <li><strong>Portainer</strong> (port 9443) — GUI per gestionar Docker.</li>
+                <li><strong>Uptime Kuma</strong> (port 3001) — Monitorització 24/7.</li>
+                <li><strong>Homepage</strong> (port 3000) — Panell central amb tots els serveis.</li>
+                <li><strong>MQTT</strong> (previst) — Bus de missatges per a sensors.</li>
+                <li><strong>Grafana</strong> (previst) — Gràfiques de sensors.</li>
+            </ul>
+
+            <h3>Filosofia del projecte</h3>
+            <ol>
+                <li><strong>Funcionar abans que semblar bonic</strong> — Millor un sistema lleig que funciona, que un de bonic que no.</li>
+                <li><strong>Documentar-ho tot</strong> — El jo del futur agrairà al jo del passat.</li>
+                <li><strong>Versionar tot el que es pugui</strong> — Git és el millor amic.</li>
+                <li><strong>Iterar sobre els artefactes</strong> — v1 → v2 → v3, sense esperar la perfecció.</li>
+                <li><strong>Validar amb execució real</strong> — No pas prometre; fer.</li>
+            </ol>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 2 — Com és la Raspberry Pi 4 per dins.</li>
+                <li>Cap 3 — Com administrar Linux bàsicament.</li>
+                <li>Cap 4 — Com funciona la xarxa i SSH.</li>
+                <li>Cap 5 — Com funciona Docker (el cor del BernatLab).</li>
+                <li>Caps 6-8 — Els tres serveis principals: Portainer, Uptime Kuma, Homepage.</li>
+                <li>Cap 9 — Com versionar-ho tot amb Git.</li>
+                <li>Cap 10 — El full de ruta complet.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m1 1</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què és un homelab?</li>
+                <li>Quin és el cor del BernatLab?</li>
+                <li>Per què serveix Tailscale al BernatLab?</li>
+                <li>Quants serveis principals té desplegats ara el BernatLab?</li>
+                <li>Veritable o fals: Tots els serveis del BernatLab corren directament sobre la Raspberry Pi, sense virtualització ni contenidors.</li>
+                <li>Quin servei té el port 9443?</li>
+                <li>Quin servei té el port 3001?</li>
+                <li>Emplena el buit: La URL de la web pública d'Hort Osona és https://bernatmora.github.io/______/</li>
+                <li>(Oberta) Explica amb les teves paraules: quina diferència hi ha entre allotjar les teves dades a Google Drive i allotjar-les al teu BernatLab?</li>
+                <li>(Oberta) De la llista de serveis del BernatLab, quin et sembla més important i per què?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Fer un <strong>inventari real del teu BernatLab</strong> — què hi tens, com hi accedeixes, què funciona. Això et servirà com a "foto inicial" del projecte.</p>
+
+            <h3>Pas 1: Comprova la connectivitat (5 min)</h3>
+            <div class="code-block">
+                <pre><code>ssh bernat@hortosona
+# o per IP Tailscale:
+ssh bernat@100.115.134.76</code></pre>
+            </div>
+            <p>Si no pots, comprova:</p>
+            <ul>
+                <li>Està la RPi encesos? (LED verd)</li>
+                <li>Tailscale està actiu? (<code>tailscale status</code>)</li>
+                <li>La xarxa WiFi funciona?</li>
+            </ul>
+
+            <h3>Pas 2: Inventari de serveis (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"</code></pre>
+            </div>
+            <p>Copia la sortida a un document. Hauries de veure almenys 4-5 contenidors.</p>
+
+            <h3>Pas 3: Comprova els serveis (10 min)</h3>
+            <p>Des del navegador, accedeix a cada servei i fes una captura de pantalla:</p>
+            <ul>
+                <li><strong>Homepage</strong>: <a href="http://100.115.134.76:3000" target="_blank" rel="noopener">http://100.115.134.76:3000</a></li>
+                <li><strong>Portainer</strong>: <a href="https://100.115.134.76:9443" target="_blank" rel="noopener">https://100.115.134.76:9443</a></li>
+                <li><strong>Uptime Kuma</strong>: <a href="http://100.115.134.76:3001" target="_blank" rel="noopener">http://100.115.134.76:3001</a></li>
+            </ul>
+
+            <h3>Pas 4: Informació del sistema (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Versio del sistema
+cat /etc/os-release | head -5
+
+# Nucli i arquitectura
+uname -a
+
+# Us de disc
+df -h /
+
+# Us de memoria
+free -h
+
+# Temperatura de la CPU
+vcgencmd measure_temp 2>/dev/null || echo "No tens vcgencmd"</code></pre>
+            </div>
+
+            <h3>Pas 5: Documenta-ho (5-10 min)</h3>
+            <p>Crea un fitxer <code>inventari.md</code> amb tota la informació recollida (pots fer-ho a VS Code).</p>
+
+            <h3>Validació</h3>
+            <p>Has acabat si:</p>
+            <ul>
+                <li>☐ Has pogut accedir a la RPi per SSH.</li>
+                <li>☐ T'ha sortit una llista de contenidors amb <code>docker ps</code>.</li>
+                <li>☐ Has accedit a Homepage, Portainer, i Uptime Kuma.</li>
+                <li>☐ Has recollit la informació del sistema.</li>
+                <li>☐ Has creat el fitxer <code>inventari.md</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M1/01-que-es-bernatlab/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Homelab</strong> = servidor personal a casa.</li>
+                <li><strong>Cor del BernatLab</strong> = Raspberry Pi 4 amb Debian 13.</li>
+                <li><strong>Tailscale</strong> = accedir des de fora sense obrir ports.</li>
+                <li><strong>5 serveis</strong> = Docker, Portainer, Uptime Kuma, Homepage, Tailscale.</li>
+                <li><strong>Fals</strong> = corren dins de contenidors Docker.</li>
+                <li><strong>Port 9443</strong> = Portainer.</li>
+                <li><strong>Port 3001</strong> = Uptime Kuma.</li>
+                <li><strong>hort-osona</strong> = URL d'Hort Osona.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>
