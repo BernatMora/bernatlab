@@ -1,131 +1,205 @@
+﻿# ==========================================================
+# BernatLab - Acces rapid als recursos (versio amb icones)
 # ==========================================================
-# BernatLab - Acces rapid als recursos (versio completa)
-# ==========================================================
-# Obre URLs al navegador per defecte amb un menu interactiu
-# - Curs practic
-# - Guia eines M8
-# - Web publica del BernatLab
-# - Hort Osona
-# - Repo BernatLab
-# - Repo Hort Osona
-# - Totes les URLs de cop
+# Menu visual amb icones Unicode/emoji per una experiencia
+# mes intuïtiva. Inclou 6 URLs + opcio obrir tot.
 # ==========================================================
 
-# URLs
+# Configurar colors i ample de la consola
+$Host.UI.RawUI.WindowTitle = "BernatLab - Menu de recursos"
+
+# URLs amb icones
 $URLs = [ordered]@{
     "1" = @{
-        Nom = "Curs practic"
-        URL = "https://bernatmora.github.io/bernatlab/book/curs/"
-        Desc = "El curs amb tots els capitols, quiz i exercicis"
+        Icona   = "[📚]"
+        Nom     = "Curs practic"
+        URL     = "https://bernatmora.github.io/bernatlab/book/curs/"
+        Desc    = "Tots els capitols, quiz i exercicis"
+        Color   = "Cyan"
     }
     "2" = @{
-        Nom = "Guia eines M8"
-        URL = "https://github.com/BernatMora/bernatlab/blob/main/book/curs/recursos/eines-m8-pas-a-pas.md"
-        Desc = "Document pas a pas per configurar SSH, MobaXterm, etc."
+        Icona   = "[🛠️]"
+        Nom     = "Guia eines M8"
+        URL     = "https://github.com/BernatMora/bernatlab/blob/main/book/curs/recursos/eines-m8-pas-a-pas.md"
+        Desc    = "Configurar SSH, MobaXterm, perfil, etc."
+        Color   = "Yellow"
     }
     "3" = @{
-        Nom = "Web publica BernatLab"
-        URL = "https://bernatmora.github.io/bernatlab/"
-        Desc = "La portada del projecte BernatLab"
+        Icona   = "[🌱]"
+        Nom     = "Web publica BernatLab"
+        URL     = "https://bernatmora.github.io/bernatlab/"
+        Desc    = "La portada del projecte"
+        Color   = "Green"
     }
     "4" = @{
-        Nom = "Web publica Hort Osona"
-        URL = "https://bernatmora.github.io/hort-osona/"
-        Desc = "El projecte public de l'hort amb sensors i dades"
+        Icona   = "[🌿]"
+        Nom     = "Web publica Hort Osona"
+        URL     = "https://bernatmora.github.io/hort-osona/"
+        Desc    = "El projecte public de l'hort amb sensors"
+        Color   = "Magenta"
     }
     "5" = @{
-        Nom = "Repo BernatLab (GitHub)"
-        URL = "https://github.com/BernatMora/bernatlab"
-        Desc = "El codi font del BernatLab"
+        Icona   = "[💻]"
+        Nom     = "Repo BernatLab (GitHub)"
+        URL     = "https://github.com/BernatMora/bernatlab"
+        Desc    = "El codi font del BernatLab"
+        Color   = "Blue"
     }
     "6" = @{
-        Nom = "Repo Hort Osona (GitHub)"
-        URL = "https://github.com/BernatMora/hort-osona"
-        Desc = "El codi font d'Hort Osona"
+        Icona   = "[🌾]"
+        Nom     = "Repo Hort Osona (GitHub)"
+        URL     = "https://github.com/BernatMora/hort-osona"
+        Desc    = "El codi font d'Hort Osona"
+        Color   = "DarkGreen"
     }
     "0" = @{
-        Nom = "Obrir TOTES les URLs"
-        URL = "ALL"
-        Desc = "Obre les 6 finestres alhora"
+        Icona   = "[⚡]"
+        Nom     = "OBRIR TOTES LES URLs"
+        URL     = "ALL"
+        Desc    = "Obre les 6 finestres alhora"
+        Color   = "Red"
     }
 }
 
-# Funcio per obrir una URL al navegador per defecte
+# Funció per obrir una URL
 function Obrir-URL {
-    param([string]$Url)
+    param([string]$Url, [string]$Nom)
     try {
         Start-Process $Url
-        Write-Host "  Oberta: $Url" -ForegroundColor Green
+        Write-Host "  [OK] " -NoNewline -ForegroundColor Green
+        Write-Host "$Nom" -NoNewline -ForegroundColor White
+        Write-Host " - Oberta al navegador" -ForegroundColor Gray
     }
     catch {
-        Write-Host "  Error obrint: $Url" -ForegroundColor Red
-        Write-Host "  $_" -ForegroundColor Red
+        Write-Host "  [ERROR] " -NoNewline -ForegroundColor Red
+        Write-Host "$Nom" -NoNewline -ForegroundColor White
+        Write-Host " - $_" -ForegroundColor Red
     }
 }
 
-# Funcio per mostrar el menu
-function Mostrar-Menu {
+# Funció per dibuixar la capçalera
+function Mostrar-Capcalera {
     Clear-Host
     Write-Host ""
-    Write-Host "============================================" -ForegroundColor Cyan
-    Write-Host "  BernatLab - Acces rapid als recursos" -ForegroundColor Cyan
-    Write-Host "============================================" -ForegroundColor Cyan
+    Write-Host "  ╔══════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "  ║                                              ║" -ForegroundColor Cyan
+    Write-Host "  ║   🌱  B E R N A T L A B  ·  M E N U  🌱   ║" -ForegroundColor Cyan
+    Write-Host "  ║                                              ║" -ForegroundColor Cyan
+    Write-Host "  ║   Servidor personal · Raspberry Pi · Docker  ║" -ForegroundColor DarkCyan
+    Write-Host "  ║   Tailscale · IA · LoRa · Hort Osona         ║" -ForegroundColor DarkCyan
+    Write-Host "  ║                                              ║" -ForegroundColor Cyan
+    Write-Host "  ╚══════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Tria quina URL vols obrir:" -ForegroundColor White
+}
+
+# Funció per mostrar el menu amb icones
+function Mostrar-Menu {
+    Mostrar-Capcalera
+
+    Write-Host "  ┌────────────────────────────────────────────┐" -ForegroundColor DarkGray
+    Write-Host "  │  Recursos disponibles                      │" -ForegroundColor White
+    Write-Host "  └────────────────────────────────────────────┘" -ForegroundColor DarkGray
     Write-Host ""
 
-    foreach ($key in $URLs.Keys | Sort-Object) {
+    foreach ($key in ($URLs.Keys | Sort-Object)) {
         $item = $URLs[$key]
-        Write-Host "  [$key] " -NoNewline -ForegroundColor Yellow
+        Write-Host "  " -NoNewline
+        Write-Host "$($item.Icona) " -NoNewline
+        Write-Host "[$key] " -NoNewline -ForegroundColor $item.Color
         Write-Host "$($item.Nom)" -NoNewline -ForegroundColor White
-        Write-Host " - $($item.Desc)" -ForegroundColor Gray
+        Write-Host "  " -NoNewline
+        Write-Host "$($item.Desc)" -ForegroundColor DarkGray
     }
 
     Write-Host ""
-    Write-Host "  [S] Sortir" -ForegroundColor Yellow
+    Write-Host "  ────────────────────────────────────────────────" -ForegroundColor DarkGray
+    Write-Host "  [S] " -NoNewline -ForegroundColor Yellow
+    Write-Host "Sortir del menu" -ForegroundColor White
+    Write-Host "  ────────────────────────────────────────────────" -ForegroundColor DarkGray
     Write-Host ""
-    $opcio = Read-Host "Opcio"
-    return $opcio
+}
+
+# Funció per mostrar una animacio quan s'obre
+function Animar-Obrint {
+    param([string]$Missatge)
+    Write-Host ""
+    Write-Host "  ⏳ Obrint: " -NoNewline -ForegroundColor Yellow
+    Write-Host "$Missatge" -ForegroundColor White
+    Write-Host ""
+    # Mini animacio de 3 frames
+    $frames = @("[◐]", "[◓]", "[◑]", "[◒]")
+    for ($i = 0; $i -lt 8; $i++) {
+        $frame = $frames[$i % 4]
+        Write-Host "`r  $frame " -NoNewline -ForegroundColor Cyan
+        Start-Sleep -Milliseconds 150
+    }
+    Write-Host "`r  [✓] " -NoNewline -ForegroundColor Green
+    Write-Host "Fet!                  " -ForegroundColor White
 }
 
 # Bucle principal
 $sortir = $false
 while (-not $sortir) {
-    $opcio = Mostrar-Menu
+    Mostrar-Menu
+    $opcio = Read-Host "  ➤ Tria una opcio"
 
     if ($opcio -eq "S" -or $opcio -eq "s") {
-        $sortir = $true
+        Clear-Host
         Write-Host ""
-        Write-Host "Fins aviat!" -ForegroundColor Cyan
+        Write-Host "  ┌────────────────────────────────────────────┐" -ForegroundColor Cyan
+        Write-Host "  │                                            │" -ForegroundColor Cyan
+        Write-Host "  │  👋  Fins aviat!                           │" -ForegroundColor Cyan
+        Write-Host "  │                                            │" -ForegroundColor Cyan
+        Write-Host "  │  Recorda: el BernatLab es al teu           │" -ForegroundColor DarkCyan
+        Write-Host "  │  abast, sempre. 🌱                          │" -ForegroundColor DarkCyan
+        Write-Host "  │                                            │" -ForegroundColor Cyan
+        Write-Host "  └────────────────────────────────────────────┘" -ForegroundColor Cyan
+        Write-Host ""
+        $sortir = $true
         break
     }
 
     if ($URLs.Contains($opcio)) {
         $item = $URLs[$opcio]
-        Write-Host ""
+
         if ($item.URL -eq "ALL") {
-            Write-Host "Obrint TOTES les URLs..." -ForegroundColor Yellow
+            Animar-Obrint "TOTES les URLs (6 finestres)"
             Write-Host ""
+            Write-Host "  ╔══════════════════════════════════════════╗" -ForegroundColor Yellow
+            Write-Host "  ║  Obrint les 6 finestres...               ║" -ForegroundColor Yellow
+            Write-Host "  ╚══════════════════════════════════════════╝" -ForegroundColor Yellow
+            Write-Host ""
+            $i = 1
             foreach ($key in ($URLs.Keys | Where-Object { $_ -ne "0" })) {
-                $u = $URLs[$key].URL
-                Write-Host "[$key] " -NoNewline -ForegroundColor Yellow
-                Obrir-URL $u
+                $u = $URLs[$key]
+                Write-Host "  [$i/6] " -NoNewline -ForegroundColor Cyan
+                Obrir-URL $u.URL $u.Nom
                 Start-Sleep -Seconds 1
+                $i++
             }
+            Write-Host ""
+            Write-Host "  ╔══════════════════════════════════════════╗" -ForegroundColor Green
+            Write-Host "  ║  [✓] Les 6 finestres s'han obert!        ║" -ForegroundColor Green
+            Write-Host "  ╚══════════════════════════════════════════╝" -ForegroundColor Green
         }
         else {
-            Write-Host "Obrint: $($item.Nom)..." -ForegroundColor Yellow
+            Animar-Obrint $item.Nom
             Write-Host ""
-            Obrir-URL $item.URL
+            Obrir-URL $item.URL $item.Nom
+            Write-Host ""
+            Write-Host "  ┌────────────────────────────────────────────┐" -ForegroundColor Green
+            Write-Host "  │  [✓] URL oberta correctament              │" -ForegroundColor Green
+            Write-Host "  └────────────────────────────────────────────┘" -ForegroundColor Green
         }
+
         Write-Host ""
-        Write-Host "Fet!" -ForegroundColor Green
-        Write-Host ""
-        Read-Host "Prem ENTER per tornar al menu (o Ctrl+C per sortir)"
+        Write-Host "  ➤ Prem ENTER per tornar al menu..." -ForegroundColor DarkGray
+        Read-Host | Out-Null
     }
     else {
         Write-Host ""
-        Write-Host "Opcio no valida: '$opcio'" -ForegroundColor Red
+        Write-Host "  [✗] Opcio no valida: '$opcio'" -ForegroundColor Red
+        Write-Host "  ➤ Tria una opcio de la llista." -ForegroundColor DarkGray
         Start-Sleep -Seconds 2
     }
 }
