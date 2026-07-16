@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 5. Registre d'imatges — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📦 Cap 5. Registre d'imatges</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un <strong>registre d'imatges</strong> es un servidor que emmagatzema imatges Docker i les distribueix. Docker Hub es el mes conegut, pero per a un homelab es molt recomanable tenir un <strong>registre privat</strong> per seguretat, velocitat i control.</p>
+
+            <h3>Que es un registre</h3>
+            <p>Un registre es simplement una API HTTP que segueix l'estandard "Docker Registry HTTP API V2". Permet:</p>
+            <ul>
+                <li>Pujar imatges (<code>docker push</code>)</li>
+                <li>Baixar imatges (<code>docker pull</code>)</li>
+                <li>Llistar imatges i tags</li>
+                <li>Esborrar imatges</li>
+                <li>Gestionar permisos (autenticacio)</li>
+            </ul>
+
+            <h3>Docker Hub</h3>
+            <p>El registre public per defecte. Tots hi tenim un compte gratuït.</p>
+            <pre><code>docker login
+docker tag meva-app:1.0 bernatmora/meva-app:1.0
+docker push bernatmora/meva-app:1.0
+docker pull bernatmora/meva-app:1.0</code></pre>
+            <p><strong>Limitacions del pla gratuit</strong>: 1 registre privat, 200 pulls per 6 hores, imatges publiques il·limitades.</p>
+
+            <h3>Registre privat: opcions</h3>
+
+            <h4>1. Docker Registry oficial (la imatge <code>registry</code>)</h4>
+            <p>Es la mes simple. Es un contenidor que només fa de registre.</p>
+            <pre><code>docker run -d -p 5000:5000 --restart=always --name registry \
+  -v /home/pi/registry-data:/var/lib/registry \
+  registry:2</code></pre>
+            <p><strong>Avantatges</strong>: simple, lleuger, perfecte per a homelab. <strong>Desavantatges</strong>: sense UI, sense autenticacio per defecte.</p>
+
+            <h4>2. Harbor</h4>
+            <p>Solucio <strong>completa</strong> de registre. Te UI web, autenticacio LDAP/AD, escaneig de vulnerabilitats, replicacio.</p>
+            <p><strong>Avantatges</strong>: UI, seguretat, integracio LDAP, escaneig de vulnerabilitats. <strong>Desavantatges</strong>: mes pesat, mes complexe.</p>
+
+            <h4>3. GitHub Container Registry (ghcr.io)</h4>
+            <p>Si ja tens codi a GitHub, pots usar el seu registre gratuit.</p>
+            <pre><code>docker login ghcr.io -u bernatmora
+docker tag meva-app:1.0 ghcr.io/bernatmora/meva-app:1.0
+docker push ghcr.io/bernatmora/meva-app:1.0</code></pre>
+
+            <h3>Autenticacio</h3>
+            <p>Sense autenticacio, el registre es obert a tothom. El <code>registry:2</code> oficial porta un sistema basic:</p>
+            <pre><code># Crear usuari amb htpasswd
+docker run --rm --entrypoint htpasswd httpd:2 -Bbn bernat supersecret > auth/htpasswd
+
+# Arrencar amb autenticacio
+docker run -d -p 5000:5000 --restart=always --name registry \
+  -v /home/pi/registry-data:/var/lib/registry \
+  -v $(pwd)/auth:/auth \
+  -e "REGISTRY_AUTH=htpasswd" \
+  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+  -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd" \
+  registry:2
+
+# Login
+docker login raspberry.local:5000</code></pre>
+
+            <h3>TLS: HTTPS es obligatori</h3>
+            <p>Docker nomes permet pujar/baixar imatges a registres HTTPS. Si tens un registre a <code>raspberry.local:5000</code> nomes amb HTTP, has de dir-li a Docker que el confia:</p>
+            <pre><code>{
+  "insecure-registries": ["raspberry.local:5000"]
+}</code></pre>
+            <p>Pero la <strong>recomanacio</strong> es posar HTTPS. Usa Caddy o Traefik com a reverse proxy.</p>
+
+            <h3>Mirror de Docker Hub</h3>
+            <p>Pots configurar un mirror local. El registre oficial pot actuar com a cache:</p>
+            <pre><code>version: 0.1
+proxy:
+  remoteurl: https://registry-1.docker.io</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 1 - Aqui es on van les imatges que construeixes.</li>
+                <li>M2 Cap 4 - Compose pot pujar imatges a registres privats.</li>
+                <li>M2 Cap 6 - Els registres privats son part de l'estrategia de seguretat.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+
+            <div class="code-block">
+                <p>Per fer el quiz:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 5</code></pre>
+            </div>
+
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Quin es el registre public per defecte de Docker?</li>
+                <li>Quina es la imatge Docker oficial per muntar el teu propi registre privat?</li>
+                <li>Per que es recomanable tenir un registre privat?</li>
+                <li>Quina ordre Docker pots fer servir per pujar una imatge al registre?</li>
+                <li>Que passa si intentem fer push a un registre HTTP sense TLS?</li>
+                <li>Quina eina de registre privat te UI web, autenticacio LDAP i escaneig de vulnerabilitats?</li>
+                <li>On es desen les dades del registre <code>registry:2</code> per defecte?</li>
+                <li>Quin fitxer configura les "insecure-registries" a Docker?</li>
+                <li>(Oberta) Per que al BernatLab tindria sentit tenir un registre privat amb un sol node?</li>
+                <li>(Oberta) Compara Docker Hub, ghcr.io i un registre privat propi per a tres casos d'us.</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Muntar un registre Docker privat a la teva RPi, configurar autenticacio, pujar-hi una imatge.</p>
+
+            <h3>Pas 1: Arrenca el registre basic (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/registry-data
+
+docker run -d -p 5000:5000 --restart=always --name registry \
+  -v ~/registry-data:/var/lib/registry \
+  registry:2
+
+curl http://localhost:5000/v2/
+curl http://localhost:5000/v2/_catalog</code></pre>
+            </div>
+
+            <h3>Pas 2: Configura insecure-registries (5 min)</h3>
+            <div class="code-block">
+                <pre><code>hostname -I
+sudo nano /etc/docker/daemon.json</code></pre>
+            </div>
+            <pre><code>{
+  "insecure-registries": ["192.168.1.100:5000"]
+}</code></pre>
+            <div class="code-block">
+                <pre><code>sudo systemctl restart docker
+docker start registry</code></pre>
+            </div>
+
+            <h3>Pas 3: Puja una imatge (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker pull alpine
+docker tag alpine:latest 192.168.1.100:5000/meu-alpine:1.0
+docker push 192.168.1.100:5000/meu-alpine:1.0
+curl http://localhost:5000/v2/_catalog
+curl http://localhost:5000/v2/meu-alpine/tags/list</code></pre>
+            </div>
+
+            <h3>Pas 4: Baixa la imatge (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker rmi 192.168.1.100:5000/meu-alpine:1.0
+docker pull 192.168.1.100:5000/meu-alpine:1.0
+docker run --rm 192.168.1.100:5000/meu-alpine:1.0 echo "Hola!"</code></pre>
+            </div>
+
+            <h3>Pas 5: Autenticacio (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/registry-auth
+docker run --rm --entrypoint htpasswd httpd:2 -Bbn bernat supersecret > ~/registry-auth/htpasswd
+cat ~/registry-auth/htpasswd
+
+docker stop registry
+docker rm registry
+
+docker run -d -p 5000:5000 --restart=always --name registry \
+  -v ~/registry-data:/var/lib/registry \
+  -v ~/registry-auth:/auth \
+  -e "REGISTRY_AUTH=htpasswd" \
+  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+  -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd" \
+  registry:2
+
+curl http://localhost:5000/v2/_catalog
+curl -u bernat:supersecret http://localhost:5000/v2/_catalog</code></pre>
+            </div>
+
+            <h3>Pas 6: Login (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker logout
+docker login 192.168.1.100:5000
+cat ~/.docker/config.json
+docker push 192.168.1.100:5000/meu-alpine:1.0</code></pre>
+            </div>
+
+            <h3>Pas 7: Inspecciona</h3>
+            <div class="code-block">
+                <pre><code>curl -u bernat:supersecret http://localhost:5000/v2/_catalog
+curl -u bernat:supersecret http://localhost:5000/v2/meu-alpine/tags/list
+docker logs registry --tail 50</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has arrencat un registre Docker privat al port 5000.</li>
+                <li>☐ Has configurat insecure-registries per fer-hi accessible.</li>
+                <li>☐ Has pujat una imatge amb <code>docker push</code> i l'has tornat a baixar.</li>
+                <li>☐ Has afegit autenticacio htpasswd i has fet login.</li>
+                <li>☐ Has vist la llista d'imatges al registre amb la API REST.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/05-registre-imatges/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Registre public per defecte</strong> = Docker Hub.</li>
+                <li><strong>Imatge oficial</strong> = <code>registry:2</code>.</li>
+                <li><strong>Privat</strong> = seguretat, velocitat, control.</li>
+                <li><strong>Pujar</strong> = <code>docker push</code>.</li>
+                <li><strong>HTTP</strong> = rebutjat (excepte insecure-registries).</li>
+                <li><strong>Complet</strong> = Harbor.</li>
+                <li><strong>Dades</strong> = <code>/var/lib/registry/</code> dins el contenidor.</li>
+                <li><strong>Config</strong> = <code>/etc/docker/daemon.json</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

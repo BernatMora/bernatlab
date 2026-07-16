@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 6. Embeddings - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔢 Cap 6. Embeddings</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un <strong>embedding</strong> es una llista de numeros (un vector) que representa el significat d'un text. Dues frases amb significat semblant tindran vectors propers; dues frases amb significat diferent tindran vectors allunyats. Es la manera que tenen les maquines de "mesurar" la semblança entre textos, i es el component magic que fa funcionar RAG.</p>
+
+            <h3>Que es exactament un embedding?</h3>
+            <p>Un embedding es un vector de N dimensions (normalment 384, 768, 1024 o 1536) on cada dimensio representa algun aspecte del significat del text. Per exemple:</p>
+            <ul>
+                <li>"El gat dorm al sofà" -&gt; [0.12, -0.34, 0.78, ..., 0.45] (768 numeros)</li>
+                <li>"El moix esta estirat al moble" -&gt; [0.14, -0.32, 0.76, ..., 0.43] (molt semblant!)</li>
+            </ul>
+            <p>Aquests dos vectors son propers perque les frases volen dir el mateix, encara que les paraules siguin diferents.</p>
+
+            <h3>Com es calculen?</h3>
+            <p>Un embedding es calcula passant el text per una <strong>xarxa neuronal</strong> entrenada especificament per aixo:</p>
+            <ul>
+                <li><strong>Word2Vec / GloVe</strong> (antics): un embedding per paraula.</li>
+                <li><strong>Sentence Transformers</strong>: embeddings per frase o paragraf. Estanard actual.</li>
+                <li><strong>OpenAI text-embedding-3-small</strong>: 1536 dimensions, comercial.</li>
+                <li><strong>BGE / E5 / nomic-embed</strong>: models especialitzats, oberts.</li>
+                <li><strong>Ollama embeddings</strong>: integrats a Ollama.</li>
+            </ul>
+
+            <h3>Semblança cosinus</h3>
+            <pre><code>import numpy as np
+
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))</code></pre>
+            <p>El resultat es un numero entre -1 i 1:</p>
+            <ul>
+                <li><strong>1.0</strong>: significat identic.</li>
+                <li><strong>0.7-0.9</strong>: molt semblant.</li>
+                <li><strong>0.4-0.7</strong>: relacionat.</li>
+                <li><strong>0.0-0.4</strong>: poc relacionat.</li>
+                <li><strong>0.0 o menys</strong>: no relacionat o oposat.</li>
+            </ul>
+
+            <h3>Models d'embeddings locals (amb Ollama)</h3>
+            <pre><code>ollama pull nomic-embed-text     # 137M params, 768 dim, molt bo
+ollama pull mxbai-embed-large    # 335M params, 1024 dim, encara millor
+ollama pull all-minilm           # 22M params, 384 dim, rapid</code></pre>
+            <p>Exemple d'us:</p>
+            <pre><code>curl http://localhost:11434/api/embeddings -d '{
+  "model": "nomic-embed-text",
+  "prompt": "Quin temps fa avui a Vic?"
+}'</code></pre>
+
+            <h3>Models d'embeddings amb sentence-transformers</h3>
+            <pre><code>from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
+embeddings = model.encode([
+    "El gat dorm",
+    "El moix esta estirat",
+    "Avui plou a Vic"
+])</code></pre>
+
+            <h3>Dimensions dels embeddings</h3>
+            <table>
+                <tr><th>Model</th><th>Dimensions</th><th>Velocitat</th><th>Qualitat</th></tr>
+                <tr><td>all-MiniLM-L6-v2</td><td>384</td><td>Rapidissima</td><td>Bona</td></tr>
+                <tr><td>all-mpnet-base-v2</td><td>768</td><td>Rapida</td><td>Molt bona</td></tr>
+                <tr><td>nomic-embed-text</td><td>768</td><td>Rapida</td><td>Molt bona</td></tr>
+                <tr><td>mxbai-embed-large</td><td>1024</td><td>Mitjana</td><td>Excel·lent</td></tr>
+                <tr><td>text-embedding-3-large</td><td>3072</td><td>Lenta</td><td>Top</td></tr>
+            </table>
+            <p><strong>Regla</strong>: 768 dimensions es el sweet spot.</p>
+
+            <h3>Com fer una cerca eficient amb embeddings</h3>
+            <ol>
+                <li><strong>Indexacio</strong>: per cada text, calcula el seu embedding i guarda'l.</li>
+                <li><strong>Query</strong>: donada una pregunta, calcula el seu embedding i busca els K mes propers.</li>
+                <li><strong>Filtratge</strong>: un cop tens els top-K, pots filtrar per data, autor, categoria, o re-ranking.</li>
+            </ol>
+
+            <h3>Com triar el model d'embeddings</h3>
+            <ul>
+                <li><strong>Simplicitat</strong>: usa el que ja tens amb Ollama (<code>nomic-embed-text</code>).</li>
+                <li><strong>Maxima qualitat</strong>: <code>mxbai-embed-large</code> o un de HuggingFace especialitzat.</li>
+                <li><strong>Pocs textos</strong> (menys de 1000): la diferencia es poca.</li>
+                <li><strong>Milers de textos</strong>: inverteix en un bon model.</li>
+                <li><strong>Text tecnic</strong>: busca un model entrenat en dades tecniques.</li>
+                <li><strong>Multilingüe</strong>: <code>bge-m3</code> o <code>nomic-embed-text</code>.</li>
+            </ul>
+
+            <h3>Bones practiques</h3>
+            <ul>
+                <li><strong>Normalitza els vectors</strong> abans de calcular semblances.</li>
+                <li><strong>Talla textos massa llargs</strong> (max ~512 tokens per text).</li>
+                <li><strong>Neteja el text</strong> (treu headers, peu de pagina).</li>
+                <li><strong>Guarda metadades</strong> junt amb l'embedding.</li>
+                <li><strong>Re-indexa periodicament</strong>.</li>
+                <li><strong>Fes proves amb validacio</strong>.</li>
+            </ul>
+
+            <h3>Casos d'us al BernatLab</h3>
+            <ul>
+                <li><strong>RAG sobre documentacio</strong>.</li>
+                <li><strong>Cerca de logs semblants</strong>.</li>
+                <li><strong>Clustering de correus</strong>.</li>
+                <li><strong>Deduplicacio de notes</strong>.</li>
+                <li><strong>Recomanacio de scripts</strong>.</li>
+                <li><strong>Classificacio de sensors</strong>.</li>
+            </ul>
+
+            <h3>Limitacions dels embeddings</h3>
+            <ul>
+                <li>No entenen el context complet.</li>
+                <li>Multilinguisme limitat (millor en angles).</li>
+                <li>Cost de calcul: 1000 texts poden trigar minuts sense GPU.</li>
+                <li>Ceguesa a la semantica fina (ironia, sarcasme).</li>
+                <li>No son magics.</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>Cap 5 - RAG usa embeddings per fer la cerca.</li>
+                <li>Cap 7 - Vector databases: on guardem els embeddings.</li>
+                <li>Cap 8 - Pipeline RAG complet.</li>
+                <li>Cap 10 - A l'Hort Osona, els embeddings ens permeten cercar entre milers de lectures.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 6</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Que es un embedding?</li>
+                <li>Quantes dimensions te normalment un embedding modern?</li>
+                <li>Que mesura la "semblança cosinus"?</li>
+                <li>Quin valor de semblança indica "molt semblant"?</li>
+                <li>Quin model d'embeddings local te Ollama?</li>
+                <li>Quina llibreria Python es l'estandard?</li>
+                <li>Dimensions d'all-MiniLM-L6-v2?</li>
+                <li>Sweet spot per dimensions?</li>
+                <li>(Oberta) Per que els embeddings cerquen per significat?</li>
+                <li>(Oberta) Decissions per indexar 10.000 articles tecnics.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (30-45 min)</h2>
+            <p>Practicar amb embeddings de veritat: generar-ne, comparar semblances, i entendre quan funcionen be i quan fallen.</p>
+
+            <h3>Pas 1: Instal·la un model d'embeddings (3 min)</h3>
+            <div class="code-block">
+                <pre><code>ollama pull nomic-embed-text
+ollama list</code></pre>
+            </div>
+
+            <h3>Pas 2: Genera embeddings des de la terminal (5 min)</h3>
+            <div class="code-block">
+                <pre><code>curl -s http://localhost:11434/api/embeddings -d '{
+  "model": "nomic-embed-text",
+  "prompt": "El gat dorm al sofa"
+}' | python3 -c "import json,sys; d=json.load(sys.stdin); print('Dimensions:', len(d['embedding']))"</code></pre>
+            </div>
+
+            <h3>Pas 3: Compara semblances manualment (10 min)</h3>
+            <p>Crea <code>proves.py</code> amb 6 parelles de textos amb diferent grau de semblança. Calcula la semblança cosinus de cada parell. Els resultats coincideixen amb la teva intuicio?</p>
+
+            <h3>Pas 4: Cerca per significat vs paraules (10 min)</h3>
+            <p>Crea <code>cerca_comparada.py</code> amb una base de 10 documents de l'Hort Osona. Fes 4 consultes i observa com els embeddings troben relacions que la cerca per paraules no trobaria.</p>
+
+            <h3>Pas 5: Visualitza amb un heatmap (10 min)</h3>
+            <p>Crea <code>visualitza.py</code> que imprimeix una matriu de semblances entre 8 textos curts. Observa el patro.</p>
+
+            <h3>Pas 6: Documenta conclusions (5 min)</h3>
+            <p>Crea <code>book/curs/M4/06-embeddings/observacions.md</code> amb les teves conclusions.</p>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Has descarregat <code>nomic-embed-text</code>.</li>
+                <li>☐ Has generat embeddings des de la terminal.</li>
+                <li>☐ Has comprovat semblances amb text manual.</li>
+                <li>☐ Has fet una cerca per significat.</li>
+                <li>☐ Has generat la matriu de semblances.</li>
+                <li>☐ Has documentat les teves observacions.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/06-embeddings/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>Embedding</strong> = vector numeric que representa significat.</li>
+                <li><strong>Dimensions</strong> = 384-1536.</li>
+                <li><strong>Cosinus</strong> = semblança entre vectors.</li>
+                <li><strong>Molt semblant</strong> = 0.85.</li>
+                <li><strong>Ollama</strong> = nomic-embed-text.</li>
+                <li><strong>Python</strong> = sentence-transformers.</li>
+                <li><strong>all-MiniLM</strong> = 384 dimensions.</li>
+                <li><strong>Sweet spot</strong> = 768.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

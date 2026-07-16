@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 10. Visualització amb Grafana — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📊 Cap 10. Visualització de dades amb Grafana</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>De què serveixen totes les dades que recollim si no les podem <strong>veure</strong> i <strong>entendre</strong>? Al BernatLab tinc anys de lectures de sensors emmagatzemades a InfluxDB, però si només veig taules SQL o fitxers CSV, no serveix de gaire. Necessito <strong>visualitzacions</strong> que em permetin veure tendències, comparar dies, detectar anomalies.</p>
+            <p><strong>Grafana</strong> és l'eina estàndard per visualitzar dades de sèries temporals. Permet veure la temperatura del meu hivernacle en temps real, comparar amb la setmana passada, i rebre alertes si baixa de 5°C.</p>
+
+            <h3>Què és Grafana?</h3>
+            <p>Grafana és una plataforma de <strong>visualització i monitorització</strong> open source. Permet:</p>
+            <ul>
+                <li>Crear <strong>dashboards</strong> amb gràfics (línies, barres, pastís, mapes de calor, gauges).</li>
+                <li>Connectar-se a <strong>multitud de fonts de dades</strong> (InfluxDB, Prometheus, PostgreSQL, MySQL, Loki, etc.).</li>
+                <li>Fer <strong>alertes</strong> automàticament (avisar si la temperatura baixa de 5°C).</li>
+                <li>Compartir dashboards amb altres.</li>
+                <li>Funciona com a <strong>aplicació web</strong> o app d'escriptori.</li>
+            </ul>
+
+            <h3>Quan usar Grafana</h3>
+            <p>Grafana és la millor opció quan tens <strong>sèries temporals</strong>, necessites <strong>dashboards</strong> visuals, vols <strong>alertes</strong> automàtiques, o tens múltiples fonts de dades per unificar.</p>
+            <p>NO és la millor opció quan les dades no són temporals (millor Metabase) o quan vols fer només una consulta puntual.</p>
+
+            <h3>Instal·lació al BernatLab</h3>
+            <div class="code-block">
+                <pre><code>services:
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: bernatlab-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: bernat
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - /home/pi/bernatlab/grafana/data:/var/lib/grafana
+      - /home/pi/bernatlab/grafana/config:/etc/grafana
+    ports:
+      - "127.0.0.1:3000:3000"</code></pre>
+            </div>
+
+            <h3>Configurar una font de dades (InfluxDB)</h3>
+            <ol>
+                <li>Accedeix a <code>http://localhost:3000</code> (via Tailscale).</li>
+                <li>Login amb les credencials.</li>
+                <li>Ves a <strong>Connections &gt; Data Sources &gt; Add data source</strong>.</li>
+                <li>Selecciona <strong>InfluxDB</strong>.</li>
+                <li>Configura:
+                    <ul>
+                        <li>URL: <code>http://influxdb:8086</code></li>
+                        <li>Organization: <code>bernatlab</code></li>
+                        <li>Token: el token que vas crear a InfluxDB.</li>
+                        <li>Default bucket: <code>hort</code></li>
+                    </ul>
+                </li>
+                <li><strong>Save &amp; test</strong>.</li>
+            </ol>
+
+            <h3>Crear un dashboard</h3>
+            <p>Un <strong>dashboard</strong> és una col·lecció de <strong>panells</strong> (gràfics). Per crear-ne un:</p>
+            <ol>
+                <li>Ves a <strong>Dashboards &gt; New &gt; New dashboard</strong>.</li>
+                <li><strong>Add visualization</strong>.</li>
+                <li>Selecciona la font de dades (InfluxDB).</li>
+                <li>Escriu una consulta <strong>Flux</strong>:
+                    <div class="code-block">
+                        <pre><code>from(bucket: "hort")
+  |&gt; range(start: -24h)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "temperatura")
+  |&gt; aggregateWindow(every: 5m, fn: mean, createEmpty: false)</code></pre>
+                    </div>
+                </li>
+                <li>Selecciona el tipus de gràfic: <strong>Time series</strong> (línia).</li>
+                <li>Guarda el panell.</li>
+                <li>Repeteix per a cada sensor.</li>
+            </ol>
+
+            <h3>Tipus de gràfics útils</h3>
+            <ul>
+                <li><strong>Time series</strong> (línia): la més comuna, ideal per sèries temporals.</li>
+                <li><strong>Bar chart</strong> (barres): per comparar categories.</li>
+                <li><strong>Stat / Big number</strong>: per mostrar un valor prominent.</li>
+                <li><strong>Gauge</strong>: per mostrar un valor respecte a un rang.</li>
+                <li><strong>Heatmap</strong>: per mostrar patrons al llarg del temps.</li>
+                <li><strong>Table</strong>: per mostrar dades tabulades.</li>
+                <li><strong>Pie chart</strong>: per mostrar composició.</li>
+            </ul>
+
+            <h3>Exemples de gràfics per a l'hort</h3>
+
+            <h4>Temperatura última setmana</h4>
+            <div class="code-block">
+                <pre><code>from(bucket: "hort")
+  |&gt; range(start: -7d)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "temperatura")
+  |&gt; aggregateWindow(every: 1h, fn: mean, createEmpty: false)
+  |&gt; yield(name: "temperatura")</code></pre>
+            </div>
+            <p>Tipus: <strong>Time series</strong>, color blau, eix Y en graus.</p>
+
+            <h4>Humitat actual</h4>
+            <div class="code-block">
+                <pre><code>from(bucket: "hort")
+  |&gt; range(start: -1h)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "humitat")
+  |&gt; last()</code></pre>
+            </div>
+            <p>Tipus: <strong>Stat</strong> (gran), color verd.</p>
+
+            <h3>Alertes</h3>
+            <p>Les <strong>alertes</strong> permeten rebre avisos quan alguna dada surt dels límits:</p>
+            <ol>
+                <li>Ves a un panell existent.</li>
+                <li><strong>Edit &gt; Alert &gt; Create alert rule</strong>.</li>
+                <li>Defineix:
+                    <ul>
+                        <li>Condició: <code>temperatura &lt; 5</code> (per sota de 5 graus).</li>
+                        <li>Avaluació cada: <code>1m</code>.</li>
+                        <li>Durant: <code>5m</code> (avisar només si persisteix 5 min).</li>
+                    </ul>
+                </li>
+                <li>Configura el <strong>contact point</strong>: correu, Telegram, Slack, webhook.</li>
+                <li>Guarda.</li>
+            </ol>
+            <p>Al BernatLab tinc configurades alertes per:</p>
+            <ul>
+                <li>Temperatura hivernacle &lt; 2°C (risc de gelades).</li>
+                <li>Humitat sol &lt; 20% (sequera).</li>
+                <li>Nivell del dipòsit &lt; 10% (cal regar urgent).</li>
+                <li>Servidor caigut (pings cada 30s).</li>
+            </ul>
+
+            <h3>Variables i plantilles</h3>
+            <p>Les <strong>variables</strong> permeten fer dashboards dinàmics:</p>
+            <ul>
+                <li><code>$sensor</code>: llista de sensors disponibles.</li>
+                <li><code>$interval</code>: granularitat temporal (1m, 5m, 1h).</li>
+            </ul>
+            <p>Exemple d'una consulta amb variable:</p>
+            <div class="code-block">
+                <pre><code>from(bucket: "hort")
+  |&gt; range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "temperatura")
+  |&gt; filter(fn: (r) =&gt; r.sensor == "$sensor")
+  |&gt; aggregateWindow(every: $interval, fn: mean, createEmpty: false)</code></pre>
+            </div>
+
+            <h3>Bones pràctiques</h3>
+            <ol>
+                <li><strong>Organitza els dashboards per tema</strong>: un per temperatura, un per humitat, etc.</li>
+                <li><strong>Usa variables</strong>: facilita l'anàlisi.</li>
+                <li><strong>Configura alertes</strong> per coses crítiques.</li>
+                <li><strong>Documenta els dashboards</strong>: posa noms clars i descripcions.</li>
+                <li><strong>Exporta regularment</strong>: pots exportar un dashboard com a JSON.</li>
+                <li><strong>Limita el rang temporal per defecte</strong>: no carreguis 5 anys per defecte.</li>
+                <li><strong>Fes servir plantilles oficials</strong>: Grafana té plantilles per casos comuns.</li>
+            </ol>
+
+            <h3>Alternatives a Grafana</h3>
+            <ul>
+                <li><strong>Metabase</strong>: més fàcil d'usar per a no tècnics, però menys potent per sèries temporals.</li>
+                <li><strong>Apache Superset</strong>: orientat a BI empresarial.</li>
+                <li><strong>Chronograf</strong>: la UI oficial d'InfluxDB, però limitada.</li>
+            </ul>
+            <p>Per a un homelab, <strong>Grafana és imbatible</strong>: open source, gratuït, potent, i amb una gran comunitat.</p>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — Les dades són útils quan es poden veure.</li>
+                <li>Cap 6 — InfluxDB és la font de dades més comuna per a Grafana.</li>
+                <li>Cap 5 — També es pot connectar a PostgreSQL.</li>
+                <li>Cap 7 — Els dashboards es poden desar com a JSON.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 10</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin és el port per defecte de Grafana?</li>
+                <li>Quin llenguatge de consultes fa servir Grafana amb InfluxDB 2?</li>
+                <li>Quin tipus de gràfic és millor per a sèries temporals?</li>
+                <li>Què és un "dashboard" a Grafana?</li>
+                <li>Quin tipus de gràfic mostraríeu per a la humitat actual?</li>
+                <li>Què és una alerta a Grafana?</li>
+                <li>Quines fonts de dades pot connectar Grafana?</li>
+                <li>Què és una variable a Grafana?</li>
+                <li>(Oberta) Per què Grafana és millor que veure les dades directament a InfluxDB?</li>
+                <li>(Oberta) Dissenya un dashboard complet per a l'hort amb 5 panells.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-50 min)</h2>
+            <p>Instal·lar Grafana amb Docker, connectar-la a InfluxDB, crear un dashboard amb diversos panells i configurar una alerta.</p>
+
+            <h3>Pas 1: Instal·la Grafana amb Docker (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/grafana/{data,config}
+
+docker run -d --name bernatlab-grafana \
+  -p 127.0.0.1:3000:3000 \
+  -e GF_SECURITY_ADMIN_USER=bernat \
+  -e GF_SECURITY_ADMIN_PASSWORD=bernat2025 \
+  -e GF_INSTALL_PLUGINS="" \
+  -v /home/pi/bernatlab/grafana/data:/var/lib/grafana \
+  -v /home/pi/bernatlab/grafana/config:/etc/grafana \
+  grafana/grafana-oss:latest
+
+sleep 15
+docker ps | grep grafana</code></pre>
+            </div>
+
+            <h3>Pas 2: Accedeix a la UI web (5 min)</h3>
+            <p>Obre <code>http://localhost:3000</code> (via Tailscale). Login: <code>bernat</code> / <code>bernat2025</code>. Canvia la contrasenya!</p>
+
+            <h3>Pas 3: Connecta a InfluxDB (10 min)</h3>
+            <ol>
+                <li><strong>Connections &gt; Data Sources &gt; Add data source &gt; InfluxDB</strong></li>
+                <li>Configura:
+                    <ul>
+                        <li>Query language: <strong>Flux</strong></li>
+                        <li>URL: <code>http://bernatlab-influxdb:8086</code></li>
+                        <li>Organization: <code>bernatlab</code></li>
+                        <li>Token: el token que vas crear al cap 6</li>
+                        <li>Default bucket: <code>hort</code></li>
+                    </ul>
+                </li>
+                <li><strong>Save &amp; test</strong>: hauria de dir "datasource is working".</li>
+            </ol>
+
+            <h3>Pas 4: Crea un panell de temperatura (10 min)</h3>
+            <ol>
+                <li><strong>Dashboards &gt; New &gt; New dashboard</strong></li>
+                <li><strong>Add visualization</strong></li>
+                <li>Font de dades: InfluxDB</li>
+                <li>Codi Flux:
+                    <div class="code-block">
+                        <pre><code>from(bucket: "hort")
+  |&gt; range(start: -24h)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "temperatura")
+  |&gt; aggregateWindow(every: 5m, fn: mean, createEmpty: false)</code></pre>
+                    </div>
+                </li>
+                <li>Tipus: <strong>Time series</strong></li>
+                <li>Títol: "Temperatura últimes 24h"</li>
+                <li>Guarda el panell</li>
+            </ol>
+
+            <h3>Pas 5: Afegeix més panells (10 min)</h3>
+            <p>Repeteix per crear:</p>
+            <ol>
+                <li><strong>Humitat actual</strong>: tipus Stat, consulta:
+                    <div class="code-block">
+                        <pre><code>from(bucket: "hort")
+  |&gt; range(start: -1h)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "humitat")
+  |&gt; last()</code></pre>
+                    </div>
+                </li>
+                <li><strong>Mitjana temperatura 7 dies</strong>: tipus Bar chart, agrega per dia.</li>
+                <li><strong>Gauge d'humitat</strong>: tipus Gauge, amb llindars 0-40 (sec), 40-70 (normal), 70-100 (humit).</li>
+            </ol>
+
+            <h3>Pas 6: Configura una alerta (5 min)</h3>
+            <ol>
+                <li>Edita el panell de temperatura</li>
+                <li><strong>Alert &gt; Create alert rule</strong></li>
+                <li>Condició: <code>WHEN last() IS BELOW 2</code></li>
+                <li>Avaluació: cada 1m durant 5m</li>
+                <li>Contact point: (configura'n un, per exemple webhook a Telegram)</li>
+                <li>Guarda</li>
+            </ol>
+
+            <h3>Pas 7: Exporta el dashboard (5 min)</h3>
+            <ol>
+                <li><strong>Share &gt; Export &gt; View JSON</strong></li>
+                <li>Copia el JSON</li>
+                <li>Desa'l a <code>/home/pi/bernatlab/grafana/dashboards/hort.json</code></li>
+            </ol>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has instal·lat Grafana amb Docker.</li>
+                <li>☐ T'has connectat i has canviat la contrasenya.</li>
+                <li>☐ Has afegit InfluxDB com a font de dades.</li>
+                <li>☐ Has creat un dashboard amb almenys 3 panells.</li>
+                <li>☐ Has configurat una alerta.</li>
+                <li>☐ Has exportat el dashboard a JSON.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/10-visualitzacio/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Port Grafana</strong> = 3000.</li>
+                <li><strong>Llenguatge</strong> = Flux.</li>
+                <li><strong>Time series</strong> = millor per a sèries temporals.</li>
+                <li><strong>Dashboard</strong> = col·lecció de panells.</li>
+                <li><strong>Humitat actual</strong> = Stat / Big number.</li>
+                <li><strong>Alerta</strong> = avís automàtic quan una dada surt dels llindars.</li>
+                <li><strong>Fonts</strong> = InfluxDB, Prometheus, PostgreSQL, etc.</li>
+                <li><strong>Variable</strong> = paràmetre dinàmic ($sensor, $interval).</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

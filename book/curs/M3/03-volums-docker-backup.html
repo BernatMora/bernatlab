@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 3. Backup de volums Docker — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📦 Cap 3. Backup de volums Docker</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Al BernatLab quasi totes les dades viuen dins de <strong>contenidors Docker</strong>: Grafana té els seus dashboards, InfluxDB té les lectures de sensors, Mosquitto té la configuració del broker MQTT, Nextcloud té els fitxers dels usuaris. Si no fas backup dels volums d'aquests contenidors, quan la RPi mori o la SD es corrompi, perds <strong>totes</strong> les dades.</p>
+            <p>La bona notícia és que fer backup dels volums Docker és relativament senzill un cop entens la diferència entre <strong>volums natius</strong> (els gestiona Docker) i <strong>bind mounts</strong> (els gestionaries tu). Els dos es poden backupejar, però el mètode canvia lleugerament.</p>
+
+            <h3>On són les dades dins Docker?</h3>
+            <p>Docker emmagatzema les dades dels seus contenidors de dues maneres:</p>
+            <h4>Volums natius</h4>
+            <p>Docker els gestiona a <code>/var/lib/docker/volumes/</code>. Exemple:</p>
+            <div class="code-block">
+                <pre><code>volumes:
+  - grafana-data:/var/lib/grafana</code></pre>
+            </div>
+            <p><strong>Avantatges</strong>: Docker els pot moure, fer backup amb un sol comando.<br>
+            <strong>Desavantatges</strong>: menys transparents.</p>
+
+            <h4>Bind mounts</h4>
+            <p>Tu especifiques una ruta de l'amfitrió:</p>
+            <div class="code-block">
+                <pre><code>volumes:
+  - /home/pi/bernatlab/grafana:/var/lib/grafana</code></pre>
+            </div>
+            <p><strong>Avantatges</strong>: transparents, pots navegar-hi amb <code>ls</code>.<br>
+            <strong>Desavantatges</strong>: la responsabilitat de backups és teva.</p>
+
+            <h3>Quin mètode al BernatLab?</h3>
+            <p>Al BernatLab faig servir <strong>bind mounts</strong> per quasi tot. Són més transparents, puc navegar per <code>/home/pi/bernatlab/...</code> i veure exactament quines dades tinc. A més a més, els backup amb rsync/restic són trivials: són simplement fitxers en un directori.</p>
+            <p>Només faig servir volums natius per a casos molt específics on el rendiment és crític (per exemple, la base de dades d'InfluxDB té més rendiment amb un volum natiu que amb un bind mount a la SD).</p>
+
+            <h3>Mètodes de backup</h3>
+            <h4>Mètode 1: Aturar el contenidor i copiar</h4>
+            <div class="code-block">
+                <pre><code>docker stop grafana
+sudo tar -czf backup-grafana-$(date +%Y%m%d).tar.gz \
+  /var/lib/docker/volumes/grafana-data/_data/
+docker start grafana</code></pre>
+            </div>
+
+            <h4>Mètode 2: Contenidor temporal</h4>
+            <div class="code-block">
+                <pre><code>docker run --rm \
+  -v grafana-data:/source:ro \
+  -v /tmp/backup:/backup \
+  alpine tar -czf /backup/grafana-$(date +%Y%m%d).tar.gz -C /source .</code></pre>
+            </div>
+
+            <h3>Backups consistents de bases de dades</h3>
+            <p>Aquí rau la trampa. Si fas <code>tar</code> d'un directori de PostgreSQL mentre el servidor està escrivint, el backup pot quedar <strong>inconsistent</strong>. La solució és fer un <strong>dump lògic</strong>:</p>
+            <div class="code-block">
+                <pre><code># Per a PostgreSQL
+docker exec postgres pg_dump -U bernatlab bernatlab | \
+  gzip &gt; /home/pi/bernatlab/backups/postgres-$(date +%Y%m%d).sql.gz
+
+# Per a MySQL/MariaDB
+docker exec mysql mysqldump -u root -p$MYSQL_ROOT_PASSWORD bernatlab | \
+  gzip &gt; /home/pi/bernatlab/backups/mysql-$(date +%Y%m%d).sql.gz</code></pre>
+            </div>
+
+            <h3>Estratègia al BernatLab</h3>
+            <p>Al BernatLab tinc un script <code>/home/pi/bernatlab/scripts/backup-volums.sh</code> que:</p>
+            <ol>
+                <li>Fa un <code>pg_dump</code> de PostgreSQL comprimit.</li>
+                <li>Fa un dump d'InfluxDB.</li>
+                <li>Fa un <code>tar</code> dels bind mounts importants (Grafana, Mosquitto, Nextcloud).</li>
+                <li>Guarda tot a <code>/home/pi/bernatlab/backups/</code>.</li>
+                <li>Deixa que restic s'encarregui de copiar-ho al núvol.</li>
+            </ol>
+            <p>Això s'executa cada nit a les 2 de la matinada amb un cron.</p>
+
+            <h3>Restauració</h3>
+            <p>Restaurar és la part més important. Si no proves mai de restaurar, el teu backup no serveix per a res. Periòdicament (un cop al mes) hauries de:</p>
+            <ol>
+                <li>Agafar un backup recent.</li>
+                <li>Aixecar un contenidor de prova amb ell.</li>
+                <li>Verificar que les dades són correctes.</li>
+                <li>Esborrar el contenidor de prova.</li>
+            </ol>
+            <p>Això és el <strong>DR test</strong> (Disaster Recovery test).</p>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — Per què cal un pla 3-2-1 abans de pensar en volums.</li>
+                <li>Cap 2 — L'eina restic s'aplica per automatitzar els backups.</li>
+                <li>Cap 4 — Com fer backup consistent de SQLite.</li>
+                <li>Cap 5 — Com fer backup consistent de PostgreSQL.</li>
+                <li>Cap 6 — Com fer backup consistent d'InfluxDB.</li>
+                <li>Cap 7 — Automatització amb cron i scripts.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 3</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>On emmagatzema Docker els volums natius per defecte?</li>
+                <li>Quina és la diferència entre un volum natiu i un bind mount?</li>
+                <li>Per què NO es recomana fer <code>tar</code> d'un directori de PostgreSQL actiu?</li>
+                <li>Quina ordre faries servir per fer un dump lògic de PostgreSQL?</li>
+                <li>Quin mètode NO atura el contenidor productiu?</li>
+                <li>Què vol dir "DR test"?</li>
+                <li>Al BernatLab, on es guarden els fitxers de dades dels serveis?</li>
+                <li>Quina NO és bona per fer backup consistent d'una base de dades?</li>
+                <li>(Oberta) Per què és important provar de restaurar els backups?</li>
+                <li>(Oberta) Dissenya un pla de backup per a Grafana, InfluxDB, Mosquitto, Nextcloud i PostgreSQL.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-40 min)</h2>
+            <p>Practicar el backup i la restauració d'un volum Docker real amb PostgreSQL.</p>
+
+            <h3>Pas 1: Crea un contenidor de prova (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker volume create pg-prova
+docker run -d --name pg-prova \
+  -e POSTGRES_PASSWORD=prova123 \
+  -e POSTGRES_DB=hivernacle \
+  -v pg-prova:/var/lib/postgresql/data \
+  postgres:16-alpine
+sleep 10
+docker ps | grep pg-prova</code></pre>
+            </div>
+
+            <h3>Pas 2: Omple'l amb dades (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker exec -it pg-prova psql -U postgres -d hivernacle -c "
+  CREATE TABLE sensors (
+    id SERIAL PRIMARY KEY,
+    nom TEXT,
+    valor REAL,
+    ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+  INSERT INTO sensors (nom, valor) VALUES
+    ('temperatura', 22.5),
+    ('humitat', 65.0),
+    ('llum', 850.0);
+"
+docker exec -it pg-prova psql -U postgres -d hivernacle -c "SELECT * FROM sensors;"</code></pre>
+            </div>
+
+            <h3>Pas 3: Fes un dump lògic (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/backups/prova
+docker exec pg-prova pg_dump -U postgres hivernacle | \
+  gzip &gt; /home/pi/bernatlab/backups/prova/hivernacle-$(date +%Y%m%d).sql.gz
+ls -lh /home/pi/bernatlab/backups/prova/
+zcat /home/pi/bernatlab/backups/prova/hivernacle-*.sql.gz | head -30</code></pre>
+            </div>
+
+            <h3>Pas 4: Copia del volum amb tar (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker stop pg-prova
+sudo tar -czf /home/pi/bernatlab/backups/prova/volum-pg-$(date +%Y%m%d).tar.gz \
+  /var/lib/docker/volumes/pg-prova/_data/
+ls -lh /home/pi/bernatlab/backups/prova/
+docker start pg-prova</code></pre>
+            </div>
+
+            <h3>Pas 5: Simula un desastre (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker rm -f pg-prova
+docker volume rm pg-prova
+docker ps -a | grep pg-prova
+docker volume ls | grep pg-prova</code></pre>
+            </div>
+
+            <h3>Pas 6: Restaura des del dump (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker volume create pg-prova-restaurat
+docker run -d --name pg-restaurat \
+  -e POSTGRES_PASSWORD=prova123 \
+  -e POSTGRES_DB=hivernacle \
+  -v pg-prova-restaurat:/var/lib/postgresql/data \
+  postgres:16-alpine
+sleep 10
+zcat /home/pi/bernatlab/backups/prova/hivernacle-*.sql.gz | \
+  docker exec -i pg-restaurat psql -U postgres -d hivernacle
+docker exec -it pg-restaurat psql -U postgres -d hivernacle -c "SELECT * FROM sensors;"</code></pre>
+            </div>
+
+            <h3>Pas 7: Neteja</h3>
+            <div class="code-block">
+                <pre><code>docker stop pg-restaurat
+docker rm pg-restaurat
+docker volume rm pg-prova-restaurat</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat un contenidor PostgreSQL amb dades reals.</li>
+                <li>☐ Has fet un dump consistent amb <code>pg_dump | gzip</code>.</li>
+                <li>☐ Has entès per què el <code>tar</code> directe és perillós per a BD actives.</li>
+                <li>☐ Has "perdut" el contenidor i el volum a propòsit.</li>
+                <li>☐ Has restaurat el dump i has vist les dades originals.</li>
+                <li>☐ Has après la diferència entre "tinc backup" i "tinc un backup que funciona".</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/03-volums-docker-backup/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Volums natius</strong> = <code>/var/lib/docker/volumes</code>.</li>
+                <li><strong>Volum vs bind mount</strong> = Docker gestiona vs tu tries ruta.</li>
+                <li><strong>tar a BD activa</strong> = inconsistent.</li>
+                <li><strong>Dump PG</strong> = <code>docker exec postgres pg_dump</code>.</li>
+                <li><strong>Sense aturar</strong> = contenidor temporal <code>--rm</code>.</li>
+                <li><strong>DR test</strong> = Disaster Recovery test.</li>
+                <li><strong>BernatLab</strong> = bind mounts a <code>/home/pi/bernatlab/</code>.</li>
+                <li><strong>NO bo per BD</strong> = copiar fitxers mentre el servidor escriu.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

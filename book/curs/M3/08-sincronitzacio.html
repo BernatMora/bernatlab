@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 8. Sincronització de fitxers — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔄 Cap 8. Sincronització de fitxers: Syncthing i rsync</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Hi ha vegades que vols <strong>sincronitzar fitxers</strong> entre dos ordinadors de manera contínua: per exemple, que les fotos del portàtil apareguin automàticament al servidor, o que els documents del servidor estiguin disponibles al teu PC. La còpia manual amb USB ja no escala. En aquest capítol veurem tres eines fonamentals: <strong>Syncthing</strong> (P2P continu), <strong>rsync</strong> (sincronització puntual via SSH) i esmentarem alternatives com Dropbox.</p>
+
+            <h3>Syncthing: sincronització P2P contínua</h3>
+            <p><strong>Syncthing</strong> és una eina de sincronització de fitxers <strong>peer-to-peer</strong> (P2P), contínua i open source:</p>
+            <ul>
+                <li><strong>No passa per cap servidor central</strong> (com Dropbox). Els teus fitxers van directament d'un dispositiu a l'altre.</li>
+                <li><strong>És contínua</strong>: quan modifiques un fitxer a un lloc, apareix automàticament a l'altre.</li>
+                <li><strong>És xifrada</strong>: tota la comunicació és TLS.</li>
+                <li><strong>Multiplataforma</strong>: Windows, macOS, Linux, Android, iOS, FreeBSD.</li>
+            </ul>
+
+            <h4>Quan usar Syncthing</h4>
+            <p>Syncthing és la millor opció quan:</p>
+            <ul>
+                <li>Vols sincronitzar fitxers entre <strong>dos o més</strong> dispositius teus.</li>
+                <li>No vols dependre de cap <strong>núvol extern</strong>.</li>
+                <li>T'agrada el <strong>control total</strong> sobre les teves dades.</li>
+                <li>Necessites <strong>sincronització contínua</strong>.</li>
+            </ul>
+            <p>NO és adequada quan necessites accedir des de qualsevol lloc del món <strong>sense VPN</strong> (millor un núvol real), o quan vols <strong>compatibilitat universal</strong> (Dropbox és més universal).</p>
+
+            <h4>Instal·lació a la RPi</h4>
+            <div class="code-block">
+                <pre><code>services:
+  syncthing:
+    image: linuxserver/syncthing:latest
+    container_name: bernatlab-syncthing
+    restart: unless-stopped
+    hostname: bernatlab
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - /home/pi/bernatlab/syncthing/config:/config
+      - /home/pi/bernatlab/syncthing/data:/data
+      - /home/pi/bernatlab/hort:/hort
+    ports:
+      - 127.0.0.1:8384:8384  # UI
+      - 22000:22000/tcp       # Connexions entrants
+      - 21027:21027/udp       # Discovery</code></pre>
+            </div>
+
+            <h4>Ús</h4>
+            <ol>
+                <li><strong>Afegeix una carpeta compartida</strong>: <code>Add Folder > Folder Path: /hort > Share with devices...</code></li>
+                <li><strong>Afegeix un altre dispositiu</strong>: intercanvieu els "Device ID".</li>
+                <li><strong>Accepta la compartició</strong> a l'altre dispositiu.</li>
+                <li><strong>Sincronització automàtica</strong>: qualsevol canvi es propaga.</li>
+            </ol>
+
+            <h3>rsync: sincronització puntual via SSH</h3>
+            <p><code>rsync</code> és una ordre de 25 anys que sincronitza carpetes <strong>a través de SSH o localment</strong>. És <strong>incremental</strong> (només copia el que ha canviat).</p>
+
+            <h4>Ús bàsic</h4>
+            <div class="code-block">
+                <pre><code># Sincronitzacio local
+rsync -av /origen/ /desti/
+
+# Sincronitzacio remota via SSH
+rsync -av -e ssh /origen/ usuari@host:/desti/
+
+# Opcions utils:
+# -a: archive
+# -v: verbose
+# -z: comprimeix durant el transport
+# --delete: esborra al desti el que ja no es a l'origen
+# --progress: mostra el progres
+# -n: dry-run</code></pre>
+            </div>
+
+            <h4>Exemple pràctic</h4>
+            <div class="code-block">
+                <pre><code># Backup diari a un disc SSD extern
+rsync -av --delete /home/pi/bernatlab/ /mnt/ssd-backup/bernatlab/
+
+# Backup a una maquina remota via SSH
+rsync -avz -e ssh /home/pi/bernatlab/hort/ \
+  pi@nas.local:/volume1/backups/hort/
+
+# Amb dry-run primer
+rsync -avn --delete /home/pi/bernatlab/ /mnt/ssd-backup/bernatlab/</code></pre>
+            </div>
+
+            <h4>Avantatges i inconvenients de rsync</h4>
+            <p><strong>Pros</strong>:</p>
+            <ul>
+                <li>Simple i universal.</li>
+                <li>Incremental.</li>
+                <li>Conserva permisos, dates, estructura.</li>
+                <li>Es pot combinar amb SSH.</li>
+            </ul>
+            <p><strong>Contres</strong>:</p>
+            <ul>
+                <li><strong>Unidireccional</strong>: només A -> B.</li>
+                <li>Sense detecció de conflictes.</li>
+                <li>Sense interfície gràfica.</li>
+            </ul>
+
+            <h3>Dropbox i alternatives modernes</h3>
+            <p>Si vols alguna cosa amb núvol real:</p>
+            <ul>
+                <li><strong>Dropbox</strong>: clàssic, però ara és més car.</li>
+                <li><strong>Google Drive</strong>: 15 GB gratis, privacitat dubtosa.</li>
+                <li><strong>Proton Drive</strong>: 1 GB gratis, xifrat i privat.</li>
+                <li><strong>Tresorit</strong>: xifrat, europeu.</li>
+            </ul>
+            <p>Per a un homelab, la meva recomanació és <strong>no usar aquests serveis</strong> per a dades de l'hort. Millor Syncthing + disc de backup.</p>
+
+            <h3>Estratègia al BernatLab</h3>
+            <p>Al BernatLab faig servir:</p>
+            <ul>
+                <li><strong>Syncthing</strong> per sincronitzar les fotos entre mòbil Android, portàtil i servidor.</li>
+                <li><strong>rsync via cron</strong> per fer una còpia diària a un disc SSD extern.</li>
+                <li><strong>restic</strong> (cap 2) per fer backups al núvol xifrats.</li>
+            </ul>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — La sincronització és una part del 3-2-1.</li>
+                <li>Cap 2 — restic és la millor eina per a la còpia al núvol.</li>
+                <li>Cap 7 — Els fitxers que sincronitzes estan organitzats.</li>
+                <li>Cap 9 — Per sincronitzar fitxers xifrats, Syncthing ja ho fa.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 8</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin protocol fa servir Syncthing per comunicar-se?</li>
+                <li>Quina diferència hi ha entre Syncthing i Dropbox?</li>
+                <li>Quina ordre rsync faries servir per sincronitzar una carpeta local a un servidor remot?</li>
+                <li>Quin port usa la UI web de Syncthing per defecte?</li>
+                <li>Què vol dir l'opció <code>-a</code> de rsync?</li>
+                <li>Quin avantatge té rsync sobre copiar amb cp?</li>
+                <li>Quin inconvenient té rsync respecte a Syncthing?</li>
+                <li>Quina opció de rsync simula el que faria sense fer canvis?</li>
+                <li>(Oberta) Tria entre Syncthing i rsync per sincronitzar 50 GB de fotos del mòbil al servidor.</li>
+                <li>(Oberta) Dissenya una estratègia de sincronització per a un petit negoci amb 3 ordinadors i 1 NAS.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-40 min)</h2>
+            <p>Instal·lar Syncthing, sincronitzar una carpeta entre dos directoris locals, practicar rsync amb dry-run i crear un script cron de sincronització.</p>
+
+            <h3>Pas 1: Crea carpetes de prova (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/proves/sync/origen
+mkdir -p /home/pi/bernatlab/proves/sync/desti
+mkdir -p /home/pi/bernatlab/proves/sync/mobile
+
+# Crea alguns fitxers
+echo "hola desde l'origen" &gt; /home/pi/bernatlab/proves/sync/origen/a.txt
+echo "config 1" &gt; /home/pi/bernatlab/proves/sync/origen/config.json
+ls -la /home/pi/bernatlab/proves/sync/origen</code></pre>
+            </div>
+
+            <h3>Pas 2: Practica rsync (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Primer, dry-run
+rsync -avn /home/pi/bernatlab/proves/sync/origen/ /home/pi/bernatlab/proves/sync/desti/
+
+# Ara la copia real
+rsync -av /home/pi/bernatlab/proves/sync/origen/ /home/pi/bernatlab/proves/sync/desti/
+
+# Comprova
+ls -la /home/pi/bernatlab/proves/sync/desti/
+
+# Modifica l'origen
+echo "fitxer modificat" &gt; /home/pi/bernatlab/proves/sync/origen/b.txt
+rm /home/pi/bernatlab/proves/sync/origen/a.txt
+
+# Torna a sincronitzar amb --delete
+rsync -av --delete /home/pi/bernatlab/proves/sync/origen/ /home/pi/bernatlab/proves/sync/desti/
+
+# Comprova: a.txt hauria d'haver desaparegut, b.txt hi hauria de ser
+ls -la /home/pi/bernatlab/proves/sync/desti/</code></pre>
+            </div>
+
+            <h3>Pas 3: Sincronitzar en xarxa amb rsync+SSH (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Crea un script de sincronitzacio
+cat &gt; /home/pi/bernatlab/scripts/sync-hort.sh &lt;&lt;'EOF'
+#!/bin/bash
+# Sincronitza l'hort a un servidor remot via SSH
+
+ORIGEN="/home/pi/bernatlab/hort/"
+DESTI="pi@nas.local:/volume1/backups/hort/"
+
+rsync -avz --delete -e ssh "$ORIGEN" "$DESTI"
+EOF
+
+chmod +x /home/pi/bernatlab/scripts/sync-hort.sh
+
+# Prova'l (nomes si tens un servidor remot configurat; sino, salta)
+# /home/pi/bernatlab/scripts/sync-hort.sh</code></pre>
+            </div>
+
+            <h3>Pas 4: Instal·la Syncthing amb Docker (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/syncthing/{config,data}
+
+docker run -d --name bernatlab-syncthing \
+  -p 127.0.0.1:8384:8384 \
+  -p 22000:22000/tcp \
+  -p 21027:21027/udp \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e TZ=Europe/Madrid \
+  -v /home/pi/bernatlab/syncthing/config:/config \
+  -v /home/pi/bernatlab/syncthing/data:/data \
+  -v /home/pi/bernatlab/hort:/hort \
+  --hostname=bernatlab \
+  --restart=unless-stopped \
+  linuxserver/syncthing:latest
+
+sleep 10
+docker ps | grep syncthing</code></pre>
+            </div>
+
+            <h3>Pas 5: Configura Syncthing (5 min)</h3>
+            <p>Obre <code>http://localhost:8384</code> (via Tailscale). Ves a <strong>Actions > Show ID</strong>. Copia el Device ID. (En un cas real, l'afegiries a un altre dispositiu; aco nomes per mostrar la UI.)</p>
+
+            <h3>Pas 6: Programa rsync amb cron (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Edita el crontab
+crontab -e
+
+# Afegeix aquesta linia (sincronitza cada dia a les 3 de la matinada):
+0 3 * * * /home/pi/bernatlab/scripts/sync-hort.sh &gt;&gt; /home/pi/bernatlab/logs/sync.log 2&gt;&amp;1
+
+# Comprova
+crontab -l</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has practicat rsync amb dry-run i amb --delete.</li>
+                <li>☐ Has creat un script de sincronització.</li>
+                <li>☐ Has instal·lat Syncthing amb Docker.</li>
+                <li>☐ Has accedit a la UI de Syncthing.</li>
+                <li>☐ Has programat una tasca cron amb rsync.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/08-sincronitzacio/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Syncthing</strong> = P2P xifrat (TLS).</li>
+                <li><strong>Syncthing vs Dropbox</strong> = P2P vs núvol central.</li>
+                <li><strong>rsync</strong> = <code>rsync -av -e ssh origen desti</code>.</li>
+                <li><strong>Port UI Syncthing</strong> = 8384.</li>
+                <li><strong>-a</strong> = archive (preserva tot).</li>
+                <li><strong>Avantatge rsync</strong> = incremental.</li>
+                <li><strong>Inconvenient rsync</strong> = unidireccional.</li>
+                <li><strong>Dry-run</strong> = <code>-n</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

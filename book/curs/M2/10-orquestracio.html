@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 10. Orquestracio — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🎼 Cap 10. Orquestracio</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Quan tens un sol servidor (la RPi del BernatLab), <strong>no necessites orquestracio</strong>. Docker Compose en te prou. Pero quan tens varis servidors o vols alta disponibilitat, cal una eina d'orquestracio. Les dues mes populars son <strong>Docker Swarm</strong> i <strong>Kubernetes</strong>.</p>
+
+            <h3>Que es l'orquestracio</h3>
+            <p>L'orquestracio es la gestio automatitzada de contenidors en <strong>multiples maquines</strong>. Un orquestrador s'encarrega de:</p>
+            <ul>
+                <li><strong>Desplegar</strong> contenidors en el node mes adequat.</li>
+                <li><strong>Escalar</strong> (afegir mes instancies si hi ha mes carrega).</li>
+                <li><strong>Auto-healing</strong> (reiniciar contenidors que fallen).</li>
+                <li><strong>Rolling updates</strong> (actualitzar sense temps d'inactivitat).</li>
+                <li><strong>Service discovery</strong> (trobar on son els serveis).</li>
+                <li><strong>Load balancing</strong> (repartir el tràfic entre instancies).</li>
+                <li><strong>Networking entre nodes</strong> (xarxa que travessa maquines).</li>
+            </ul>
+
+            <h3>Quan necessites orquestracio</h3>
+            <p><strong>No</strong> ho necessitis si:</p>
+            <ul>
+                <li>Tens <strong>un sol node</strong> (una sola RPi, un sol servidor).</li>
+                <li>Tens <strong>pocs serveis</strong> (5-10 contenidors).</li>
+                <li>Tens <strong>baix tràfic</strong> (&lt;1000 peticions/segon).</li>
+                <li>No et cal <strong>alta disponibilitat</strong>.</li>
+            </ul>
+            <p><strong>Si</strong> ho necessites si:</p>
+            <ul>
+                <li>Tens <strong>multiples servidors</strong>.</li>
+                <li>Necessites <strong>alta disponibilitat</strong>.</li>
+                <li>Tens <strong>molts serveis</strong> (20-50 contenidors o mes).</li>
+                <li>Necessites <strong>escalar</strong> automaticament.</li>
+            </ul>
+
+            <h3>Docker Swarm: la opcio "facil"</h3>
+            <p>Docker Swarm es el mode Swarm de Docker. <strong>Ja esta integrat a Docker</strong>.</p>
+
+            <h4>Caracteristiques</h4>
+            <ul>
+                <li><strong>Integrat a Docker</strong>: no cal instal·lar res.</li>
+                <li><strong>Declaratiu amb stacks</strong>: <code>docker stack deploy -c compose.yml stack-name</code>.</li>
+                <li><strong>Rolling updates nadius</strong>.</li>
+                <li><strong>Networking overlay</strong>: xarxa que travessa nodes.</li>
+                <li><strong>Secrets i configs</strong>: integrats.</li>
+                <li><strong>Simplicitat</strong>: el pots aprendre en una tarda.</li>
+            </ul>
+
+            <h4>Cas d'us: cluster de RPi</h4>
+            <pre><code>[Manager]   <- gestiona el cluster
+   |
+   +-- [Worker 1]  <- executa els teus serveis
+   |
+   +-- [Worker 2]  <- executa els teus serveis</code></pre>
+
+            <h3>Kubernetes: la opcio "professional"</h3>
+            <p>Kubernetes (K8s) es l'estandard de la industria. Creat per Google, ara open source.</p>
+
+            <h4>Caracteristiques</h4>
+            <ul>
+                <li><strong>Estandard de la industria</strong>.</li>
+                <li><strong>Molt potent</strong>: rolling updates, auto-scaling, auto-healing.</li>
+                <li><strong>Ecosistema gran</strong>.</li>
+                <li><strong>Multi-cloud</strong>: AWS, GCP, Azure o on-prem.</li>
+                <li><strong>Complex</strong>: corba d'aprenentatge pronunciada.</li>
+                <li><strong>Recursos intensius</strong>: minim 3-5 servidors, 8 GB RAM cada un.</li>
+            </ul>
+
+            <h4>Alternatives a Kubernetes pur</h4>
+            <ul>
+                <li><strong>K3s</strong>: Kubernetes lleuger. ~200 MB. Perfecte per a RPi.</li>
+                <li><strong>K3d</strong>: K3s en contenidors Docker.</li>
+                <li><strong>microK8s</strong>: de Canonical.</li>
+                <li><strong>Minikube</strong>: per a desenvolupament local.</li>
+            </ul>
+
+            <h3>Comparativa</h3>
+            <ul>
+                <li><strong>Dificultat</strong>: Swarm baixa, K8s alta.</li>
+                <li><strong>Recursos minims</strong>: Swarm 1-2 nodes 1 GB, K8s 3-5 nodes 4-8 GB.</li>
+                <li><strong>Ecosistema</strong>: Swarm petit, K8s gegant.</li>
+                <li><strong>Cloud providers</strong>: Swarm limitats, K8s tots.</li>
+                <li><strong>Adequat per homelab</strong>: Swarm si (petit), K8s amb K3s.</li>
+            </ul>
+
+            <h3>Exemple Swarm</h3>
+            <pre><code># Inicialitzar
+docker swarm init
+
+# Desplegar un stack
+docker stack deploy -c docker-compose.yml bernatlab
+
+# Veure serveis
+docker service ls
+
+# Escalar
+docker service scale bernatlab_web=5
+
+# Rolling update
+docker service update --image nginx:1.27 bernatlab_web</code></pre>
+
+            <h3>Exemple K3s</h3>
+            <pre><code># Servidor
+curl -sfL https://get.k3s.io | sh -
+
+# Worker
+curl -sfL https://get.k3s.io | K3S_URL=https://&lt;server&gt;:6443 K3S_TOKEN=&lt;token&gt; sh -
+
+# kubectl ja esta disponible
+kubectl get nodes
+kubectl apply -f deployment.yaml</code></pre>
+
+            <h3>El cami al BernatLab</h3>
+            <p>Si estas content amb el teu homelab actual (una sola RPi), <strong>no et cal orquestracio</strong>. Si vols mes:</p>
+            <ol>
+                <li><strong>Monta un cluster Swarm amb 3 RPi</strong>. Es la opcio mes facil.</li>
+                <li><strong>Prova K3s</strong>. Et dona Kubernetes real amb pocs recursos.</li>
+                <li><strong>Migra serveis individuals</strong> al cluster, mantenint Compose per als serveis simples.</li>
+                <li><strong>Apren kubectl</strong> si vols fer el salt a K8s.</li>
+            </ol>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 1 - Les imatges les pots construir un cop i desplegar-les a molts nodes.</li>
+                <li>M2 Cap 3 - Les xarxes overlay son la base de Swarm.</li>
+                <li>M2 Cap 5 - Els registres privats permeten que tots els nodes accedeixin a les imatges.</li>
+                <li>M2 Cap 7 - Les actualitzacions rolling son natives als orquestradors.</li>
+                <li>M2 Cap 9 - La monitoritzacio es fonamental en un cluster.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+
+            <div class="code-block">
+                <p>Per fer el quiz:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 10</code></pre>
+            </div>
+
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Quina es la funcio principal d'un orquestrador de contenidors?</li>
+                <li>Quin es l'orquestrador mes simple integrat a Docker?</li>
+                <li>Quin es l'estandard de la industria per a orquestracio?</li>
+                <li>Quina es la versio "lleugera" de Kubernetes ideal per a RPi?</li>
+                <li>Quan no necessites cap orquestrador?</li>
+                <li>Que vol dir "alta disponibilitat" en un cluster?</li>
+                <li>Quin es el principal inconvenient de Kubernetes respecte a Swarm?</li>
+                <li>Quantes RPi son el minim recomanable per a un cluster Swarm?</li>
+                <li>(Oberta) Diferencia entre Docker Compose i un orquestrador. Quan canviar?</li>
+                <li>(Oberta) Compara Swarm i K3s per a un BernatLab amb 3 RPi.</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Practicar amb un mini cluster Docker Swarm i investigar K3s.</p>
+
+            <h3>Pas 1: Swarm d'un sol node (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker swarm init
+docker node ls
+docker swarm join-token manager
+docker swarm join-token worker</code></pre>
+            </div>
+
+            <h3>Pas 2: Desplega amb Swarm (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/swarm-test
+cd ~/swarm-test</code></pre>
+            </div>
+            <p>Crea <code>stack.yml</code>:</p>
+            <pre><code>version: "3.8"
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: overlay</code></pre>
+            <div class="code-block">
+                <pre><code>docker stack deploy -c stack.yml swarm-test
+docker service ls
+docker service ps swarm-test_web
+curl http://localhost:8080
+docker service inspect swarm-test_web</code></pre>
+            </div>
+
+            <h3>Pas 3: Escalar (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker service scale swarm-test_web=5
+docker service ps swarm-test_web
+docker service scale swarm-test_web=2
+docker service ps swarm-test_web</code></pre>
+            </div>
+
+            <h3>Pas 4: Rolling update (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker service update --image nginx:1.27-alpine swarm-test_web
+docker service ps swarm-test_web
+docker exec $(docker ps -q -f "name=swarm-test_web") nginx -v</code></pre>
+            </div>
+
+            <h3>Pas 5: Auto-healing (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker service ps swarm-test_web
+CONTAINER=$(docker ps -q -f "name=swarm-test_web" | head -1)
+docker rm -f $CONTAINER
+sleep 5
+docker service ps swarm-test_web</code></pre>
+            </div>
+
+            <h3>Pas 6: Neteja (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker stack rm swarm-test
+docker swarm leave --force
+docker node ls</code></pre>
+            </div>
+
+            <h3>Pas 7: Investiga K3s (opcional) (10 min)</h3>
+            <div class="code-block">
+                <pre><code>curl -sfL https://get.k3s.io | sh -
+sleep 30
+sudo kubectl get nodes
+sudo kubectl create deployment nginx --image=nginx
+sudo kubectl expose deployment nginx --port=80 --type=LoadBalancer
+sudo kubectl get services
+curl http://localhost
+sudo kubectl delete service nginx
+sudo kubectl delete deployment nginx
+/usr/local/bin/k3s-uninstall.sh</code></pre>
+            </div>
+
+            <h3>Pas 8: Reflexio (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker ps --format "{{.Names}}"
+docker stats --no-stream
+hostname</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has inicialitzat i sortit d'un Swarm d'un sol node.</li>
+                <li>☐ Has desplegat un stack amb multiples replicas.</li>
+                <li>☐ Has vist com Swarm fa rolling updates i auto-healing.</li>
+                <li>☐ Has investigat K3s o has decidit que no el necessites ara.</li>
+                <li>☐ Has reflexionat sobre quan et cal orquestracio al BernatLab.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/10-orquestracio/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Orquestrador</strong> = gestio automatica de contenidors en multiples maquines.</li>
+                <li><strong>Integrat a Docker</strong> = Swarm.</li>
+                <li><strong>Estandard</strong> = Kubernetes.</li>
+                <li><strong>K8s lleuger per RPi</strong> = K3s.</li>
+                <li><strong>Sense orquestrador</strong> = 1 node, pocs serveis.</li>
+                <li><strong>Alta disponibilitat</strong> = un node pot caure sense parar el servei.</li>
+                <li><strong>K8s inconvenient</strong> = mes complex i mes recursos.</li>
+                <li><strong>Swarm minim</strong> = 3 RPi.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

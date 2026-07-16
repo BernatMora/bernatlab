@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 3. Xarxes Docker — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🌐 Cap 3. Xarxes Docker</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Cada contenidor Docker te la seva propia interficie de xarxa aillada. Per que es puguin comunicar entre ells i amb el mon exterior, Docker te un sistema de <strong>xarxes virtuals</strong> que es creen i es gestionen amb comandes simples. Sense entendre les xarxes, no pots muntar cap servei decent.</p>
+
+            <h3>Per que calen xarxes</h3>
+            <p>Quan executes un contenidor, per defecte queda aillat de tot. Si tens tres serveis (un web, una API, una base de dades), necessites que:</p>
+            <ul>
+                <li>La base de dades sigui accessible nomes des de l'API (no des de fora).</li>
+                <li>L'API sigui accessible des del web (i nomes des del web).</li>
+                <li>El web sigui accessible des del navegador (des de fora).</li>
+            </ul>
+            <p>Les xarxes Docker resolen això amb <strong>segmentacio i DNS automatic</strong>.</p>
+
+            <h3>Tipus de xarxes</h3>
+            <p>Docker te quatre drivers de xarxa principals:</p>
+
+            <h4>1. Bridge (per defecte)</h4>
+            <p>La xarxa mes comuna. Crea un bridge virtual (com un switch) dins l'amfitrio. Els contenidors que hi son connectats es comuniquen entre ells i tenen acces a l'exterior via NAT.</p>
+            <pre><code># Xarxa bridge per defecte
+docker run --name web nginx
+
+# Xarxa bridge custom (recomanada)
+docker network create xarxa-meva
+docker run --network xarxa-meva --name api node
+docker run --network xarxa-meva --name db postgres</code></pre>
+            <p>Els contenidors a la <strong>mateixa xarxa bridge</strong> es poden resoldre per nom (DNS automatic). Aixo es_or_d_or: pots fer <code>db:5432</code> i Docker ho resol a la IP correcta.</p>
+
+            <h4>2. Host</h4>
+            <p>El contenidor <strong>comparteix la pila de xarxa de l'amfitrio</strong>. No te la seva pròpia IP aillada. Es rapidissim perque no hi ha virtualitzacio, pero es menys segur.</p>
+            <pre><code>docker run --network host nginx
+# Ara nginx escolta directament al port 80 de l'amfitrio</code></pre>
+            <p>Cas d'us: serveis que necessiten molt rendiment de xarxa (DNS resolvers, balancejadors), o quan vols evitar conflictes de ports.</p>
+
+            <h4>3. None</h4>
+            <p>El contenidor <strong>no te xarxa</strong>. Esta completament aillat. Es per a tasques molt especials (processar fitxers sense tocar xarxa, proves de seguretat).</p>
+            <pre><code>docker run --network none alpine</code></pre>
+
+            <h4>4. Overlay</h4>
+            <p>Xarxa que <strong>s'esten entre multiples hosts Docker</strong> (Swarm o Swarm mode). Es la base per a orquestracio. Al BernatLab amb una sola RPi, no la usem.</p>
+            <pre><code>docker network create --driver overlay xarxa-multi-host</code></pre>
+
+            <h3>DNS automatic</h3>
+            <p>Aixo es potser la part mes important. Si tens dos contenidors a la mateixa xarxa bridge custom (<code>api</code> i <code>db</code>), el contenidor <code>api</code> pot fer <code>ping db</code> o conectar a <code>postgres://db:5432</code> i Docker ho resol a la IP correcta.</p>
+            <p>Si els poses a la xarxa bridge per defecte (<code>bridge</code>), nomes es veuen per IP, no per nom. Per això <strong>mai</strong> no posis els serveis productius a la xarxa per defecte.</p>
+
+            <h3>Port mapping</h3>
+            <p>Com accedeix el mon exterior als teus serveis? Amb <code>-p</code> (publish):</p>
+            <pre><code># Mapar port 80 del contenidor al 8080 de l'amfitrio
+docker run -p 8080:80 nginx
+
+# Especificar IP
+docker run -p 127.0.0.1:8080:80 nginx
+
+# Deixar Docker triar el port de l'amfitrio
+docker run -p 80 nginx</code></pre>
+
+            <h3>Cas practic: app web + base de dades</h3>
+            <pre><code># 1. Crear la xarxa
+docker network create app-net
+
+# 2. Arrencar la base de dades
+docker run -d --name db \
+  --network app-net \
+  -e POSTGRES_PASSWORD=secret \
+  postgres:16
+
+# 3. Arrencar l'app web
+docker run -d --name web \
+  --network app-net \
+  -p 8080:80 \
+  -e DATABASE_URL=postgres://db:5432/mydb \
+  meva-app:latest
+
+# 4. Inspeccionar la xarxa
+docker network inspect app-net</code></pre>
+            <p>Fixat com <code>web</code> pot conectar a <code>db:5432</code> nomes per nom, sense saber la IP.</p>
+
+            <h3>Inspeccio de xarxes</h3>
+            <pre><code>docker network ls
+docker network inspect app-net
+docker network connect app-net contenidor-existent
+docker network disconnect app-net contenidor
+docker network rm app-net</code></pre>
+
+            <h3>Xarxes a Docker Compose</h3>
+            <pre><code>version: "3.8"
+services:
+  web:
+    image: nginx
+    ports:
+      - "8080:80"
+  api:
+    image: node
+    networks:
+      - backend
+  db:
+    image: postgres
+    networks:
+      - backend
+networks:
+  backend:
+    driver: bridge</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 2 - Les xarxes son "l'altre costat" dels volums: comparteixen dades vs comparteixen comunicacio.</li>
+                <li>M2 Cap 4 - Compose crea xarxes automaticament.</li>
+                <li>M2 Cap 5 - Els registres es connecten a xarxes privades.</li>
+                <li>M2 Cap 6 - Xarxes aillades es un dels mecanismes de seguretat.</li>
+                <li>M2 Cap 10 - Les xarxes overlay son la base de l'orquestracio.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+
+            <div class="code-block">
+                <p>Per fer el quiz:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 3</code></pre>
+            </div>
+
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Quin driver de xarxa Docker es el que ve per defecte?</li>
+                <li>Quina comanda crea una xarxa bridge custom?</li>
+                <li>Per que es recomana usar xarxes bridge custom en lloc de la bridge per defecte?</li>
+                <li>Que significa <code>--network host</code>?</li>
+                <li>Quan usaries <code>--network none</code>?</li>
+                <li>Quina flag mapeja un port de l'amfitrio a un port del contenidor?</li>
+                <li>Quina comanda llista totes les xarxes Docker?</li>
+                <li>Que fa <code>docker network connect app-net contenidor</code>?</li>
+                <li>(Oberta) Diferencia entre port mapejat amb <code>-p</code> i acces directe entre contenidors de la mateixa xarxa.</li>
+                <li>(Oberta) Segmentacio amb frontend, backend i db: quantes xarxes necessites i quins serveis van a quina?</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Practicar amb xarxes bridge custom, port mapping, DNS automatic i segmentacio de serveis.</p>
+
+            <h3>Pas 1: La xarxa per defecte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker network ls
+docker network inspect bridge
+docker run -d --name test1 alpine sleep 3600
+docker network inspect bridge
+docker exec test1 nslookup google.com
+docker stop test1 && docker rm test1</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea una xarxa custom (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker network create xarxa-test
+docker network inspect xarxa-test
+
+docker run -d --name api --network xarxa-test alpine sleep 3600
+docker run -d --name web --network xarxa-test alpine sleep 3600
+
+docker exec api ping -c 2 web
+docker exec web ping -c 2 api
+docker network inspect xarxa-test</code></pre>
+            </div>
+
+            <h3>Pas 3: Port mapping (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run -d --name web-public -p 8080:80 nginx:alpine
+curl http://localhost:8080
+
+docker run -d --name web-public2 -p 8081:80 nginx:alpine
+curl http://localhost:8081
+
+docker ps --format "table {{.Names}}\t{{.Ports}}"</code></pre>
+            </div>
+
+            <h3>Pas 4: Segmentacio de serveis (15 min)</h3>
+            <div class="code-block">
+                <pre><code>docker network create xarxa-frontend
+docker network create xarxa-backend
+
+docker run -d --name db \
+  --network xarxa-backend \
+  -e POSTGRES_PASSWORD=test \
+  postgres:16-alpine
+
+docker run -d --name backend \
+  --network xarxa-backend \
+  alpine sleep 3600
+docker network connect xarxa-frontend backend
+
+docker run -d --name frontend \
+  --network xarxa-frontend \
+  -p 9090:80 \
+  nginx:alpine
+
+docker exec frontend ping -c 1 backend
+docker exec frontend ping -c 1 db
+docker exec backend ping -c 1 db
+docker exec db ping -c 1 frontend</code></pre>
+            </div>
+
+            <h3>Pas 5: Prova el host network (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run -d --name test-host --network host nginx:alpine
+curl http://localhost
+docker ps --format "table {{.Names}}\t{{.Ports}}"
+docker stop test-host && docker rm test-host</code></pre>
+            </div>
+
+            <h3>Pas 6: Neteja final</h3>
+            <div class="code-block">
+                <pre><code>docker stop $(docker ps -q)
+docker rm $(docker ps -aq)
+docker network rm xarxa-test xarxa-frontend xarxa-backend
+docker network ls</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has vist la xarxa bridge per defecte.</li>
+                <li>☐ Has creat una xarxa custom i has comprovat el DNS automatic.</li>
+                <li>☐ Has fet port mapping de dos serveis alhora.</li>
+                <li>☐ Has aconseguit segmentar frontend, backend i base de dades amb dues xarxes.</li>
+                <li>☐ Has provat el host network.</li>
+                <li>☐ Has netejat tots els recursos.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/03-xarxes-docker/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Driver per defecte</strong> = bridge.</li>
+                <li><strong>Crear xarxa</strong> = <code>docker network create</code>.</li>
+                <li><strong>Xarxes custom</strong> = DNS automatic per nom.</li>
+                <li><strong>host network</strong> = comparteix xarxa de l'amfitrio.</li>
+                <li><strong>none network</strong> = sense cap xarxa.</li>
+                <li><strong>Port mapping</strong> = flag <code>-p</code>.</li>
+                <li><strong>Llistar</strong> = <code>docker network ls</code>.</li>
+                <li><strong>connect</strong> = afegir contenidor a una xarxa existent.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 9. Monitoritzacio de contenidors — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📊 Cap 9. Monitoritzacio de contenidors</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Si tens contenidors en marxa 24/7, necessites <strong>veure que esta passant</strong>: quanta CPU gasten, quanta memoria, quin tràfic de xarxa, quins errors surten als logs. Sense monitoritzacio, estas a cegues.</p>
+
+            <h3>Que cal monitoritzar</h3>
+            <p>Tres dimensions basics:</p>
+            <ol>
+                <li><strong>Recursos de l'amfitrio</strong>: CPU, RAM, disc, xarxa, temperatura de la CPU.</li>
+                <li><strong>Contenidors individuals</strong>: quina part dels recursos consumeix cada un, quants reinicis ha tingut.</li>
+                <li><strong>Aplicacio</strong>: logs, errors, latencia, peticions HTTP, metriques de negoci.</li>
+            </ol>
+
+            <h3>Estadistiques amb docker stats</h3>
+            <pre><code>docker stats
+# Sortida: taula en temps real amb CPU, RAM, xarxa, disc per contenidor
+
+docker stats --no-stream  # nomes un cop
+docker stats web db        # nomes alguns
+docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"</code></pre>
+
+            <h3>Logs</h3>
+            <pre><code>docker logs web             # ultimes linies
+docker logs -f web          # temps real
+docker logs --tail 100 web  # ultim 100
+docker logs --since 10m web # ultims 10 min</code></pre>
+            <p>Configuracio de limits:</p>
+            <pre><code>{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}</code></pre>
+
+            <h3>cAdvisor: monitoritzacio visual</h3>
+            <pre><code>services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    privileged: true</code></pre>
+            <p>A <code>http://raspberry.local:8080</code>: grafiques de CPU/RAM per contenidor, us de xarxa i disc. Pero no guarda historic.</p>
+
+            <h3>Prometheus + Grafana: la combinacio profesional</h3>
+            <ul>
+                <li><strong>Prometheus</strong>: recull metricques i les guarda al llarg del temps.</li>
+                <li><strong>Grafana</strong>: visualitza les metricques en dashboards bonics.</li>
+                <li><strong>Alertmanager</strong>: envia alarmes (email, Slack, etc.) si algo va malament.</li>
+            </ul>
+
+            <h3>Logs centralitzats</h3>
+            <ul>
+                <li><strong>Loki + Promtail</strong> (Grafana): la opcio mes moderna.</li>
+                <li><strong>ELK Stack</strong>: potent pero pesat.</li>
+                <li><strong>Graylog</strong>: alternativa mes lleugera.</li>
+                <li><strong>Dozzle</strong>: eina web lleugera perfecte per a homelab.</li>
+            </ul>
+
+            <h4>Dozzle</h4>
+            <pre><code>services:
+  dozzle:
+    image: amir20/dozzle:latest
+    ports:
+      - "9999:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro</code></pre>
+
+            <h3>Uptime monitoring</h3>
+            <p>Hi ha eines especifiques per saber si els teus serveis responen:</p>
+            <ul>
+                <li><strong>Uptime Kuma</strong>: eina web self-hosted.</li>
+                <li><strong>Healthchecks.io</strong>: servei extern per a cron jobs.</li>
+            </ul>
+            <pre><code>services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime-kuma-data:/app/data</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 6 - Els escaners de vulnerabilitats son part del monitoring.</li>
+                <li>M2 Cap 7 - Les actualitzacions son reaccions a l'observacio.</li>
+                <li>M2 Cap 8 - Els backups son part del monitoring.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+
+            <div class="code-block">
+                <p>Per fer el quiz:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 9</code></pre>
+            </div>
+
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Que mostra <code>docker stats</code>?</li>
+                <li>Quina comanda mostra els logs d'un contenidor?</li>
+                <li>Que es cAdvisor?</li>
+                <li>Quina combinacio es l'estandard de la industria per monitoritzar?</li>
+                <li>Que fa Dozzle?</li>
+                <li>Quina es la funcio d'un healthcheck?</li>
+                <li>Quina eina es recomana per monitoritzar si els serveis responen (uptime)?</li>
+                <li>Quin es el perill de no posar limits als logs?</li>
+                <li>(Oberta) Diferencia entre monitoritzar els recursos i monitoritzar l'aplicacio.</li>
+                <li>(Oberta) Escriu un compose basic amb Prometheus, Grafana, cAdvisor i eines addicionals.</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-60 min)</h2>
+            <p>Muntar una pila de monitoritzacio amb cAdvisor, Dozzle, Uptime Kuma i Prometheus + Grafana (basic).</p>
+
+            <h3>Pas 1: Directori (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/monitoring-test
+cd ~/monitoring-test
+mkdir -p grafana-data prometheus-data</code></pre>
+            </div>
+
+            <h3>Pas 2: compose amb cAdvisor, Dozzle, Uptime Kuma (10 min)</h3>
+            <pre><code>version: "3.8"
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    privileged: true
+    restart: unless-stopped
+
+  dozzle:
+    image: amir20/dozzle:latest
+    ports:
+      - "9999:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime-kuma-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  uptime-kuma-data:</code></pre>
+            <div class="code-block">
+                <pre><code>docker compose up -d
+docker compose ps</code></pre>
+            </div>
+
+            <h3>Pas 3-5: Prova les eines (20 min)</h3>
+            <ul>
+                <li>Obre <code>http://raspberry.local:8080</code> per a cAdvisor.</li>
+                <li>Obre <code>http://raspberry.local:9999</code> per a Dozzle.</li>
+                <li>Obre <code>http://raspberry.local:3001</code> per a Uptime Kuma i configura un monitor.</li>
+            </ul>
+
+            <h3>Pas 6: Afegeix Prometheus + Grafana (15 min)</h3>
+            <p>Afegeix al compose:</p>
+            <pre><code>  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.rootfs=/host'
+    volumes:
+      - /:/host:ro,rslave
+    restart: unless-stopped</code></pre>
+            <p>Crea <code>prometheus.yml</code>:</p>
+            <pre><code>global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']</code></pre>
+            <div class="code-block">
+                <pre><code>docker compose up -d
+docker compose ps</code></pre>
+            </div>
+
+            <h3>Pas 7-8: Verifica i Grafana (15 min)</h3>
+            <ul>
+                <li>Obre <code>http://raspberry.local:9090</code> (Prometheus). Mira "Status" > "Targets".</li>
+                <li>Obre <code>http://raspberry.local:3000</code> (Grafana). Afegeix Prometheus com a data source. Importa el dashboard ID 893.</li>
+            </ul>
+
+            <h3>Pas 9-10: Explora i neteja</h3>
+            <div class="code-block">
+                <pre><code>cd ~/monitoring-test
+docker compose down
+rm -rf ~/monitoring-test</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has vist cAdvisor funcionant i mostrant metricques dels teus contenidors.</li>
+                <li>☐ Has vist Dozzle mostrant logs en temps real.</li>
+                <li>☐ Has configurat Uptime Kuma amb algun monitor.</li>
+                <li>☐ Has vist Prometheus recollint metricques.</li>
+                <li>☐ Has configurat Grafana amb un dashboard de Docker.</li>
+                <li>☐ Has netejat tots els recursos.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/09-monitoritzacio-contenidors/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>docker stats</strong> = CPU, RAM, xarxa, disc en temps real.</li>
+                <li><strong>Logs</strong> = <code>docker logs</code>.</li>
+                <li><strong>cAdvisor</strong> = UI web de metricques dels contenidors.</li>
+                <li><strong>Professional</strong> = Prometheus + Grafana.</li>
+                <li><strong>Dozzle</strong> = UI web de logs.</li>
+                <li><strong>Healthcheck</strong> = comanda per saber si el servei funciona.</li>
+                <li><strong>Uptime</strong> = Uptime Kuma.</li>
+                <li><strong>Logs sense limits</strong> = perill d'omplir el disc.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

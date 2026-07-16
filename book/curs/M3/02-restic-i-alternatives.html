@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 2. Restic i alternatives modernes de backup — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>💾 Cap 2. Restic i alternatives modernes de backup</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un cop tens clar que cal fer còpies de seguretat (cap 1), la pregunta següent és: amb quina eina. Al BernatLab vaig descartar ràpidament les solucions casolanes amb <code>tar</code> i <code>cp</code> perquè són lentes, ocupen molt d'espai (cada backup és una còpia completa) i no tenen verificació ni historial. <strong>Restic</strong> és una eina moderna de backup pensada precisament per a servidors petits: fa còpies incrementals, desduplica, xifra, i permet restaurar una versió concreta d'un fitxer. És l'eina que uso jo per defecte.</p>
+            <p>Però restic no és l'única opció. Hi ha alternatives com <strong>borgbackup</strong> (molt semblant), <strong>rsnapshot</strong> (basat en rsync), <strong>kopia</strong> (cross-platform), o simplement <strong>rsync + cron</strong> (el més bàsic). Cadascuna té els seus pros i contres, i la tria depèn de les teves necessitats.</p>
+
+            <h3>Restic: l'eina estrella</h3>
+            <p>Restic és un programa escrit en Go que fa còpies de seguretat amb aquestes característiques:</p>
+            <ul>
+                <li><strong>Desduplicació</strong>: si un fitxer no ha canviat, no el copia. Si només ha canviat un tros, només copia el tros. Això fa que els backups incrementals siguin molt petits.</li>
+                <li><strong>Xifratge</strong>: tot el backup es xifra amb AES-256 per defecte. Tu només necessites una contrasenya.</li>
+                <li><strong>Compressió</strong>: els fitxers es comprimeixen abans de pujar-los.</li>
+                <li><strong>Versionat</strong>: pots mantenir N versions antigues de cada fitxer.</li>
+                <li><strong>Multi-desti</strong>: pot escriure a un directori local, SFTP, S3 (i Backblaze B2), REST server, etc.</li>
+                <li><strong>Verificació</strong>: <code>restic check</code> verifica que el backup no està corrupte.</li>
+            </ul>
+
+            <h3>Comandes bàsiques</h3>
+            <div class="code-block">
+                <pre><code># Inicialitzar un repo local
+restic -r /mnt/ssd-backup/bernatlab init
+
+# Fer un backup
+restic -r /mnt/ssd-backup/bernatlab backup \
+  /home/pi/bernatlab/configs \
+  /home/pi/bernatlab/dades
+
+# Llistar els snapshots
+restic -r /mnt/ssd-backup/bernatlab snapshots
+
+# Restaurar un snapshot sencer
+restic -r /mnt/ssd-backup/bernatlab restore latest \
+  --target /tmp/restore
+
+# Restaurar un sol fitxer
+restic -r /mnt/ssd-backup/bernatlab restore latest \
+  --target /tmp/restore \
+  --include /home/pi/bernatlab/configs/mosquitto.conf</code></pre>
+            </div>
+
+            <h3>Polítiques de retenció</h3>
+            <p>Aquí és on brilla restic. Pots dir-li: "vull mantenir 7 còpies diàries, 4 setmanals, 6 mensuals":</p>
+            <div class="code-block">
+                <pre><code>restic -r /mnt/ssd-backup/bernatlab forget \
+  --keep-daily 7 \
+  --keep-weekly 4 \
+  --keep-monthly 6 \
+  --prune</code></pre>
+            </div>
+
+            <h3>Borg Backup: l'alternativa més popular</h3>
+            <p><strong>BorgBackup</strong> és similar a restic però més madur i més ràpid en alguns escenaris. Va ser la inspiració de restic.</p>
+            <ul>
+                <li><strong>Desduplicació</strong>: Sí</li>
+                <li><strong>Xifratge</strong>: AES-256 (més opcions)</li>
+                <li><strong>Compressió</strong>: lz4, zstd, zlib</li>
+                <li><strong>Velocitat</strong>: Més ràpid en grans volums</li>
+                <li><strong>Destinacions</strong>: Local, SFTP, SSH</li>
+            </ul>
+            <p>Si comences de zero, <strong>restic és més fàcil</strong> d'aprendre. Si ja tens experiència amb borg, segueix amb borg.</p>
+
+            <h3>rsync: el més bàsic però sovint suficient</h3>
+            <p><code>rsync</code> és una ordre de 25 anys que copia fitxers de manera incremental. No té versionat ni xifratge, però és perfecta per sincronitzar carpetes entre dos ordinadors o fer un backup simple a un disc extern.</p>
+            <div class="code-block">
+                <pre><code># Sincronitzar amb un disc extern
+rsync -av --delete /home/pi/dades/ /mnt/ssd-backup/dades/</code></pre>
+            </div>
+            <p><strong>Pros</strong>: simple, ràpid, ubiqu. <strong>Contres</strong>: sense xifratge, sense versionat, sense verificació automàtica.</p>
+
+            <h3>Kopia: la novetat interessant</h3>
+            <p><strong>Kopia</strong> és un programa modern (2020+) cross-platform (Windows, Mac, Linux), amb GUI opcional, bones polítiques de retenció, i suport per a múltiples destinacions. Encara és relativament jove i té menys documentació.</p>
+
+            <h3>Quina triar al BernatLab?</h3>
+            <p>Al BernatLab faig servir <strong>restic</strong> per això:</p>
+            <ol>
+                <li>És la que millor em convé per fer backups al núvol (Backblaze B2 via S3).</li>
+                <li>Les polítiques de retenció són exactament el que necessito.</li>
+                <li>La desduplicació fa que els backups ocupin poc espai.</li>
+                <li>La verificació em dona tranquilitat.</li>
+            </ol>
+            <p>Per al dia a dia faig servir <strong>rsync</strong> per sincronitzar carpetes entre la RPi i el SSD extern. Restic només s'executa un cop al dia, rsync pot anar cada hora.</p>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — Per què cal una estratègia 3-2-1 abans de triar eina.</li>
+                <li>Cap 3 — Com aplicar restic als volums Docker.</li>
+                <li>Cap 7 — Backups automatitzats amb cron i systemd timers.</li>
+                <li>Cap 9 — Xifratge de backups amb age o GPG.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 2</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quina eina de backup fa servir el BernatLab per defecte?</li>
+                <li>Quina és la principal diferència entre restic i rsync?</li>
+                <li>Quina ordre faries servir per inicialitzar un repo de restic?</li>
+                <li>Quantes còpies de seguretat recomana la regla 3-2-1?</li>
+                <li>Quin és l'avantatge principal de la desduplicació?</li>
+                <li>Quina ordre de restic llista tots els snapshots existents?</li>
+                <li>Quin paràmetre de restic esborra les còpies antigues segons una política?</li>
+                <li>Borg Backup i restic comparteixen quina característica clau?</li>
+                <li>(Oberta) Per què restic és millor que fer <code>cp -r</code> o <code>tar</code>?</li>
+                <li>(Oberta) Compara fer backup al núvol amb rsync vs amb restic + Backblaze B2.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Instal·lar <strong>restic</strong> a la teva Raspberry Pi, crear un repo local, fer el primer backup, restaurar un fitxer, i practicar les polítiques de retenció.</p>
+
+            <h3>Pas 1: Instal·la restic (5 min)</h3>
+            <div class="code-block">
+                <pre><code>restic version
+sudo apt update
+sudo apt install -y restic
+restic version</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea dades de prova (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /tmp/prova-restic/dades
+cd /tmp/prova-restic/dades
+for i in $(seq 1 100); do
+  echo "Dades de prova $i - $(date)" > "fitxer-$i.txt"
+done
+dd if=/dev/urandom of=gran-1.bin bs=1M count=10 2>/dev/null
+dd if=/dev/urandom of=gran-2.bin bs=1M count=10 2>/dev/null
+ls -lh /tmp/prova-restic/dades</code></pre>
+            </div>
+
+            <h3>Pas 3: Inicialitza el repo i fes el primer backup (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /tmp/prova-restic/repo
+export RESTIC_PASSWORD="prova-1234-bona"
+restic -r /tmp/prova-restic/repo init
+restic -r /tmp/prova-restic/repo backup /tmp/prova-restic/dades
+restic -r /tmp/prova-restic/repo snapshots</code></pre>
+            </div>
+
+            <h3>Pas 4: Practica amb backups incrementals (10 min)</h3>
+            <div class="code-block">
+                <pre><code>echo "Modificat $(date)" &gt;&gt; /tmp/prova-restic/dades/fitxer-1.txt
+echo "Nou fitxer" &gt; /tmp/prova-restic/dades/nou-1.txt
+restic -r /tmp/prova-restic/repo backup /tmp/prova-restic/dades
+# El "added to repo" hauria de ser molt més petit</code></pre>
+            </div>
+
+            <h3>Pas 5: Restaura un fitxer (5 min)</h3>
+            <div class="code-block">
+                <pre><code>rm /tmp/prova-restic/dades/gran-1.bin
+mkdir -p /tmp/prova-restic/restaurat
+restic -r /tmp/prova-restic/repo restore latest \
+  --target /tmp/prova-restic/restaurat \
+  --include /tmp/prova-restic/dades/gran-1.bin
+ls -lh /tmp/prova-restic/restaurat/tmp/prova-restic/dades/gran-1.bin</code></pre>
+            </div>
+
+            <h3>Pas 6: Polítiques de retenció (10 min)</h3>
+            <div class="code-block">
+                <pre><code>for i in 1 2 3 4 5; do
+  echo "iteracio $i - $(date)" &gt; /tmp/prova-restic/dades/iteracio-$i.txt
+  restic -r /tmp/prova-restic/repo backup /tmp/prova-restic/dades &gt; /dev/null
+  sleep 1
+done
+restic -r /tmp/prova-restic/repo snapshots
+restic -r /tmp/prova-restic/repo forget --keep-daily 3 --prune
+restic -r /tmp/prova-restic/repo snapshots</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has instal·lat restic correctament.</li>
+                <li>☐ Has inicialitzat un repo.</li>
+                <li>☐ Has fet almenys 2 backups i has vist que el segon és més petit.</li>
+                <li>☐ Has restaurat un fitxer esborrat amb èxit.</li>
+                <li>☐ Has aplicat una política de retenció i has vist que s'esborren snapshots antics.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/02-restic-i-alternatives/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Eina</strong> = restic.</li>
+                <li><strong>restic vs rsync</strong> = restic té desduplicació, xifratge i versionat.</li>
+                <li><strong>Init</strong> = <code>restic -r /repo init</code>.</li>
+                <li><strong>3-2-1</strong> = 3 còpies.</li>
+                <li><strong>Desduplicació</strong> = estalvia espai.</li>
+                <li><strong>Llistar</strong> = <code>restic snapshots</code>.</li>
+                <li><strong>Retenció</strong> = <code>--keep-daily</code> amb <code>forget</code>.</li>
+                <li><strong>Borg + restic</strong> = desduplicació, xifratge, incrementals.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

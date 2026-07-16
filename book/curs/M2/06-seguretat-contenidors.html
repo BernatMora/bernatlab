@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 6. Seguretat de contenidors — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔒 Cap 6. Seguretat de contenidors</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un contenidor Docker <strong>no es un sandbox perfecte</strong>. Per defecte, un contenidor te mes privilegis dels que necessita: s'executa com a root, te capabilities del kernel Linux, pot muntar sistemes de fitxers, etc. Cal aplicar mesures de <strong>defensa en profunditat</strong>.</p>
+
+            <h3>Defensa en profunditat</h3>
+            <p>No n'hi ha prou amb una sola mesura. Cal combinar-ne varies:</p>
+            <ul>
+                <li>Imatge minima i actualitzada</li>
+                <li>Usuari no-root</li>
+                <li>Capabilities minimes</li>
+                <li>Read-only filesystem</li>
+                <li>Xarxa aillada</li>
+                <li>Limitar recursos (CPU, RAM)</li>
+                <li>Sense privilegis</li>
+                <li>Seccomp / AppArmor</li>
+            </ul>
+
+            <h3>1. Usuari no-root</h3>
+            <p>Per defecte, Docker executa els contenidors com a <strong>root</strong> (UID 0). Si un atacant explota el contenidor, sera root a dins.</p>
+            <pre><code># Definir-ho al run
+docker run --user 1000:1000 meva-app
+
+# O al Dockerfile
+FROM python:3.12-slim
+USER 1000</code></pre>
+            <p><strong>Truc important</strong>: abans de <code>USER</code>, copia els fitxers amb els permisos correctes:</p>
+            <pre><code>FROM python:3.12-slim
+WORKDIR /app
+COPY --chown=1000:1000 . .
+RUN pip install ...
+USER 1000
+CMD ["python", "app.py"]</code></pre>
+
+            <h3>2. Capabilities de Linux</h3>
+            <p>Les <strong>capabilities</strong> son permisos especials que tradicionalment nomes te root. Docker ja en treu moltes per defecte, pero pots ser mes estricte:</p>
+            <pre><code># Treure totes
+docker run --cap-drop=ALL meva-app
+
+# Treure totes pero afegir nomes les que necessites
+docker run --cap-drop=ALL --cap-add=NET_BIND_SERVICE meva-app</code></pre>
+
+            <h3>3. Read-only filesystem</h3>
+            <p>El sistema de fitxers del contenidor es normalment escribible. Pots fer-lo nomes de lectura:</p>
+            <pre><code>docker run --read-only meva-app</code></pre>
+            <p>Aixi, el contenidor nomes pot escriure a volums muntats, tmpfs o la xarxa.</p>
+            <p>Pero moltes apps necessiten escriure a /tmp. Solucio: muntar tmpfs:</p>
+            <pre><code>docker run --read-only --tmpfs /tmp:rw,noexec,nosuid meva-app</code></pre>
+
+            <h3>4. Mode privilegiat</h3>
+            <p>Docker te un mode <strong>privileged</strong> que dona al contenidor quasi tots els privilegis de l'amfitrio:</p>
+            <pre><code>docker run --privileged meva-app
+# AIXO ES PERILLOS. NO HO FACIS MAI.</code></pre>
+
+            <h3>5. Seccomp (secure computing mode)</h3>
+            <p>Seccomp es un mecanisme del kernel Linux que <strong>filtra les syscalls</strong> que un proces pot fer. Docker ja l'aplica per defecte amb un perfil segur.</p>
+            <pre><code>docker run alpine grep Seccomp /proc/self/status
+# Seccomp: 2 (mode filter)</code></pre>
+
+            <h3>6. No-new-privileges</h3>
+            <p>Aquesta opcio evita que un procés dins el contenidor <strong>adquireixi nous privilegis</strong> (per exemple, amb <code>setuid</code>):</p>
+            <pre><code>docker run --security-opt=no-new-privileges meva-app</code></pre>
+
+            <h3>7. Xarxa aillada</h3>
+            <p>Usa xarxes custom per a que els serveis nomes estiguin exposats on toca.</p>
+
+            <h3>8. Escaner de vulnerabilitats</h3>
+            <p>Docker te una eina integrada per analitzar vulnerabilitats conegudes:</p>
+            <pre><code>docker scan nginx:alpine</code></pre>
+            <p>Alternativa mes potent: <strong>Trivy</strong>:</p>
+            <pre><code>sudo apt install -y trivy
+trivy image nginx:alpine
+trivy image --severity HIGH,CRITICAL nginx:alpine</code></pre>
+
+            <h3>9. Limitar recursos</h3>
+            <p>Un contenidor pot consumir tota la CPU/RAM de l'amfitrio si no el limites:</p>
+            <pre><code>docker run --memory=512m --cpus=1.0 meva-app</code></pre>
+
+            <h3>10. Rootless Docker</h3>
+            <p>L'opcio <strong>mes segura</strong>: executar el dimoni Docker sense root a l'amfitrio.</p>
+            <pre><code>sudo apt install -y uidmap dbus-user-session
+dockerd-rootless-setuptool.sh install</code></pre>
+
+            <h3>Resum: el "contenidor minim segur"</h3>
+            <pre><code>docker run -d \
+  --name servei \
+  --user 1000:1000 \
+  --read-only \
+  --cap-drop=ALL \
+  --cap-add=NET_BIND_SERVICE \
+  --security-opt=no-new-privileges \
+  --tmpfs /tmp:rw,noexec,nosuid \
+  --memory=512m \
+  --cpus=1.0 \
+  --network xarxa-aillada \
+  meva-app:1.0</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 1 - Les imatges minimes (alpine) redueixen la superficie d'atac.</li>
+                <li>M2 Cap 2 - Els volums encriptats son part de la seguretat.</li>
+                <li>M2 Cap 3 - Xarxes aillades es una mesura de seguretat.</li>
+                <li>M2 Cap 5 - Els registres privats eviten que les teves imatges siguin publiques.</li>
+                <li>M2 Cap 7 - Les actualitzacions son part de la seguretat.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+
+            <div class="code-block">
+                <p>Per fer el quiz:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 6</code></pre>
+            </div>
+
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Quin es el principal risc de seguretat si un contenidor s'executa com a root?</li>
+                <li>Quina opcio del <code>docker run</code> executa el contenidor com un usuari no-root?</li>
+                <li>Que es rootless Docker?</li>
+                <li>Quina instruccio redueix les capabilities de Linux?</li>
+                <li>Quin sistema de fitxers de nomes lectura es recomana per maximitzar la seguretat?</li>
+                <li>Que permet <code>docker scan</code>?</li>
+                <li>Per que es recomanable posar --read-only a un contenidor?</li>
+                <li>Quin es l'objectiu de <code>seccomp</code>?</li>
+                <li>(Oberta) Quins son els tres vectors d'atac mes comuns contra un contenidor Docker mal configurat?</li>
+                <li>(Oberta) Quines mesures de seguretat aplicaries al Nextcloud del BernatLab?</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Practicar les principals mesures de seguretat per a contenidors Docker.</p>
+
+            <h3>Pas 1: Configuracio per defecte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run --rm alpine id
+docker run --rm --security-opt no-new-privileges alpine \
+  grep CapEff /proc/self/status
+docker run --rm alpine sh -c "mount | head -5"</code></pre>
+            </div>
+
+            <h3>Pas 2: Insegur vs segur (15 min)</h3>
+            <div class="code-block">
+                <pre><code># INSEGUR
+docker run -d --name nextcloud-insecure \
+  -v ~/test-insecure:/var/www/html nextcloud
+
+docker exec nextcloud-insecure id
+docker exec nextcloud-insecure sh -c "echo 'pwned' > /root/pwned.txt"
+docker stop nextcloud-insecure && docker rm nextcloud-insecure
+rm -rf ~/test-insecure
+
+# SEGUR
+docker run -d --name nextcloud-secure \
+  --user 33:33 --read-only --cap-drop=ALL \
+  --security-opt=no-new-privileges \
+  --tmpfs /tmp:rw,noexec,nosuid \
+  -v ~/test-secure:/var/www/html nextcloud
+
+docker exec nextcloud-secure id
+docker exec nextcloud-secure sh -c "echo 'test' > /etc/test.txt"
+docker exec nextcloud-secure mount
+docker exec nextcloud-secure ping -c 1 8.8.8.8
+docker exec nextcloud-secure sh -c "su -"
+docker stop nextcloud-secure && docker rm nextcloud-secure
+rm -rf ~/test-secure</code></pre>
+            </div>
+
+            <h3>Pas 3: Escaner de vulnerabilitats (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker scan --version
+docker scan nginx:alpine
+docker scan nginx:alpine --json | head -100
+
+# Trivy (alternativa mes potent)
+sudo apt install -y wget apt-transport-https gnupg
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
+sudo apt update
+sudo apt install -y trivy
+
+trivy image nginx:alpine
+trivy image --severity HIGH,CRITICAL nginx:alpine</code></pre>
+            </div>
+
+            <h3>Pas 4: Seccomp (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run --rm alpine sh -c "grep Seccomp /proc/self/status"
+docker run --rm alpine sh -c "kmod list"
+docker run --rm --security-opt seccomp=unconfined alpine sh -c "kmod list"</code></pre>
+            </div>
+
+            <h3>Pas 5: Auditar configuracio (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker ps
+for c in $(docker ps -q); do
+  echo "=== $c ==="
+  docker inspect $c --format 'User: {{.Config.User}}
+ReadonlyRootfs: {{.HostConfig.ReadonlyRootfs}}
+Privileged: {{.HostConfig.Privileged}}
+CapAdd: {{.HostConfig.CapAdd}}
+CapDrop: {{.HostConfig.CapDrop}}
+SecurityOpt: {{.HostConfig.SecurityOpt}}'
+done</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has vist la diferencia entre un contenidor root i un de no-root.</li>
+                <li>☐ Has comprovat que un contenidor amb --read-only no pot escriure a /etc.</li>
+                <li>☐ Has vist com les capabilities per defecte son limitades.</li>
+                <li>☐ Has fet un escaneig de vulnerabilitats amb <code>docker scan</code> o <code>trivy</code>.</li>
+                <li>☐ Has comprovat que seccomp esta activat per defecte.</li>
+                <li>☐ Has auditat la teva configuracio actual.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/06-seguretat-contenidors/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Root risk</strong> = explotacio amb acces massiu a l'amfitrio.</li>
+                <li><strong>Usuari no-root</strong> = <code>--user 1000:1000</code>.</li>
+                <li><strong>Rootless</strong> = Docker sense root a l'amfitrio.</li>
+                <li><strong>Capabilities</strong> = <code>--cap-drop=ALL</code>.</li>
+                <li><strong>Read-only</strong> = filesystem nomes de lectura.</li>
+                <li><strong>docker scan</strong> = analitza vulnerabilitats conegudes.</li>
+                <li><strong>--read-only</strong> = no permet modificar el filesystem del contenidor.</li>
+                <li><strong>Seccomp</strong> = filtra syscalls del kernel.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

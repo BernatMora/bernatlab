@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 3. Triar el model adequat - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🎯 Cap 3. Triar el model adequat</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p>No tots els models valen per a tot. Un model de 70B parametres donara respostes impressionants pero necessita un servidor de 50.000 euros. Un de 1B es rapid pero sembla tonto. La gracia esta en trobar el <strong>punt just</strong>: el model mes petit que et dona la qualitat que necessites pel teu hardware.</p>
+
+            <h3>Que vol dir "X B parametres"?</h3>
+            <p>Els parametres son els numeros que el model ha après durant l'entrenament. Mes parametres = mes capacitat (fins a un punt). Mes parametres = mes RAM i mes lent.</p>
+            <ul>
+                <li><strong>1B parametres</strong>: ~2 GB en RAM (Q4). Molt basic, pero valid.</li>
+                <li><strong>3B</strong>: ~2.5 GB. Serveix per a feines simples.</li>
+                <li><strong>7B</strong>: ~4-5 GB. Bona qualitat, sweet spot per a molts casos.</li>
+                <li><strong>13B</strong>: ~8 GB. Notable.</li>
+                <li><strong>30B</strong>: ~18 GB. Excel·lent pero ja cal maquina potent.</li>
+                <li><strong>70B</strong>: ~40 GB. Nomes amb GPU.</li>
+            </ul>
+            <p><strong>La regla</strong>: cada 2x parametres necessita ~2x mes RAM.</p>
+
+            <h3>Que es la quantitzacio?</h3>
+            <p>Els models s'entrenen en <strong>float32</strong> (32 bits per numero). Per executar-los en hardware modest, es poden comprimir a:</p>
+            <ul>
+                <li><strong>Q8 (8 bits)</strong>: ocupacio ~25% del original, perdua minima.</li>
+                <li><strong>Q4 (4 bits)</strong>: ocupacio ~12.5%, perdua moderada. La mes comuna.</li>
+                <li><strong>Q2 (2 bits)</strong>: ocupacio ~6%, perdua important.</li>
+            </ul>
+            <p><strong>Exemple</strong>: un model de 7B en float32 ocupa 28 GB. En Q4, nomes 4 GB.</p>
+
+            <h3>Quin model triar per a la RPi 4 (4 GB)?</h3>
+            <ul>
+                <li><strong>llama3.2:1b</strong>: 1.3 GB, ~1.2 GB RAM, 30+ t/s, basica.</li>
+                <li><strong>llama3.2:3b</strong>: 2.0 GB, ~2.5 GB RAM, 10-15 t/s, bona.</li>
+                <li><strong>phi3:mini</strong> (3.8B): 2.3 GB, ~3 GB RAM, 8-12 t/s, molt bona.</li>
+                <li><strong>gemma2:2b</strong>: 1.6 GB, ~1.8 GB RAM, 20+ t/s, bona.</li>
+                <li><strong>mistral:7b</strong>: 4.1 GB, ~5 GB RAM, no a RPi 4, excel·lent.</li>
+            </ul>
+            <p><strong>Recomanacio per a la RPi 4</strong>: per defecte <code>llama3.2:3b</code> (bon equilibri). Per velocitat <code>llama3.2:1b</code>. Per qualitat i paciencia <code>phi3:mini</code>.</p>
+
+            <h3>Models especialitzats</h3>
+            <ul>
+                <li><strong>CodeLlama / CodeGemma</strong>: optimitzats per a codi.</li>
+                <li><strong>Mistral / Llama</strong>: generals, bons per a xat i resums.</li>
+                <li><strong>Phi-3</strong>: optimitzat per a raonament logic.</li>
+                <li><strong>Llama 3.2 Vision</strong>: processa imatges. Requereix mes memoria.</li>
+                <li><strong>Nomic-Embed / MXBAI-Embed</strong>: nomes per a embeddings.</li>
+            </ul>
+
+            <h3>Com avaluar la qualitat d'un model</h3>
+            <p>Benchmarks estandard:</p>
+            <ul>
+                <li><strong>MMLU</strong>: coneixements generals.</li>
+                <li><strong>HumanEval</strong>: generar codi Python correcte.</li>
+                <li><strong>GSM8K</strong>: problemes matematics.</li>
+                <li><strong>HellaSwag</strong>: sentit comu.</li>
+            </ul>
+            <p><strong>En la practica</strong>: proba el model amb les teves preguntes tipiques.</p>
+
+            <h3>Com canviar de model a Ollama</h3>
+            <pre><code>ollama list
+
+curl http://localhost:11434/api/generate -d '{
+  "model": "phi3:mini",
+  "prompt": "...",
+  "stream": false
+}'</code></pre>
+
+            <h3>Estrategies per a hardware limitat</h3>
+            <ul>
+                <li>Usa models mes petits (1B-3B).</li>
+                <li>Limita la longitud amb <code>num_predict</code>: <code>{"num_predict": 200}</code>.</li>
+                <li>Limita la finestra amb <code>num_ctx</code>: <code>{"num_ctx": 2048}</code>.</li>
+                <li>Usa swap al disc.</li>
+                <li>Configura <code>OLLAMA_MAX_LOADED_MODELS=1</code>.</li>
+            </ul>
+
+            <h3>Quant triga un model a carregar?</h3>
+            <ul>
+                <li>1B Q4: 1-3 segons (SSD).</li>
+                <li>3B Q4: 3-8 segons.</li>
+                <li>7B Q4: 8-20 segons.</li>
+                <li>13B Q4: 15-40 segons.</li>
+            </ul>
+            <p>Un cop carregat, 5-30 tokens/s en RPi 4.</p>
+            <p><strong>OLLAMA_KEEP_ALIVE</strong>: <code>"5m"</code> (per defecte), <code>"1h"</code>, <code>"-1"</code> (sempre), <code>"0"</code> (mai).</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>Cap 2 - Com instalar Ollama amb aquests models.</li>
+                <li>Cap 4 - Un cop triat el model, com parlar-hi be.</li>
+                <li>Cap 5-8 - RAG: els models petits poden fer molt amb contexte.</li>
+                <li>Cap 9 - Com afecta la tria a la privadesa.</li>
+                <li>Cap 10 - Aplicacio concreta a l'Hort Osona.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 3</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Que volen dir les "B" en "7B parametres"?</li>
+                <li>Mida aproximada en RAM d'un model 7B quantitzat en Q4?</li>
+                <li>Que vol dir "Q4" en quantitzacio?</li>
+                <li>Quin model es el mes adequat per defecte a una RPi 4 amb 4 GB?</li>
+                <li>Quants tokens per segon es consideren un bon ritme per a xatejar?</li>
+                <li>Que fa el parametre <code>num_predict</code>?</li>
+                <li>Que fa <code>OLLAMA_KEEP_ALIVE=-1</code>?</li>
+                <li>Quin benchmark mesura la capacitat de generar codi correcte?</li>
+                <li>(Oberta) Quin model triaries per analitzar logs i per que?</li>
+                <li>(Oberta) Diferencies entre 7B Q4 i 7B float32.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (30-45 min)</h2>
+            <p>Comparar 3-4 models diferents amb les mateixes preguntes per entendre quin s'adapta millor a les teves necessitats.</p>
+
+            <h3>Pas 1: Descarrega 3 models per comparar (15-20 min)</h3>
+            <div class="code-block">
+                <pre><code>ollama pull llama3.2:1b
+ollama pull llama3.2:3b
+ollama pull gemma2:2b
+ollama list</code></pre>
+            </div>
+            <p>Opcional: <code>ollama pull phi3:mini</code>.</p>
+
+            <h3>Pas 2: Crea un script de comparacio (10 min)</h3>
+            <p>Crea <code>~/bernatlab-exercicis/M4/03-models/comparem.sh</code>:</p>
+            <div class="code-block">
+                <pre><code>#!/bin/bash
+MODELS=("llama3.2:1b" "llama3.2:3b" "gemma2:2b" "phi3:mini")
+PREGUNTA="Explica en 3 frases per que es important fer copies de seguretat dels logs dun servidor."
+
+for model in "${MODELS[@]}"; do
+  echo "=========================================="
+  echo "Model: $model"
+  echo "=========================================="
+  start=$(date +%s.%N)
+  response=$(curl -s http://localhost:11434/api/generate -d "{
+    \"model\": \"$model\",
+    \"prompt\": \"$PREGUNTA\",
+    \"stream\": false
+  }")
+  end=$(date +%s.%N)
+
+  echo "$response" | jq -r '.response'
+  echo ""
+  echo "Temps total: $(echo "$end - $start" | bc) segons"
+  echo "Tokens generats: $(echo "$response" | jq '.eval_count')"
+  echo ""
+done</code></pre>
+            </div>
+            <div class="code-block">
+                <pre><code>chmod +x comparem.sh
+sudo apt install jq bc -y
+./comparem.sh</code></pre>
+            </div>
+
+            <h3>Pas 3: Prova amb tasques diferents (10 min)</h3>
+            <p>Crea <code>comparem-tasques.sh</code> amb 3 tipus de tasca: resum, codi, traduccio. Estructura igual que el Pas 2 pero iterant sobre una array associativa de tasques.</p>
+
+            <h3>Pas 4: Documenta els resultats (10 min)</h3>
+            <p>Crea <code>book/curs/M4/03-models-locals/taula-comparativa.md</code> amb una taula:</p>
+            <pre><code>| Model | Mida | Temps (resum) | Temps (codi) | Qualitat resum | Qualitat codi | Catala? |
+|---|---|---|---|---|---|---|
+| llama3.2:1b | ... | ... | ... | ... | ... | ... |
+| ... | | | | | | |</code></pre>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Has descarregat almenys 3 models.</li>
+                <li>☐ Has executat la comparacio basica.</li>
+                <li>☐ Has executat la comparacio per tasques.</li>
+                <li>☐ Has creat la taula comparativa.</li>
+                <li>☐ Has triat quin model es el teu favorit i per que.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/03-models-locals/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>"B" parametres</strong> = Bilions.</li>
+                <li><strong>7B Q4</strong> = 4-5 GB RAM.</li>
+                <li><strong>Q4</strong> = 4 bits per parametre.</li>
+                <li><strong>RPi 4</strong> = <code>llama3.2:3b</code>.</li>
+                <li><strong>Bona velocitat</strong> = 10-20 t/s.</li>
+                <li><strong>num_predict</strong> = limita tokens generats.</li>
+                <li><strong>KEEP_ALIVE=-1</strong> = sempre carregat.</li>
+                <li><strong>Codi</strong> = HumanEval.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

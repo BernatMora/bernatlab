@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. Que es un LLM - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🧠 Cap 1. Que es un LLM</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un <strong>LLM</strong> (Large Language Model) es un programa que ha après a parlar llegint milers de milions de textos. No "enten" res com nosaltres, pero es molt bo calculant quina paraula ve despres d'una altra. Si li dones prou context, pot semblar que sap de que parla. I aixo es la trampa: semblar que sap no es el mateix que saber.</p>
+
+            <h3>Que es exactament un LLM?</h3>
+            <p>Un LLM es una <strong>xarxa neuronal</strong> entrenada amb moltissim text. La gracia esta en que no te cap regla escrita a dins: nomes te milers de milions de numeros (els "pesos") que ha anat ajustant durant l'entrenament. Quan li escrius "Bon dia, com", el model fa els calculs i et diu que probablement la paraula que ve despres es "estas".</p>
+            <p>Aixo, repetit milers de vegades, es el que fa que escrigui paragrafs sencers, que resumeixi articles o que t'ajudi a fer un script.</p>
+
+            <h3>Com funciona per dins (sense matematiques)</h3>
+            <p>Pensa-ho com tres fases:</p>
+            <ul>
+                <li><strong>Entrenament</strong>: el llegeix Internet (llibres, articles, codi, forums) i va ajustant els seus numeros per encertar la paraula seguent.</li>
+                <li><strong>Context</strong>: quan li envies un missatge, l'afegeix a una "finestra" de memoria. Tot el que hi cap ho pot fer servir per respondre.</li>
+                <li><strong>Resposta</strong>: va generant paraula a paraula, triant la que estadisticament te mes probabilitats de ser la bona.</li>
+            </ul>
+            <p><strong>Important</strong>: no consulta cap base de dades en temps real. Tot el que sap ho porta "dins" del model (als pesos). Si li preguntes coses que no son al seu entrenament, s'inventa coses amb cara de veritat (les anomenades "al·lucinacions").</p>
+
+            <h3>Per que serveix al BernatLab?</h3>
+            <p>Al nostre homelab, un LLM local ens pot ajudar a:</p>
+            <ul>
+                <li><strong>Resumir logs</strong> de la Raspberry Pi per trobar anomalies.</li>
+                <li><strong>Generar scripts</strong> a partir d'una descripcio en llenguatge natural.</li>
+                <li><strong>Respondre preguntes</strong> sobre la base de coneixement de l'Hort Osona (aixo es el RAG que veurem mes endavant).</li>
+                <li><strong>Traduir</strong> correus i documentacio tecnica.</li>
+                <li><strong>Assistir-nos</strong> quan configurem un servei nou.</li>
+            </ul>
+            <p>Tot sense enviar dades a cap servidor extern. Pero per aixo, cal que el model corri <strong>a casa nostra</strong>, no al núvol d'OpenAI o Google. I d'aqui ve Ollama, que es la eina que veurem al capitol 2.</p>
+
+            <h3>Diferencia entre LLM, IA i Machine Learning</h3>
+            <p>Hi ha molta confusio amb aquests termes. Posem ordre:</p>
+            <ul>
+                <li><strong>IA (Intel·ligència Artificial)</strong>: qualsevol programa que imita comportament intel·ligent. Inclou desde un joc d'escacs dels anys 80 fins al ChatGPT.</li>
+                <li><strong>Machine Learning (ML)</strong>: una branca de la IA on el programa aprenia partir de dades, no de regles escrites a ma.</li>
+                <li><strong>Xarxa neuronal</strong>: un tipus concret de ML inspirat en el cervell.</li>
+                <li><strong>LLM</strong>: una xarxa neuronal entrenada amb molt text per fer feines de llenguatge.</li>
+            </ul>
+            <p>Un LLM es, per tant, una peça molt especifica dins de la gran familia de la IA. I es la que ens interessa per fer-nos la vida mes facil al servidor.</p>
+
+            <h3>Limitacions que cal coneixer</h3>
+            <ul>
+                <li><strong>Al·lucinacions</strong>: s'inventa coses amb tota naturalitat. Mai no li demanis dades exactes sense verificar.</li>
+                <li><strong>Finestra de context</strong>: nomes recorda els ultims N tokens (normalment 4k-128k). Si el text es llarg, l'inici se li oblida.</li>
+                <li><strong>Data de tall</strong>: el model va ser entrenat fins a una data concreta. No sap que ha passat despres.</li>
+                <li><strong>No es determinista</strong>: la mateixa pregunta pot donar respostes diferents. Cal temperatura baixa si vols respostes estables.</li>
+                <li><strong>No raona com un huma</strong>: encara que sembli que raona, nomes fa calculs estadistics.</li>
+            </ul>
+
+            <h3>Com elegir-ne un? (vista general)</h3>
+            <p>Al capitol 3 ho veurem a fons, pero com a anticip:</p>
+            <ul>
+                <li><strong>Models petits (1B-3B)</strong>: corren a qualsevol RPi 4 amb 4 GB de RAM. Poc precisos, pero utils.</li>
+                <li><strong>Models mitjans (7B-13B)</strong>: necessiten 8-16 GB de RAM. Bona qualitat per a textes curts.</li>
+                <li><strong>Models grans (30B+)</strong>: cal maquina potent (GPU o molta RAM). Millor qualitat pero mes lents.</li>
+            </ul>
+            <p>Al BernatLab, amb la RPi 4 de 4 GB, ens mourem amb models petits i alguns mitjans quantitzats.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>Cap 2 - Com instalar Ollama, el motor que ens permetra fer anar LLMs a la Raspberry.</li>
+                <li>Cap 3 - Com triar el model adequat segons el teu hardware.</li>
+                <li>Cap 4 - Com parlar be amb un LLM (prompt engineering).</li>
+                <li>Cap 5-8 - RAG, la tecnica per fer que el model consulti les teves dades.</li>
+                <li>Cap 9 - Privadesa: per que es tant important que el model sigui local.</li>
+                <li>Cap 10 - Aplicacio concreta al sistema de l'Hort Osona.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repas espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 1</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Que significa LLM?</li>
+                <li>Com "apren" un LLM?</li>
+                <li>Que es una "al·lucinacio" en un LLM?</li>
+                <li>Quina es la mida aproximada de la finestra de context tipica d'un LLM modern?</li>
+                <li>Quin d'aquests NO es un LLM?</li>
+                <li>Quina es la diferencia principal entre "IA" i "LLM"?</li>
+                <li>Per a que NO utilitzaries un LLM?</li>
+                <li>Quin hardware minim necessita un LLM petit (1B-3B) per correr en local?</li>
+                <li>(Oberta) Explica: per que un LLM pot semblar que "sap" coses tot i no tenir cap base de dades a dins?</li>
+                <li>(Oberta) Avantatges i riscos d'un LLM local per analitzar logs del BernatLab.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (20-30 min)</h2>
+            <p>Entendre de primera ma que vol dir "un LLM genera text paraula a paraula" fent una simulacio molt simple amb Python. No cal tenir Ollama ni cap model instal·lat: nomes el Python de sempre.</p>
+
+            <h3>Pas 1: Crea el directori de treball (2 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/bernatlab-exercicis/M4/01-llm
+cd ~/bernatlab-exercicis/M4/01-llm</code></pre>
+            </div>
+
+            <h3>Pas 2: Escriu un "model" de manualitat (5 min)</h3>
+            <p>Crea un fitxer <code>manual_llm.py</code>. Aquest script NO es un LLM real, pero imita el seu comportament basic.</p>
+            <div class="code-block">
+                <pre><code>import random
+from collections import defaultdict
+
+corpus = """
+el gat beu llet el gos menja ossos el gat menja peix
+el gos beu aigua el gat dorm el gos juga el gat juga
+""".lower().split()
+
+bigrams = defaultdict(list)
+for i in range(len(corpus) - 1):
+    bigrams[corpus[i]].append(corpus[i + 1])
+
+def generar(paraula_inicial, longitud=10):
+    paraula = paraula_inicial
+    resultat = [paraula]
+    for _ in range(longitud):
+        candidates = bigrams.get(paraula, [])
+        if not candidates:
+            break
+        paraula = random.choice(candidates)
+        resultat.append(paraula)
+    return " ".join(resultat)
+
+for i in range(5):
+    print(generar("el", 6))</code></pre>
+            </div>
+
+            <h3>Pas 3: Executa'l (3 min)</h3>
+            <div class="code-block">
+                <pre><code>python3 manual_llm.py</code></pre>
+            </div>
+            <p>Observa la sortida. Veus com cada vegada surt una frase diferent? Es la "no-determinacio" dels LLMs reals.</p>
+
+            <h3>Pas 4: Experimenta (10 min)</h3>
+            <p>Prova modificacions per entendre com es comporta:</p>
+            <ul>
+                <li>Canvia el corpus per un text mes llarg.</li>
+                <li>Substitueix <code>random.choice</code> per <code>max</code> (sempre la paraula mes frequent).</li>
+                <li>Afegeix una llavor fixa: <code>random.seed(42)</code>.</li>
+                <li>Compara la sortida amb un corpus de 5 vs 50 paraules.</li>
+            </ul>
+
+            <h3>Pas 5: Reflexiona (5 min)</h3>
+            <p>Contesta mentalment (o al README que crearas al pas 6):</p>
+            <ul>
+                <li>Aquest "model" enten el que diu? Per que no?</li>
+                <li>Que passaria si el corpus fos Wikipedia sencera?</li>
+                <li>Quina analogia hi ha amb un LLM real de 7B parametres?</li>
+            </ul>
+
+            <h3>Pas 6: Documenta (5 min)</h3>
+            <p>Crea un fitxer <code>reflexions.md</code> amb la sortida de 5 execucions, les teves respostes al Pas 5, i una analogia entre el teu script i un model real.</p>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Has creat el directori i el fitxer <code>manual_llm.py</code>.</li>
+                <li>☐ L'has executat i has vist la sortida aleatoria.</li>
+                <li>☐ Has provat com a minim 2 modificacions del Pas 4.</li>
+                <li>☐ Has escrit el fitxer <code>reflexions.md</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/01-que-es-llm/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>LLM</strong> = Large Language Model.</li>
+                <li><strong>Aprenentatge</strong> = ajustant milers de milions de numeros amb text.</li>
+                <li><strong>Al·lucinacio</strong> = resposta inventada que sona a verdadera.</li>
+                <li><strong>Context</strong> = 4k-128k tokens.</li>
+                <li><strong>No es LLM</strong> = InfluxDB (es una base de dades).</li>
+                <li><strong>IA vs LLM</strong> = LLM es un tipus especific d'IA.</li>
+                <li><strong>No usar per</strong> = dades exactes en temps real (borsa, etc.).</li>
+                <li><strong>Hardware minim</strong> = 4 GB RAM + CPU ARM/x86.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

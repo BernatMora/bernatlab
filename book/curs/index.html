@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Curs del BernatLab - Raspberry Pi, Docker, IA, Hort Osona. Aprèn al teu ritme.">
+    <meta name="description" content="Curs del BernatLab - 47 capítols, 470 preguntes, 5 mòduls. Aprèn al teu ritme.">
     <title>Curs del BernatLab</title>
     <link rel="stylesheet" href="curs.css">
 </head>
 <body>
     <header>
         <h1>📚 Curs del BernatLab</h1>
-        <p class="subtitle">Aprèn al teu ritme amb resums, qüestionaris i exercicis pràctics</p>
+        <p class="subtitle">5 mòduls · 47 capítols · 470 preguntes · Aprèn al teu ritme</p>
         <nav>
             <a href="#moduls">Mòduls</a>
             <a href="#metode">Mètode</a>
@@ -68,10 +68,7 @@ cd bernatlab</code></pre>
 .venv\Scripts\Activate.ps1
 
 # Windows (bash / Git Bash)
-source .venv/Scripts/activate
-
-# macOS / Linux
-source .venv/bin/activate</code></pre>
+source .venv/Scripts/activate</code></pre>
 
                 <p><strong>Pas 3.</strong> Fes el quiz del capítol que vulguis:</p>
                 <pre><code># Llistar tots els capítols disponibles
@@ -90,15 +87,14 @@ python book/curs/quiz.py --review</code></pre>
 
         <section id="moduls">
             <h2>📖 Mòduls del curs</h2>
-            <p>El curs té 7 mòduls basats en el llibre. Comencem pel <strong>M1 (Fonaments)</strong> que és el pilot.</p>
+            <p>El curs té 5 mòduls, 47 capítols, i 470 preguntes en total. Comencem pel <strong>M1 (Fonaments)</strong>.</p>
 
             <div class="modul" data-module="M1">
                 <div class="modul-header">
                     <h3>M1 · Fonaments</h3>
-                    <span class="badge badge-progress">En curs · 2/10 capítols</span>
+                    <span class="badge badge-progress">En curs · 2/10</span>
                 </div>
                 <p class="modul-desc">Què és un homelab, la Raspberry Pi 4, Linux bàsic, xarxa i SSH, contenidors, Portainer, Uptime Kuma, Homepage, Git, full de ruta.</p>
-
                 <ul class="capitol-list">
                     <li class="capitol" data-key="M1/01-que-es-bernatlab">
                         <a href="M1/01-que-es-bernatlab.html" class="capitol-link">
@@ -112,63 +108,85 @@ python book/curs/quiz.py --review</code></pre>
                         </a>
                         <span class="capitol-status" data-cap-key="M1/02-raspberry-pi">— No fet —</span>
                     </li>
-                    <li class="capitol coming-soon"><span>Cap 3. Linux per administrar un servidor</span></li>
-                    <li class="capitol coming-soon"><span>Cap 4. Xarxa, SSH i Tailscale</span></li>
-                    <li class="capitol coming-soon"><span>Cap 5. Docker des de zero</span></li>
-                    <li class="capitol coming-soon"><span>Cap 6. Portainer</span></li>
-                    <li class="capitol coming-soon"><span>Cap 7. Uptime Kuma</span></li>
-                    <li class="capitol coming-soon"><span>Cap 8. Homepage</span></li>
-                    <li class="capitol coming-soon"><span>Cap 9. Git i documentació</span></li>
-                    <li class="capitol coming-soon"><span>Cap 10. Full de ruta del BernatLab</span></li>
+                    <li class="capitol coming-soon"><span>Cap 3-10. (Pendent)</span></li>
                 </ul>
             </div>
 
-            <div class="modul disabled" data-module="M2">
+            <div class="modul" data-module="M2">
                 <div class="modul-header">
                     <h3>M2 · Contenidors</h3>
-                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                    <span class="badge badge-progress">Complet · 10/10</span>
                 </div>
-                <p class="modul-desc">Aprofundint en Docker: contenidors avançats, xarxes, volums, imatges, registre, seguretat.</p>
+                <p class="modul-desc">Docker avançat: imatges, volums, xarxes, compose, registres, seguretat, actualització, backup, monitorització, orquestració.</p>
+                <ul class="capitol-list">
+                    <li class="capitol" data-key="M2/01-contenidors-avancats"><a href="M2/01-contenidors-avancats.html" class="capitol-link"><strong>Cap 1.</strong> Contenidors avançats</a><span class="capitol-status" data-cap-key="M2/01-contenidors-avancats">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/02-volums-persistents"><a href="M2/02-volums-persistents.html" class="capitol-link"><strong>Cap 2.</strong> Volums persistents</a><span class="capitol-status" data-cap-key="M2/02-volums-persistents">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/03-xarxes-docker"><a href="M2/03-xarxes-docker.html" class="capitol-link"><strong>Cap 3.</strong> Xarxes Docker</a><span class="capitol-status" data-cap-key="M2/03-xarxes-docker">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/04-compose-avancat"><a href="M2/04-compose-avancat.html" class="capitol-link"><strong>Cap 4.</strong> Compose avançat</a><span class="capitol-status" data-cap-key="M2/04-compose-avancat">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/05-registre-imatges"><a href="M2/05-registre-imatges.html" class="capitol-link"><strong>Cap 5.</strong> Registre d'imatges</a><span class="capitol-status" data-cap-key="M2/05-registre-imatges">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/06-seguretat-contenidors"><a href="M2/06-seguretat-contenidors.html" class="capitol-link"><strong>Cap 6.</strong> Seguretat de contenidors</a><span class="capitol-status" data-cap-key="M2/06-seguretat-contenidors">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/07-actualitzacio-contenidors"><a href="M2/07-actualitzacio-contenidors.html" class="capitol-link"><strong>Cap 7.</strong> Actualització de contenidors</a><span class="capitol-status" data-cap-key="M2/07-actualitzacio-contenidors">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/08-backup-contenidors"><a href="M2/08-backup-contenidors.html" class="capitol-link"><strong>Cap 8.</strong> Backup de contenidors</a><span class="capitol-status" data-cap-key="M2/08-backup-contenidors">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/09-monitoritzacio-contenidors"><a href="M2/09-monitoritzacio-contenidors.html" class="capitol-link"><strong>Cap 9.</strong> Monitorització</a><span class="capitol-status" data-cap-key="M2/09-monitoritzacio-contenidors">— No fet —</span></li>
+                    <li class="capitol" data-key="M2/10-orquestracio"><a href="M2/10-orquestracio.html" class="capitol-link"><strong>Cap 10.</strong> Orquestració</a><span class="capitol-status" data-cap-key="M2/10-orquestracio">— No fet —</span></li>
+                </ul>
             </div>
 
-            <div class="modul disabled" data-module="M3">
+            <div class="modul" data-module="M3">
                 <div class="modul-header">
                     <h3>M3 · Dades</h3>
-                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                    <span class="badge badge-progress">Complet · 10/10</span>
                 </div>
-                <p class="modul-desc">Bases de dades, InfluxDB, còpies de seguretat, gestió de fitxers, documentació.</p>
+                <p class="modul-desc">Backups, volums Docker, bases de dades (SQLite, Postgres, InfluxDB), gestió de fitxers, sincronització, xifrat, visualització.</p>
+                <ul class="capitol-list">
+                    <li class="capitol" data-key="M3/01-strategia-backup"><a href="M3/01-strategia-backup.html" class="capitol-link"><strong>Cap 1.</strong> Estratègia de backup</a><span class="capitol-status" data-cap-key="M3/01-strategia-backup">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/02-restic-i-alternatives"><a href="M3/02-restic-i-alternatives.html" class="capitol-link"><strong>Cap 2.</strong> Restic i alternatives</a><span class="capitol-status" data-cap-key="M3/02-restic-i-alternatives">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/03-volums-docker-backup"><a href="M3/03-volums-docker-backup.html" class="capitol-link"><strong>Cap 3.</strong> Volums Docker backup</a><span class="capitol-status" data-cap-key="M3/03-volums-docker-backup">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/04-bases-de-dades-sqlite"><a href="M3/04-bases-de-dades-sqlite.html" class="capitol-link"><strong>Cap 4.</strong> SQLite</a><span class="capitol-status" data-cap-key="M3/04-bases-de-dades-sqlite">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/05-postgres-basics"><a href="M3/05-postgres-basics.html" class="capitol-link"><strong>Cap 5.</strong> PostgreSQL</a><span class="capitol-status" data-cap-key="M3/05-postgres-basics">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/06-influxdb-timeseries"><a href="M3/06-influxdb-timeseries.html" class="capitol-link"><strong>Cap 6.</strong> InfluxDB</a><span class="capitol-status" data-cap-key="M3/06-influxdb-timeseries">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/07-gestio-fitxers"><a href="M3/07-gestio-fitxers.html" class="capitol-link"><strong>Cap 7.</strong> Gestió de fitxers</a><span class="capitol-status" data-cap-key="M3/07-gestio-fitxers">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/08-sincronitzacio"><a href="M3/08-sincronitzacio.html" class="capitol-link"><strong>Cap 8.</strong> Sincronització</a><span class="capitol-status" data-cap-key="M3/08-sincronitzacio">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/09-privadesa-xifrat"><a href="M3/09-privadesa-xifrat.html" class="capitol-link"><strong>Cap 9.</strong> Privadesa i xifrat</a><span class="capitol-status" data-cap-key="M3/09-privadesa-xifrat">— No fet —</span></li>
+                    <li class="capitol" data-key="M3/10-visualitzacio"><a href="M3/10-visualitzacio.html" class="capitol-link"><strong>Cap 10.</strong> Visualització</a><span class="capitol-status" data-cap-key="M3/10-visualitzacio">— No fet —</span></li>
+                </ul>
             </div>
 
-            <div class="modul disabled" data-module="M4">
+            <div class="modul" data-module="M4">
                 <div class="modul-header">
                     <h3>M4 · Intel·ligència</h3>
-                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                    <span class="badge badge-progress">Complet · 10/10</span>
                 </div>
-                <p class="modul-desc">Ollama, RAG, models locals, xat amb la teva base de coneixement, embeddings.</p>
+                <p class="modul-desc">LLMs, Ollama, models locals, prompt engineering, RAG, embeddings, vector databases, privadesa, aplicació a Hort Osona.</p>
+                <ul class="capitol-list">
+                    <li class="capitol" data-key="M4/01-que-es-llm"><a href="M4/01-que-es-llm.html" class="capitol-link"><strong>Cap 1.</strong> Què és un LLM</a><span class="capitol-status" data-cap-key="M4/01-que-es-llm">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/02-ollama-instalacio"><a href="M4/02-ollama-instalacio.html" class="capitol-link"><strong>Cap 2.</strong> Ollama - instal·lació</a><span class="capitol-status" data-cap-key="M4/02-ollama-instalacio">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/03-models-locals"><a href="M4/03-models-locals.html" class="capitol-link"><strong>Cap 3.</strong> Models locals</a><span class="capitol-status" data-cap-key="M4/03-models-locals">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/04-prompt-engineering"><a href="M4/04-prompt-engineering.html" class="capitol-link"><strong>Cap 4.</strong> Prompt engineering</a><span class="capitol-status" data-cap-key="M4/04-prompt-engineering">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/05-rag-introduccio"><a href="M4/05-rag-introduccio.html" class="capitol-link"><strong>Cap 5.</strong> RAG - introducció</a><span class="capitol-status" data-cap-key="M4/05-rag-introduccio">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/06-embeddings"><a href="M4/06-embeddings.html" class="capitol-link"><strong>Cap 6.</strong> Embeddings</a><span class="capitol-status" data-cap-key="M4/06-embeddings">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/07-vector-databases"><a href="M4/07-vector-databases.html" class="capitol-link"><strong>Cap 7.</strong> Vector databases</a><span class="capitol-status" data-cap-key="M4/07-vector-databases">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/08-rag-implementacio"><a href="M4/08-rag-implementacio.html" class="capitol-link"><strong>Cap 8.</strong> RAG - implementació</a><span class="capitol-status" data-cap-key="M4/08-rag-implementacio">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/09-privadesa-ia"><a href="M4/09-privadesa-ia.html" class="capitol-link"><strong>Cap 9.</strong> Privadesa de la IA</a><span class="capitol-status" data-cap-key="M4/09-privadesa-ia">— No fet —</span></li>
+                    <li class="capitol" data-key="M4/10-aplicacio-hort"><a href="M4/10-aplicacio-hort.html" class="capitol-link"><strong>Cap 10.</strong> Aplicació a Hort Osona</a><span class="capitol-status" data-cap-key="M4/10-aplicacio-hort">— No fet —</span></li>
+                </ul>
             </div>
 
-            <div class="modul disabled" data-module="M5">
+            <div class="modul" data-module="M8">
                 <div class="modul-header">
-                    <h3>M5 · Seguretat</h3>
-                    <span class="badge badge-disabled">Pendent · 0/10</span>
+                    <h3>M8 · Eines del dia a dia</h3>
+                    <span class="badge badge-progress">Complet · 7/7</span>
                 </div>
-                <p class="modul-desc">SSH avançat, claus, Tailscale, firewall, VPN, fail2ban, actualitzacions.</p>
-            </div>
-
-            <div class="modul disabled" data-module="M6">
-                <div class="modul-header">
-                    <h3>M6 · Operativa</h3>
-                    <span class="badge badge-disabled">Pendent · 0/10</span>
-                </div>
-                <p class="modul-desc">Monitorització 24/7, alertes, manteniment, recuperació, escalat, còpies de seguretat.</p>
-            </div>
-
-            <div class="modul disabled" data-module="M7">
-                <div class="modul-header">
-                    <h3>M7 · Hort Osona</h3>
-                    <span class="badge badge-disabled">Pendent · 0/12</span>
-                </div>
-                <p class="modul-desc">Sistema IoT, sensors LoRa, MQTT, gràfiques, alerts al mòbil, integració amb el BernatLab.</p>
+                <p class="modul-desc">SSH amb claus, MobaXterm, perfil SSH, PowerToys Run, scripts PowerShell, Obsidian + Git, runbooks.</p>
+                <ul class="capitol-list">
+                    <li class="capitol" data-key="M8/01-ssh-amb-claus"><a href="M8/01-ssh-amb-claus.html" class="capitol-link"><strong>Cap 1.</strong> SSH amb claus</a><span class="capitol-status" data-cap-key="M8/01-ssh-amb-claus">— No fet —</span></li>
+                    <li class="capitol" data-key="M8/02-mobaxterm"><a href="M8/02-mobaxterm.html" class="capitol-link"><strong>Cap 2.</strong> MobaXterm</a><span class="capitol-status" data-cap-key="M8/02-mobaxterm">— No fet —</span></li>
+                    <li class="capitol" data-key="M8/03-perfil-ssh"><a href="M8/03-perfil-ssh.html" class="capitol-link"><strong>Cap 3.</strong> Perfil SSH</a><span class="capitol-status" data-cap-key="M8/03-perfil-ssh">— No fet —</span></li>
+                    <li class="capitol" data-key="M8/04-powertoys-run"><a href="M8/04-powertoys-run.html" class="capitol-link"><strong>Cap 4.</strong> PowerToys Run</a><span class="capitol-status" data-cap-key="M8/04-powertoys-run">— No fet —</span></li>
+                    <li class="capitol" data-key="M8/05-scripts-powershell"><a href="M8/05-scripts-powershell.html" class="capitol-link"><strong>Cap 5.</strong> Scripts PowerShell</a><span class="capitol-status" data-cap-key="M8/05-scripts-powershell">— No fet —</span></li>
+                    <li class="capitol" data-key="M8/06-obsidian-git"><a href="M8/06-obsidian-git.html" class="capitol-link"><strong>Cap 6.</strong> Obsidian + Git</a><span class="capitol-status" data-cap-key="M8/06-obsidian-git">— No fet —</span></li>
+                    <li class="capitol" data-key="M8/07-runbooks"><a href="M8/07-runbooks.html" class="capitol-link"><strong>Cap 7.</strong> Runbooks</a><span class="capitol-status" data-cap-key="M8/07-runbooks">— No fet —</span></li>
+                </ul>
             </div>
         </section>
 

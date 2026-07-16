@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 4. Bases de dades SQLite — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🗃️ Cap 4. Bases de dades SQLite</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>SQLite</strong> és la base de dades més usada del món, i probablement no ho sabies. Està al teu telèfon Android, al teu navegador Chrome, al teu sistema operatiu, a milers d'aplicacions. I el més important: <strong>és un sol fitxer</strong>. No hi ha cap servidor, cap dimoni, cap port. És la BD més simple que pots fer servir, i alhora prou potent per a molts casos reals.</p>
+            <p>Al BernatLab la faig servir per a totes les dades petites i locals: historial de tasques, registres de configuració, metadades de sensors, cache de consultes. Per a dades més grans o amb més concurrència faig servir <strong>PostgreSQL</strong> (cap 5) o <strong>InfluxDB</strong> (cap 6).</p>
+
+            <h3>Què és SQLite exactament?</h3>
+            <p>És una <strong>base de dades embeguda</strong> (embedded):</p>
+            <ul>
+                <li><strong>No és un servidor</strong> que escolta en un port.</li>
+                <li><strong>És una llibreria</strong> que la teva aplicació enllaça.</li>
+                <li><strong>La BD és un sol fitxer</strong> al sistema de fitxers.</li>
+                <li><strong>Un sol fitxer per aplicació</strong>, normalment a <code>/var/lib/</code> o <code>/home/pi/</code>.</li>
+            </ul>
+            <p>Exemple típic al BernatLab:</p>
+            <div class="code-block">
+                <pre><code>/home/pi/bernatlab/notes/quadern-camp.db
+/var/lib/homeassistant/home-assistant_v2.db</code></pre>
+            </div>
+
+            <h3>Per què SQLite és tan popular?</h3>
+            <ol>
+                <li><strong>Simplicitat</strong>: no cal instal·lar ni configurar res.</li>
+                <li><strong>Fiabilitat</strong>: una de les BD més testejades del món.</li>
+                <li><strong>Rendiment</strong>: per a aplicacions petites, més ràpid que PostgreSQL.</li>
+                <li><strong>Portabilitat</strong>: el fitxer es pot copiar a un USB.</li>
+                <li><strong>ACID</strong>: compleix Atomicity, Consistency, Isolation, Durability.</li>
+                <li><strong>Sense cost</strong>: és public domain.</li>
+            </ol>
+
+            <h3>Quan usar SQLite</h3>
+            <p>SQLite brilla en aquests casos:</p>
+            <ul>
+                <li><strong>Aplicacions locals</strong> (sense servidor).</li>
+                <li><strong>Dispositius mòbils i IoT</strong>.</li>
+                <li><strong>Prototips i MVPs</strong>.</li>
+                <li><strong>Cache i configuració</strong>.</li>
+                <li><strong>Fins a milers d'escriptures per segon</strong> en condicions ideals.</li>
+            </ul>
+
+            <h3>Quan NO usar SQLite</h3>
+            <p>SQLite té límits clars:</p>
+            <ul>
+                <li><strong>Escriptures concurrents</strong>: només una a la vegada.</li>
+                <li><strong>Volum de dades</strong>: per sobre d'1-2 GB comença a ser menys eficient.</li>
+                <li><strong>Xarxa</strong>: només local, no es pot accedir per xarxa directament.</li>
+                <li><strong>Replicació</strong>: no té master-slave ni clustering.</li>
+            </ul>
+
+            <h3>Eines per treballar amb SQLite</h3>
+            <h4>sqlite3 (línia de comandes)</h4>
+            <div class="code-block">
+                <pre><code>sqlite3 hivernacle.db
+
+.tables
+.schema sensors
+.headers on
+.mode column
+SELECT * FROM sensors LIMIT 5;
+.quit</code></pre>
+            </div>
+
+            <h4>DB Browser for SQLite (gràfic)</h4>
+            <p>Eina gràfica multiplataforma. Permet veure l'esquema, navegar dades, fer consultes amb resaltat de sintaxi, exportar a CSV/JSON.</p>
+            <div class="code-block">
+                <pre><code>sudo apt install sqlitebrowser
+sqlitebrowser hivernacle.db &amp;</code></pre>
+            </div>
+
+            <h3>Com fer backup d'una BD SQLite</h3>
+            <h4>Mètode 1: .dump (lògic, recomanat)</h4>
+            <div class="code-block">
+                <pre><code>sqlite3 hivernacle.db .dump &gt; hivernacle-$(date +%Y%m%d).sql</code></pre>
+            </div>
+            <p>Genera un fitxer SQL amb totes les sentències CREATE i INSERT. Es pot restaurar a qualsevol altre SQLite.</p>
+
+            <h4>Mètode 2: Copiar el .db (només si la BD està quieta)</h4>
+            <div class="code-block">
+                <pre><code>sudo systemctl stop home-assistant
+cp /var/lib/homeassistant/home-assistant_v2.db \
+   /home/pi/bernatlab/backups/
+sudo systemctl start home-assistant</code></pre>
+            </div>
+            <p><strong>Important</strong>: mai copiïs un .db mentre s'hi està escrivint.</p>
+
+            <h3>Com restaurar</h3>
+            <div class="code-block">
+                <pre><code># Des del .sql
+sqlite3 nova-bd.db &lt; hivernacle-20250615.sql
+
+# Des del .db copiat
+cp hivernacle-20250615.db hivernacle.db</code></pre>
+            </div>
+
+            <h3>Optimitzacions per a l'hort IoT</h3>
+            <div class="code-block">
+                <pre><code>-- Mode WAL per a millor rendiment i seguretat
+PRAGMA journal_mode=WAL;
+
+-- Sync normal (millor rendiment amb WAL)
+PRAGMA synchronous=NORMAL;
+
+-- Incrementar cache
+PRAGMA cache_size=-20000;  -- 20 MB
+
+-- Indexar per a consultes de sensors
+CREATE INDEX idx_sensor_ts ON sensors(sensor, ts);</code></pre>
+            </div>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — Les BD són una de les coses més importants a backupejar.</li>
+                <li>Cap 3 — Com fer backup consistent dels volums Docker.</li>
+                <li>Cap 5 — Quan cal més potència: PostgreSQL.</li>
+                <li>Cap 6 — Per a dades de sensors massives: InfluxDB.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 4</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin tipus de base de dades és SQLite?</li>
+                <li>Quin és el límit pràctic de SQLite?</li>
+                <li>Quin navegador gràfic es recomana per veure una BD SQLite?</li>
+                <li>Quina ordre faries servir per fer un backup consistent d'una BD SQLite?</li>
+                <li>Quin és l'avantatge principal de SQLite respecte a PostgreSQL?</li>
+                <li>Quin mode de journaling és el més segur a SQLite?</li>
+                <li>Quines extensions de fitxer són les més comunes per a SQLite?</li>
+                <li>Quin cas NO és adequat per a SQLite?</li>
+                <li>(Oberta) Quan triaries SQLite i quan triaries PostgreSQL?</li>
+                <li>(Oberta) Tens una BD SQLite de 8 GB amb 5 anys de lectures. Migraries a PostgreSQL?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-40 min)</h2>
+            <p>Crear una base de dades SQLite, omplir-la amb dades de sensors, practicar el backup amb <code>.dump</code>, provar consultes, i restaurar-les.</p>
+
+            <h3>Pas 1: Instal·la SQLite i DB Browser (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sqlite3 --version
+sudo apt update
+sudo apt install -y sqlite3 sqlitebrowser</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea la base de dades (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/proves
+cd /home/pi/bernatlab/proves
+
+sqlite3 hivernacle.db &lt;&lt;EOF
+CREATE TABLE sensors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  sensor TEXT NOT NULL,
+  valor REAL NOT NULL,
+  ts DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_sensor_ts ON sensors(sensor, ts);
+INSERT INTO sensors (sensor, valor) VALUES
+  ('temperatura', 22.5),
+  ('humitat', 65.0),
+  ('llum', 850.0),
+  ('temperatura', 23.0),
+  ('humitat', 64.0);
+SELECT * FROM sensors;
+EOF</code></pre>
+            </div>
+
+            <h3>Pas 3: Practica consultes (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sqlite3 /home/pi/bernatlab/proves/hivernacle.db
+.mode column
+.headers on
+SELECT * FROM sensors WHERE sensor = 'temperatura';
+SELECT sensor, AVG(valor) FROM sensors GROUP BY sensor;
+.quit</code></pre>
+            </div>
+
+            <h3>Pas 4: Fes un backup consistent (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sqlite3 /home/pi/bernatlab/proves/hivernacle.db .dump &gt; \
+  /home/pi/bernatlab/proves/hivernacle-backup-$(date +%Y%m%d).sql
+ls -lh /home/pi/bernatlab/proves/</code></pre>
+            </div>
+
+            <h3>Pas 5: Simula un desastre i restaura (10 min)</h3>
+            <div class="code-block">
+                <pre><code>rm /home/pi/bernatlab/proves/hivernacle.db
+sqlite3 /home/pi/bernatlab/proves/hivernacle.db &lt; \
+  /home/pi/bernatlab/proves/hivernacle-backup-*.sql
+sqlite3 /home/pi/bernatlab/proves/hivernacle.db "SELECT COUNT(*) FROM sensors;"</code></pre>
+            </div>
+
+            <h3>Pas 6: Accedeix des de Python (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cat &gt; /home/pi/bernatlab/proves/insertar.py &lt;&lt;'PY'
+import sqlite3
+
+db = sqlite3.connect('/home/pi/bernatlab/proves/hivernacle.db')
+cur = db.cursor()
+cur.execute(
+    "INSERT INTO sensors (sensor, valor) VALUES (?, ?)",
+    ('temperatura', 22.7)
+)
+db.commit()
+cur.execute("""
+    SELECT * FROM sensors
+    WHERE sensor = 'temperatura'
+    ORDER BY ts DESC
+    LIMIT 5
+""")
+for fila in cur.fetchall():
+    print(fila)
+db.close()
+PY
+python3 /home/pi/bernatlab/proves/insertar.py</code></pre>
+            </div>
+
+            <h3>Pas 7: Usa DB Browser per visualitzar</h3>
+            <div class="code-block">
+                <pre><code>sqlite3 /home/pi/bernatlab/proves/hivernacle.db ".schema"</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat una base de dades SQLite amb una taula.</li>
+                <li>☐ Has inserit dades.</li>
+                <li>☐ Has practicat consultes (SELECT, WHERE, GROUP BY).</li>
+                <li>☐ Has fet un <code>.dump</code> per fer backup.</li>
+                <li>☐ Has "perdut" el .db i l'has restaurat des del .sql.</li>
+                <li>☐ Has vist com accedir-hi des de Python.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/04-bases-de-dades-sqlite/respostes.md" target="__blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>SQLite</strong> = un sol fitxer .db.</li>
+                <li><strong>Límit</strong> = ~1 TB teòric, ~1 GB pràctic.</li>
+                <li><strong>GUI</strong> = DB Browser for SQLite.</li>
+                <li><strong>Backup</strong> = <code>sqlite3 db.db .dump</code>.</li>
+                <li><strong>Avantatge</strong> = no necessita servidor.</li>
+                <li><strong>Journaling</strong> = WAL.</li>
+                <li><strong>Extensions</strong> = .db, .sqlite, .sqlite3.</li>
+                <li><strong>NO adequat</strong> = 1000 usuaris concurrents.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

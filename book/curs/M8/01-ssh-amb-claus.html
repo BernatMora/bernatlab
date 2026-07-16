@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. SSH amb claus — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔐 Cap 1. SSH amb claus</h1>
+        <p class="subtitle">Mòdul M8 · Eines del dia a dia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>Per què importa</h3>
+            <p>Ara entres a la RPi amb <strong>password</strong> cada vegada. Té una mica d'inconvenient:</p>
+            <ul>
+                <li>Has de teclejar-la cada cop (tediós).</li>
+                <li>Es pot atacar per <strong>brute force</strong> (algú provant milers de passwords).</li>
+                <li>Si la contrasenya es filtra, perds l'accés.</li>
+            </ul>
+            <p>Les <strong>claus SSH</strong> resolen tot això:</p>
+            <ul>
+                <li><strong>Més còmode</strong>: no cal teclejar res (un cop configurada).</li>
+                <li><strong>Més segur</strong>: la clau és de 4096 bits, matemàticament impossible de trencar.</li>
+                <li><strong>Automatitzable</strong>: pots fer scripts que entrin sense intervenció humana.</li>
+            </ul>
+
+            <h3>Què és una clau SSH</h3>
+            <p>És un parell de fitxers:</p>
+            <ul>
+                <li><strong>Privada</strong> (<code>id_ed25519</code>): la GUARDES tu, només al teu PC. No la comparteixis MAI.</li>
+                <li><strong>Pública</strong> (<code>id_ed25519.pub</code>): la copies al servidor. Es publica, però només serveix per <strong>verificar</strong> que tens la privada.</li>
+            </ul>
+            <p>Com funciona (simplificat):</p>
+            <ol>
+                <li>El servidor envia un <strong>repte</strong> (un número aleatori xifrat amb la teva clau pública).</li>
+                <li>El teu PC el <strong>desxifra</strong> amb la teva clau privada i el retorna.</li>
+                <li>El servidor verifica que és correcte.</li>
+                <li>Si ho és, entres sense password.</li>
+            </ol>
+            <p><strong>Analogia</strong>: la clau pública és com un <strong>candau obert</strong> que pots deixar a qualsevol lloc. La clau privada és l'<strong>única clau</strong> que pot obrir-lo.</p>
+
+            <h3>Com es fa (pas a pas)</h3>
+
+            <h4>1. Generar el parell de claus (al Windows)</h4>
+            <p>Obre <strong>PowerShell</strong> i executa:</p>
+            <pre><code>ssh-keygen -t ed25519</code></pre>
+            <p>Et preguntarà:</p>
+            <ul>
+                <li><strong>Where to save</strong>: deixa el per defecte (<code>C:\Users\iadmin\.ssh\id_ed25519</code>).</li>
+                <li><strong>Passphrase</strong>: posa'n una que recordis. És la <strong>contrasenya de la clau</strong>, no pas la del servidor.</li>
+            </ul>
+            <p>Si tot va bé, veuràs:</p>
+            <pre><code>Your identification has been saved in C:\Users\iadmin\.ssh\id_ed25519
+Your public key has been saved in C:\Users\iadmin\.ssh\id_ed25519.pub</code></pre>
+
+            <h4>2. Copiar la clau pública a la RPi</h4>
+            <p>Un cop (entra amb password l'últim cop):</p>
+            <pre><code>type $env:USERPROFILE\.ssh\id_ed25519.pub | `
+  ssh bernat@100.115.134.76 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"</code></pre>
+
+            <h4>3. Desactivar l'accés per password (a la RPi)</h4>
+            <pre><code>sudo nano /etc/ssh/sshd_config</code></pre>
+            <p>Canvia o afegeix:</p>
+            <pre><code>PasswordAuthentication no
+PubkeyAuthentication yes</code></pre>
+            <p>Desa (Ctrl+O, Enter, Ctrl+X) i reinicia SSH:</p>
+            <pre><code>sudo systemctl restart ssh</code></pre>
+
+            <h4>4. Provar</h4>
+            <pre><code>ssh bernat@100.115.134.76</code></pre>
+            <p>Si tot va bé, <strong>no et demanarà res</strong> (o et demanarà la passphrase de la clau un sol cop per sessió).</p>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>M4 del llibre — Tailscale ja usa claus per a l'autenticació entre nodes.</li>
+                <li>M5 del llibre — Seguretat: les claus són la base de tot.</li>
+                <li>M8 cap 2 — Com utilitzar MobaXterm amb les claus.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m8 1</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quantes claus es generen amb <code>ssh-keygen -t ed25519</code>?</li>
+                <li>Quina clau NO has de compartir mai amb ningú?</li>
+                <li>Quin algoritme es recomana actualment per a claus SSH?</li>
+                <li>On es copia la clau pública a la RPi?</li>
+                <li>Quina comanda copies la teva clau pública a la RPi des de Windows?</li>
+                <li>Per què serveix la passphrase de la clau?</li>
+                <li>Quins permisos ha de tenir <code>~/.ssh/authorized_keys</code>?</li>
+                <li>(Oberta) Explica per què les claus SSH són més segures que les contrasenyes.</li>
+                <li>(Oberta) Imagina que perds el portàtil on tens la clau privada. Què hauries de fer?</li>
+                <li>(Oberta) Per què et recomano desactivar <code>PasswordAuthentication</code>?</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Configurar autenticació per claus SSH entre el teu Windows i la RPi.</p>
+
+            <h3>Pas 1: Comprovar si ja tens claus (2 min)</h3>
+            <pre><code>ls $env:USERPROFILE\.ssh\</code></pre>
+            <p>Si tens fitxers <code>id_ed25519</code> o <code>id_rsa</code>, ja tens claus.</p>
+
+            <h3>Pas 2: Generar el parell de claus (3 min)</h3>
+            <pre><code>ssh-keygen -t ed25519</code></pre>
+
+            <h3>Pas 3: Comprovar la clau pública (1 min)</h3>
+            <pre><code>cat $env:USERPROFILE\.ssh\id_ed25519.pub</code></pre>
+
+            <h3>Pas 4: Copiar la clau pública a la RPi (2 min)</h3>
+            <pre><code>type $env:USERPROFILE\.ssh\id_ed25519.pub | `
+  ssh bernat@100.115.134.76 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"</code></pre>
+
+            <h3>Pas 5: Verificar que funciona (1 min)</h3>
+            <pre><code>ssh bernat@100.115.134.76</code></pre>
+
+            <h3>Pas 6: Deixar una porta oberta (2 min)</h3>
+            <p>Abans de desactivar el password, verifica que la clau funciona.</p>
+
+            <h3>Pas 7: Desactivar el password (5 min)</h3>
+            <pre><code>sudo nano /etc/ssh/sshd_config
+# Canvia: PasswordAuthentication yes -> no
+sudo systemctl restart ssh</code></pre>
+
+            <h3>Pas 8: Test final (2 min)</h3>
+            <pre><code>ssh bernat@100.115.134.76</code></pre>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has generat un parell de claus.</li>
+                <li>☐ La clau pública està copiada a la RPi.</li>
+                <li>☐ Pots entrar per SSH sense password.</li>
+                <li>☐ Has desactivat <code>PasswordAuthentication</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M8/01-ssh-amb-claus/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>2 claus</strong> (privada + pública).</li>
+                <li><strong>Privada</strong> — no compartir mai.</li>
+                <li><strong>ed25519</strong> — algoritme recomanat.</li>
+                <li><code>~/.ssh/authorized_keys</code></li>
+                <li><code>type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh ...</code></li>
+                <li><strong>Passphrase</strong> = protecció si roben el PC.</li>
+                <li><strong>600</strong> — permisos de <code>authorized_keys</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

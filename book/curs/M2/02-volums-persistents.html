@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 2. Volums persistents — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>💾 Cap 2. Volums persistents</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Els contenidors son <strong>volatils per disseny</strong>. Si apagues un contenidor, tot el que hi havia a dins desapareix: fitxers, base de dades, configuracio. Els <strong>volums</strong> son la solucio: espai d'emmagatzematge que viu <strong>fora</strong> del contenidor.</p>
+
+            <h3>Per que els contenidors son volatils</h3>
+            <p>Docker agrupa tot el sistema de fitxers d'un contenidor en una "capa escribible" que es lligada a la vida del contenidor. Quan fas <code>docker rm</code>, aquesta capa desapareix. Si vols que les dades sobrevisquin, cal muntar alguna cosa desde fora.</p>
+            <pre><code>Contenidor (volatile)         Emmagatzematge extern (persistent)
++---------------------+        +---------------------+
+| /app/data -> buit   |   -->  | Volum o bind mount  |
+| log, db, uploads    |        | viu a l'amfitrio    |
++---------------------+        +---------------------+</code></pre>
+
+            <h3>Tipus de volums</h3>
+            <p>Docker te tres mecanismes principals per persistir dades:</p>
+
+            <h4>1. Volums nomenats (named volumes)</h4>
+            <p>Docker els gestiona ell. Viuen a <code>/var/lib/docker/volumes/</code> a l'amfitrio.</p>
+            <pre><code># Crear un volum
+docker volume create dades-meves
+
+# Usar-lo
+docker run -v dades-meves:/app/data nginx
+
+# Llistar volums
+docker volume ls
+
+# Inspeccionar
+docker volume inspect dades-meves</code></pre>
+            <p><strong>Avantatges</strong>: Docker els gestiona (backup, neteja, etc.). Son portables. Es la opcio recomanada per defecte.</p>
+
+            <h4>2. Bind mounts</h4>
+            <p>Muntes una carpeta <strong>concreta</strong> del sistema amfitrio dins el contenidor.</p>
+            <pre><code>docker run -v /home/pi/photos:/app/photos nginx
+# o amb sintaxi nova
+docker run --mount type=bind,source=/home/pi/photos,target=/app/photos nginx</code></pre>
+            <p><strong>Avantatges</strong>: veus els fitxers desde l'amfitrio, pots editar-los amb qualsevol eina. <strong>Desavantatges</strong>: depen de l'estructura de l'amfitrio. Menys portable.</p>
+
+            <h4>3. tmpfs mounts</h4>
+            <p>Viuen nomes a la <strong>memoria RAM</strong>. S'utilitzen per a dades temporals que no vols que toquin el disc (caches, fitxers sensibles).</p>
+            <pre><code>docker run --tmpfs /tmp nginx</code></pre>
+            <p><strong>Avantatges</strong>: rapidissim. No toca el disc. No persisteix res (perfecte per secrets). <strong>Desavantatges</strong>: ocupa RAM. Es perd en reiniciar.</p>
+
+            <h3>Quan usar cada un</h3>
+            <p>A la practica del BernatLab:</p>
+            <ul>
+                <li><strong>Base de dades</strong>: volum nomenat (ex. <code>/var/lib/postgresql/data</code>)</li>
+                <li><strong>Configuracio editable</strong>: bind mount (ex. <code>/home/pi/config/app.conf</code>)</li>
+                <li><strong>Codi font en dev</strong>: bind mount (ex. <code>/home/pi/projekte:/app</code>)</li>
+                <li><strong>Cache de imatges</strong>: volum nomenat o tmpfs, depen</li>
+                <li><strong>Secrets temporals</strong>: tmpfs (claus SSH dins un contenidor)</li>
+            </ul>
+            <p>Regla simple: <strong>per dades de servei, volum nomenat. Per coses que vols tocar desde l'amfitrio, bind mount.</strong></p>
+
+            <h3>Drivers de volums</h3>
+            <p>Per defecte Docker usa el driver <code>local</code> (tot viu a la mateixa maquina). Pero hi ha drivers per emmagatzematge distribuït: <code>local</code>, <code>nfs</code>, <code>cifs/smb</code>, <code>cloud</code> (aws-ebs, gcp-pd, azure-disk).</p>
+            <p>A la RPi del BernatLab fem servir nomes <code>local</code> perque tenim un sol node.</p>
+
+            <h3>Backup de volums</h3>
+            <p>Un volum es nomes una carpeta a <code>/var/lib/docker/volumes/</code>. Per fer-ne backup:</p>
+            <pre><code># Metode simple: crear un contenidor temporal que munta el volum
+docker run --rm -v dades-meves:/data -v $(pwd):/backup \
+  alpine tar czf /backup/dades-meves.tar.gz -C /data .</code></pre>
+
+            <h3>Volums a Docker Compose</h3>
+            <p>A <code>docker-compose.yml</code> es defineixen els volums a dalt i es muntant als serveis:</p>
+            <pre><code>version: "3.8"
+services:
+  postgres:
+    image: postgres:16
+    volumes:
+      - db-data:/var/lib/postgresql/data  # volum nomenat
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # bind mount
+volumes:
+  db-data:  # Docker el crea automaticament</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 1 - Les imatges son volums de lectura; els volums persistents son d'escriptura.</li>
+                <li>M2 Cap 4 - Compose gestiona volums de forma declarativa.</li>
+                <li>M2 Cap 8 - Estrategies de backup automatitzat.</li>
+                <li>M2 Cap 9 - Monitoritzar l'espai de disc dels volums.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 2</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Que passa amb les dades d'un contenidor quan fas <code>docker rm</code>?</li>
+                <li>Quin tipus de volum es recomana per defecte per a dades de servei?</li>
+                <li>A on viuen els volums nomenats per defecte a l'amfitrio?</li>
+                <li>Quina es la principal diferencia entre un volum nomenat i un bind mount?</li>
+                <li>Quan usaries un tmpfs mount?</li>
+                <li>Quina comanda llista tots els volums del sistema?</li>
+                <li>Quina d'aquestes opcions munta un bind mount correctament?</li>
+                <li>Que fa la comanda <code>docker volume prune</code>?</li>
+                <li>(Oberta) Per que un contenidor es volatil i quina consequencia practica te si no fas servir volums?</li>
+                <li>(Oberta) Quin tipus de volum triaries per a un servidor de fotos i la base de dades?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-40 min)</h2>
+            <p>Practicar amb els tres tipus de volums (nomenat, bind mount, tmpfs) i entendre quan usar cada un.</p>
+
+            <h3>Pas 1: Crea i prova un volum nomenat (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker volume create dades-test
+docker volume inspect dades-test
+
+docker run -d --name test-vol -v dades-test:/app/data alpine \
+  sh -c "echo 'Hola des de dins!' > /app/data/salutacio.txt && sleep 3600"
+
+docker exec test-vol cat /app/data/salutacio.txt
+sudo cat /var/lib/docker/volumes/dades-test/_data/salutacio.txt
+
+docker stop test-vol
+docker rm test-vol
+docker volume ls
+sudo ls /var/lib/docker/volumes/dades-test/_data/</code></pre>
+            </div>
+
+            <h3>Pas 2: Bind mount d'una carpeta real (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/proves-bind
+cd ~/proves-bind
+echo "Això es un fitxer de l'amfitrio" > desde-amfitrio.txt
+
+docker run -d --name test-bind \
+  -v ~/proves-bind:/app/dades \
+  alpine sh -c "ls /app/dades > /app/dades/llistat.txt && sleep 3600"
+
+ls ~/proves-bind/
+cat ~/proves-bind/llistat.txt
+echo "Segon fitxer creat des de fora" >> ~/proves-bind/des-de-fora.txt
+docker exec test-bind cat /app/dades/des-de-fora.txt
+
+docker stop test-bind
+docker rm test-bind</code></pre>
+            </div>
+
+            <h3>Pas 3: Prova tmpfs (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run -d --name test-tmpfs --tmpfs /app/cache \
+  alpine sh -c "echo 'secret' > /app/cache/token && sleep 3600"
+
+docker exec test-tmpfs cat /app/cache/token
+sudo find /var/lib/docker -name "token" 2>/dev/null
+
+docker stop test-tmpfs
+docker rm test-tmpfs</code></pre>
+            </div>
+
+            <h3>Pas 4: Comparteix dades entre dos contenidors (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run -d --name writer -v compartit:/data alpine \
+  sh -c "while true; do date >> /data/log.txt; sleep 2; done"
+
+sleep 5
+docker exec writer cat /data/log.txt
+
+docker run --rm --name reader -v compartit:/data alpine \
+  cat /data/log.txt
+
+docker stop writer
+docker rm writer
+docker volume rm compartit</code></pre>
+            </div>
+
+            <h3>Pas 5: Backup basic d'un volum (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run --rm \
+  -v dades-test:/origen:ro \
+  -v ~/proves-bind:/desti \
+  alpine tar czf /desti/backup-dades-test.tar.gz -C /origen .
+
+ls -lh ~/proves-bind/backup-dades-test.tar.gz
+
+docker volume create dades-restaurades
+docker run --rm \
+  -v dades-restaurades:/desti \
+  -v ~/proves-bind:/backup \
+  alpine tar xzf /backup/backup-dades-test.tar.gz -C /desti
+
+docker run --rm -v dades-restaurades:/data alpine ls /data</code></pre>
+            </div>
+
+            <h3>Pas 6: Neteja final</h3>
+            <div class="code-block">
+                <pre><code>docker volume rm dades-test dades-restaurades
+rm -rf ~/proves-bind
+docker volume ls</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat un volum nomenat i has vist que les dades sobreviuen al contenidor.</li>
+                <li>☐ Has fet un bind mount i has pogut editar fitxers desde l'amfitrio.</li>
+                <li>☐ Has provat un tmpfs i has confirmat que les dades no van al disc.</li>
+                <li>☐ Has compartit un volum entre dos contenidors.</li>
+                <li>☐ Has fet un backup basic amb tar i l'has restaurat.</li>
+                <li>☐ Has netejat tots els recursos de prova.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/02-volums-persistents/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>docker rm</strong> = dades perdudes (capa eliminada).</li>
+                <li><strong>Recomanat</strong> = volum nomenat per dades de servei.</li>
+                <li><strong>Ubicacio</strong> = <code>/var/lib/docker/volumes/</code>.</li>
+                <li><strong>Volum nomenat</strong> = gestionat per Docker. <strong>Bind mount</strong> = ruta de l'amfitrio.</li>
+                <li><strong>tmpfs</strong> = RAM, per caches i secrets.</li>
+                <li><strong>Comanda</strong> = <code>docker volume ls</code>.</li>
+                <li><strong>Bind mount</strong> = <code>-v /host:/container</code>.</li>
+                <li><strong>volume prune</strong> = esborra volums no usats.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

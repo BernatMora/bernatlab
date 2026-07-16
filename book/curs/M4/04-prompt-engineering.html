@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 4. Prompt engineering - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>✍️ Cap 4. Prompt engineering</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un <strong>prompt</strong> es la pregunta o instruccio que dones a un LLM. La diferencia entre un bon i un mal prompt pot ser la diferencia entre una resposta inutil i una meravellosa. Prompt engineering es l'art d'escriure prompts que extreuen el millor del model. I no es magia: son patrons que es poden aprendre.</p>
+
+            <h3>Per que importa al BernatLab?</h3>
+            <p>Si volem que el nostre LLM local ens ajudi amb tasques reals (resumir logs, generar scripts, respondre sobre l'Hort Osona), hem de saber com parlar-li. Un prompt mal escrit donara respostes vagues o equivocades, i acabarem pensant que el model es dolent quan en realitat el problema es nostre.</p>
+
+            <h3>Principi 1: Sigues especific</h3>
+            <p><strong>Mal prompt</strong>: <code>Explica els servidors.</code></p>
+            <p><strong>Bon prompt</strong>: <code>Explica quines son les 3 diferencies principals entre un servidor HTTP com Nginx i un servidor d aplicacions com Gunicorn, en menys de 100 paraules.</code></p>
+            <p>El model no pot endevinar quina informacio vols, ni quin nivell de detall, ni en quin format. Si no li dius, et donara la resposta mes generica possible (que sol ser la menys util).</p>
+
+            <h3>Principi 2: Dona context (rol i situacio)</h3>
+            <p><strong>Mal prompt</strong>: <code>Com puc millorar la seguretat?</code></p>
+            <p><strong>Bon prompt</strong>: <code>Soc un administrador de sistemes amb una Raspberry Pi 4 que te un servidor SSH obert a Internet. Dona'm 5 consells concrets per millorar la seguretat, ordenats per prioritat.</code></p>
+            <p>Especificar <strong>qui ets</strong>, <strong>quina es la teva situacio</strong> i <strong>quina informacio necessites</strong> ajuda el model a donar-te una resposta a la teva mida.</p>
+
+            <h3>Principi 3: Dona exemples (few-shot)</h3>
+            <p>Si el model no enten el format que vols, mostra-l'hi amb exemples. Es la tecnica <strong>few-shot</strong>:</p>
+            <pre><code>Classifica el sentiment de cada critica. Respon nomes amb "positiu" o "negatiu".
+
+Critica: "Molt bon llibre, l he gaudit"
+Sentiment: positiu
+
+Critica: "Pessima compra, no ho recomano"
+Sentiment: negatiu
+
+Critica: "El llibre es avorrit i mal escrit"
+Sentiment:</code></pre>
+
+            <h3>Principi 4: Indica el format de sortida</h3>
+            <pre><code>Llista els 5 avantatges principals de Docker. Per cada avantatge:
+- Titol en negreta
+- Explicacio en 1-2 frases
+- Comanda d'exemple si escau
+
+Utilitza aquest format Markdown:
+
+## [Titol]
+[Explicacio]
+`[comanda]`</code></pre>
+
+            <h3>Principi 5: Demana pas a pas (chain of thought)</h3>
+            <p>Per a tasques complexes, fer que el model "pensi pas a pas" millora molt la qualitat:</p>
+            <pre><code>Quants dies te un periode de 5 anys si hi ha 3 anys de traspas?
+Pensa pas a pas:
+1. Quants dies te un any normal?
+2. Quants dies te un any de traspas?
+3. Calcula els dies totals.</code></pre>
+
+            <h3>Principi 6: Dona restriccions negatives</h3>
+            <pre><code>Explica què es Kubernetes. No donis exemples de codi. No comparis amb altres eines. Limita't a una definicio clara en 3-4 frases.</code></pre>
+
+            <h3>Principi 7: Usa delimitadors</h3>
+            <pre><code>[INSTRUCCIONS]
+Ets un assistent que classifica correus.
+
+[CORREU]
+From: jordi@example.com
+...
+
+[CATEGORIES]
+- tecnic
+- comercial
+
+[TASCA]
+Respon nomes amb el nom de la categoria.</code></pre>
+
+            <h3>Tecnica bonus: System prompt</h3>
+            <pre><code>{
+  "messages": [
+    {"role": "system", "content": "Ets un expert en Docker. Respon sempre en catala. Dona exemples de comandes quan sigui relevant."},
+    {"role": "user", "content": "Com puc veure els logs d un contenidor?"}
+  ]
+}</code></pre>
+            <p>El system prompt es mante a totes les converses. Es ideal per a instruccions permanents.</p>
+
+            <h3>Com mesurar la qualitat d'un prompt</h3>
+            <ul>
+                <li><strong>Repetibilitat</strong>: 5 preguntes iguals, respostes similars?</li>
+                <li><strong>Especificitat</strong>: conte la informacio que necessitaves?</li>
+                <li><strong>Format</strong>: esta en el format esperat?</li>
+                <li><strong>Al·lucinacions</strong>: s'ha inventat alguna dada?</li>
+                <li><strong>Longitud</strong>: es adequat?</li>
+            </ul>
+
+            <h3>Errors comuns</h3>
+            <ul>
+                <li><strong>Preguntes massa obertes</strong>: "Explica la historia".</li>
+                <li><strong>Suposar context</strong>: "Fes la cosa aquella".</li>
+                <li><strong>No validar</strong>: creure's la primera resposta.</li>
+                <li><strong>Ignorar el catala</strong>: no especificar idioma.</li>
+                <li><strong>Prompts massa llargs</strong>: mes llargs que la finestra de context.</li>
+            </ul>
+
+            <h3>Una plantilla que funciona</h3>
+            <pre><code>[ROL]
+Ets un [professio] amb [X] anys d'experiencia en [camp].
+
+[TASCA]
+[Descripcio clara del que vols]
+
+[RESTRICCIONS]
+- Respon en [idioma]
+- Limita la resposta a [N] paraules
+- Usa [format] especific
+- No [accio no desitjada]
+
+[EXEMPLES] (opcional)
+Input: [exemple]
+Output: [exemple esperat]
+
+[INPUT]
+[Les teves dades concretes]</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>Cap 1-3 - Base: que es un LLM, com fer-lo correr, quin model triar.</li>
+                <li>Cap 5-8 - RAG: el prompt engineering es critica per donar contexte.</li>
+                <li>Cap 10 - A l'Hort Osona, els prompts especialitzats son la diferencia entre rebre dades utils o soroll.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 4</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Que es un "prompt"?</li>
+                <li>Quina tecnica dona exemples dins del prompt?</li>
+                <li>Quin es el millor prompt per demanar consells de seguretat?</li>
+                <li>Que es el "chain-of-thought prompting"?</li>
+                <li>Quin rol té el "system prompt"?</li>
+                <li>Per que usar delimitadors?</li>
+                <li>Quin es l'error mes comu?</li>
+                <li>Quin es el format correcte per a un prompt que vol JSON?</li>
+                <li>(Oberta) Escriu un prompt per analitzar una linia de log de SSH.</li>
+                <li>(Oberta) Diferencia entre zero-shot, few-shot i chain-of-thought.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (30-45 min)</h2>
+            <p>Experimentar amb diferents tecniques de prompt engineering aplicades a analitzar logs del sistema.</p>
+
+            <h3>Pas 1: Crea un directori amb dades de prova (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/bernatlab-exercicis/M4/04-prompts/dades
+cd ~/bernatlab-exercicis/M4/04-prompts/dades
+
+cat > logs.txt << 'EOF'
+Mar 15 03:42:17 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2
+Mar 15 03:42:18 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2
+... (mes linies) ...
+EOF
+
+cat logs.txt</code></pre>
+            </div>
+
+            <h3>Pas 2: Prompt MAL dissenyat (5 min)</h3>
+            <div class="code-block">
+                <pre><code>curl -s http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:3b",
+  "prompt": "Que hi ha en aquest log?",
+  "stream": false
+}' | jq -r '.response'</code></pre>
+            </div>
+
+            <h3>Pas 3: Prompt amb rol i contexte (10 min)</h3>
+            <p>Usa <code>/api/chat</code> amb system prompt "Ets un expert en seguretat informatica. Analitza logs de Linux en angles i respon sempre en catala." i user prompt ben estructurat amb el log.</p>
+
+            <h3>Pas 4: Few-shot amb exemples (10 min)</h3>
+            <p>Prompt amb 2 exemples de classificacio de logs abans de la pregunta real.</p>
+
+            <h3>Pas 5: Chain-of-thought (10 min)</h3>
+            <p>Prompt amb 5 passos numerats que el model ha de seguir per analitzar el log.</p>
+
+            <h3>Pas 6: Documenta la comparacio (10 min)</h3>
+            <p>Crea <code>book/curs/M4/04-prompt-engineering/comparacio.md</code> amb una taula comparativa de les 4 tecniques provades i les conclusions.</p>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Has provat el prompt MAL dissenyat.</li>
+                <li>☐ Has provat el prompt amb rol i contexte.</li>
+                <li>☐ Has provat el prompt amb few-shot.</li>
+                <li>☐ Has provat el prompt amb chain-of-thought.</li>
+                <li>☐ Has documentat la comparacio.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/04-prompt-engineering/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>Prompt</strong> = la pregunta o instruccio al LLM.</li>
+                <li><strong>Few-shot</strong> = amb exemples del format esperat.</li>
+                <li><strong>Bon prompt</strong> = amb rol, contexte i format especific.</li>
+                <li><strong>Chain-of-thought</strong> = pas a pas, deixant raonar el model.</li>
+                <li><strong>System prompt</strong> = instruccions permanents del rol.</li>
+                <li><strong>Delimitadors</strong> = ajuden a distingir parts del prompt.</li>
+                <li><strong>Error comu</strong> = preguntes massa obertes.</li>
+                <li><strong>Format JSON</strong> = especificar que sigui nomes JSON valid.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

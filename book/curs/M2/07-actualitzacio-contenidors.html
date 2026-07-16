@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 7. Actualitzacio de contenidors — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔄 Cap 7. Actualitzacio de contenidors</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Els serveis en contenidors s'han d'actualitzar periodicament: per seguretat (CVE nous), per noves funcionalitats, per compatibilitat. Hi ha dues maneres: <strong>manual</strong> o <strong>automàtica</strong> amb Watchtower.</p>
+
+            <h3>Per que cal actualitzar</h3>
+            <ul>
+                <li><strong>Seguretat</strong>: cada setmana es descobreixen noves vulnerabilitats.</li>
+                <li><strong>Estabilitat</strong>: les versions noves solen corregir bugs.</li>
+                <li><strong>Funcionalitats</strong>: cada versio aporta millores.</li>
+                <li><strong>Compatibilitat</strong>: si tot evoluciona, el teu servei queda obsolet.</li>
+            </ul>
+            <p><strong>Risc</strong>: actualitzar pot trencar coses. Per això sempre es fa amb <strong>backup previ</strong>.</p>
+
+            <h3>Com s'actualitza manualment</h3>
+            <pre><code># Pas 1: backup (sempre abans!)
+
+# Pas 2: parar el servei antic
+docker compose down web
+
+# Pas 3: baixar la nova imatge
+docker compose pull web
+
+# Pas 4: arrencar amb la nova versio
+docker compose up -d web
+
+# Pas 5: verificar
+docker compose logs -f web</code></pre>
+
+            <h3>Watchtower: actualitzacio automatica</h3>
+            <p><strong>Watchtower</strong> es un contenidor que mira automaticament si hi ha noves versions de les imatges.</p>
+
+            <h4>Instal·lacio</h4>
+            <pre><code>services:
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=86400
+
+  nextcloud:
+    image: nextcloud:stable
+    labels:
+      - "com.bernatlab.enable=true"  # nomes s'actualitza aquest</code></pre>
+
+            <h4>Configuracio important</h4>
+            <pre><code># Nomes actualitzar contenidors amb label especific
+WATCHTOWER_LABEL_ENABLE=true
+
+# Esborrar imatges antigues
+WATCHTOWER_CLEANUP=true
+
+# Interval (cron format: min hora dia mes dia_setmana)
+--schedule "0 0 4 * * *"  # cada dia a les 4 AM
+WATCHTOWER_POLL_INTERVAL=86400
+
+# Notificacions
+WATCHTOWER_NOTIFICATIONS=shoutrrr
+WATCHTOWER_NOTIFICATION_URL=shoutrrr://discord://token@channel</code></pre>
+
+            <h3>Bones practiques</h3>
+            <ol>
+                <li><strong>Label nomes el que vulguis actualitzar</strong>.</li>
+                <li><strong>Backup abans d'actualitzar</strong>: Watchtower no fa backups.</li>
+                <li><strong>Notifications</strong>: configura Watchtower per a que t'avisi.</li>
+                <li><strong>Interval raonable</strong>: un cop al dia es el minim.</li>
+                <li><strong>Monitoritza els logs</strong>: revisa els logs de Watchtower regularment.</li>
+            </ol>
+
+            <h3>Rolling updates i blue-green</h3>
+
+            <h4>Rolling update</h4>
+            <p>Substituir instancies una a una:</p>
+            <pre><code>Inici:    [v1] [v1] [v1]   <- 3 instancies
+Pas 1:    [v2] [v1] [v1]   <- substituim la 1
+Pas 2:    [v2] [v2] [v1]
+Final:    [v2] [v2] [v2]   <- tot actualitzat</code></pre>
+            <p>Amb Compose normal, manualment:</p>
+            <pre><code>docker compose up -d --no-deps --scale web=2 web
+docker compose up -d --no-deps --scale web=1 web</code></pre>
+
+            <h4>Blue-green deployment</h4>
+            <p>Tenir dues versions corrent en paral·lel i canviar el tràfic nomes quan la nova funciona.</p>
+
+            <h3>Healthchecks: el cor de l'autohealing</h3>
+            <pre><code>services:
+  web:
+    image: nginx
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped</code></pre>
+
+            <h3>Limitacions de Watchtower</h3>
+            <ul>
+                <li>No fa backups</li>
+                <li>No sempre enten l'API (scripts d'upgrade)</li>
+                <li>Pot trencar volums si canvia el format</li>
+                <li>No es bo per a bases de dades sense un upgrade plan</li>
+            </ul>
+            <p><strong>Recomanacio al BernatLab</strong>: Watchtower nomes per a serveis "menors". Manual per a serveis critics. Sempre amb backup previ.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 1 - Les imatges noves son les que es descarrega Watchtower.</li>
+                <li>M2 Cap 5 - Si tens un registre privat, Watchtower pot treballar nomes amb ell.</li>
+                <li>M2 Cap 6 - Actualitzar es part de la seguretat.</li>
+                <li>M2 Cap 8 - Backup automatic abans d'actualitzar.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+
+            <div class="code-block">
+                <p>Per fer el quiz:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 7</code></pre>
+            </div>
+
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Que fa principalment Watchtower?</li>
+                <li>Quina es la diferencia entre "update" i "upgrade"?</li>
+                <li>Que es una estrategia "blue-green"?</li>
+                <li>Que es un "rolling update"?</li>
+                <li>Per que es important afegir labels als serveis que vols que Watchtower actualitzi?</li>
+                <li>Quin es l'interval recomanable per a Watchtower?</li>
+                <li>Que es un "healthcheck" en un context de contenidors?</li>
+                <li>Que vol dir "zero-downtime deployment"?</li>
+                <li>(Oberta) Avantatges i inconvenients de les actualitzacions automatiques vs manuals.</li>
+                <li>(Oberta) Com actualitzaries manualment un Nextcloud amb Watchtower protegit?</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Practicar Watchtower, rolling updates i blue-green deployment.</p>
+
+            <h3>Pas 1: Prepara el projecte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/actualitzacio-test
+cd ~/actualitzacio-test</code></pre>
+            </div>
+            <p>Crea un <code>docker-compose.yml</code>:</p>
+            <pre><code>version: "3.8"
+services:
+  web:
+    image: nginx:1.25-alpine
+    ports:
+      - "8080:80"
+    labels:
+      - "com.bernatlab.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=60
+    command: --label-enable --cleanup</code></pre>
+
+            <h3>Pas 2: Arrenca i verifica (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker compose up -d
+docker compose ps
+curl -s http://localhost:8080 | head -5
+docker exec actualitzacio-test-web-1 nginx -v</code></pre>
+            </div>
+
+            <h3>Pas 3: Watchtower monitoritza (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker compose logs watchtower
+docker exec actualitzacio-test-watchtower-1 watchtower --debug</code></pre>
+            </div>
+
+            <h3>Pas 4: Forca una actualitzacio (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker compose down
+sed -i 's|nginx:1.25-alpine|nginx:1.27-alpine|g' docker-compose.yml
+docker compose up -d
+docker exec actualitzacio-test-web-1 nginx -v</code></pre>
+            </div>
+
+            <h3>Pas 5: Blue-green manual (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/actualitzacio-test/green
+cd ~/actualitzacio-test/green
+
+cat > docker-compose.yml <<EOF
+version: "3.8"
+services:
+  web-green:
+    image: nginx:1.27-alpine
+    ports:
+      - "8081:80"
+EOF
+
+docker compose up -d
+curl -s http://localhost:8080 | head -3
+curl -s http://localhost:8081 | head -3
+docker exec actualitzacio-test-web-1 nginx -v
+docker exec actualitzacio-test-green-web-green-1 nginx -v
+
+cd ~/actualitzacio-test
+docker compose -f green/docker-compose.yml down
+sed -i 's|nginx:1.25-alpine|nginx:1.27-alpine|g' docker-compose.yml
+docker compose up -d
+curl -s http://localhost:8080 | head -3
+docker exec actualitzacio-test-web-1 nginx -v</code></pre>
+            </div>
+
+            <h3>Pas 6: Notificacions (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cd ~/actualitzacio-test
+docker compose down
+
+cat > docker-compose.yml <<EOF
+version: "3.8"
+services:
+  web:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    labels:
+      - "com.bernatlab.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=86400
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      - WATCHTOWER_NOTIFICATION_URL=shoutrrr://discord://token@channel
+    command: --label-enable --cleanup --schedule "0 0 4 * * *"
+EOF
+
+docker compose up -d
+docker compose logs watchtower</code></pre>
+            </div>
+
+            <h3>Pas 7: Neteja</h3>
+            <div class="code-block">
+                <pre><code>cd ~/actualitzacio-test
+docker compose down
+rm -rf ~/actualitzacio-test
+docker system prune -a --volumes</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat un compose amb Watchtower.</li>
+                <li>☐ Has vist com Watchtower monitoritza nomes els contenidors amb label.</li>
+                <li>☐ Has fet una actualitzacio manual canviant el tag d'una imatge.</li>
+                <li>☐ Has practicat un blue-green deployment.</li>
+                <li>☐ Has configurat notificacions (Discord o similar).</li>
+                <li>☐ Has netejat els recursos.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/07-actualitzacio-contenidors/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Watchtower</strong> = actualitza automatic.</li>
+                <li><strong>Update vs upgrade</strong> = update es el proces, upgrade es canviar versio major.</li>
+                <li><strong>Blue-green</strong> = dues versions corrent.</li>
+                <li><strong>Rolling update</strong> = instancies una a una.</li>
+                <li><strong>Labels</strong> = controlar quins s'actualitzen.</li>
+                <li><strong>Interval</strong> = 86400 (1 cop al dia).</li>
+                <li><strong>Healthcheck</strong> = comanda per saber si funciona.</li>
+                <li><strong>Zero-downtime</strong> = actualitzar sense tall del servei.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

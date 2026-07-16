@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 2. MobaXterm — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🖥️ Cap 2. MobaXterm al Windows</h1>
+        <p class="subtitle">Mòdul M8 · Eines del dia a dia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+            <p>PowerShell està bé per a comandes puntuals, però per a <strong>treball diari amb servidors</strong> es queda curt. <strong>MobaXterm</strong> és un client SSH per Windows que té tot el que necessites.</p>
+
+            <h3>Per què importa</h3>
+            <p>PowerShell no recorda les connexions, no permet transferir fitxers fàcilment, i no suporta SSH nadiu en finestres gràficament netes. MobaXterm té:</p>
+            <ul>
+                <li>Sessions guardades amb un clic</li>
+                <li>Transferència de fitxers SFTP integrada (arrossegar i deixar anar)</li>
+                <li>Múltiples pestanyes amb terminals independents</li>
+                <li>X11 forwarding</li>
+                <li>Port forwarding (túnels SSH)</li>
+                <li>Gratis en la versió Home Edition</li>
+            </ul>
+
+            <h3>Instal·lació</h3>
+            <ol>
+                <li>Descarrega de <a href="https://mobaxterm.mobatek.net/download.html" target="_blank" rel="noopener">mobaxterm.mobatek.net/download.html</a></li>
+                <li>Tria la Home Edition (gratuïta)</li>
+                <li>Tria Portable si no vols instal·lar res (un sol .exe)</li>
+                <li>Executa</li>
+            </ol>
+
+            <h3>Configuració inicial</h3>
+            <h4>Crear una sessió per a la RPi</h4>
+            <ol>
+                <li>Click a Session (a dalt a l'esquerra)</li>
+                <li>Click a SSH</li>
+                <li>Emplena:
+                    <ul>
+                        <li>Remote host: <code>100.115.134.76</code></li>
+                        <li>Username: <code>bernat</code></li>
+                        <li>Port: <code>22</code></li>
+                    </ul>
+                </li>
+                <li>A Advanced SSH settings:
+                    <ul>
+                        <li>Marca Use private key</li>
+                        <li>Busca el fitxer <code>C:\Users\iadmin\.ssh\id_ed25519</code></li>
+                    </ul>
+                </li>
+                <li>Click a OK</li>
+            </ol>
+
+            <h3>Característiques útils</h3>
+            <h4>Transferència de fitxers</h4>
+            <p>A l'esquerra de la terminal hi ha un navegador de fitxers. Pots arrossegar fitxers, editar amb doble click, i navegar per carpetes.</p>
+
+            <h4>Múltiples pestanyes</h4>
+            <p>Cada sessió s'obre en una pestanya nova. Pots tenir terminals independents per a cada tasca.</p>
+
+            <h4>Port forwarding</h4>
+            <p>Si vols accedir a un port intern de la RPi des del Windows, configura un túnel SSH:</p>
+            <ol>
+                <li>Tunneling > New SSH tunnel</li>
+                <li>Local port: 3001 (el que obriràs al Windows)</li>
+                <li>Remote port: localhost:3001 (el de la RPi)</li>
+                <li>Click a Start</li>
+            </ol>
+            <p>Ara pots obrir <code>http://localhost:3001</code> al navegador del Windows.</p>
+
+            <h3>Limitacions de la Home Edition</h3>
+            <ul>
+                <li>Màxim 12 sessions guardades</li>
+                <li>Màxim 4 sessions SSH simultànies</li>
+                <li>Banner "MobaXterm Home Edition" a l'iniciar</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m8 2</code></pre>
+            </div>
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Què és MobaXterm?</li>
+                <li>Quina edició és gratuïta?</li>
+                <li>Màxim de sessions SSH simultànies?</li>
+                <li>Com transferir fitxers?</li>
+                <li>Per a què serveix el port forwarding?</li>
+                <li>On es guarden les sessions?</li>
+                <li>Quina codificació configurar?</li>
+                <li>(Oberta) Per què millor que PowerShell?</li>
+                <li>(Oberta) Cas d'ús real de port forwarding?</li>
+                <li>(Oberta) Val la pena pagar la Professional?</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (20-30 min)</h2>
+            <h3>Pas 1: Descarregar MobaXterm (5 min)</h3>
+            <ol>
+                <li>Vés a mobaxterm.mobatek.net/download.html</li>
+                <li>Click a Download Home Edition</li>
+                <li>Tria la versió Portable</li>
+            </ol>
+
+            <h3>Pas 2: Descomprimir (1 min)</h3>
+            <p>Crea la carpeta <code>C:\Users\iadmin\bin\MobaXterm\</code> i descomprimeix-hi el .zip.</p>
+
+            <h3>Pas 3: Crear accés directe (2 min)</h3>
+            <p>Click dret a MobaXterm.exe > Enviar a > Escriptori.</p>
+
+            <h3>Pas 4: Crear sessió SSH (5 min)</h3>
+            <p>Configura la sessió com s'explica al resum.</p>
+
+            <h3>Pas 5: Verificar (2 min)</h3>
+            <p>Comprova que la connexió funciona.</p>
+
+            <h3>Pas 6: Transferència de fitxers (3 min)</h3>
+            <p>Arrossega un fitxer al navegador SFTP.</p>
+
+            <h3>Pas 7: Port forwarding (5 min)</h3>
+            <p>Configura un túnel per a Uptime Kuma (port 3001).</p>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ MobaXterm descarregat</li>
+                <li>☐ Sessió SSH amb clau privada funciona</li>
+                <li>☐ Transferència SFTP funciona</li>
+                <li>☐ Port forwarding configurat</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Disponibles a <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M8/02-mobaxterm/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

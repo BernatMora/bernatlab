@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 9. Privadesa de la IA - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔒 Cap 9. Privadesa de la IA</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Quan fas servir ChatGPT, Claude, o qualsevol LLM al nuvol, <strong>estes enviant les teves dades a una empresa</strong>. Aixo inclou les teves preguntes (que poden contenir informacio personal), el context que passes (documents, correus, etc.), les respostes generades, i metadades (hora, ubicacio, IP, etc.).</p>
+            <p>Aixi funciona la <strong>IA tradicional</strong>. Te un preu: la teva privadesa.</p>
+            <p>La <strong>IA local</strong> (Ollama) es diferent: tot corre al <strong>teu ordinador</strong>. Ningun mes te acces a les teves dades. Es la diferencia entre <strong>tenir un assistent al núvol</strong> i <strong>tenir-lo a casa</strong>.</p>
+
+            <h3>Per que importa</h3>
+            <p>Casos reals on la privadesa es crucial:</p>
+            <ul>
+                <li><strong>Dades personals</strong>: historial medica, correus, calendaris.</li>
+                <li><strong>Dades de negoci</strong>: informacio financera, plans estrategics.</li>
+                <li><strong>Dades d'altres</strong>: el que escrius sobre familia, amics, clients.</li>
+                <li><strong>Dades sensibles de l'hort</strong>: ubicacio exacta, sistema de seguretat, alarmes.</li>
+            </ul>
+            <p>Si envies tot això a un LLM al nuvol, l'empresa que el te pot guardar-ho als seus servidors, analitzar-ho, cedir-ho a tercers o ser vulnerada.</p>
+
+            <h3>Avantatges de la IA local</h3>
+            <ol>
+                <li><strong>Privadesa total</strong> - Les dades no surten del teu PC.</li>
+                <li><strong>Cost zero</strong> - No pagues per consulta.</li>
+                <li><strong>Sense limits</strong> - Pots fer tantes consultes com vulgudes.</li>
+                <li><strong>Sense censura</strong> - Cap empresa decideix quines preguntes pots fer.</li>
+                <li><strong>Personalitzable</strong> - Pots afinar el model amb les teves dades.</li>
+                <li><strong>Funciona offline</strong> - Sense internet, funciona igual.</li>
+            </ol>
+
+            <h3>Limitacions de la IA local</h3>
+            <p>Per ser honest, la IA local tambe te inconvenients:</p>
+            <ul>
+                <li><strong>Menys potent</strong> - Els millors models (GPT-4, Claude Opus) son al nuvol.</li>
+                <li><strong>Mes lent</strong> - La teva RPi no te les GPUs del núvol.</li>
+                <li><strong>Cal hardware</strong> - Cal un PC decent per a models grans.</li>
+                <li><strong>Setup mes complex</strong> - Has d'instal·lar i configurar.</li>
+            </ul>
+            <p>Pero per a molts casos, <strong>la IA local es mes que suficient</strong>.</p>
+
+            <h3>El paper del model al núvol</h3>
+            <p>Aquest llibre sha fet amb un model al nuvol (minimax-m3:cloud). No es perfecte per a privadesa, pero es mes barat que GPT-4, no envia dades a Meta, Google o OpenAI, i pot funcionar en servidors europeus (millor per a GDPR).</p>
+            <p><strong>Si vols maxima privadesa</strong>, pots:</p>
+            <ul>
+                <li>Usar un model local (Ollama) per a les teves dades sensibles.</li>
+                <li>Usar el nuvol nomes per a tasques generals (resumir, generar text).</li>
+                <li>Combinar els dos: cerca al local primer, nuvol com a backup.</li>
+            </ul>
+
+            <h3>Bones practiques</h3>
+            <ul>
+                <li><strong>No comparteixis informacio sensible</strong> amb cap sistema (local o nuvol).</li>
+                <li><strong>Xifra els embeddings</strong> si els emmagatzemes.</li>
+                <li><strong>Fes neteja periodica</strong> dels historials de converses.</li>
+                <li><strong>Llegeix els termes del servei</strong> si uses un LLM al nuvol.</li>
+            </ul>
+
+            <h3>Connexions</h3>
+            <ul>
+                <li><strong>M5 del llibre</strong> - Seguretat i privadesa al servidor.</li>
+                <li><strong>M4 cap 8</strong> - Implementacio RAG que es queda local.</li>
+                <li><strong>M4 cap 10</strong> - Aplicacio practica: Hort Osona privat.</li>
+            </ul>
+
+            <h3>El dilema</h3>
+            <p>Cal ser honest: hi ha un <strong>trade-off</strong> entre privadesa (local, mes lent, menys potent) i potencia (nuvol, menys privat, mes rapid). Per a cada cas, la millor opcio depen de les teves necessitats. No hi ha una resposta universal.</p>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 9</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Que passa amb les dades al nuvol?</li>
+                <li>Millor avantatge de la IA local?</li>
+                <li>Que NO es avantatge de la IA local?</li>
+                <li>Limitacio de la IA local?</li>
+                <li>Que vol dir GDPR?</li>
+                <li>Bona practica de privadesa local?</li>
+                <li>(Oberta) 3 arguments per IA local tot i ser mes lenta.</li>
+                <li>(Oberta) Cas real on NO nuvol pero si local.</li>
+                <li>(Oberta) Trade-off absolut o depen del cas?</li>
+                <li>(Oberta) Com combinar local i nuvol amb correus confidencials.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (20-30 min)</h2>
+            <p>Auditar el que ja tens a la RPi i practicar bones practiques de privadesa amb IA local.</p>
+
+            <h3>Pas 1: Inventari local (10 min)</h3>
+            <div class="code-block">
+                <pre><code># On son els models?
+ollama list
+ls -la ~/.ollama/models/
+
+# On es la ChromaDB?
+find ~ -name "chroma*" -type d 2>/dev/null
+
+# Quins scripts usen Ollama?
+find ~ -name "*.py" -exec grep -l "ollama\|11434" {} \;
+
+# Fitxers .env amb API keys?
+find ~ -name ".env" 2>/dev/null</code></pre>
+            </div>
+
+            <h3>Pas 2: Navegador mes privat (5 min)</h3>
+            <p>Finestra privada de Firefox, DuckDuckGo com a buscador, uBlock Origin instal·lat. Neteja cookies de serveis IA coneguts.</p>
+
+            <h3>Pas 3: Comparar local vs nuvol (10 min)</h3>
+            <p>Fes la mateixa pregunta (generica) al teu Ollama local i a un servei al nuvol. Compara temps, privadesa, cost i qualitat. Documenta a <code>proves_privadesa.md</code>.</p>
+
+            <h3>Pas 4: .gitignore correcte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cat >> .gitignore << 'EOF'
+.env
+*.db
+chroma_db/
+EOF</code></pre>
+            </div>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Inventari local fet amb les comandes.</li>
+                <li>☐ Mesures de privadesa al navegador configurades.</li>
+                <li>☐ Resposta local comparada amb nuvol.</li>
+                <li>☐ Conclusions documentades a <code>proves_privadesa.md</code>.</li>
+                <li>☐ <code>.gitignore</code> evita pujar fitxers sensibles.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/09-privadesa-ia/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>Nuvol</strong> = dades a l'empresa.</li>
+                <li><strong>Avantatge local</strong> = privadesa total.</li>
+                <li><strong>NO avantatge</strong> = millors models del mon.</li>
+                <li><strong>Limitacio</strong> = menys potent.</li>
+                <li><strong>GDPR</strong> = llei UE de proteccio de dades.</li>
+                <li><strong>Practica</strong> = xifrar els embeddings.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

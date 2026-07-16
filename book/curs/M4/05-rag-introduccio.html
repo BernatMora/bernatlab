@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 5. Que es RAG - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔍 Cap 5. Que es RAG</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>RAG</strong> vol dir <strong>Retrieval Augmented Generation</strong> (Generacio augmentada per recuperacio). Es la tecnica que permet a un LLM respondre sobre les teves dades, no nomes sobre el que va aprendre durant l'entrenament. En lloc d'entrenar un model nou (car i complicat), li dones el contexte relevant a cada pregunta. I el millor: funciona amb qualsevol LLM.</p>
+
+            <h3>El problema que resol</h3>
+            <p>Si vols preguntar al teu LLM local: "Com es configura el sensor d'humitat del Hort Osona?", el model <code>llama3.2:3b</code> no te ni idea. Et respondra amb bestieses o et dira que no ho sap.</p>
+            <p>Tres possibles solucions:</p>
+            <ol>
+                <li><strong>Re-entrenar el model</strong> amb les teves dades. Car, lent, nomes per a tu.</li>
+                <li><strong>Fine-tuning</strong>: re-entrenar nomes una mica. Millor pero encara complicat.</li>
+                <li><strong>RAG</strong>: donar-li el contexte adequat. Rapid, barat, funciona.</li>
+            </ol>
+            <p>RAG es, amb diferència, la mes practica.</p>
+
+            <h3>Com funciona RAG (visio general)</h3>
+            <p>El flux te tres fases:</p>
+            <pre><code>1. INDEXACIO (es fa un sol cop)
+   Documents -> Chunks -> Embeddings -> Vector DB
+
+2. QUERY (cada vegada que l usuari pregunta)
+   Pregunta -> Embedding -> Cerca a Vector DB -> Top-K chunks
+
+3. GENERACIO (L hora de la veritat)
+   Pregunta + Chunks rellevants -> LLM -> Resposta</code></pre>
+            <p>Exemple: vols preguntar "Quin sensor mesura la temperatura del sol?". Calculem l'embedding de la pregunta, busquem els 3 chunks mes semblants a ChromaDB, i els enviem al LLM juntament amb la pregunta.</p>
+
+            <h3>Per que es tant poderós?</h3>
+            <ul>
+                <li><strong>Sempre actualitzat</strong>: nomes cal re-indexar.</li>
+                <li><strong>Font verificable</strong>: podem citar el document origen.</li>
+                <li><strong>Privadesa</strong>: les dades mai surten del sistema.</li>
+                <li><strong>Multi-document</strong>: milers de documents, el model veu nomes els rellevants.</li>
+                <li><strong>Barat</strong>: nomes electricitat per consulta.</li>
+                <li><strong>Funciona amb models petits</strong>: un 3B amb bon RAG pot superar un 70B sense RAG.</li>
+            </ul>
+
+            <h3>Les limitacions</h3>
+            <ul>
+                <li><strong>Qualitat del retrieval</strong>: si no trobem els chunks correctes, el LLM falla.</li>
+                <li><strong>Finestra de context</strong>: nomes 4-10 chunks per consulta.</li>
+                <li><strong>Chunking dolent</strong>: perdem contexte si partim malament.</li>
+                <li><strong>Manteniment</strong>: cal re-indexar quan canvien els documents.</li>
+                <li><strong>Cost de calcul</strong>: generar embeddings costa temps.</li>
+            </ul>
+
+            <h3>Components d'un sistema RAG</h3>
+            <ol>
+                <li><strong>Loader</strong>: carrega els documents (PDF, Markdown, HTML).</li>
+                <li><strong>Splitter</strong>: parteix els documents en chunks (100-1000 tokens).</li>
+                <li><strong>Embedder</strong>: converteix cada chunk en un vector numeric.</li>
+                <li><strong>Retriever</strong>: busca els chunks mes semblants.</li>
+                <li><strong>Generator</strong>: el LLM que genera la resposta final.</li>
+                <li><strong>Vector DB</strong>: on es guarden els embeddings (ChromaDB, FAISS, LanceDB).</li>
+            </ol>
+
+            <h3>RAG vs Fine-tuning vs Prompt engineering</h3>
+            <table>
+                <tr><th>Tecnica</th><th>Quan usar-la</th><th>Cost</th><th>Temps</th></tr>
+                <tr><td>Prompt engineering</td><td>Totes les tasques. Es la base.</td><td>0</td><td>0</td></tr>
+                <tr><td>RAG</td><td>El model necessita dades que no te.</td><td>Baix</td><td>Hores</td></tr>
+                <tr><td>Fine-tuning</td><td>Estil o comportament molt especific.</td><td>Alt</td><td>Dies</td></tr>
+                <tr><td>Pre-entrenar</td><td>Gairebe mai. Nomes centres de recerca.</td><td>Molt alt</td><td>Mesos</td></tr>
+            </table>
+            <p><strong>Regla practica</strong>: comença sempre per prompt engineering. Si no n'hi ha prou, afegeix RAG. Si encara no es suficient, considera fine-tuning.</p>
+
+            <h3>Un exemple real al BernatLab</h3>
+            <p>Un assistent per l'Hort Osona:</p>
+            <ol>
+                <li>Reuneixo els documents (articles, logs, manuals).</li>
+                <li>Els indexo amb un script Python.</li>
+                <li>Munto una API que, donada una pregunta, busca els chunks i els envia a Ollama.</li>
+                <li>L'usuari pregunta: "Quan he de regar els tomàquets al març?"</li>
+                <li>El sistema respon citant fonts.</li>
+            </ol>
+            <p>Tot en un dia de feina. I el resultat es un assistent que sembla que "sap" tot sobre el teu hort, quan en realitat nomes te una base de dades i un LLM de 3B parametres.</p>
+
+            <h3>Errors comuns amb RAG</h3>
+            <ul>
+                <li><strong>Chunks massa grans</strong>: no caben al contexte.</li>
+                <li><strong>Chunks massa petits</strong>: perden el significat.</li>
+                <li><strong>Embedding equivocat</strong>: no tots serveixen per a tot.</li>
+                <li><strong>No netejar el text</strong>: caracters extranys perjudiquen la cerca.</li>
+                <li><strong>No re-indexar</strong>: la base queda obsoleta.</li>
+                <li><strong>Massa chunks al prompt</strong>: enviar 20 chunks l'enreda.</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>Cap 1-4 - Base: LLMs, Ollama, models, prompts.</li>
+                <li>Cap 6 - Embeddings: el component magic que permet cercar per significat.</li>
+                <li>Cap 7 - Vector databases: on guardem els embeddings.</li>
+                <li>Cap 8 - Pipeline RAG complet: com muntar tot plegat.</li>
+                <li>Cap 9 - Privadesa: RAG local = privacitat total.</li>
+                <li>Cap 10 - Aplicacio: muntarem un RAG per a l'Hort Osona.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 5</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Que significa RAG?</li>
+                <li>Quin es el problema principal que RAG resol?</li>
+                <li>Quantes fases te el flux RAG?</li>
+                <li>Que es un "chunk"?</li>
+                <li>Quants chunks es recomana enviar al LLM?</li>
+                <li>Quin NO es un component de RAG?</li>
+                <li>Per a que serveix l'embedding?</li>
+                <li>Quina es la regla practica per triar tecnica?</li>
+                <li>(Oberta) Per que RAG funciona be amb models petits?</li>
+                <li>(Oberta) Tries RAG, fine-tuning o prompt engineering per a un assistent de projectes GitHub?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (30-45 min)</h2>
+            <p>Entendre el flux de RAG a ma: partir un document en chunks, calcular embeddings, i fer una cerca per semblança.</p>
+
+            <h3>Pas 1: Prepara l'entorn (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/bernatlab-exercicis/M4/05-rag
+cd ~/bernatlab-exercicis/M4/05-rag
+python3 -m venv venv
+source venv/bin/activate
+pip install ollama numpy</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea un document de prova (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cat > hort_osona.md << 'EOF'
+# Hort Osona - Manual de cultiu
+
+## Tomàquets
+Necessiten sol directe (6-8 hores) i reg regular. Plantar a la primavera.
+
+## Enciams
+Prefereixen temperatures fresques (15-20 graus). Reg diari pero sense entollar.
+
+## Sensors
+- DS18B20: temperatura del sol
+- DHT22: humitat i temperatura ambient
+- Capacitive Soil Moisture: humitat del terra
+- BME280: pressio atmosferica
+
+## Reg automatic
+S'activa quan la humitat del terra baixa del 30%.
+EOF</code></pre>
+            </div>
+
+            <h3>Pas 3: Partim el document en chunks (10 min)</h3>
+            <p>Crea <code>chunks.py</code> amb una funcio <code>chunk_by_section</code> que parteix per seccions (<code>##</code>). Hauries d'obtenir 4 chunks.</p>
+
+            <h3>Pas 4: Calcular embeddings amb Ollama (10 min)</h3>
+            <div class="code-block">
+                <pre><code>ollama pull nomic-embed-text</code></pre>
+            </div>
+            <p>Crea <code>embeddings.py</code> amb un bucle que calcula l'embedding de cada chunk amb <code>ollama.embeddings</code>.</p>
+
+            <h3>Pas 5: Fer una cerca per semblança (10 min)</h3>
+            <p>Crea <code>cerca.py</code> amb funcio <code>cosine_similarity</code>. Fes la pregunta "Quin sensor faig servir per saber la temperatura del sol?" i veuras com el chunk "Sensors" surt en primer lloc.</p>
+
+            <h3>Pas 6: Munta el prompt final (5 min)</h3>
+            <p>Crea <code>prompt_final.py</code> que construeix el prompt amb contexte i crida Ollama amb <code>ollama.chat</code>. Aquest es el RAG complet!</p>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Has preparat l'entorn amb venv.</li>
+                <li>☐ Has partit el document en chunks.</li>
+                <li>☐ Has calculat els embeddings.</li>
+                <li>☐ Has fet una cerca per semblança.</li>
+                <li>☐ Has completat el prompt RAG i el LLM ha respost correctament.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/05-rag-introduccio/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>RAG</strong> = Retrieval Augmented Generation.</li>
+                <li><strong>Problema</strong> = respondre sobre dades noves.</li>
+                <li><strong>3 fases</strong> = indexacio, query, generacio.</li>
+                <li><strong>Chunk</strong> = fragment de text d'un document.</li>
+                <li><strong>Recomanacio</strong> = 3-5 chunks per consulta.</li>
+                <li><strong>No es RAG</strong> = compilador de Python.</li>
+                <li><strong>Embedding</strong> = vector numeric que representa significat.</li>
+                <li><strong>Regla</strong> = prompt engineering -&gt; RAG -&gt; fine-tuning.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 2. Instal·lar Ollama - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🦙 Cap 2. Instal·lar Ollama, primers passos</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p><strong>Ollama</strong> es un programa que et permet tenir LLMs funcionant al teu servidor amb quatre comandes. Es el "Docker dels models": descarregues, executes, i tens un API REST llest per cridar. I esta fet en Go, es rapidissim, i funciona igual a Mac, Linux, Windows i Raspberry Pi.</p>
+
+            <h3>Que es Ollama exactament?</h3>
+            <p>Ollama es un <strong>runtime</strong> per a LLMs. Pensa-ho com el <code>dockerd</code> del mon dels models: una vegada l'instales, pots fer:</p>
+            <ul>
+                <li><code>ollama pull llama3.2</code> - descarrega un model.</li>
+                <li><code>ollama run llama3.2</code> - xateja amb el model per terminal.</li>
+                <li><code>ollama serve</code> - exposa un API REST al port 11434.</li>
+            </ul>
+            <p>Aquest API REST es la part clau per al BernatLab: podem cridar el LLM des de qualsevol script Python, Node, o shell sense reinventar la roda.</p>
+
+            <h3>Instal·lacio a la Raspberry Pi 4</h3>
+            <p>A Debian 13 (arm64), la instal·lacio es tan simple com:</p>
+            <pre><code>curl -fsSL https://ollama.com/install.sh | sh</code></pre>
+            <p>Aixo:</p>
+            <ol>
+                <li>Descarrega el binari d'Ollama optimitzat per arm64.</li>
+                <li>Crea un usuari de sistema <code>ollama</code>.</li>
+                <li>Activa un servei systemd (<code>ollama.service</code>).</li>
+                <li>Configura el directori <code>/usr/share/ollama/.ollama</code> per guardar els models.</li>
+            </ol>
+            <p><strong>Verifica la instal·lacio</strong>:</p>
+            <pre><code>ollama --version
+systemctl status ollama</code></pre>
+
+            <h3>Els primers models</h3>
+            <p>Ollama ve amb un cataleg de models al seu registre. Els mes interessants per a la RPi 4 son:</p>
+            <ul>
+                <li><strong>llama3.2:1b</strong>: 1.3 GB de descarrega, ~1 GB de RAM en executar.</li>
+                <li><strong>llama3.2:3b</strong>: 2.0 GB de descarrega, ~2.5 GB de RAM.</li>
+                <li><strong>phi3:mini</strong>: 2.3 GB, optimitzat per a raonament.</li>
+                <li><strong>gemma2:2b</strong>: 1.6 GB, alternativa de Google.</li>
+            </ul>
+            <p><strong>Com descarregar-los</strong>:</p>
+            <pre><code>ollama pull llama3.2:1b
+ollama pull llama3.2:3b</code></pre>
+
+            <h3>Xatejar per terminal</h3>
+            <p>La forma mes rapida de provar-ho:</p>
+            <pre><code>ollama run llama3.2:1b</code></pre>
+            <p>Ara escriu el que vulguis. Per sortir, escriu <code>/bye</code>.</p>
+
+            <h3>L'API REST: la part interessant</h3>
+            <p>El servei esta actiu, pots cridar el LLM des de qualsevol lloc:</p>
+            <pre><code>curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:1b",
+  "prompt": "Quina es la capital de Catalunya?",
+  "stream": false
+}'</code></pre>
+            <p>Tambe te un endpoint de xat (mes convenient per a converses):</p>
+            <pre><code>curl http://localhost:11434/api/chat -d '{
+  "model": "llama3.2:1b",
+  "messages": [
+    {"role": "user", "content": "Hola, qui ets?"}
+  ],
+  "stream": false
+}'</code></pre>
+            <p>I un endpoint d'embeddings (que veurem al cap. 6):</p>
+            <pre><code>curl http://localhost:11434/api/embeddings -d '{
+  "model": "llama3.2:1b",
+  "prompt": "Hola mon"
+}'</code></pre>
+
+            <h3>Estructura de directoris</h3>
+            <p>Ollama desa els models a:</p>
+            <ul>
+                <li><strong>Models descarregats</strong>: <code>/usr/share/ollama/.ollama/models/</code> (a Linux).</li>
+                <li><strong>Configuracio del servei</strong>: <code>/etc/systemd/system/ollama.service</code>.</li>
+                <li><strong>Logs</strong>: <code>journalctl -u ollama</code>.</li>
+            </ul>
+            <p><strong>Atencio</strong>: aquests fitxers son grans. Un model de 7B ocupa uns 4-8 GB.</p>
+
+            <h3>Configuracio basica del servei</h3>
+            <p>Pots ajustar el comportament d'Ollama editant el servei systemd:</p>
+            <pre><code>sudo systemctl edit ollama</code></pre>
+            <p>Afegeix, per exemple:</p>
+            <pre><code>[Service]
+Environment="OLLAMA_HOST=0.0.0.0:11434"
+Environment="OLLAMA_MODELS=/mnt/dades/ollama-models"
+Environment="OLLAMA_KEEP_ALIVE=10m"</code></pre>
+            <p>Aixo fa que escolti a totes les interficies, guardi els models a un disc de dades, i mantingui el model carregat 10 min despres de la ultima consulta.</p>
+
+            <h3>Comandes essentials</h3>
+            <ul>
+                <li><code>ollama --version</code> - Versio instal·lada</li>
+                <li><code>ollama list</code> - Models descarregats</li>
+                <li><code>ollama pull MODEL</code> - Descarregar un model</li>
+                <li><code>ollama run MODEL</code> - Xatejar per terminal</li>
+                <li><code>ollama rm MODEL</code> - Esborrar un model</li>
+                <li><code>ollama ps</code> - Models carregats a memoria</li>
+                <li><code>ollama show MODEL</code> - Info detallada d'un model</li>
+                <li><code>ollama serve</code> - Engegar el servidor API</li>
+            </ul>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>Cap 1 - Que es un LLM, quina diferencia hi ha amb Ollama.</li>
+                <li>Cap 3 - Com triar el model correcte segons la teva maquina.</li>
+                <li>Cap 4 - Com fer prompts que funcionin be amb aquests models.</li>
+                <li>Cap 5-8 - RAG: com fer que el LLM consulti les teves dades a traves de l'API d'Ollama.</li>
+                <li>Cap 9 - Privadesa: Ollama es local, pero cal configurar be l'acces.</li>
+                <li>Cap 10 - Aplicacio concreta a l'Hort Osona.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 2</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Que es Ollama?</li>
+                <li>Quina es la comanda per instalar Ollama a Linux arm64?</li>
+                <li>A quin port escolta per defecte el servidor d'Ollama?</li>
+                <li>Quina comanda fa servir Ollama per descarregar un model?</li>
+                <li>Quin model es mes petit i podria correr be a una RPi 4 amb 4 GB?</li>
+                <li>Quin endpoint de l'API serveix per fer una pregunta simple?</li>
+                <li>Quina comanda llista els models descarregats?</li>
+                <li>Que passa si poses <code>OLLAMA_HOST=0.0.0.0:11434</code>?</li>
+                <li>(Oberta) Per que es important moure els models a un altre disc?</li>
+                <li>(Oberta) Descriu el flux complet per fer una consulta via API REST.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (30-45 min)</h2>
+            <p>Instal·lar Ollama a la teva Raspberry Pi 4 (o maquina virtual Linux), descarregar el teu primer model, i fer una consulta tant per terminal com per API REST.</p>
+
+            <h3>Pas 1: Instal·la Ollama (5 min)</h3>
+            <div class="code-block">
+                <pre><code>curl -fsSL https://ollama.com/install.sh | sh
+ollama --version
+systemctl status ollama</code></pre>
+            </div>
+
+            <h3>Pas 2: Mou el directori de models (opcional) (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo systemctl edit ollama</code></pre>
+            </div>
+            <p>Afegeix:</p>
+            <pre><code>[Service]
+Environment="OLLAMA_MODELS=/mnt/dades/ollama-models"</code></pre>
+            <div class="code-block">
+                <pre><code>sudo systemctl daemon-reload
+sudo systemctl restart ollama</code></pre>
+            </div>
+
+            <h3>Pas 3: Descarrega el teu primer model (5-10 min)</h3>
+            <div class="code-block">
+                <pre><code>ollama pull llama3.2:1b
+ollama pull llama3.2:3b
+ollama list</code></pre>
+            </div>
+
+            <h3>Pas 4: Xateja per terminal (5 min)</h3>
+            <div class="code-block">
+                <pre><code>ollama run llama3.2:1b</code></pre>
+            </div>
+            <p>Prova: <em>Hola, qui ets?</em>, <em>Explica'm que es una Raspberry Pi en 3 frases</em>, <em>Escriu un script bash que compti els fitxers d'un directori</em>. Per sortir: <code>/bye</code>.</p>
+
+            <h3>Pas 5: Crida l'API REST (10 min)</h3>
+            <div class="code-block">
+                <pre><code>curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:1b",
+  "prompt": "Quants dies te un any de traspas?",
+  "stream": false
+}'
+
+curl http://localhost:11434/api/chat -d '{
+  "model": "llama3.2:1b",
+  "messages": [
+    {"role": "user", "content": "Resum en una frase que es Docker."}
+  ],
+  "stream": false
+}'
+
+curl http://localhost:11434/api/tags
+curl http://localhost:11434/api/ps</code></pre>
+            </div>
+
+            <h3>Pas 6: Documenta la teva experiencia (10 min)</h3>
+            <p>Crea <code>book/curs/M4/02-ollama-instalacio/primera-consulta.md</code> amb versio d'Ollama, models descarregats, temps de resposta, valoracio subjectiva.</p>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Ollama esta instal·lat i el servei esta <code>active (running)</code>.</li>
+                <li>☐ Has descarregat almenys un model.</li>
+                <li>☐ Has xatejat amb el model per terminal.</li>
+                <li>☐ Has fet una crida a l'API REST amb <code>curl</code>.</li>
+                <li>☐ Has documentat la teva experiencia a <code>primera-consulta.md</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/02-ollama-instalacio/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>Ollama</strong> = runtime local per a LLMs.</li>
+                <li><strong>Instal·lacio</strong> = <code>curl -fsSL https://ollama.com/install.sh | sh</code>.</li>
+                <li><strong>Port</strong> = 11434.</li>
+                <li><strong>Pull</strong> = <code>ollama pull MODEL</code>.</li>
+                <li><strong>Petit</strong> = <code>llama3.2:1b</code>.</li>
+                <li><strong>Simple</strong> = <code>/api/generate</code>.</li>
+                <li><strong>Llistar</strong> = <code>ollama list</code>.</li>
+                <li><strong>0.0.0.0</strong> = escolta a totes les interficies.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 8. RAG - implementacio completa - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔧 Cap 8. RAG - implementacio completa</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Aquest capitol posa totes les peces juntes: <strong>com fer un sistema RAG complet</strong> que respongui preguntes sobre la teva base de coneixement d'Hort Osona. Es el capitol mes practic del modul.</p>
+
+            <h3>El pipeline</h3>
+            <pre><code>Pregunta de l'usuari
+    ↓
+1. Generar embedding de la pregunta (Ollama)
+    ↓
+2. Cercar els 5 fragments mes semblants (ChromaDB)
+    ↓
+3. Preparar el prompt amb el context trobat
+    ↓
+4. Enviar al LLM (Ollama)
+    ↓
+5. Retornar la resposta</code></pre>
+            <p>Cada pas es un ingredient. Si en falles un, el plat no surt be.</p>
+
+            <h3>1. Carregar els documents</h3>
+            <pre><code>from pathlib import Path
+
+def load_documents(base_path):
+    """Carrega tots els .md d'una carpeta."""
+    docs = []
+    for md_file in Path(base_path).rglob("*.md"):
+        content = md_file.read_text(encoding='utf-8')
+        docs.append({
+            'path': str(md_file),
+            'content': content,
+        })
+    return docs
+
+docs = load_documents('./hort-osona')
+print(f"Carregats {len(docs)} documents")</code></pre>
+
+            <h3>2. Dividir en fragments (chunking)</h3>
+            <p>Els documents son massa llargs per passar-los al LLM. Cal dividir-los:</p>
+            <pre><code>def chunk_text(text, chunk_size=500, overlap=50):
+    """Divideix el text en fragments de chunk_size paraules."""
+    words = text.split()
+    chunks = []
+    for i in range(0, len(words), chunk_size - overlap):
+        chunk = ' '.join(words[i:i + chunk_size])
+        chunks.append(chunk)
+    return chunks
+
+all_chunks = []
+for doc in docs:
+    for chunk in chunk_text(doc['content']):
+        all_chunks.append(chunk)
+print(f"Total chunks: {len(all_chunks)}")</code></pre>
+
+            <h3>3. Generar els embeddings</h3>
+            <pre><code>import requests
+import json
+
+def get_embedding(text, model="nomic-embed-text"):
+    """Obté l'embedding d'un text via Ollama API."""
+    response = requests.post(
+        "http://localhost:11434/api/embeddings",
+        json={"model": model, "prompt": text}
+    )
+    return response.json()['embedding']</code></pre>
+
+            <h3>4. Emmagatzemar a ChromaDB</h3>
+            <pre><code>import chromadb
+import uuid
+
+client = chromadb.PersistentClient(path="./chroma_db")
+collection = client.get_or_create_collection(name="hort")
+
+for i, chunk in enumerate(all_chunks):
+    emb = get_embedding(chunk)
+    collection.add(
+        embeddings=[emb],
+        documents=[chunk],
+        ids=[str(uuid.uuid4())]
+    )</code></pre>
+
+            <h3>5. Cercar i generar</h3>
+            <pre><code>def ask_rag(question, k=5):
+    """Respon una pregunta usant RAG."""
+    q_emb = get_embedding(question)
+    results = collection.query(
+        query_embeddings=[q_emb],
+        n_results=k
+    )
+    context = '\n\n'.join(results['documents'][0])
+    prompt = f"""Respon aquesta pregunta usant nomes el context proporcionat.
+Si no trobes la resposta al context, digues-ho.
+
+Context:
+{context}
+
+Pregunta: {question}
+Resposta:"""
+    response = requests.post(
+        "http://localhost:11434/api/generate",
+        json={"model": "llama3.2", "prompt": prompt, "stream": False}
+    )
+    return response.json()['response']</code></pre>
+
+            <h3>Optimitzacions</h3>
+            <h4>Chunk size</h4>
+            <ul>
+                <li><strong>Massa petit</strong> (100 paraules): massa fragments, el LLM es perd.</li>
+                <li><strong>Massa gran</strong> (2000 paraules): el LLM no hi cap tot.</li>
+                <li><strong>Sweet spot</strong>: 300-800 paraules.</li>
+            </ul>
+
+            <h4>k (nombre de fragments a retornar)</h4>
+            <ul>
+                <li>k=1: nomes el mes semblant (perdut informacio).</li>
+                <li>k=10: masses fragments (el LLM es confon).</li>
+                <li>k=3-5: bon equilibri.</li>
+            </ul>
+
+            <h4>Re-ranking</h4>
+            <p>Per a mes precisio, pots fer una <strong>segona cerca</strong> entre els fragments ja trobats. Pero es complex - no cal per a un homelab.</p>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li><strong>M4 cap 5-7</strong> - Tots els conceptes previos.</li>
+                <li><strong>M4 cap 9</strong> - Privadesa: tot corre local.</li>
+                <li><strong>M4 cap 10</strong> - Aplicacio a Hort Osona (cas concret).</li>
+            </ul>
+
+            <h3>Errors habituals</h3>
+            <ul>
+                <li><strong>No persistir ChromaDB</strong> - Si no passes <code>path=</code>, les dades es perden.</li>
+                <li><strong>Embedding del LLM equivocat</strong> - Usa sempre el mateix model per embeddings i cerca.</li>
+                <li><strong>Prompt massa llarg</strong> - Si el context es massa gran, el LLM triga o falla. Limita a 3-5 fragments.</li>
+                <li><strong>No gestionar errors</strong> - Si Ollama no respon, el sistema peta. Afegeix try/except.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 8</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Quants passos te el pipeline RAG basic?</li>
+                <li>Quin es el primer pas?</li>
+                <li>Model d'embeddings recomanat?</li>
+                <li>Sweet spot de chunk size?</li>
+                <li>Quants fragments retornar (k)?</li>
+                <li>Que pasa sense <code>path=</code> a PersistentClient?</li>
+                <li>(Oberta) Descriu els 5 passos del pipeline.</li>
+                <li>(Oberta) Que pasa si barreges dos models d'embeddings?</li>
+                <li>(Oberta) k=3 o k=5 per a Hort Osona?</li>
+                <li>(Oberta) Optimitzacions per a RPi lenta.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (45-60 min)</h2>
+            <p>Muntar un pipeline RAG complet: indexar 5-10 documents .md i respondre preguntes reals amb el LLM local.</p>
+
+            <h3>Pas 1: Preparar documents de prova (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/rag-test/docs
+cd ~/rag-test/docs
+# Crear 5 fitxers .md sobre horticultura:
+# tomàquet.md, enciam.md, carbassa.md, mongeta.md, calçot.md</code></pre>
+            </div>
+
+            <h3>Pas 2: Script d'indexacio (15 min)</h3>
+            <p>Crea <code>indexar.py</code> amb la funcio <code>chunk_text</code>, <code>get_embedding</code> i el bucle que recorre tots els .md i els indexa a ChromaDB amb <code>PersistentClient</code>.</p>
+
+            <h3>Pas 3: Script de consulta (15 min)</h3>
+            <p>Crea <code>consultar.py</code> amb la funcio <code>ask(question, k=3)</code> que: genera embedding de la pregunta, cerca a ChromaDB, prepara el prompt, envia al LLM i retorna la resposta + fonts.</p>
+
+            <h3>Pas 4: Afinar el prompt (10 min)</h3>
+            <p>Prova instruccions diferents: "Sigues concis", "Max 2-3 frases", "Cita nomes del contexte". Observa com canvia la qualitat.</p>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Tinc 5 documents .md creats.</li>
+                <li>☐ L'script d'indexacio ha funcionat i mostra el total.</li>
+                <li>☐ L'script de consulta respon 4 preguntes correctament.</li>
+                <li>☐ Les respostes inclouen informacio especifica dels documents.</li>
+                <li>☐ He provat almenys una optimitzacio de prompt.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/08-rag-implementacio/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>Passos</strong> = 5 (embedding, cerca, prompt, LLM, resposta).</li>
+                <li><strong>Primer pas</strong> = embedding de la pregunta.</li>
+                <li><strong>Embeddings</strong> = nomic-embed-text.</li>
+                <li><strong>Chunk size</strong> = 300-800 paraules.</li>
+                <li><strong>k</strong> = 3-5.</li>
+                <li><strong>path=</strong> cal per persistir.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

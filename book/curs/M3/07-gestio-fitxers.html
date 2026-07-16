@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 7. Gestió de fitxers — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📁 Cap 7. Gestió de fitxers al BernatLab</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>A més de les bases de dades, al BernatLab tinc una quantitat important de <strong>fitxers plans</strong>: fotografies de l'hort, documents del curs, scripts, configuracions, manuals, fitxers dels usuaris de Nextcloud, etc. Tots aquests fitxers necessiten una <strong>gestió organitzada</strong>: carpetes clares, permisos correctes, una manera fàcil de pujar/baixar fitxers des del navegador o el mòbil, i (idealment) una mena de "cloud personal" accessible des de qualsevol lloc.</p>
+            <p>En aquest capítol veurem dues eines principals: <strong>File Browser</strong> (un gestor de fitxers web simple) i <strong>Nextcloud</strong> (un núvol personal complert tipus Google Drive). També parlarem d'estructura de carpetes i bones pràctiques d'organització.</p>
+
+            <h3>L'estructura de carpetes al BernatLab</h3>
+            <p>Tinc una jerarquia de carpetes pensada per a que tot sigui trobable:</p>
+            <div class="code-block">
+                <pre><code>/home/pi/bernatlab/
+├── apps/              # Codis font de les aplicacions
+├── backups/           # Copies de seguretat locals
+├── config/            # Fitxers de configuracio compartits
+├── data/              # Dades de l'hort (fitxers, no BD)
+├── docker/            # Tots els docker-compose.yml i .env
+├── docs/              # Documentacio del BernatLab
+├── influxdb/          # Dades d'InfluxDB
+├── logs/              # Logs agregats
+├── media/             # Fotografies i videos de l'hort
+├── nextcloud/         # Dades de Nextcloud
+├── postgres/          # Dades de PostgreSQL
+├── scripts/           # Scripts de manteniment
+└── temp/              # Fitxers temporals</code></pre>
+            </div>
+            <p>Aquesta estructura és <strong>consistent</strong> amb tots els serveis: cada servei té el seu directori a <code>/home/pi/bernatlab/</code>, i dins hi ha <code>data/</code>, <code>config/</code>, etc. Fa que sigui trivial navegar i fer backup.</p>
+
+            <h3>Permisos bàsics</h3>
+            <p>Els fitxers al BernatLab segueixen aquesta política:</p>
+            <ul>
+                <li><strong>Propietari</strong>: <code>pi</code> (l'usuari de la RPi).</li>
+                <li><strong>Grup</strong>: <code>pi</code>.</li>
+                <li><strong>Permisos</strong>: <code>755</code> per carpetes, <code>644</code> per fitxers.</li>
+                <li><strong>Excepció</strong>: els <code>.env</code> amb contrasenyes són <code>600</code> (només el propietari).</li>
+            </ul>
+
+            <h3>File Browser</h3>
+            <p><strong>File Browser</strong> (filebrowser.org) és un gestor de fitxers web molt simple. Permet navegar, pujar, baixar, editar i esborrar fitxers del servidor des del navegador. Perfecte per a l'hort IoT perquè:</p>
+            <ul>
+                <li>És un sol binari Go.</li>
+                <li>Es pot posar darrere de Tailscale o un reverse proxy.</li>
+                <li>Permet múltiples usuaris amb permisos.</li>
+                <li>Té una UI neta i intuïtiva.</li>
+            </ul>
+
+            <h4>Instal·lació</h4>
+            <div class="code-block">
+                <pre><code>services:
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: bernatlab-filebrowser
+    restart: unless-stopped
+    volumes:
+      - /home/pi/bernatlab:/srv
+      - /home/pi/bernatlab/filebrowser/database.db:/database.db
+      - /home/pi/bernatlab/filebrowser/config.json:/config.json
+    ports:
+      - "127.0.0.1:8080:80"</code></pre>
+            </div>
+
+            <h4>Ús</h4>
+            <p>Un cop instal·lat, pots accedir a <code>http://localhost:8080</code> (via Tailscale). Login per defecte: <code>admin</code> / <code>admin</code> (canvia-ho!). Després:</p>
+            <ul>
+                <li>Navega per <code>/srv</code> (= <code>/home/pi/bernatlab/</code>).</li>
+                <li>Puja fitxers amb drag &amp; drop.</li>
+                <li>Descarrega, edita, esborra.</li>
+                <li>Crea usuaris addicionals amb permisos específics.</li>
+            </ul>
+
+            <h3>Nextcloud</h3>
+            <p><strong>Nextcloud</strong> és molt més que un gestor de fitxers: és un <strong>núvol personal complet</strong> tipus Google Drive o Dropbox, però allotjat a casa teva. Ofereix:</p>
+            <ul>
+                <li>Gestió de fitxers (pujar, baixar, sincronitzar, compartir).</li>
+                <li>Calendari i contactes.</li>
+                <li>Documents col·laboratius.</li>
+                <li>Notes.</li>
+                <li>Sincronització amb el PC/mòbil.</li>
+                <li>App per a Android/iOS.</li>
+            </ul>
+
+            <h4>Quan usar Nextcloud al BernatLab</h4>
+            <p>Nextcloud és perfecte si:</p>
+            <ul>
+                <li>Tens <strong>familiars</strong> que volen un núvol però no vols dependre de Google/Microsoft.</li>
+                <li>Vols <strong>sincronitzar</strong> fitxers entre PC, portàtil i mòbil.</li>
+                <li>Necessites <strong>compartir</strong> fitxers amb enllaços segurs.</li>
+            </ul>
+            <p>NO es recomana si:</p>
+            <ul>
+                <li>Nomes necessites un gestor per a tu (File Browser és més lleuger).</li>
+                <li>Tens pocs fitxers.</li>
+                <li>La RPi és molt justa (Nextcloud consumeix bastanta RAM).</li>
+            </ul>
+
+            <h4>Instal·lació bàsica</h4>
+            <div class="code-block">
+                <pre><code>services:
+  nextcloud:
+    image: nextcloud:28-apache
+    container_name: bernatlab-nextcloud
+    restart: unless-stopped
+    depends_on:
+      - nextcloud-db
+    environment:
+      POSTGRES_HOST: nextcloud-db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+      NEXTCLOUD_ADMIN_USER: bernat
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+    volumes:
+      - /home/pi/bernatlab/nextcloud:/var/www/html
+    ports:
+      - "127.0.0.1:8081:80"
+
+  nextcloud-db:
+    image: postgres:16-alpine
+    container_name: bernatlab-nextcloud-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+    volumes:
+      - /home/pi/bernatlab/nextcloud-db:/var/lib/postgresql/data</code></pre>
+            </div>
+
+            <h3>Bones pràctiques d'organització</h3>
+            <ol>
+                <li><strong>Noms de carpetes sense espais ni accents</strong>: <code>media-hort/</code> millor que <code>Mitjans Hort/</code>.</li>
+                <li><strong>Dates en format ISO</strong>: <code>2025-06-15_tall-tomaqueres.jpg</code>.</li>
+                <li><strong>Una sola font de veritat</strong>: no tinguis el mateix fitxer en 5 llocs.</li>
+                <li><strong>README.md a cada carpeta important</strong>: explica què hi ha allà.</li>
+                <li><strong>Neteja periòdica</strong>: cada trimestre revisa <code>/tmp/</code>.</li>
+                <li><strong>Permisos estrictes</strong>: <code>600</code> per secrets.</li>
+                <li><strong>Noms amb versió</strong>: <code>manual-v1.md</code>, <code>manual-v2.md</code>.</li>
+            </ol>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — Les dades són fitxers + bases de dades.</li>
+                <li>Cap 3 — Els fitxers als volums Docker.</li>
+                <li>Cap 8 — Syncthing i rsync per sincronitzar.</li>
+                <li>Cap 9 — Xifrar els fitxers sensibles.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 7</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin és el gestor de fitxers web més simple que es pot instal·lar al BernatLab?</li>
+                <li>Quin programari ofereix un núvol personal complet tipus Google Drive?</li>
+                <li>Quins permisos hauria de tenir un fitxer .env amb contrasenyes?</li>
+                <li>Quin directori arrel és el recomanat per organitzar les dades al BernatLab?</li>
+                <li>Quin és l'avantatge principal de Nextcloud sobre File Browser?</li>
+                <li>Quin protocol fan servir els clients de sincronització de Nextcloud?</li>
+                <li>Quin format de data és el recomanat per noms de fitxers?</li>
+                <li>Quin és l'inconvenient principal de Nextcloud en una Raspberry Pi 4?</li>
+                <li>(Oberta) Dissenya l'estructura de carpetes per a un hort amb 5 bancals i 3 sensors per bancal.</li>
+                <li>(Oberta) Tria entre File Browser i Nextcloud per a un usuari que vol sincronitzar 200 GB de fotos entre PC, mòbil i tablet.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-40 min)</h2>
+            <p>Instal·lar File Browser, crear una estructura de carpetes per a l'hort, pujar i baixar fitxers des del navegador, i explorar les opcions d'usuaris.</p>
+
+            <h3>Pas 1: Crea l'estructura de carpetes (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/hort/{media,docs,data/{sensors,plantes,collites},config}
+mkdir -p /home/pi/bernatlab/hort/media/2025/06-juny
+mkdir -p /home/pi/bernatlab/hort/docs/{manuals,procediments,actes}
+
+ls -la /home/pi/bernatlab/hort/</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea fitxers de prova (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cat &gt; /home/pi/bernatlab/hort/README.md &lt;&lt;EOF
+# Hort IoT BernatLab
+
+Aquesta carpeta conte totes les dades de l'hort.
+
+## Estructura
+
+- media/: Fotografies i videos
+- data/sensors/: Lectures dels sensors (CSV)
+- data/plantes/: Inventari de plantes
+- data/collites/: Registre de collites
+- docs/: Documentacio
+
+## Notes
+
+- Tots els fitxers segueixen el format ISO a les dates: YYYY-MM-DD
+- Les carpetes no porten accents ni espais
+EOF
+
+cat &gt; /home/pi/bernatlab/hort/data/sensors/2025-06-15.csv &lt;&lt;EOF
+ts,sensor,valor
+2025-06-15T08:00:00,temperatura,18.5
+2025-06-15T08:00:00,humitat,65.0
+2025-06-15T08:00:00,llum,820
+EOF
+
+ls -R /home/pi/bernatlab/hort/</code></pre>
+            </div>
+
+            <h3>Pas 3: Instal·la File Browser amb Docker (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/filebrowser
+
+docker run -d --name bernatlab-filebrowser \
+  -p 127.0.0.1:8080:80 \
+  -v /home/pi/bernatlab:/srv \
+  -v /home/pi/bernatlab/filebrowser/database.db:/database.db \
+  -v /home/pi/bernatlab/filebrowser/config.json:/config.json \
+  filebrowser/filebrowser:latest
+
+sleep 5
+docker ps | grep filebrowser</code></pre>
+            </div>
+
+            <h3>Pas 4: Accedeix a File Browser (5 min)</h3>
+            <p>Obre al navegador: <code>http://localhost:8080</code> (via Tailscale o túnel SSH). Login: <code>admin</code> / <code>admin</code>. Canvia la contrasenya immediatament!</p>
+
+            <h3>Pas 5: Crea un usuari (5 min)</h3>
+            <p>A la UI:</p>
+            <ol>
+                <li>Settings > Users > New</li>
+                <li>Nom: hort-user, Contrasenya: hort-2025</li>
+                <li>Permisos: només lectura per defecte</li>
+                <li>Permet l'accés a la carpeta <code>/hort</code></li>
+            </ol>
+
+            <h3>Pas 6: Prova pujar/baixar (5 min)</h3>
+            <p>Des del navegador amb l'usuari <code>hort-user</code>:</p>
+            <ol>
+                <li>Crea un fitxer nou a la carpeta <code>/hort/media/2025/06-juny/</code>.</li>
+                <li>Puja una fotografia de prova (una qualsevol del teu PC).</li>
+                <li>Descarrega-la per verificar.</li>
+            </ol>
+
+            <h3>Pas 7: Permisos al sistema de fitxers (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Permissos basics
+chmod 755 /home/pi/bernatlab/hort
+chmod 644 /home/pi/bernatlab/hort/README.md
+
+# Comprova
+ls -la /home/pi/bernatlab/hort/
+stat /home/pi/bernatlab/hort/README.md</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat l'estructura de carpetes de l'hort.</li>
+                <li>☐ Has instal·lat File Browser amb Docker.</li>
+                <li>☐ T'has connectat i has canviat la contrasenya d'admin.</li>
+                <li>☐ Has creat un usuari secundari.</li>
+                <li>☐ Has pujat i descarregat un fitxer.</li>
+                <li>☐ Has revisat els permisos al sistema de fitxers.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/07-gestio-fitxers/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>File Browser</strong> = gestor de fitxers web simple.</li>
+                <li><strong>Nextcloud</strong> = núvol personal complet.</li>
+                <li><strong>.env</strong> = permisos <code>600</code>.</li>
+                <li><strong>Directori arrel</strong> = <code>/home/pi/bernatlab/</code>.</li>
+                <li><strong>Nextcloud vs File Browser</strong> = sincronització multi-dispositiu.</li>
+                <li><strong>Protocol Nextcloud</strong> = WebDAV + API pròpia.</li>
+                <li><strong>Format data</strong> = ISO (<code>YYYY-MM-DD</code>).</li>
+                <li><strong>Inconvenient Nextcloud a RPi</strong> = consum de RAM.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

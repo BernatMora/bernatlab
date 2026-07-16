@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 8. Backup de contenidors — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>💼 Cap 8. Backup de contenidors</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Si tens un servei en produccio, necessites <strong>backups</strong>. Sense backup, qualsevol fallada et pot fer perdre totes les dades. La bona noticia es que Docker facilita els backups perque tot es fitxers.</p>
+
+            <h3>Regla 3-2-1</h3>
+            <ul>
+                <li><strong>3 copies</strong> de les dades (l'original + 2 backups)</li>
+                <li><strong>2 suports diferents</strong> (per exemple, SD + disc USB extern, o SD + núvol)</li>
+                <li><strong>1 fora de la maquina</strong> (per exemple, en un núvol o un servidor remot)</li>
+            </ul>
+
+            <h3>Que cal fer backup</h3>
+            <p>Tot el que <strong>no es pot tornar a generar</strong>:</p>
+            <ol>
+                <li><strong>Volums Docker</strong> (les dades: base de dades, fitxers, configuracio).</li>
+                <li><strong>Configuracio</strong> (fitxers <code>docker-compose.yml</code>, <code>.env</code>).</li>
+                <li><strong>Secrets</strong> (contrasenyes, claus - xifrats!).</li>
+                <li><strong>Imatges personalitzades</strong> (si n'has construit alguna).</li>
+            </ol>
+            <p>El que <strong>NO</strong> cal fer backup: les imatges de Docker Hub (es poden tornar a baixar), el sistema operatiu.</p>
+
+            <h3>Estratègies de backup</h3>
+
+            <h4>1. Backup de volums</h4>
+            <p>Els volums son carpetes a <code>/var/lib/docker/volumes/</code>. Per fer-ne backup, usem un contenidor temporal:</p>
+            <pre><code># Backup d'un volum nomenat
+docker run --rm \
+  -v dades-meves:/origen:ro \
+  -v ~/backups:/desti \
+  alpine tar czf /desti/dades-meves-$(date +%F).tar.gz -C /origen .
+
+# Restaurar
+docker volume create dades-meves-restaurades
+docker run --rm \
+  -v dades-meves-restaurades:/desti \
+  -v ~/backups:/origen \
+  alpine tar xzf /origen/dades-meves-2024-01-15.tar.gz -C /desti</code></pre>
+
+            <h4>2. Backup de base de dades</h4>
+            <pre><code># PostgreSQL
+docker exec postgres-container pg_dump -U user dbname > backup.sql
+
+# MySQL / MariaDB
+docker exec mariadb-container mysqldump -u root -p dbname > backup.sql
+
+# MongoDB
+docker exec mongo-container mongodump --archive > backup.archive</code></pre>
+
+            <h4>3. Backup de fitxers de configuracio</h4>
+            <pre><code>tar czf config-backup.tar.gz /home/pi/bernatlab/
+
+# Important: xifrar si hi ha secrets!
+gpg --symmetric --cipher-algo AES256 config-backup.tar.gz</code></pre>
+
+            <h4>4. Backup incremental</h4>
+            <pre><code># Primer backup: sencer
+rsync -a /home/pi/dades/ /backup/daily.0/
+
+# Segon backup: nomes els canvis
+rsync -a --link-dest=/backup/daily.0 /home/pi/dades/ /backup/daily.1/</code></pre>
+
+            <h4>5. Backup al núvol</h4>
+            <pre><code># Amb rclone
+rclone sync /backup/daily.0 b2:bernatlab-backup/
+
+# Amb restic
+restic -r b2:bernatlab-backup:/ backup /home/pi/dades</code></pre>
+
+            <h3>Automatitzacio amb cron</h3>
+            <pre><code>crontab -e
+
+# Afegir una feina que fa backup cada nit a les 3 AM
+0 3 * * * /home/pi/scripts/backup-volums.sh >> /var/log/backup.log 2>&1</code></pre>
+
+            <h3>Verificar els backups</h3>
+            <p>Un backup que no s'ha verificat <strong>no es un backup</strong>.</p>
+            <pre><code># Verificar que un .tar.gz no esta corrupte
+tar tzf backup.tar.gz > /dev/null && echo "OK" || echo "CORRUPT!"
+
+# Restaurar a un directori temporal i comprovar
+mkdir /tmp/test-restore
+tar xzf backup.tar.gz -C /tmp/test-restore
+diff -r /tmp/test-restore /origen/</code></pre>
+
+            <h3>Xifrat</h3>
+            <p>Si els teus backups contenen dades sensibles, <strong>xifra'ls</strong>:</p>
+            <pre><code># Xifrar amb GPG
+gpg --symmetric --cipher-algo AES256 backup.tar.gz
+
+# Desxifrar
+gpg -d backup.tar.gz.gpg > backup.tar.gz</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M2 Cap 1 - Les imatges es poden tornar a descarregar.</li>
+                <li>M2 Cap 2 - Els volums son el que cal fer backup.</li>
+                <li>M2 Cap 5 - Els registres privats son part del backup.</li>
+                <li>M2 Cap 7 - Sempre fer backup abans d'actualitzar.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+
+            <div class="code-block">
+                <p>Per fer el quiz:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 8</code></pre>
+            </div>
+
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Quina es la regla 3-2-1 dels backups?</li>
+                <li>Quin metode es el mes recomanable per fer backup d'un volum Docker?</li>
+                <li>Quina comanda fa un backup d'una base de dades PostgreSQL dins un contenidor?</li>
+                <li>Per que es important xifrar els backups?</li>
+                <li>Que vol dir un backup "verificat"?</li>
+                <li>Quina eina es recomana per a backups incrementals al núvol?</li>
+                <li>Quina es la millor opcio per automatitzar backups a una hora concreta?</li>
+                <li>Quina es la frecuencia minima raonable per a backups automatics?</li>
+                <li>(Oberta) Diferencia entre backup d'un volum, dump SQL i backup de configuracio.</li>
+                <li>(Oberta) Estrategia 3-2-1 per a Nextcloud amb 50 GB de fotos al BernatLab.</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-60 min)</h2>
+            <p>Crear una estrategia de backup complerta per a contenidors Docker.</p>
+
+            <h3>Pas 1: Prepara l'entorn (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/backup-test/scripts
+mkdir -p ~/backup-test/backups
+cd ~/backup-test
+
+docker run -d --name test-db -e POSTGRES_PASSWORD=test -e POSTGRES_DB=testdb postgres:16-alpine
+sleep 5
+docker exec test-db pg_isready -U postgres
+docker exec test-db psql -U postgres -d testdb -c "CREATE TABLE proves (id SERIAL PRIMARY KEY, nom TEXT);"
+docker exec test-db psql -U postgres -d testdb -c "INSERT INTO proves (nom) VALUES ('Bernat'), ('Maria'), ('Joan');"</code></pre>
+            </div>
+
+            <h3>Pas 2: Crea un volum amb dades (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker volume create dades-test
+docker run -d --name test-vol -v dades-test:/app/data alpine sh -c "echo 'Foto 1' > /app/data/foto1.txt && echo 'Foto 2' > /app/data/foto2.txt && sleep 3600"
+docker exec test-vol ls /app/data</code></pre>
+            </div>
+
+            <h3>Pas 3: Script de backup basic (10 min)</h3>
+            <p>Crea <code>~/backup-test/scripts/backup-basic.sh</code>:</p>
+            <pre><code>#!/bin/bash
+set -e
+BACKUP_DIR=~/backup-test/backups
+DATA=$(date +%F)
+mkdir -p ${BACKUP_DIR}
+
+echo "=== Inici del backup ${DATA} ==="
+
+docker run --rm \
+  -v dades-test:/origen:ro \
+  -v ${BACKUP_DIR}:/desti \
+  alpine tar czf /desti/vol-dades-test-${DATA}.tar.gz -C /origen .
+
+docker exec test-db pg_dump -U postgres testdb > ${BACKUP_DIR}/db-testdb-${DATA}.sql
+
+ls -lh ${BACKUP_DIR}
+echo "=== Backup finalitzat ==="</code></pre>
+            <div class="code-block">
+                <pre><code>chmod +x ~/backup-test/scripts/backup-basic.sh
+~/backup-test/scripts/backup-basic.sh</code></pre>
+            </div>
+
+            <h3>Pas 4: Restaurar el backup (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker stop test-vol test-db
+docker rm test-vol test-db
+docker volume rm dades-test
+docker volume prune -f
+
+docker volume create dades-test
+LATEST_VOL=$(ls -t ~/backup-test/backups/vol-dades-test-*.tar.gz | head -1)
+docker run --rm \
+  -v dades-test:/desti \
+  -v ~/backup-test/backups:/backup \
+  alpine tar xzf /backup/$(basename $LATEST_VOL) -C /desti
+
+docker run --rm -v dades-test:/data alpine ls /data
+docker run --rm -v dades-test:/data alpine cat /data/foto1.txt</code></pre>
+            </div>
+
+            <h3>Pas 5: Script complet amb retencio (15 min)</h3>
+            <p>Crea <code>~/backup-test/scripts/backup-complet.sh</code>:</p>
+            <pre><code>#!/bin/bash
+set -e
+BACKUP_DIR=~/backup-test/backups
+RETENTION_DAYS=7
+DATA=$(date +%F)
+mkdir -p ${BACKUP_DIR}
+
+log() { echo "[$(date '+%F %T')] $@"; }
+
+log "=== Inici del backup ${DATA} ==="
+
+log "Backup del volum..."
+docker run --rm \
+  -v dades-test:/origen:ro \
+  -v ${BACKUP_DIR}:/desti \
+  alpine tar czf /desti/vol-dades-test-${DATA}.tar.gz -C /origen .
+
+log "Dump de la base de dades..."
+docker exec test-db pg_dump -U postgres testdb > ${BACKUP_DIR}/db-testdb-${DATA}.sql
+gzip ${BACKUP_DIR}/db-testdb-${DATA}.sql
+
+log "Verificant backups..."
+for fitxer in ${BACKUP_DIR}/vol-dades-test-${DATA}.tar.gz; do
+  if tar tzf $fitxer > /dev/null 2>&1; then
+    log "OK: $fitxer"
+  else
+    log "ERROR: $fitxer corrupte!"
+    exit 1
+  fi
+done
+
+log "Esborrant backups antics (>${RETENTION_DAYS} dies)..."
+find ${BACKUP_DIR} -type f -mtime +${RETENTION_DAYS} -delete
+
+ls -lh ${BACKUP_DIR}
+log "=== Backup finalitzat amb exit ==="</code></pre>
+            <div class="code-block">
+                <pre><code>chmod +x ~/backup-test/scripts/backup-complet.sh
+~/backup-test/scripts/backup-complet.sh</code></pre>
+            </div>
+
+            <h3>Pas 6: Automatitzar amb cron (5 min)</h3>
+            <div class="code-block">
+                <pre><code>crontab -e
+# Afegeix:
+0 3 * * * /home/pi/backup-test/scripts/backup-complet.sh >> /var/log/backup.log 2>&1</code></pre>
+            </div>
+
+            <h3>Pas 7: Neteja</h3>
+            <div class="code-block">
+                <pre><code>docker stop test-db
+docker rm test-db
+docker volume rm dades-test
+docker volume prune -f
+crontab -e  # esborra la linia afegida</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat un script que fa backup d'un volum i una base de dades.</li>
+                <li>☐ Has restaurat amb exit un volum perdut.</li>
+                <li>☐ Has afegit retencio automatica al script.</li>
+                <li>☐ Has verificat que els fitxers de backup no son corruptes.</li>
+                <li>☐ Has configurat cron per executar el backup automaticament.</li>
+                <li>☐ Has fet una còpia al núvol o has simulat el procés.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/08-backup-contenidors/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>3-2-1</strong> = 3 copies, 2 suports, 1 fora.</li>
+                <li><strong>Volum</strong> = contenidor temporal amb tar.</li>
+                <li><strong>pg_dump</strong> = dump SQL de la base de dades.</li>
+                <li><strong>Xifrat</strong> = protegir dades si es perden.</li>
+                <li><strong>Verificat</strong> = provat de restaurar.</li>
+                <li><strong>Incremental al núvol</strong> = restic, borgbackup, rclone.</li>
+                <li><strong>Automatitzar</strong> = cron.</li>
+                <li><strong>Frequencia minima</strong> = 1 cop al dia.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

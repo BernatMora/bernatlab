@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 4. Compose avançat — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🐙 Cap 4. Compose avançat</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Docker Compose es la manera <strong>declarativa</strong> de definir aplicacions multi-contenidor. Pero a mes dels basics, hi ha funcionalitats que et fan la vida molt mes facil: perfils, dependencies, extends i secrets.</p>
+
+            <h3>Recordatori rapid: que es Compose</h3>
+            <pre><code>version: "3.9"
+services:
+  web:
+    image: nginx
+    ports:
+      - "8080:80"
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=secret</code></pre>
+            <p>Amb <code>docker compose up -d</code> tens tota l'app corrent.</p>
+
+            <h3>Perfils: serveis opcionals</h3>
+            <p>Els perfils permeten definir serveis que <strong>nomes s'activen quan vols</strong>.</p>
+            <pre><code>services:
+  web:
+    image: nginx
+    profiles: [prod, dev]  # sempre actiu
+
+  db:
+    image: postgres
+    profiles: [prod, dev]  # sempre actiu
+
+  phpmyadmin:
+    image: phpmyadmin
+    profiles: [dev]  # nomes en dev!</code></pre>
+            <pre><code># Prod: nomes web i db
+docker compose --profile prod up -d
+
+# Dev: tot
+docker compose --profile dev up -d</code></pre>
+
+            <h3>Dependencies i ordre d'arrencada</h3>
+            <pre><code>services:
+  api:
+    image: myapi
+    depends_on:
+      - db  # nomes espera que db iniciï
+
+  web:
+    image: nginx
+    depends_on:
+      - api  # espera que api iniciï</code></pre>
+            <p>Pero atencio: <code>depends_on</code> nomes espera que el contenidor <strong>inicii</strong>, no que estigui <strong>llest</strong>. Per aixo s'afegeix <code>condition</code>:</p>
+            <pre><code>services:
+  api:
+    image: myapi
+    depends_on:
+      db:
+        condition: service_healthy  # espera que db estigui "healthy"
+
+  db:
+    image: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 10s
+      timeout: 3s
+      retries: 5</code></pre>
+
+            <h3>Healthchecks</h3>
+            <pre><code>healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost/health"]
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 10s</code></pre>
+
+            <h3>Extends: heretar configuracio</h3>
+            <pre><code># docker-compose.base.yml
+services:
+  app-base:
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Madrid
+    user: "1000:1000"
+    restart: unless-stopped
+
+# docker-compose.yml
+services:
+  api:
+    extends:
+      file: docker-compose.base.yml
+      service: app-base
+    image: myapi
+    command: ["python", "main.py"]</code></pre>
+
+            <h3>Secrets: credentials segurs</h3>
+            <pre><code>services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    secrets:
+      - db_password
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt</code></pre>
+            <p>Docker munta el fitxer a <code>/run/secrets/db_password</code> dins el contenidor.</p>
+
+            <h3>Variables d'entorn i .env</h3>
+            <pre><code># .env
+DB_PASSWORD=supersecret
+API_PORT=8080</code></pre>
+            <pre><code>services:
+  db:
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}</code></pre>
+
+            <h3>Comandes utils</h3>
+            <pre><code>docker compose config          # validar
+docker compose ps              # serveis actius
+docker compose logs -f         # logs
+docker compose logs -f api     # un servei
+docker compose exec api sh     # executar comanda
+docker compose restart api     # reiniciar
+docker compose up -d --scale api=3  # escalar</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M1 Cap 5 - Els basics de Compose ja els coneixes.</li>
+                <li>M2 Cap 1 - Els multi-stage builds serveixen per tenir imatges mes petites per a Compose.</li>
+                <li>M2 Cap 2 - Els volums es defineixen al compose declarativament.</li>
+                <li>M2 Cap 3 - Les xarxes custom es poden definir al compose.</li>
+                <li>M2 Cap 7 - Les dependencies son la base de les actualitzacions rolling.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+
+            <div class="code-block">
+                <p>Per fer el quiz:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 4</code></pre>
+            </div>
+
+            <h3>Vista prèvia</h3>
+            <ol>
+                <li>Quin es l'objectiu principal dels perfils a Docker Compose?</li>
+                <li>Quina dependencia garanteix que el servei B esperi a que el servei A estigui "sa"?</li>
+                <li>Que fa <code>extends</code> a un fitxer Compose?</li>
+                <li>Quin es el format correcte per definir un perfil?</li>
+                <li>Com s'activen els serveis amb perfil?</li>
+                <li>Diferencia entre <code>docker compose up -d</code> i <code>docker compose up</code>?</li>
+                <li>Quina comanda mostra els logs de tots els serveis alhora?</li>
+                <li>Que permet la clau <code>secrets</code> a un servei?</li>
+                <li>(Oberta) Per que es bona practica tenir perfils separats per a dev i prod?</li>
+                <li>(Oberta) Escriu un fitxer compose per a una app de 4 serveis (web, api, db, cache) amb xarxa aillada per a db i cache.</li>
+            </ol>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-60 min)</h2>
+            <p>Crear un stack multi-servei amb Docker Compose usant perfils, dependencies, secrets i extends.</p>
+
+            <h3>Pas 1: Estructura del projecte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/compose-avancat
+cd ~/compose-avancat
+mkdir -p frontend backend db-data secrets</code></pre>
+            </div>
+
+            <h3>Pas 2: docker-compose.yml base (10 min)</h3>
+            <pre><code>version: "3.9"
+
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    networks:
+      - frontend
+    depends_on:
+      api:
+        condition: service_started
+    profiles: [prod, dev]
+
+  api:
+    build: ./backend
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=blog
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+    secrets:
+      - db_password
+    profiles: [prod, dev]
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=blog
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+      - POSTGRES_DB=blogdb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    secrets:
+      - db_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    profiles: [prod, dev]
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=db
+    networks:
+      - backend
+    depends_on:
+      - db
+    profiles: [dev]
+
+volumes:
+  db-data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt</code></pre>
+
+            <h3>Pas 3: Secret i Dockerfile (5 min)</h3>
+            <div class="code-block">
+                <pre><code>echo "supersecret123" > secrets/db_password.txt
+chmod 600 secrets/db_password.txt</code></pre>
+            </div>
+            <p>Crea <code>backend/Dockerfile</code>:</p>
+            <pre><code>FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app.py .
+USER 1000
+EXPOSE 8000
+CMD ["python", "app.py"]</code></pre>
+            <p>Crea <code>backend/requirements.txt</code>:</p>
+            <pre><code>flask==3.0.0
+psycopg2-binary==2.9.9</code></pre>
+            <p>Crea <code>backend/app.py</code>:</p>
+            <pre><code>import os
+from flask import Flask, jsonify
+app = Flask(__name__)
+
+def read_secret(name):
+    with open(f"/run/secrets/{name}") as f:
+        return f.read().strip()
+
+@app.route("/")
+def home():
+    return jsonify({"msg": "Hola des de l'API", "status": "ok"})
+
+@app.route("/db")
+def db_info():
+    return jsonify({
+        "host": os.environ.get("DB_HOST"),
+        "user": os.environ.get("DB_USER"),
+        "secret_loaded": bool(read_secret("db_password"))
+    })
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)</code></pre>
+
+            <h3>Pas 4: Perfil dev (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker compose --profile dev config --services
+docker compose --profile dev up -d
+docker compose ps
+curl http://localhost:8080
+docker compose exec api curl http://localhost:8000/db
+docker compose exec api cat /run/secrets/db_password
+curl http://localhost:8081</code></pre>
+            </div>
+
+            <h3>Pas 5: Perfil prod (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker compose --profile dev down
+docker compose --profile prod up -d
+docker compose ps
+curl http://localhost:8080
+curl http://localhost:8081  # hauria de FALLAR</code></pre>
+            </div>
+
+            <h3>Pas 6: Dependencies i healthchecks (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker compose --profile prod up
+docker compose logs db
+docker compose logs api</code></pre>
+            </div>
+
+            <h3>Pas 7: Neteja final</h3>
+            <div class="code-block">
+                <pre><code>docker compose --profile prod down -v
+docker compose --profile dev down -v</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat un docker-compose.yml amb serveis, xarxes, volums i secrets.</li>
+                <li>☐ Has vist com els perfils permeten activar/desactivar serveis.</li>
+                <li>☐ Has provat el perfil dev amb phpMyAdmin i el perfil prod sense.</li>
+                <li>☐ Has comprovat que el secret es carrega correctament.</li>
+                <li>☐ Has vist l'ordre d'arrencada amb depends_on i healthcheck.</li>
+                <li>☐ Has netejat tots els recursos.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/04-compose-avancat/respostes.md" target="_blank" rel="noopener">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Perfils</strong> = serveis opcionals activables amb --profile.</li>
+                <li><strong>Dependencia "sa"</strong> = <code>depends_on: condition: service_healthy</code>.</li>
+                <li><strong>Extends</strong> = heretar configuracio d'un servei base.</li>
+                <li><strong>Format perfil</strong> = <code>profiles: [dev]</code>.</li>
+                <li><strong>Activar</strong> = <code>--profile dev up</code>.</li>
+                <li><strong>-d</strong> = detached (segon pla).</li>
+                <li><strong>Logs</strong> = <code>docker compose logs -f</code>.</li>
+                <li><strong>Secrets</strong> = fitxers sensibles multats a /run/secrets/.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. Contenidors avançats — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🐳 Cap 1. Contenidors avançats</h1>
+        <p class="subtitle">Mòdul M2 · Contenidors (Docker avançat)</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un contenidor Docker no es magic. Es un procés de Linux aillat que comparteix el kernel del sistema amfitrio pero te el seu propi sistema de fitxers, xarxa i processos. Aquest capitol es per entendre què passa per sota: com es construeixen les imatges, com s'apilen les capes, i com fer builds eficients amb multi-stage.</p>
+
+            <h3>Que es una imatge Docker?</h3>
+            <p>Una <strong>imatge Docker</strong> es un paquet de lectura nomes que conte tot el que cal per executar un programa:</p>
+            <ul>
+                <li>Un sistema de fitxers base (normalment Alpine, Debian slim o Ubuntu)</li>
+                <li>Les dependencies (biblioteques, eines)</li>
+                <li>El teu codi o aplicacio</li>
+                <li>Les metadades (port, variable d'entorn, comanda d'arrencada)</li>
+            </ul>
+            <p>Les imatges es guarden en un <strong>registre</strong> (Docker Hub, registre privat) i es descarreguen quan fas <code>docker run</code>.</p>
+            <pre><code>docker run nginx  -> baixa nginx: latest del Docker Hub (si no la tens)
+                -> crea un contenidor a partir de la imatge
+                -> arrenca el procés nginx</code></pre>
+
+            <h3>Les capes (layers)</h3>
+            <p>Una imatge Docker no es un bloc unic. Es composa de <strong>capes</strong> apilades. Cada instruccio d'un Dockerfile crea una capa nova:</p>
+            <pre><code>FROM debian:bookworm-slim     <- capa 1: el sistema base
+RUN apt update && install...  <- capa 2: les dependencies
+COPY app.py /                 <- capa 3: el teu codi
+CMD ["python", "app.py"]      <- (metadada, no es una capa)</code></pre>
+            <p>Per que importa? Perque Docker guarda en <strong>cache</strong> cada capa. Si canvies nomes el codi pero les dependencies son les mateixes, Docker refara nomes la capa 3. Es rapidissim.</p>
+            <p>Pero atencio: cada capa es un <strong>diff</strong> del sistema de fitxers. Si tens 5 instruccions <code>RUN</code>, tindras 5 capes (i 5 registres al historial de la imatge). Per això es recomana combinar instruccions:</p>
+            <pre><code># MAL: 3 capes
+RUN apt update
+RUN apt install -y python3
+RUN pip install flask
+
+# BE: 1 sola capa
+RUN apt update && apt install -y python3 && pip install flask</code></pre>
+
+            <h3>Multi-stage builds</h3>
+            <p>Aquí ve la magia. Quan compiles una aplicacio, necessites totes les eines de build (compilador, llibreries de dev, node_modules amb coses de testing). Pero per <strong>executar-la</strong> nomes necessites el binari final. Amb multi-stage tens dos <code>FROM</code>:</p>
+            <pre><code># Etapa 1: build (te totes les eines)
+FROM node:20 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Etapa 2: runtime (nomes el que cal)
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html</code></pre>
+            <p>La imatge final pot passar de <strong>800 MB</strong> (amb totes les eines) a <strong>40 MB</strong> (nomes el static compilat). A una RPi amb microSD, aquesta diferencia es_or_d_or.</p>
+
+            <h3>Bones practiques als Dockerfiles</h3>
+            <p>He anat aprenent coses que fan la vida mes facil:</p>
+            <ul>
+                <li><strong>Sempre posa tag concret</strong>: <code>FROM debian:12-slim</code> en lloc de <code>FROM debian:latest</code>. Si no, el build pot trencar-se d'aqui un mes.</li>
+                <li><strong>Usuari no-root</strong>: <code>USER 1000</code> al final. Si algú exploita el teu contenidor, no sera root al sistema amfitrio.</li>
+                <li><strong>Copia el minim</strong>: millor <code>COPY package.json</code> i <code>RUN npm install</code> abans de <code>COPY . .</code>. Aixi les dependencies es cachejen.</li>
+                <li><strong>Usa <code>.dockerignore</code></strong>: igual que <code>.gitignore</code> pero per Docker. Evita que el context del build contingui <code>node_modules</code>, <code>.git</code>, etc.</li>
+                <li><strong>Npm ci en lloc de npm install</strong>: mes rapid i deterministic.</li>
+            </ul>
+            <p>Exemple real del BernatLab (un servei Python petit):</p>
+            <pre><code>FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+USER 1000
+EXPOSE 8000
+CMD ["python", "main.py"]</code></pre>
+
+            <h3>Inspeccio d'imatges</h3>
+            <p>Algunes comandes que val la pena conèixer:</p>
+            <pre><code># Veure les capes d'una imatge
+docker history bernatlab-api:latest
+
+# Inspeccionar metadades
+docker image inspect nginx:alpine
+
+# Mida de totes les imatges
+docker system df
+
+# Netejar imatges i capes no usades
+docker system prune -a</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>M1 Cap 5 - Els basics de Docker que ja saps.</li>
+                <li>M2 Cap 2 - Sense volums persistents, tot el que facis es volat.</li>
+                <li>M2 Cap 4 - Compose es construeix sobre aquestes imatges.</li>
+                <li>M2 Cap 5 - On es desen les imatges que construeixes.</li>
+                <li>M2 Cap 6 - Seguretat comença amb imatges minimals i usuaris no-root.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m2 1</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què és una capa (layer) en una imatge Docker?</li>
+                <li>Quina instrucció del Dockerfile crea una capa nova?</li>
+                <li>Per què es recomanen els multi-stage builds?</li>
+                <li>Quina es la diferencia entre <code>RUN</code> i <code>CMD</code>?</li>
+                <li>Quin avantatge te combinar diverses comandes en un sol <code>RUN</code>?</li>
+                <li>Per que es mala idea fer <code>FROM ubuntu:latest</code>?</li>
+                <li>Quina comanda llista les capes d'una imatge amb la seva mida?</li>
+                <li>Que fa la instruccio <code>USER 1000</code> al final del Dockerfile?</li>
+                <li>(Oberta) Explica: quina diferència hi ha entre una imatge i un contenidor?</li>
+                <li>(Oberta) Com faries una imatge Docker el mes petita possible per a una app Python amb dependencies pesades?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Construir una petita aplicacio Python, crear-ne un Dockerfile optimitzat amb multi-stage, i comparar la mida amb una versio "ingenuua".</p>
+
+            <h3>Pas 1: Prepara el projecte (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p ~/proves-docker/multi-stage
+cd ~/proves-docker/multi-stage</code></pre>
+            </div>
+            <p>Crea un fitxer <code>app.py</code>:</p>
+            <div class="code-block">
+                <pre><code>from flask import Flask
+app = Flask(__name__)
+
+@app.route("/")
+def hello():
+    return "Hola des del contenidor multi-stage!"
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)</code></pre>
+            </div>
+            <p>I un <code>requirements.txt</code>:</p>
+            <pre><code>flask==3.0.0</code></pre>
+
+            <h3>Pas 2: Crea el Dockerfile "ingenuu" (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Dockerfile.naive
+FROM python:3.12
+WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt
+EXPOSE 8000
+CMD ["python", "app.py"]</code></pre>
+            </div>
+            <div class="code-block">
+                <pre><code>docker build -f Dockerfile.naive -t bernatlab-naive .
+docker images bernatlab-naive  # Probablement ~1 GB</code></pre>
+            </div>
+
+            <h3>Pas 3: Crea el Dockerfile optimitzat (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Dockerfile.optim
+FROM python:3.12-slim AS builder
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+FROM python:3.12-slim
+WORKDIR /app
+COPY --from=builder /root/.local /root/.local
+COPY app.py .
+ENV PATH=/root/.local/bin:$PATH
+USER 1000
+EXPOSE 8000
+CMD ["python", "app.py"]</code></pre>
+            </div>
+            <div class="code-block">
+                <pre><code>docker build -f Dockerfile.optim -t bernatlab-optim .
+docker images | grep bernatlab  # Compara les mides</code></pre>
+            </div>
+
+            <h3>Pas 4: Prova els dos contenidors (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker run -d --name naive -p 8001:8000 bernatlab-naive
+docker run -d --name optim -p 8002:8000 bernatlab-optim
+
+curl http://localhost:8001
+curl http://localhost:8002
+
+docker history bernatlab-naive
+docker history bernatlab-optim</code></pre>
+            </div>
+
+            <h3>Pas 5: Inspecciona i neteja (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker stop naive optim
+docker rm naive optim
+
+docker history bernatlab-naive --no-trunc
+docker history bernatlab-optim --no-trunc
+
+docker rmi bernatlab-naive bernatlab-optim</code></pre>
+            </div>
+
+            <h3>Pas 6: Crea un .dockerignore (5 min)</h3>
+            <pre><code>.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+.DS_Store
+README.md
+Dockerfile.naive</code></pre>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has creat una app Python minima.</li>
+                <li>☐ Has construit dues imatges: una naive (~1 GB) i una optimitzada (~150 MB).</li>
+                <li>☐ Has vist la diferencia de mida amb <code>docker images</code>.</li>
+                <li>☐ Has provat que ambdues imatges funcionen.</li>
+                <li>☐ Has creat un <code>.dockerignore</code> efectiu.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M2/01-contenidors-avancats/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Capa</strong> = diff creat per cada instruccio del Dockerfile.</li>
+                <li><strong>RUN</strong> es la unica que crea capes noves (entre les preguntades).</li>
+                <li><strong>Multi-stage</strong> = imatges finals mes petites.</li>
+                <li><strong>RUN</strong> = build; <strong>CMD</strong> = execucio.</li>
+                <li><strong>Combinar RUN</strong> = menys capes i menys mida.</li>
+                <li><strong>No <code>latest</code></strong> = builds trencadissos.</li>
+                <li><strong>Comanda</strong> = <code>docker history</code>.</li>
+                <li><strong>USER 1000</strong> = no root dins el contenidor.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

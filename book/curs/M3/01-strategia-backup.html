@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. Estratègia de backup — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>💾 Cap 1. Estratègia de backup al BernatLab</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Fer còpies de seguretat no és opcional. Al BernatLab hi ha <strong>anys de dades de l'hort IoT</strong> que no es poden perdre: lectures de sensors de temperatura, humitat del sòl, registres de reg, configuracions de serveis, fotografies de les tomaqueres, notes del quadern de camp. Si avui se'm mor la microSD de la RPi o el disc SSD extern on ho tinc tot, ho perdo tot. Per això cal una <strong>estratègia</strong>, no només un parell de comandes avui i demà ja veuré què faig.</p>
+            <p>La regla bàsica que tothom coneix és la <strong>3-2-1</strong>: tres còpies, en dos suports diferents, una fora de casa. És senzilla i funciona. La gent que l'aplica rarament perd dades; la que no, acaba pagant diners (o penedint-se) algun dia.</p>
+
+            <h3>Què cal backupejar al BernatLab</h3>
+            <p>No tot té el mateix valor, i per tant no cal backupejar-ho tot amb la mateixa freqüència. Al laboratori hi tinc quatre grans grups:</p>
+            <ul>
+                <li><strong>Configuració de serveis</strong>: els <code>docker-compose.yml</code>, els fitxers <code>.env</code>, les carpetes de configuració de cada contenidor (Grafana, Mosquitto, InfluxDB, etc.). Són petits (uns quants MB), però <strong>reconstruir-los de zero</strong> porta hores. Cal backupejar-los sovint.</li>
+                <li><strong>Bases de dades</strong>: SQLite, PostgreSQL, InfluxDB. Aquí hi ha les dades reals. Si perdo una base de dades, perdo informació que no puc tornar a generar.</li>
+                <li><strong>Fitxers de l'usuari</strong>: fotografies de l'hort, documents del curs, scripts, notes. Tot el que he creat jo.</li>
+                <li><strong>El sistema operatiu</strong>: Debian + Docker + eines instal·lades. Es pot refer amb una reinstal·lació, però porta temps. Un backup periòdic del sistema estalvia hores.</li>
+            </ul>
+            <p><strong>El que NO cal backupejar</strong>: contenidors (es poden tornar a baixar de les imatges oficials), paquets <code>.deb</code> (es poden tornar a instal·lar), fitxers temporals o cachés.</p>
+
+            <h3>La regla 3-2-1 explicada</h3>
+            <p><strong>3 còpies</strong> vol dir que, a més del fitxer original, n'has de tenir almenys dues còpies més. Si en perds una, te'n queden dues. Si en perds dues, encara te'n queda una.</p>
+            <p><strong>2 suports diferents</strong> vol dir que les còpies no poden estar totes al mateix lloc físic. Per exemple, una còpia al disc SSD extern connectat a la RPi i una altra a un núvol (Backblaze B2, Wasabi, o fins i tot un Google Drive ben protegit). Si es mor el disc, encara tens el núvol.</p>
+            <p><strong>1 fora de casa</strong> és la que la gent s'oblida més. Si tens el backup al mateix armari que el servidor, i ve una inundació, un incendi, o un lladre que s'endú l'ordinador, perds l'original i la còpia. Per això cal una còpia <strong>fora del lloc físic</strong>: al núvol, a casa d'un familiar, a una caixa forta. Al BernatLab jo uso Backblaze B2 (molt barat, 6 dòlars per TB al mes).</p>
+
+            <h3>Freqüència: la regla RPO</h3>
+            <p>Cada tipus de dada té una <strong>freqüència de backup</strong> adequada, que depèn de quant estic disposat a perdre:</p>
+            <ul>
+                <li><strong>Configuració i codi</strong>: cada vegada que hi ha un canvi. Al dia a dia, una vegada al dia és suficient. Jo ho automatitzo amb un cron.</li>
+                <li><strong>Bases de dades</strong>: cada dia o cada hora, segons la criticitat. Per a l'hort IoT, cada 6 hores és prudent. Si es trenca la RPi a les 14h i l'últim backup és de les 8h, perdo 6 hores de dades — acceptable.</li>
+                <li><strong>Fotografies i documents nous</strong>: quan els creo, o cada dia.</li>
+                <li><strong>Sistema operatiu</strong>: un cop al mes, o després d'una actualització important.</li>
+            </ul>
+            <p>El <strong>RPO (Recovery Point Objective)</strong> és el temps màxim de dades que estic disposat a perdre. Si vull un RPO d'una hora, cal fer backup cada hora. Si un RPO d'un dia és acceptable, amb un backup diari n'hi ha prou.</p>
+
+            <h3>Eines que farem servir al M3</h3>
+            <p>En aquest mòdul veurem eines específiques per a cada cas:</p>
+            <ul>
+                <li><strong>Restic</strong> (cap. 2): eina moderna de backup, amb xifrat, deduplicació i versions. És la meva recomanació principal.</li>
+                <li><strong>Volums Docker</strong> (cap. 3): com fer backup dels volums de contenidors sense parar el servei.</li>
+                <li><strong>SQLite</strong> (cap. 4) i <strong>PostgreSQL</strong> (cap. 5): com fer backup consistent de bases de dades.</li>
+                <li><strong>InfluxDB</strong> (cap. 6): backup d'una base de dades de sèries temporals.</li>
+                <li><strong>Syncthing</strong> (cap. 8): sincronització entre dispositius.</li>
+                <li><strong>GPG i age</strong> (cap. 9): xifrat per a que les dades al núvol siguin privades.</li>
+            </ul>
+
+            <h3>On posar cada còpia</h3>
+            <p>Un esquema típic al BernatLab:</p>
+            <ul>
+                <li><strong>Original</strong>: Disc SSD USB a la RPi (sempre).</li>
+                <li><strong>Còpia local</strong>: HDD extern al calaix (setmanal).</li>
+                <li><strong>Còpia remota</strong>: Backblaze B2 xifrada (diària).</li>
+            </ul>
+            <p>Les tres compleixen la regla 3-2-1: tres còpies, dos suports físics (SSD + HDD + núvol), una fora de casa (el núvol). El xifrat és fonamental perquè el núvol no és nostre.</p>
+
+            <h3>Errors comuns</h3>
+            <ul>
+                <li><strong>"Ja ho faig servir Dropbox"</strong>: Dropbox no és un backup. Si esborres un fitxer, Dropbox l'esborra també passats 30 dies. Si un ransomware xifra els teus fitxers, Dropbox sincronitza la versió xifrada.</li>
+                <li><strong>"Faig backup del sistema sencer cada setmana"</strong>: malgasta molt d'espai i molt de temps. Millor separar dades de sistema.</li>
+                <li><strong>"Provo el backup un cop i ja està"</strong>: un backup no provat no és un backup. Un restauració de prova trimestral és obligatòria.</li>
+                <li><strong>"El núvol ja és prou segur"</strong>: el núvol és segur, però no és <em>teu</em>. Si l'empleat de torn canvia la contrasenya per accident, et quedes sense res. Xifra abans de pujar.</li>
+            </ul>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap. 2 (Restic) — l'eina que fa tot això de manera còmoda.</li>
+                <li>Cap. 3 (Volums Docker) — com aplicar la 3-2-1 als volums dels serveis.</li>
+                <li>Cap. 4, 5, 6 — estratègies específiques per a cada tipus de base de dades.</li>
+                <li>Cap. 8 (Syncthing) — per sincronitzar carpetes entre RPi, portàtil i mòbil.</li>
+                <li>Cap. 9 (Privadesa i xifrat) — per garantir que el backup remot és privat.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <ol>
+                <li>Quantes còpies de les dades recomana la regla 3-2-1?</li>
+                <li>Quants suports DIFERENTS recomana la regla 3-2-1?</li>
+                <li>Què vol dir la part de "1 fora de casa"?</li>
+                <li>Quina d'aquestes dades és la MÉS crítica al BernatLab?</li>
+                <li>Què vol dir RPO?</li>
+                <li>Per què Dropbox NO és un bon backup?</li>
+                <li>Quina freqüència és prudent per fer backup d'una base de dades amb dades de sensors IoT?</li>
+                <li>Quin servei al núvol recomano per a backups barats i privats?</li>
+                <li>(Oberta) Explica amb les teves paraules què significa la regla 3-2-1 i posa un exemple aplicat a l'hort IoT.</li>
+                <li>(Oberta) Imagina que guardes les lectures de l'hort en SQLite. Quina estratègia de backup triaries?</li>
+            </ol>
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-45 min)</h2>
+            <p>Definir per escrit la teva <strong>estratègia de backup personal</strong> per al BernatLab: què, on, cada quan.</p>
+
+            <h3>Pas 1: Inventari de dades (10 min)</h3>
+            <div class="code-block">
+                <pre><code># Llista les carpetes grans
+sudo du -sh /var/lib/docker/volumes/* 2>/dev/null
+sudo du -sh /home/* 2>/dev/null
+sudo du -sh /opt 2>/dev/null
+sudo du -sh /etc 2>/dev/null
+
+# Bases de dades
+sudo find / -name "*.db" -o -name "*.sqlite" 2>/dev/null | head -20
+
+# Configuracions importants
+ls -la /opt/ 2>/dev/null
+ls -la /home/bernat/ 2>/dev/null</code></pre>
+            </div>
+            <p>Apunta-ho tot en un fitxer <code>inventari-dades.md</code>.</p>
+
+            <h3>Pas 2: Classifica per criticitat (10 min)</h3>
+            <p>Per a cada element de l'inventari, assigna una criticitat:</p>
+            <ul>
+                <li><strong>CRÍTIC</strong> (perdre-ho = desastre): bases de dades, fotos irrepetibles, configuracions.</li>
+                <li><strong>IMPORTANT</strong> (perdre-ho = molta feina): scripts, documents, notes.</li>
+                <li><strong>RECONSTRUÏBLE</strong>: sistema operatiu, imatges Docker, paquets.</li>
+            </ul>
+
+            <h3>Pas 3: Defineix els suports (10 min)</h3>
+            <p>Decideix on posaràs cada còpia. L'objectiu és complir la regla 3-2-1.</p>
+
+            <h3>Pas 4: Escriu l'estratègia (10 min)</h3>
+            <p>Crea el fitxer <code>book/curs/M3/01-strategia-backup/estrategia-backup.md</code> amb la taula de còpies, RPO per categoria, i pla de restitució de prova.</p>
+
+            <h3>Pas 5: Comprova que és realista</h3>
+            <p>Revisa l'estratègia i respon:</p>
+            <ul>
+                <li>Tinc espai suficient a cada destinació?</li>
+                <li>Puc complir les freqüències que he posat?</li>
+                <li>He pensat en el cas d'incendi a casa?</li>
+                <li>He pensat en ransomware?</li>
+            </ul>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Tens <code>inventari-dades.md</code> amb totes les dades importants llistades.</li>
+                <li>☐ Tens <code>estrategia-backup.md</code> amb la taula de còpies plena.</li>
+                <li>☐ Has classificat cada tipus de dada per criticitat.</li>
+                <li>☐ Has definit un RPO per categoria.</li>
+                <li>☐ L'estratègia compleix la regla 3-2-1.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="01-strategia-backup/respostes.md">respostes.md</a>.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>3 còpies</strong>.</li>
+                <li><strong>2 suports diferents</strong>.</li>
+                <li>Una còpia <strong>fora de casa</strong>.</li>
+                <li>Les <strong>bases de dades</strong> amb lectures dels sensors.</li>
+                <li><strong>Recovery Point Objective</strong>: temps màxim de pèrdua.</li>
+                <li>Dropbox sincronitza l'esborrat i el ransomware.</li>
+                <li>Cada <strong>6-24 h</strong>.</li>
+                <li><strong>Backblaze B2</strong> (6$/TB/mes).</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

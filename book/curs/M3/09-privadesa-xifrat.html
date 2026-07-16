@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 9. Privadesa i xifrat de fitxers — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🔐 Cap 9. Privadesa i xifrat de fitxers</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Al BernatLab tinc dades que vull mantenir <strong>privades</strong> i <strong>segures</strong>: contrasenyes de serveis, claus SSH, fitxers amb dades personals (DNI, adreces, factures), backups al núvol, etc. Si algú té accés físic a la RPi o si el meu núvol es compromet, vull que les dades estiguin <strong>xifrades</strong> de manera que només jo les pugui llegir.</p>
+            <p>En aquest capítol veurem dues eines principals per xifrar: <strong>GPG</strong> (l'estàndard clàssic) i <strong>age</strong> (una eina moderna molt més simple). També parlarem d'estratègies per protegir les dades.</p>
+
+            <h3>Què és el xifratge?</h3>
+            <p>Xifrar és <strong>transformar dades</strong> de manera que només qui té la <strong>clau</strong> les pugui llegir. Hi ha dos tipus principals:</p>
+            <ul>
+                <li><strong>Xifratge simètric</strong>: la mateixa clau xifra i desxifra (contrasenya).</li>
+                <li><strong>Xifratge asimètric</strong>: dues claus, pública i privada (GPG/SSH).</li>
+            </ul>
+            <p>Al BernatLab faig servir <strong>els dos</strong>:</p>
+            <ul>
+                <li><strong>Simètric</strong> (age + passphrase) per xifrar fitxers individuals.</li>
+                <li><strong>Asimètric</strong> (claus SSH) per accedir al servidor.</li>
+            </ul>
+
+            <h3>GPG: l'estàndard clàssic</h3>
+            <p><strong>GPG</strong> (Gnu Privacy Guard) és la implementació open source del standard <strong>OpenPGP</strong>. Permet:</p>
+            <ul>
+                <li>Xifrar fitxers amb una clau pública.</li>
+                <li>Desxifrar amb la teva clau privada.</li>
+                <li>Firmar documents per garantir que no s'han alterat.</li>
+                <li>Verificar signatures d'altres.</li>
+            </ul>
+
+            <h4>Ús bàsic</h4>
+            <div class="code-block">
+                <pre><code># Generar un parell de claus
+gpg --full-generate-key
+
+# Llistar les claus
+gpg --list-keys
+
+# Xifrar un fitxer
+gpg --encrypt --recipient bernat@bernatlab.cat fitxer.txt
+
+# Desxifrar
+gpg --decrypt fitxer.txt.gpg &gt; fitxer.txt
+
+# Xifrar nomes amb simetria (contrasenya)
+gpg --symmetric fitxer.txt</code></pre>
+            </div>
+
+            <h4>Quan usar GPG</h4>
+            <p>GPG és la millor opció quan necessites <strong>compatibilitat universal</strong>, vols <strong>firmar</strong> correus o documents, o treballes amb correu xifrat. <strong>NO</strong> és la millor opció quan només vols xifrar un fitxer ràpid (age és més simple).</p>
+
+            <h3>age: el modern</h3>
+            <p><strong>age</strong> (https://age-encryption.org) és una eina de xifratge <strong>moderna</strong> (2019) que té com a objectiu substituir GPG en casos simples. Característiques:</p>
+            <ul>
+                <li><strong>Molt simple</strong>: 3 ordres principals.</li>
+                <li><strong>Molt segura</strong>: X25519, ChaCha20-Poly1305, HMAC-SHA256.</li>
+                <li><strong>Sense configuració</strong>: no cal keyring.</li>
+                <li><strong>Curta</strong>: codi petit.</li>
+                <li><strong>Claus curtes</strong>: frases humanes o cadenes curtes.</li>
+            </ul>
+
+            <h4>Ús bàsic</h4>
+            <div class="code-block">
+                <pre><code># Instal·la age
+sudo apt install age
+
+# Genera un parell de claus
+age-keygen -o key.txt
+# Mostra la clau publica per stdout
+
+# Xifrar amb clau publica
+age -r age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2vn5... \
+  -o secrets.txt.age secrets.txt
+
+# Desxifrar amb clau privada
+age -d -i key.txt -o secrets-restored.txt secrets.txt.age
+
+# Xifrar amb contrasenya (simetric)
+age -p -o secrets.txt.age secrets.txt
+
+# Desxifrar
+age -d -o secrets-restored.txt secrets.txt.age</code></pre>
+            </div>
+
+            <h4>Quan usar age</h4>
+            <p>age és la millor opció quan vols xifrar <strong>fitxers individuals</strong> ràpidament, no necessites firmar res, la <strong>simplicitat</strong> és important.</p>
+            <p>Al BernatLab faig servir <strong>age per defecte</strong> per xifrar fitxers petits (scripts, configuracions amb secrets). Per a fitxers grans o carpetes, faig servir <strong>restic</strong> (que ja xifra amb AES-256).</p>
+
+            <h3>Estratègia de privadesa al BernatLab</h3>
+            <p>Algunes regles que segueixo:</p>
+            <ol>
+                <li>Els secrets (.env, claus SSH) <strong>mai van al git ni al núvol en clar</strong>. Els xifro amb age abans.</li>
+                <li>Els fitxers personals (factures, DNI escanejat) es desen xifrats amb age.</li>
+                <li>Els <strong>backups al núvol</strong> (restic) ja van xifrats per defecte amb AES-256.</li>
+                <li>Les comunicacions (Tailscale, SSH, HTTPS) ja van xifrades per disseny.</li>
+                <li>Les <strong>contrasenyes</strong> es desen a un <strong>gestor de contrasenyes</strong> (Vaultwarden).</li>
+            </ol>
+
+            <h3>Gestors de contrasenyes</h3>
+            <p>Un <strong>gestor de contrasenyes</strong> emmagatzema totes les teves contrasenyes <strong>xifrades</strong> amb una <strong>master password</strong>. Al BernatLab faig servir:</p>
+            <ul>
+                <li><strong>Vaultwarden</strong> (Bitwarden auto-allotjat) per a totes les contrasenyes.</li>
+                <li><strong>KeePassXC</strong> localment per a notes sensibles.</li>
+            </ul>
+            <p>Mai guardo contrasenyes en fitxers de text plans, ni en un navegador, ni en un paper.</p>
+
+            <h3>Bones pràctiques</h3>
+            <ol>
+                <li><strong>No xifris el que no cal</strong>: xifrar té cost.</li>
+                <li><strong>Guarda les claus en un lloc segur</strong>: la clau privada d'edat en un USB xifrat.</li>
+                <li><strong>Practica la restauració</strong>: xifra un fitxer, esborra l'original, restaura'l.</li>
+                <li><strong>Fes servir eines modernes</strong>: age és més segur i més simple que GPG per a casos bàsics.</li>
+                <li><strong>Automatitza el que puguis</strong>.</li>
+            </ol>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — Les dades sensibles formen part del 3-2-1, però xifrades.</li>
+                <li>Cap 2 — restic ja xifra els backups amb AES-256.</li>
+                <li>Cap 7 — Els fitxers personals es gestionen aquí.</li>
+                <li>Cap 8 — Syncthing pot sincronitzar carpetes xifrades.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 9</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin tipus de xifratge usa la mateixa clau per xifrar i desxifrar?</li>
+                <li>Quin és l'avantatge principal d'edat sobre GPG?</li>
+                <li>Quina ordre faries servir per generar un parell de claus amb age?</li>
+                <li>Què vol dir que un backup estigui "xifrat en repòs"?</li>
+                <li>Quin és l'algorisme de xifratge que fa servir age per defecte?</li>
+                <li>Quina és la master password en un gestor de contrasenyes?</li>
+                <li>Per què NO s'ha de desar la clau privada al mateix disc que les dades xifrades?</li>
+                <li>Quin tipus de xifratge fa servir SSH per defecte?</li>
+                <li>(Oberta) Per què age hauries de preferir-lo a GPG per xifrar un fitxer individual?</li>
+                <li>(Oberta) Dissenya una estratègia de privadesa per a l'hort IoT del BernatLab.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (30-40 min)</h2>
+            <p>Instal·lar age, generar un parell de claus, xifrar i desxifrar un fitxer, practicar amb GPG simètric, i crear un script per xifrar/desxifrar.</p>
+
+            <h3>Pas 1: Instal·la age i GPG (5 min)</h3>
+            <div class="code-block">
+                <pre><code>sudo apt update
+sudo apt install -y age gpg
+
+age --version
+gpg --version</code></pre>
+            </div>
+
+            <h3>Pas 2: Genera un parell de claus amb age (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/proves/xifrat
+cd /home/pi/bernatlab/proves/xifrat
+
+# Genera les claus
+age-keygen -o age-key.txt 2&gt; age-pub.txt
+
+# Mostra la clau publica
+cat age-pub.txt
+
+# Mostra la clau privada (NO la comparteixis!)
+cat age-key.txt
+
+# Important: dona-li permisos 600
+chmod 600 age-key.txt</code></pre>
+            </div>
+
+            <h3>Pas 3: Xifra i desxifra un fitxer (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Crea un fitxer amb dades sensibles
+cat &gt; secrets.txt &lt;&lt;EOF
+Les meves contrasenyes importants:
+- Email: super-secret-pass-2025
+- GitHub: github-token-12345
+EOF
+
+# Xifra amb clau publica
+PUBKEY=$(cat age-pub.txt)
+age -r "$PUBKEY" -o secrets.txt.age secrets.txt
+
+# Comprova
+ls -la secrets.txt*
+file secrets.txt.age
+# Hauria de dir "data"
+
+# Esborra l'original
+rm secrets.txt
+ls secrets.txt
+# ls: cannot access... No such file or directory
+
+# Restaura
+age -d -i age-key.txt -o secrets-restored.txt secrets.txt.age
+cat secrets-restored.txt
+# Hauries de veure les contrasenyes originals</code></pre>
+            </div>
+
+            <h3>Pas 4: Xifratge simètric amb age (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Xifra amb contrasenya
+age -p -o notes.age notes.txt
+# Et demana una contrasenya
+
+# Desxifra
+age -d -o notes-restored.txt notes.age
+# Et demana la contrasenya</code></pre>
+            </div>
+
+            <h3>Pas 5: Prova GPG (5 min)</h3>
+            <div class="code-block">
+                <pre><code># Xifra simètricament amb GPG
+echo "un altre secret" &gt; gpg-test.txt
+gpg --symmetric --batch --passphrase "test-2025" -o gpg-test.txt.gpg gpg-test.txt
+
+# Comprova
+file gpg-test.txt.gpg
+
+# Desxifra
+gpg --batch --passphrase "test-2025" -o gpg-restored.txt gpg-test.txt.gpg
+cat gpg-restored.txt</code></pre>
+            </div>
+
+            <h3>Pas 6: Crea un script de xifrar/desxifrar (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cat &gt; /home/pi/bernatlab/scripts/xifrar.sh &lt;&lt;'EOF'
+#!/bin/bash
+# Xifra un fitxer amb age
+
+if [ $# -ne 1 ]; then
+  echo "Us: $0 &lt;fitxer&gt;"
+  exit 1
+fi
+
+FITXER=$1
+PUBKEY="posa_aqui_la_teva_clau_publica_age"
+
+if [ ! -f "$FITXER" ]; then
+  echo "Error: $FITXER no existeix"
+  exit 1
+fi
+
+age -r "$PUBKEY" -o "$FITXER.age" "$FITXER"
+echo "Xifrat: $FITXER.age"
+EOF
+
+chmod +x /home/pi/bernatlab/scripts/xifrar.sh
+
+# Prova'l
+/home/pi/bernatlab/scripts/xifrar.sh secrets.txt</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has instal·lat age i GPG.</li>
+                <li>☐ Has generat un parell de claus age.</li>
+                <li>☐ Has xifrat i desxifrat un fitxer amb age (clau pública).</li>
+                <li>☐ Has xifrat simètricament amb contrasenya.</li>
+                <li>☐ Has provat GPG simètric.</li>
+                <li>☐ Has creat un script per xifrar.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/09-privadesa-xifrat/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Simètric</strong> = mateixa clau per xifrar i desxifrar.</li>
+                <li><strong>age vs GPG</strong> = simplicitat.</li>
+                <li><strong>Generar claus age</strong> = <code>age-keygen</code>.</li>
+                <li><strong>Xifrat en repòs</strong> = xifrat al disc.</li>
+                <li><strong>Algorisme age</strong> = ChaCha20-Poly1305.</li>
+                <li><strong>Master password</strong> = la clau del gestor.</li>
+                <li><strong>Clau privada al disc</strong> = perill.</li>
+                <li><strong>SSH</strong> = asimètric (clau pública + privada).</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

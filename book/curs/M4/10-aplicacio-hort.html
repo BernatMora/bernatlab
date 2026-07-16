@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 10. Aplicacio a Hort Osona - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🌱 Cap 10. Aplicacio a Hort Osona</h1>
+        <p class="subtitle">Modul M4 · Inteligencia</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Aquest ultim capitol del modul aplica <strong>tot el que hem vist</strong> al cas real del projecte <strong>Hort Osona</strong>: un sistema de consulta a la base de coneixement de l'hort amb IA local, 100% privat.</p>
+
+            <h3>El sistema complet</h3>
+            <p>Ara que tens Ollama, embeddings, ChromaDB, i el pipeline RAG, <strong>pots muntar el teu propi assistent horticola</strong> que coneix les 76 fitxes de cultiu d'Hort Osona, coneix el calendari de sembra, plagues, associacions, respon preguntes en catala, i es queda al teu servidor - res surt de casa.</p>
+
+            <h3>L'arquitectura</h3>
+            <pre><code>┌─────────────────────────────────────┐
+│  RPi (hortosona)                    │
+├─────────────────────────────────────┤
+│                                     │
+│  ┌─────────────┐   ┌────────────┐  │
+│  │  Open WebUI │ ←→ │   Ollama   │  │
+│  │  (frontend) │   │  (LLM)     │  │
+│  └──────┬──────┘   └────────────┘  │
+│         │                           │
+│         ↓                           │
+│  ┌─────────────┐                   │
+│  │  ChromaDB   │ ← (vector store) │
+│  │  (hort-osona)│                  │
+│  └─────────────┘                   │
+│         ↑                           │
+│         │                           │
+│  ┌─────────────┐                   │
+│  │   Script    │ (indexa documents)│
+│  │  d'indexació│                   │
+│  └─────────────┘                   │
+│                                     │
+└─────────────────────────────────────┘</code></pre>
+
+            <h3>Pas 1: Preparar la base de coneixement</h3>
+            <p>Tots els fitxers d'Hort Osona son a <code>https://github.com/BernatMora/hort-osona/</code>. Cal clonar-lo:</p>
+            <pre><code>cd /home/bernat
+git clone https://github.com/BernatMora/hort-osona.git</code></pre>
+            <p>Ara tens 80+ documents en catala sobre horticultura.</p>
+
+            <h3>Pas 2: Indexar els documents</h3>
+            <p>Crea un script <code>indexar_hort.py</code> amb <code>chromadb.PersistentClient</code>, <code>get_embedding</code> que crida Ollama, i <code>chunk_text</code> que divideix en fragments de 500 paraules amb overlap de 50. Recorre tots els .md amb <code>Path.rglob</code> i els indexa amb metadades de la font.</p>
+
+            <h3>Pas 3: Crear l'API de consulta</h3>
+            <p>Crea <code>consultar_hort.py</code> amb la funcio <code>ask_hort(question, k=5)</code> que: (1) busca els 5 fragments mes rellevants, (2) prepara un prompt amb contexte que ordena al LLM respondre nomes en catala amb la informacio donada, (3) envia a Ollama <code>llama3.2</code>, i (4) retorna la resposta amb les fonts.</p>
+
+            <h3>Pas 4: Integrar amb Open WebUI (opcional)</h3>
+            <p>Si tens Open WebUI instal·lat, pots connectar-hi el RAG. A Open WebUI ves a Settings &gt; Connections, afegeix una nova OpenAI API connection amb URL <code>http://localhost:11434/v1</code> i model <code>llama3.2</code>. Ara pots xatejar amb el LLM directament des d'Open WebUI. Per al RAG, cal una extensio (potser mes complex).</p>
+
+            <h3>Proves que pots fer</h3>
+            <p>Un cop tot funcioni, prova:</p>
+            <ul>
+                <li>"Com es planta el tomàquet a Osona?"</li>
+                <li>"Quines plagues pateix l'enciam al juliol?"</li>
+                <li>"Quan s'ha de sembrar la carbassa?"</li>
+                <li>"Quines plantes son bones companyes de la mongeta?"</li>
+            </ul>
+            <p>Si tot va be, el sistema et respondra amb informacio <strong>especifica</strong> d'Hort Osona, no pas informacio generica.</p>
+
+            <h3>Limitacions</h3>
+            <ul>
+                <li><strong>Qualitat dels embeddings</strong> depen del model. <code>nomic-embed-text</code> es bo pero no perfecte.</li>
+                <li><strong>Qualitat del LLM</strong> depen del model. <code>llama3.2</code> es bo, pero <code>mistral</code> o <code>gemma</code> poden ser millors per a catala.</li>
+                <li><strong>Velocitat</strong> depen del hardware. La RPi es lenta per a models grans.</li>
+                <li><strong>Cobertura</strong> depen dels documents indexats. Si un tema no es a Hort Osona, no es pot respondre.</li>
+            </ul>
+
+            <h3>Connexions</h3>
+            <ul>
+                <li><strong>M4 caps 1-9</strong> - Tots els conceptes.</li>
+                <li><strong>M4 cap 8</strong> - Implementacio RAG.</li>
+                <li><strong>M3 cap 10</strong> - Visualitzacio amb Grafana.</li>
+                <li><strong>M5 del llibre</strong> - Seguretat de l'API.</li>
+            </ul>
+
+            <h3>El futur</h3>
+            <p>Aixo es nomes el principi. Al BernatLab pots afegir mes documents automaticament, crear una interficie web personalitzada, connectar amb Telegram per consultar des del mobil, o fer que el sistema aprengui de les respostes bones (feedback).</p>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m4 10</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Quants documents te Hort Osona?</li>
+                <li>Eines del sistema complet?</li>
+                <li>Com clonar el repo?</li>
+                <li>Model d'embeddings a l'exemple?</li>
+                <li>Valor per defecte de k a <code>ask_hort</code>?</li>
+                <li>Pregunta NO suggerida?</li>
+                <li>(Oberta) Arquitectura completa amb 4 parts.</li>
+                <li>(Oberta) Flux d'una consulta.</li>
+                <li>(Oberta) Limitacions i millores.</li>
+                <li>(Oberta) Integracio amb Telegram.</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici practic (45-60 min)</h2>
+            <p>Muntar el sistema Hort Osona complet: clonar el repo, indexar els 80+ documents i respondre preguntes reals.</p>
+
+            <h3>Pas 1: Clonar Hort Osona (5 min)</h3>
+            <div class="code-block">
+                <pre><code>cd ~
+git clone https://github.com/BernatMora/hort-osona.git
+cd hort-osona
+find . -name "*.md" | wc -l</code></pre>
+            </div>
+
+            <h3>Pas 2: Script d'indexacio (15 min)</h3>
+            <p>Crea <code>indexar_hort.py</code> amb <code>chromadb.PersistentClient</code>, <code>get_embedding</code> (Ollama) i <code>chunk_text</code> (500/50). Recorre tots els .md amb <code>rglob</code>, genera embeddings i guarda amb metadades de la font.</p>
+
+            <h3>Pas 3: Script de consulta (15 min)</h3>
+            <p>Crea <code>consultar_hort.py</code> amb la funcio <code>ask_hort(question, k=5)</code>: embedding, cerca, prompt, generacio, fonts. Afegeix un bucle interactiu amb <code>input()</code>.</p>
+
+            <h3>Pas 4: Proves reals (15 min)</h3>
+            <p>Prova les 4 preguntes suggerides. Comprova que les respostes son especifiques d'Hort Osona i que les fonts son els fitxers correctes.</p>
+
+            <h3>Validacio</h3>
+            <ul>
+                <li>☐ Repo d'Hort Osona clonat.</li>
+                <li>☐ Indexacio ha acabat amb exit.</li>
+                <li>☐ El script de consulta funciona.</li>
+                <li>☐ Les respostes inclouen informacio especifica.</li>
+                <li>☐ He provat almenys 4 preguntes diferents.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M4/10-aplicacio-hort/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>Documents</strong> = 76.</li>
+                <li><strong>Eines</strong> = Open WebUI, Ollama, ChromaDB.</li>
+                <li><strong>Clonar</strong> = <code>git clone</code>.</li>
+                <li><strong>Embeddings</strong> = nomic-embed-text.</li>
+                <li><strong>k</strong> = 5.</li>
+                <li><strong>NO suggerida</strong> = preu del quilo de mongetes.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'index del curs</a></p>
+    </footer>
+</body>
+</html>

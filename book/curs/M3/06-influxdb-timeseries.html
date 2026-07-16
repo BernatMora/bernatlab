@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 6. InfluxDB per a dades de sensors — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>📈 Cap 6. InfluxDB per a dades de sensors</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Quan tens sensors que generen lectures cada segon, cada minut o cada hora, durant mesos o anys, les dades creixen ràpidissim. Un sol sensor pot generar <strong>5 milions de files/any</strong>. Amb 10 sensors són 50 milions. Amb 50 sensors, 250 milions. Això és el món de les <strong>sèries temporals</strong> (time series), i les bases de dades tradicionals (SQLite, PostgreSQL) no estan dissenyades per a això.</p>
+            <p><strong>InfluxDB</strong> és una base de dades <strong>específica per a sèries temporals</strong> (TSDB). Està optimitzada exactament per a aquest cas: escriptures massives, consultes per rangs temporals, agregacions per finestres de temps, i polítiques de retenció automàtiques.</p>
+
+            <h3>Què és una sèrie temporal?</h3>
+            <p>Una sèrie temporal és simplement una seqüència de punts de dades <strong>indexats per temps</strong>:</p>
+            <ul>
+                <li>Temperatura cada minut: 22.5, 22.7, 22.6, ...</li>
+                <li>Preu d'una acció cada segon: 100.5, 100.7, 100.6, ...</li>
+                <li>Visites a una web cada hora: 152, 168, 143, ...</li>
+            </ul>
+            <p>Patrons compartits:</p>
+            <ul>
+                <li><strong>Escriptura massiva</strong>: cada interval s'afegeix una nova lectura.</li>
+                <li><strong>Lectura agregada</strong>: poques vegades vols una sola fila; sempre vols agregacions (mitjana per hora, màxim del dia).</li>
+                <li><strong>Retenció limitada</strong>: les dades molt antigues deixen de ser rellevants.</li>
+                <li><strong>Consultes per rang temporal</strong>: "dona'm les lectures entre el 15 i 20 de juny".</li>
+            </ul>
+
+            <h3>Què és InfluxDB?</h3>
+            <p>InfluxDB és una TSDB open source. Característiques:</p>
+            <ul>
+                <li><strong>Optimitzada per a sèries temporals</strong>: blocs comprimits per temps.</li>
+                <li><strong>Llenguatge propi</strong>: Flux (semblant a SQL però orientat a sèries).</li>
+                <li><strong>Retenció automàtica</strong>: "esborra tot el que tingui més de 2 anys".</li>
+                <li><strong>Consultes contínues</strong>: consultes que s'executen periòdicament i guarden el resultat.</li>
+                <li><strong>Downsampling automàtic</strong>: resumir dades antigues a intervals més grans.</li>
+                <li><strong>HTTP API</strong>: enviar dades via POST.</li>
+            </ul>
+
+            <h3>InfluxDB v1 vs v2</h3>
+            <p>Hi ha dues versions que coexisteixen:</p>
+            <ul>
+                <li><strong>v1.x</strong>: la "clàssica", més simple, una sola base de dades i un usuari admin. Bona per a homelabs petits.</li>
+                <li><strong>v2.x</strong>: la nova, amb organització, buckets, tokens, millor rendiment. Però més complexa de configurar.</li>
+            </ul>
+            <p>Si comences de zero, recomano <strong>v2</strong> perquè és el futur.</p>
+
+            <h3>Quan usar InfluxDB</h3>
+            <p>InfluxDB és la millor opció quan:</p>
+            <ul>
+                <li>Tens <strong>moltes lectures</strong> (&gt;10k/segon o &gt;1M/dia).</li>
+                <li>Les dades són <strong>sèries temporals</strong>.</li>
+                <li>Necessites <strong>agregacions per finestres</strong> (mitjana per hora, màxim per dia).</li>
+                <li>Volem <strong>polítiques de retenció</strong> automàtiques.</li>
+                <li>Necessites <strong>downsample</strong>.</li>
+            </ul>
+            <p>NO és adequada quan tens poques dades, o quan no són sèries temporals (millor SQLite o Postgres).</p>
+
+            <h3>Instal·lació al BernatLab</h3>
+            <div class="code-block">
+                <pre><code>services:
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: bernatlab-influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: bernatlab
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: bernatlab
+      DOCKER_INFLUXDB_INIT_BUCKET: hort
+      DOCKER_INFLUXDB_INIT_RETENTION: 90d
+    volumes:
+      - /home/pi/bernatlab/influxdb/data:/var/lib/influxdb2
+      - /home/pi/bernatlab/influxdb/config:/etc/influxdb2
+    ports:
+      - "127.0.0.1:8086:8086"</code></pre>
+            </div>
+
+            <h3>Model de dades</h3>
+            <p>A InfluxDB cada "taula" és un <strong>measurement</strong> (com <code>temperatura</code>). Cada fila té:</p>
+            <ul>
+                <li><strong>time</strong>: timestamp (sempre).</li>
+                <li><strong>fields</strong>: els valors (temperatura, humitat, etc.).</li>
+                <li><strong>tags</strong>: metadades indexades (sensor, ubicació, etc.).</li>
+            </ul>
+            <div class="code-block">
+                <pre><code>INSERT temperatura,sensor=t1,ubicacio=hivernacle value=22.5,humitat=65
+#                 ^tags                              ^fields</code></pre>
+            </div>
+
+            <h3>Consultes amb Flux (v2)</h3>
+            <div class="code-block">
+                <pre><code>// Ultimes 24 hores de temperatura
+from(bucket: "hort")
+  |&gt; range(start: -24h)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "temperatura")
+  |&gt; mean()
+
+// Mitjana per hora els darrers 7 dies
+from(bucket: "hort")
+  |&gt; range(start: -7d)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "temperatura")
+  |&gt; aggregateWindow(every: 1h, fn: mean, createEmpty: false)
+  |&gt; yield(name: "mitjana")</code></pre>
+            </div>
+
+            <h3>Com fer backup d'InfluxDB</h3>
+            <div class="code-block">
+                <pre><code># Backup
+docker exec bernatlab-influxdb influx backup /tmp/backup
+
+# Restaurar
+docker exec -i bernatlab-influxdb influx restore /tmp/backup</code></pre>
+            </div>
+
+            <h3>Retenció automàtica</h3>
+            <p>Configura retention policies:</p>
+            <ul>
+                <li><code>hort_raw</code>: 30 dies, totes les lectures.</li>
+                <li><code>hort_1h</code>: 1 any, agregades per hora.</li>
+                <li><code>hort_1d</code>: 5 anys, agregades per dia.</li>
+            </ul>
+            <p>InfluxDB esborra automàticament les dades més antigues del període.</p>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 1 — Les lectures dels sensors són dades crítiques que cal backupejar.</li>
+                <li>Cap 3 — Com fer backup dels volums d'InfluxDB.</li>
+                <li>Cap 5 — Diferències amb PostgreSQL.</li>
+                <li>Cap 10 — Grafana consumeix dades d'InfluxDB per fer gràfics.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 6</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Què significa TSDB?</li>
+                <li>Quin tipus de dades estan optimitzades per InfluxDB?</li>
+                <li>Quantes lectures per any pot generar un sensor que escriu cada minut?</li>
+                <li>Quin nom rep una "taula" a InfluxDB?</li>
+                <li>Quina diferència hi ha entre tags i fields?</li>
+                <li>Quin llenguatge de consultes fa servir InfluxDB v2?</li>
+                <li>Quin és el port per defecte d'InfluxDB?</li>
+                <li>Quina ordre faries servir per fer un backup d'InfluxDB?</li>
+                <li>(Oberta) Per què InfluxDB és millor que PostgreSQL per a lectures de sensors cada 10 segons?</li>
+                <li>(Oberta) Tens 50 sensors escrivint cada 5 segons durant 2 anys. Quin volum de dades tindràs?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-50 min)</h2>
+            <p>Instal·lar InfluxDB 2 amb Docker, inserir lectures de sensors, practicar consultes en Flux i fer un backup.</p>
+
+            <h3>Pas 1: Aixeca InfluxDB 2 (10 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/influxdb/data
+mkdir -p /home/pi/bernatlab/influxdb/config
+
+docker run -d --name bernatlab-influxdb \
+  -p 127.0.0.1:8086:8086 \
+  -v /home/pi/bernatlab/influxdb/data:/var/lib/influxdb2 \
+  -v /home/pi/bernatlab/influxdb/config:/etc/influxdb2 \
+  -e DOCKER_INFLUXDB_INIT_MODE=setup \
+  -e DOCKER_INFLUXDB_INIT_USERNAME=bernatlab \
+  -e DOCKER_INFLUXDB_INIT_PASSWORD=prova1234 \
+  -e DOCKER_INFLUXDB_INIT_ORG=bernatlab \
+  -e DOCKER_INFLUXDB_INIT_BUCKET=hort \
+  -e DOCKER_INFLUXDB_INIT_RETENTION=30d \
+  influxdb:2.7-alpine
+
+sleep 15
+docker ps | grep bernatlab-influxdb</code></pre>
+            </div>
+
+            <h3>Pas 2: Accedeix a la UI web (5 min)</h3>
+            <p>Obre al navegador: <code>http://localhost:8086</code> (via Tailscale o túnel SSH). Login: <code>bernatlab</code> / <code>prova1234</code>. Crea un token API i guarda'l.</p>
+
+            <h3>Pas 3: Escriu dades amb HTTP API (5 min)</h3>
+            <div class="code-block">
+                <pre><code>TOKEN="el_teu_token_aqui"
+
+# Escriu una lectura
+curl -XPOST "http://localhost:8086/api/v2/write?org=bernatlab&bucket=hort" \
+  --header "Authorization: Token $TOKEN" \
+  --data-raw "temperatura,sensor=t1,ubicacio=hivernacle value=22.5"
+
+curl -XPOST "http://localhost:8086/api/v2/write?org=bernatlab&bucket=hort" \
+  --header "Authorization: Token $TOKEN" \
+  --data-raw "temperatura,sensor=t1,ubicacio=hivernacle value=22.8"
+
+curl -XPOST "http://localhost:8086/api/v2/write?org=bernatlab&bucket=hort" \
+  --header "Authorization: Token $TOKEN" \
+  --data-raw "humitat,sensor=t1,ubicacio=hivernacle value=65.0"</code></pre>
+            </div>
+
+            <h3>Pas 4: Escriu moltes dades amb un script Python (10 min)</h3>
+            <div class="code-block">
+                <pre><code>cat &gt; /home/pi/bernatlab/proves/insertar-influx.py &lt;&lt;'PY'
+import urllib.request
+import random
+import time
+
+TOKEN = "el_teu_token_aqui"
+URL = f"http://localhost:8086/api/v2/write?org=bernatlab&bucket=hort"
+headers = {
+    "Authorization": f"Token {TOKEN}",
+    "Content-Type": "text/plain"
+}
+
+# Genera 1000 lectures aleatories
+for i in range(1000):
+    temp = 20 + random.random() * 10
+    hum = 50 + random.random() * 30
+    data = f"temperatura,sensor=t1 value={temp}\nhumitat,sensor=t1 value={hum}"
+    req = urllib.request.Request(URL, data=data.encode(), headers=headers)
+    urllib.request.urlopen(req)
+    if i % 100 == 0:
+        print(f"Escrites {i} lectures...")
+    time.sleep(0.01)
+
+print("Fet! 1000 lectures escrites.")
+PY
+
+python3 /home/pi/bernatlab/proves/insertar-influx.py</code></pre>
+            </div>
+
+            <h3>Pas 5: Consulta amb Flux (10 min)</h3>
+            <p>Des de la UI web, vés a <strong>Data Explorer</strong> i prova aquestes consultes:</p>
+            <div class="code-block">
+                <pre><code>// Ultimes 10 lectures
+from(bucket: "hort")
+  |&gt; range(start: -1h)
+  |&gt; limit(n: 10)
+
+// Mitjana per hora
+from(bucket: "hort")
+  |&gt; range(start: -7d)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "temperatura")
+  |&gt; aggregateWindow(every: 1h, fn: mean, createEmpty: false)
+
+// Maxim per dia
+from(bucket: "hort")
+  |&gt; range(start: -30d)
+  |&gt; filter(fn: (r) =&gt; r._measurement == "temperatura")
+  |&gt; aggregateWindow(every: 1d, fn: max, createEmpty: false)</code></pre>
+            </div>
+
+            <h3>Pas 6: Backup (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker exec bernatlab-influxdb influx backup /tmp/backup-hort
+
+docker cp bernatlab-influxdb:/tmp/backup-hort \
+  /home/pi/bernatlab/backups/influx-$(date +%Y%m%d)
+
+ls -lh /home/pi/bernatlab/backups/</code></pre>
+            </div>
+
+            <h3>Pas 7: Neteja (opcional)</h3>
+            <div class="code-block">
+                <pre><code>docker stop bernatlab-influxdb
+docker rm bernatlab-influxdb</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has aixecat InfluxDB 2 amb Docker.</li>
+                <li>☐ Has accedit a la UI web.</li>
+                <li>☐ Has escrit lectures amb HTTP API i amb Python.</li>
+                <li>☐ Has fet consultes en Flux.</li>
+                <li>☐ Has vist agregacions per hora/dia.</li>
+                <li>☐ Has fet un backup amb <code>influx backup</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/06-influxdb-timeseries/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>TSDB</strong> = Time Series DataBase.</li>
+                <li><strong>Sèries temporals</strong> = dades optimitzades.</li>
+                <li><strong>Cada minut</strong> = ~525.000 lectures/any.</li>
+                <li><strong>Measurement</strong> = "taula" a InfluxDB.</li>
+                <li><strong>Tags</strong> = indexats. <strong>Fields</strong> = no indexats.</li>
+                <li><strong>Flux</strong> = llenguatge de consultes v2.</li>
+                <li><strong>Port</strong> = 8086.</li>
+                <li><strong>Backup</strong> = <code>influx backup</code>.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>

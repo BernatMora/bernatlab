@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 5. PostgreSQL bàsic — Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>🐘 Cap 5. PostgreSQL bàsic</h1>
+        <p class="subtitle">Mòdul M3 · Dades</p>
+        <nav>
+            <a href="../index.html">← Tornar a l'índex</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Qüestionari</a>
+            <a href="#exercici">Exercici pràctic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>📖 Resum del capítol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Quan les dades creixen massa per a SQLite (GB, milions de files, molts usuaris) o necessites consultes serioses amb JOINs i agregacions complexes, toca pujar a una base de dades <strong>client-servidor</strong>. Al BernatLab la meva elecció és <strong>PostgreSQL</strong>: és la BD open source més potent del món, gratuïta, estable, i amb una qualitat de codi envejable. Per a l'hort IoT, la faig servir per a inventari de plantes, historial de collites, dades meteorològiques agregades, i qualsevol cosa que tingui volums superiors a uns 100 MB.</p>
+
+            <h3>Què és PostgreSQL?</h3>
+            <p>PostgreSQL (o "Postgres" pels amics) és una base de dades <strong>relacional</strong> client-servidor que existeix des de 1996. Característiques principals:</p>
+            <ul>
+                <li><strong>Open source</strong> (llicència PostgreSQL, similar a BSD).</li>
+                <li><strong>ACID</strong> estricte per defecte.</li>
+                <li><strong>SQL estàndard</strong> + extensions (JSON, GIS, full text search).</li>
+                <li><strong>Concurrència</strong>: milers de connexions simultànies.</li>
+                <li><strong>Volum</strong>: gestiona sense problemes BD de centenars de GB.</li>
+                <li><strong>Replicació</strong>: master-slave, streaming, lògica.</li>
+            </ul>
+
+            <h3>Quan usar PostgreSQL (i quan no)</h3>
+            <p>PostgreSQL és la millor opció quan:</p>
+            <ul>
+                <li>Les dades superen ~1 GB.</li>
+                <li>Tens múltiples aplicacions/usuaris accedint alhora.</li>
+                <li>Necessites JOINs complexes o agregacions pesades.</li>
+                <li>Cal compliment ACID estricte (transaccions financeres, inventari).</li>
+                <li>Vols replicació o alta disponibilitat.</li>
+            </ul>
+            <p>NO és necessari quan:</p>
+            <ul>
+                <li>Tens menys de 100 MB de dades (<strong>SQLite</strong> és millor).</li>
+                <li>Les dades són sèries temporals massives (<strong>InfluxDB</strong> és millor).</li>
+                <li>Només un sol procés hi escriu.</li>
+            </ul>
+
+            <h3>Instal·lació al BernatLab</h3>
+            <p>Al BernatLab corre en un contenidor Docker amb la imatge oficial <code>postgres:16-alpine</code>:</p>
+            <div class="code-block">
+                <pre><code>services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bernatlab-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bernatlab
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: bernatlab
+    volumes:
+      - /home/pi/bernatlab/postgres/data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"</code></pre>
+            </div>
+
+            <h3>Comandes bàsiques</h3>
+            <div class="code-block">
+                <pre><code># Connectar-se (via docker exec)
+docker exec -it bernatlab-postgres psql -U bernatlab -d bernatlab
+
+# Dins de psql:
+\l              # llistar bases de dades
+\dt             # llistar taules
+\d+ sensors     # descriure una taula
+\du             # llistar usuaris
+\h SELECT       # ajuda sobre una ordre SQL
+\q              # sortir
+
+# Crear una BD nova
+CREATE DATABASE hivernacle;
+\c hivernacle
+
+# Crear una taula
+CREATE TABLE sensors (
+  id SERIAL PRIMARY KEY,
+  nom TEXT NOT NULL,
+  valor REAL NOT NULL,
+  ts TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+# Inserir
+INSERT INTO sensors (nom, valor) VALUES
+  ('temperatura', 22.5),
+  ('humitat', 65.0);
+
+# Consultar
+SELECT * FROM sensors;
+SELECT nom, AVG(valor) FROM sensors GROUP BY nom;</code></pre>
+            </div>
+
+            <h3>Tipus de dades útils</h3>
+            <ul>
+                <li><strong>INTEGER, BIGSERIAL</strong>: enters.</li>
+                <li><strong>TEXT, VARCHAR(n)</strong>: cadenes.</li>
+                <li><strong>REAL, DOUBLE PRECISION</strong>: decimals.</li>
+                <li><strong>BOOLEAN</strong>: cert/fals.</li>
+                <li><strong>TIMESTAMPTZ</strong>: data + hora amb zona horària (sempre usa aquest!).</li>
+                <li><strong>JSONB</strong>: JSON binari, indexable.</li>
+                <li><strong>UUID</strong>: identificadors únics universals.</li>
+                <li><strong>INET, CIDR</strong>: adreces IP.</li>
+            </ul>
+
+            <h3>Backup consistent: pg_dump</h3>
+            <p>Mai facis <code>tar</code> d'un directori de Postgres actiu. Usa sempre <code>pg_dump</code>:</p>
+            <div class="code-block">
+                <pre><code># D'una sola BD
+docker exec bernatlab-postgres pg_dump -U bernatlab bernatlab | \
+  gzip &gt; backup-$(date +%Y%m%d).sql.gz
+
+# De TOTES les BD
+docker exec bernatlab-postgres pg_dumpall -U postgres | \
+  gzip &gt; backup-all-$(date +%Y%m%d).sql.gz
+
+# Restaurar
+zcat backup-20250615.sql.gz | \
+  docker exec -i bernatlab-postgres psql -U bernatlab -d bernatlab</code></pre>
+            </div>
+
+            <h3>Diferències clau amb SQLite</h3>
+            <table style="width:100%; border-collapse: collapse; margin: 1rem 0;">
+                <tr style="background: var(--c-accent-light);">
+                    <th style="padding:0.4rem; text-align:left;">Característica</th>
+                    <th style="padding:0.4rem; text-align:left;">SQLite</th>
+                    <th style="padding:0.4rem; text-align:left;">PostgreSQL</th>
+                </tr>
+                <tr><td>Tipus</td><td>Embeguda (un .db)</td><td>Client-servidor</td></tr>
+                <tr><td>Volum recomanat</td><td>&lt;1 GB</td><td>GB a TB</td></tr>
+                <tr><td>Concurrència</td><td>1 escriptura</td><td>Milers</td></tr>
+                <tr><td>SQL</td><td>Subconjunt</td><td>Estàndard + extensions</td></tr>
+                <tr><td>Tipus propis</td><td>5 bàsics</td><td>40+</td></tr>
+                <tr><td>Replicació</td><td>No</td><td>Sí</td></tr>
+                <tr><td>Autenticació</td><td>Cap</td><td>Usuaris, rols, permisos</td></tr>
+            </table>
+
+            <h3>Connexions amb altres capítols</h3>
+            <ul>
+                <li>Cap 3 — Com fer backup consistent amb pg_dump.</li>
+                <li>Cap 4 — Quan SQLite és millor opció.</li>
+                <li>Cap 6 — InfluxDB per a dades de sensors massives.</li>
+                <li>Cap 7 — Com accedir a Postgres des d'apps Node/Python.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>❓ Qüestionari (10 preguntes)</h2>
+            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capítol:</p>
+                <pre><code>cd C:\Users\iadmin\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --m3 5</code></pre>
+            </div>
+
+            <h3>Vista prèvia de les preguntes</h3>
+            <ol>
+                <li>Quin tipus de base de dades és PostgreSQL?</li>
+                <li>Quin és el client de línia de comandes de PostgreSQL?</li>
+                <li>Quina ordre faries servir per fer un backup consistent d'una BD?</li>
+                <li>Quin tipus de dada és millor per a dates amb zona horària?</li>
+                <li>Quantes connexions concurrents pot gestionar PostgreSQL?</li>
+                <li>Quin és el port per defecte de PostgreSQL?</li>
+                <li>Quina ordre mostra les taules dins de <code>psql</code>?</li>
+                <li>Quin tipus JSON és indexable a PostgreSQL?</li>
+                <li>(Oberta) Per què <code>TIMESTAMPTZ</code> és millor que <code>TIMESTAMP</code>?</li>
+                <li>(Oberta) Tens un blog amb 50.000 articles i 10.000 visites diaries. Triaries SQLite, PostgreSQL o una altra cosa?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>🛠️ Exercici pràctic (40-50 min)</h2>
+            <p>Instal·lar PostgreSQL amb Docker, crear una base de dades per a l'hort, inserir dades, practicar consultes i fer un backup amb <code>pg_dump</code>.</p>
+
+            <h3>Pas 1: Aixeca PostgreSQL en Docker (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/postgres/data
+
+docker run -d --name bernatlab-postgres \
+  -e POSTGRES_USER=bernatlab \
+  -e POSTGRES_PASSWORD=prova1234 \
+  -e POSTGRES_DB=bernatlab \
+  -v /home/pi/bernatlab/postgres/data:/var/lib/postgresql/data \
+  postgres:16-alpine
+
+sleep 10
+docker ps | grep bernatlab-postgres</code></pre>
+            </div>
+
+            <h3>Pas 2: Connecta't amb psql (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker exec -it bernatlab-postgres psql -U bernatlab -d bernatlab
+
+# Dins de psql:
+\conninfo
+\l
+\q</code></pre>
+            </div>
+
+            <h3>Pas 3: Crea l'esquema de l'hort (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker exec -i bernatlab-postgres psql -U bernatlab -d bernatlab &lt;&lt;EOF
+CREATE TABLE plantes (
+  id SERIAL PRIMARY KEY,
+  nom TEXT NOT NULL,
+  varietat TEXT,
+  plantat DATE NOT NULL,
+  ubicacio TEXT
+);
+
+CREATE TABLE lectures (
+  id BIGSERIAL PRIMARY KEY,
+  planta_id INT REFERENCES plantes(id),
+  sensor TEXT NOT NULL,
+  valor REAL NOT NULL,
+  ts TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_lectures_ts ON lectures(ts);
+CREATE INDEX idx_lectures_sensor ON lectures(sensor, ts);
+
+\dt
+\d+ lectures
+EOF</code></pre>
+            </div>
+
+            <h3>Pas 4: Insereix dades de prova (10 min)</h3>
+            <div class="code-block">
+                <pre><code>docker exec -i bernatlab-postgres psql -U bernatlab -d bernatlab &lt;&lt;EOF
+INSERT INTO plantes (nom, varietat, plantat, ubicacio) VALUES
+  ('Tomàquet', 'Pera', '2025-04-15', 'Bancal 1'),
+  ('Enciam', 'Meravella', '2025-05-01', 'Bancal 2'),
+  ('Carbassa', 'Cacahuet', '2025-05-10', 'Bancal 3');
+
+INSERT INTO lectures (planta_id, sensor, valor)
+SELECT 
+  (random() * 2 + 1)::int,
+  s.sensor,
+  (random() * 30 + 15)::real
+FROM generate_series(1, 1000) g
+CROSS JOIN (VALUES ('temperatura'), ('humitat')) AS s(sensor);
+
+SELECT COUNT(*) FROM lectures;
+EOF</code></pre>
+            </div>
+
+            <h3>Pas 5: Consultes avançades (5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker exec -it bernatlab-postgres psql -U bernatlab -d bernatlab
+
+SELECT p.nom, l.sensor, AVG(l.valor)
+FROM lectures l
+JOIN plantes p ON l.planta_id = p.id
+GROUP BY p.nom, l.sensor
+ORDER BY p.nom, l.sensor;
+
+SELECT 
+  date_trunc('hour', ts) AS hora,
+  sensor,
+  AVG(valor) AS mitjana
+FROM lectures
+GROUP BY hora, sensor
+ORDER BY hora DESC
+LIMIT 5;
+
+\q</code></pre>
+            </div>
+
+            <h3>Pas 6: Backup amb pg_dump (5 min)</h3>
+            <div class="code-block">
+                <pre><code>mkdir -p /home/pi/bernatlab/backups/postgres
+
+docker exec bernatlab-postgres pg_dump -U bernatlab bernatlab | \
+  gzip &gt; /home/pi/bernatlab/backups/postgres/bernatlab-$(date +%Y%m%d).sql.gz
+
+ls -lh /home/pi/bernatlab/backups/postgres/
+zcat /home/pi/bernatlab/backups/postgres/bernatlab-*.sql.gz | head -20</code></pre>
+            </div>
+
+            <h3>Pas 7: Restaurar (opcional, 5 min)</h3>
+            <div class="code-block">
+                <pre><code>docker exec -i bernatlab-postgres psql -U bernatlab -d bernatlab \
+  -c "DROP TABLE IF EXISTS lectures, plantes;"
+
+zcat /home/pi/bernatlab/backups/postgres/bernatlab-*.sql.gz | \
+  docker exec -i bernatlab-postgres psql -U bernatlab -d bernatlab
+
+docker exec bernatlab-postgres psql -U bernatlab -d bernatlab -c "SELECT COUNT(*) FROM lectures;"</code></pre>
+            </div>
+
+            <h3>Validació</h3>
+            <ul>
+                <li>☐ Has aixecat PostgreSQL amb Docker.</li>
+                <li>☐ T'has connectat amb <code>psql</code>.</li>
+                <li>☐ Has creat l'esquema de l'hort.</li>
+                <li>☐ Has inserit 1000 lectures.</li>
+                <li>☐ Has fet consultes amb JOIN i agregacions.</li>
+                <li>☐ Has fet un backup amb <code>pg_dump | gzip</code>.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>✅ Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M3/05-postgres-basics/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum ràpid</h3>
+            <ol>
+                <li><strong>Postgres</strong> = client-servidor.</li>
+                <li><strong>Client</strong> = <code>psql</code>.</li>
+                <li><strong>Backup</strong> = <code>pg_dump</code>.</li>
+                <li><strong>Dates</strong> = <code>TIMESTAMPTZ</code>.</li>
+                <li><strong>Concurrència</strong> = milers.</li>
+                <li><strong>Port</strong> = 5432.</li>
+                <li><strong>Taules</strong> = <code>\dt</code>.</li>
+                <li><strong>JSON</strong> = JSONB.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
+    </footer>
+</body>
+</html>
