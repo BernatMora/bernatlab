@@ -188,6 +188,196 @@ networks:
 
 ---
 
+## Pregunta 11 (oberta): Per que els perfils en lloc de fitxers separats
+
+**Resposta model**:
+
+Docker Compose va introduir els perfils per evitar un problema practic molt comu: la duplicacio de configuracio entre entorns. Si tens `docker-compose.dev.yml`, `docker-compose.prod.yml` i `docker-compose.test.yml`, acabes tenint tres fitxers que comparteixen el 80% del contingut i divergen subtilment en el 20% restant. Quan toques un servei, l'has de tocar a tres llocs i es facil oblidar-ne un.
+
+Els perfils permeten mantenir **un sol fitxer** que conte totes les definicions, marcant amb `profiles:` les que son opcionals. Les avantatges practiques:
+
+1. **Un sol lloc de veritat**: el `docker-compose.yml` es l'unic fitxer. Si toques el servei `db`, queda tocat per a tots els perfils.
+
+2. **Comparacio facil**: amb `git diff` veus exactament quins canvis s'han fet, sense haver de comparar multiples fitxers.
+
+3. **Menos errors de sincronitzacio**: abans, afegir una variable d'entorn a `dev` pero no a `prod` podia ser un bug subtil. Ara, si el servei esta definit una sola vegada, tothom el veu igual.
+
+4. **Composicio flexible**: pots activar multiples perfils a la vegada (`--profile dev --profile debug`).
+
+5. **Documentacio inherent**: el fitxer es l'esquema complet de l'app. Qualsevol persona que el llegeix enten tots els modes d'operacio.
+
+Per a un homelab com el BernatLab, aixo vol dir que el teu `docker-compose.yml` conte el graf complert del que podries arribar a fer, i tu nomes actives els perfils que necessites en cada moment. La complexitat queda organitzada, no pas amagada.
+
+---
+
+## Pregunta 12 (oberta): Healthchecks i ordre d'arrencada
+
+**Resposta model**:
+
+`depends_on` nomes comprova que el contenidor ha arrencat (el proces principal esta corrent). Pero un servei pot estar **iniciat** pero no **llest**: una base de dades pot estar fent recovery, una API pot estar carregant models en memoria, un web pot estar esperant la base de dades. Si l'API es connecta a la base de dades massa aviat, obtindra errors intermitents i caldran reinicis.
+
+`depends_on: condition: service_healthy` es la solucio: el contenidor espera a que el **healthcheck** del servei depenent retorni `healthy`. El healthcheck es una comanda que el servei exposa per dir "estic llest per rebre peticions" (per exemple, una query SELECT 1 a una base de dades, una peticio HTTP a /health).
+
+**Exemple del BernatLab amb Nextcloud + MariaDB**:
+
+Si nomes uses `depends_on: db`, pasa el seguent:
+1. `db` arrenca (proces iniciat).
+2. `nextcloud` arrenca inmediatament.
+3. `nextcloud` intenta connectar-se a `db:3306` -> falla perque MariaDB encara esta fent init.
+4. Nextcloud mostra errors, cal reiniciar manualment.
+
+Amb `depends_on: db: { condition: service_healthy }`:
+1. `db` arrenca.
+2. MariaDB fa el seu init.
+3. El healthcheck (`mysqladmin ping`) retorna `healthy`.
+4. Aleshores `nextcloud` arrenca.
+5. Nextcloud es connecta a MariaDB ja llesta.
+
+Aixo es la diferencia entre "funciona la majoria del temps" i "funciona sempre". Per a serveis amb molta logica d'inicialitzacio, es essencial.
+
+---
+
+## Pregunta 13 (oberta): Per que comentar el compose
+
+**Resposta model**:
+
+El `docker-compose.yml` es un fitxer de configuracio, pero tambe es **documentacio viva**. Si nomes treballes tu al BernatLab, pots pensar que no cal comentar res perque "ja ho recordare". Pero aixo es fals per varies raons:
+
+1. **La memoria humana es deficient**: d'aqui 6 mesos no recordaras per que vas posar `cap_drop: ALL` a un servei en concret. El context del moment (una noticia sobre una vulnerabilitat) s'ha esborrat de la teva memoria.
+
+2. **Versions i dependències canvien**: un comentari que avui sembla obvi pot ser critic d'aqui un any perque la documentacio oficial ha canviat.
+
+3. **El per que importa mes que el que**: el codi ja diu **que** fas (`environment: - DB_PASS=xxx`). El que necessita explicacio es **per que** (`# MariaDB 10.11 requereix aquesta variable per aceptar connexions externes`).
+
+4. **Bones practiques que t'agrairàs**: com `secrets` en lloc d'env vars, o per que un servei nomes te el perfil `dev`.
+
+5. **Cultura de projecte**: si mai comparteixes el projecte, una persona nova entendrà el per que de cada decisio.
+
+**Exemple d'un bon `docker-compose.yml` comentat**:
+
+```yaml
+services:
+  db:
+    # MariaDB 10.11. A partir de la 11 cal explicit authentication plugin
+    image: mariadb:10.11
+    # Read-only fs nomes amb write al volum de dades. Seg cap 6.
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/mysqld
+    # ... etc
+```
+
+Els comentaris son una inversio de 5 minuts que estalviaran 2 hores de "que collons vaig pensar fa un any".
+
+---
+
+## Pregunta 14 (oberta): Stack de monitoritzacio amb Compose
+
+**Resposta model**:
+
+Per a l'stack de monitoritzacio amb Prometheus, Grafana, cAdvisor, node-exporter i Uptime Kuma, el `docker-compose.yml` seria:
+
+```yaml
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["prod", "dev"]  # essencial
+    volumes:
+      - prometheus-data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks: [monitoring]
+    # No cal cap port exposat si Grafana es a la mateixa xarxa
+    
+  grafana:
+    image: grafana/grafana:latest
+    profiles: ["prod", "dev"]
+    depends_on:
+      prometheus: { condition: service_healthy }
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"  # nomes localhost
+    networks: [monitoring, frontend]
+    
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    profiles: ["prod", "dev"]
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks: [monitoring]
+    
+  node-exporter:
+    image: prom/node-exporter:latest
+    profiles: ["dev"]  # nomes en dev, perque en prod ja va amb cadvisor
+    networks: [monitoring]
+    
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    profiles: ["prod", "dev"]
+    volumes:
+      - uptime-kuma-data:/app/data
+    ports:
+      - "127.0.0.1:3001:3001"
+    networks: [monitoring, frontend]
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  uptime-kuma-data:
+
+networks:
+  monitoring: {}
+  frontend: {}
+```
+
+**Perfils**: els serveis essencials (`prometheus`, `grafana`, `cadvisor`, `uptime-kuma`) son a `prod` i `dev`. `node-exporter` nomes a `dev` perque es redundant amb `cadvisor` en un sol node.
+
+**Xarxes**: `monitoring` (interna) i `frontend` (per exposar Grafana i Uptime Kuma). Prometheus nomes a `monitoring` perque no l'ha de veure l'usuari directament.
+
+**Ordre d'arrencada**: Grafana espera a Prometheus. La resta poden arrencar en paral·lel. Uptime Kuma no depen de res perque nomes fa pings.
+
+**Volums**: nomes Grafana i Uptime Kuma necessiten volum persistent. Prometheus i cAdvisor poden perdre dades en reiniciar (es rediseny per ser temporal o per rebre dades en temps real).
+
+---
+
+## Pregunta 15 (oberta): Secrets i variables d'entorn
+
+**Resposta model**:
+
+Posar totes les credencials al `docker-compose.yml` te una consequencia greu: el fitxer es queda al repositori Git, i totes les contrasenyes son accessibles a qualsevol persona que tingui acces al repo. Inclús en un repo privat, hi ha riscos: el repo es clona accidentalment, es comparteix amb un company, es penja a un backup al núvol, etc.
+
+**Les tres estrategies**:
+
+**1. Fitxer `.env` separat**:
+- Avantatge: pots posar `.env` al `.gitignore`.
+- Desavantatge: el fitxer `.env` nomes es xifrat per la proteccio del sistema de fitxers. Si la maquina es compromet, tambe.
+- Us: variables d'entorn que no son altament sensibles pero que no vols al repo (exemple: contrasenyes de base de dades, tokens d'APIs externes).
+
+**2. `secrets` (Docker native)**:
+- Avantatge: els secrets es guarden com a fitxers a `/run/secrets/` dins el contenidor, no com a variables d'entorn. Es poden muntar nomes als serveis que els necesiten.
+- Desavantatge: cal gestionar els fitxers de secrets manualment (els pots generar amb scripts).
+- Us: credencials que han d'estar molt protegides (claus SSH, certificats, API keys importants).
+
+**3. Gestor de secrets extern (Vault, Infisical, Bitwarden)**:
+- Avantatge: secrets centralitzats, amb auditoria, rotacio, revocacio.
+- Desavantatge: complexitat. Cal un servei addicional.
+- Us: entorns de produccio amb multiples aplicacions.
+
+**Recomanacio al BernatLab**:
+- `.env` al `.gitignore` per a la majoria de credencials.
+- `secrets` (fitxers xifrats) per a les coses mes sensibles (la clau privada del proxy, tokens d'API importants).
+- Gestor extern nomes si tens mes de 5-10 serveis amb secrets i vols centralitzar.
+
+**Trade-off final**: un sol `.env` es convenient pero menys segur. Els secrets son mes segurs pero requereixen mes feina. La majoria de persones al BernatLab poden viure amb `.env` al `.gitignore`, pero val la pena saber que existeixen alternatives.
+
+---
+
 ## Que fer si has fallat moltes preguntes
 
 - **5-8 encerts**: Rellegir el resum. Docker Compose es una eina que s'aprena usant-la.

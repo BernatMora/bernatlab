@@ -104,6 +104,131 @@ El resultat seria passar d'**~1 GB** (imatge naive) a **~150-200 MB** (multi-sta
 
 ---
 
+## Pregunta 11 (oberta): Cache de capes i iteracio del codi
+
+**Resposta model**:
+
+Docker emmagatzema cada capa per separat i la identifica pel seu hash. Si una capa no canvia entre builds, la recupera de la cache local en lloc de tornar-la a crear. Això es magic per a la velocitat: un build que trigaria 5 min pot trigar 10 segons si nomes ha canviat una capa.
+
+Aixo canvia la manera d'escriure el Dockerfile quan preveus iteracio. La regla daur: **copia el que canvia menys primer, i el que canvia mes al final**. Concretament:
+
+1. Primer copio nomes el fitxer de dependencies (`requirements.txt` o `package.json`).
+2. Instaŀlo les dependencies (RUN pip install).
+3. DESPRES copio la resta del codi amb `COPY . .`.
+
+Aixi, quan iteres el codi (cosa que fas cada setmana al BernatLab), nomes es refa la capa del codi. La capa de dependencies queda intacta i es recupera instantaniament. Si ho fessis al reves (copiar tot i despres instaŀlar), cada canvi de codi forçaria reinstaŀlar totes les dependencies.
+
+Al BernatLab concretament, això vol dir que una actualitzacio tipica d'una app (tocar un `.py`) passa de tardar 2 min a tardar 5 segons. Diferencia enorme quan estas provant coses.
+
+---
+
+## Pregunta 12 (oberta): Mida d'imatge i velocitat de desplegament
+
+**Resposta model**:
+
+La mida de la imatge afecta el desplegament en tres punts:
+
+1. **Descarrega**: si fas `docker pull bernatlab-api:latest` i la imatge pesa 1 GB, a la xarxa de la RPi (sovint 100 Mbps o menys) tardarà mes d'un minut. Si nomes pesa 100 MB, baixa en 8 segons. Al BernatLab amb connexió no sempre bona, aixo importa.
+
+2. **Espai en disc**: la RPi te una microSD o SSD limitat (32-256 GB habitualment). Si cada imatge pesa 1 GB, nomes tens per a 20-30 serveis. Si pesen 100 MB, tens per a centenars.
+
+3. **Arrencada**: tot i que Docker no descomprimeix tota la imatge, una imatge mes gran te mes capes i el daemon triga mes a validar-les. A una RPi amb CPU limitat, la diferencia entre 5 capes i 50 capes es nota.
+
+4. **RAM en execucio**: la capa escribible i les pagines de memoria carregades es relacionen amb la mida. Una imatge amb milers de fitxers petits (cas Alpine vs Debian) consumeix mes RAM per la gestio de inodes.
+
+Al BernatLab (100.115.134.76), on el temps de resposta des de que decideixo actualitzar fins que esta disponible es important, tenir imatges de 100-200 MB en lloc de 1 GB marca la diferencia. Per això els multi-stage builds son la primera optimitzacio que cal fer.
+
+---
+
+## Pregunta 13 (oberta): Explicar el "magic" de Docker a un company
+
+**Resposta model**:
+
+Si un company pensa que Docker es magic, li explicaria amb una analogia senzilla i despres amb el detall tecnic:
+
+**Analogia**: Docker es com una **maquina de cafe amb càpsules**. La càpsula es la imatge (premesclada, estandard). Tu poses la càpsula a la maquina (el teu ordinador) i surt un cafe (el contenidor en execucio). El mateix tipus de càpsula et pot donar el mateix cafe a qualsevol maquina. Si el cafe es dolent, llences la càpsula i en poses una de nova.
+
+**Detall tecnic**: per sota, Docker fa servir tres conceptes:
+
+- **Imatge**: es un "paquet" de lectura nomes que conte el sistema de fitxers base, les dependencies i el codi. Es com un fitxer `.tar` comprimit pero optimitzat per capes. Esta guardada al registr (Docker Hub, un registre privat, o localment).
+
+- **Contenidor**: quan fas `docker run`, Docker agafa la imatge, afegeix una capa escribible buida a sobre, i executa un procés dins d'aquesta capa. Aquest procés veu un sistema de fitxers propi pero comparteix el kernel de Linux amb l'amfitrio.
+
+- **Copy-on-write**: quan el contenidor vol modificar un fitxer de la imatge, Docker el copia primer a la capa escribible. Els fitxers no modificats es comparteixen entre tots els contenidors de la mateixa imatge. Per això 10 contenidors de nginx no ocupen 10x l'espai.
+
+Aixo es el que el company no veu: la "cache" del kernel, les capes compartides, el sistema de fitxers aillat, la xarxa virtual. Per ell nomes es veu: escric `docker run nginx` i funciona. Per tu, ara, ja saps per que funciona.
+
+---
+
+## Pregunta 14 (oberta): Multi-stage build per a FastAPI amb pandas
+
+**Resposta model**:
+
+Per una aplicacio FastAPI amb `pandas` i `numpy`, el Dockerfile amb multi-stage tindria dos `FROM`:
+
+```dockerfile
+# Etapa 1: builder (imatge gran amb compiladors)
+FROM python:3.12 AS builder
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+COPY . .
+# Opcional: compilacio AOT o pas addicional si cal
+
+# Etapa 2: runtime (imatge minima)
+FROM python:3.12-slim
+WORKDIR /app
+# Copiem nomes les dependencies instal·lades, no el codi font del builder
+COPY --from=builder /root/.local /root/.local
+COPY . .
+ENV PATH=/root/.local/bin:$PATH
+USER 1000
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]
+```
+
+**Bloc 1 (builder)**: uso `python:3.12` (imatge completa, ~1 GB) perque te `gcc`, `make` i altres eines que `pandas` necessita per compilar les parts en C. Instaŀlo totes les dependencies a `/root/.local` amb `--user` per tenir-les separades del sistema.
+
+**Bloc 2 (runtime)**: uso `python:3.12-slim` (~150 MB) que es la versio minima sense compiladors. Copio nomes `/root/.local` del builder (les dependencies ja compilades) i el codi font. El resultat es una imatge d'uns 200-300 MB en lloc d'1 GB.
+
+**Per que funciona**: `pandas` i `numpy` un cop compilats, son fitxers `.so` (llibreries compartides) que no necesiten gcc per executar-se. Per tant, podem compilar-les al builder i nomes portar els `.so` i els `.py` al runtime. Es el mateix principi que `go build` que genera un binari estatic.
+
+Al BernatLab, aixo significa que el deploy de l'API es rapid, l'actualitzacio nomes toca el codi (la capa fina), i la imatge base es pot reutilitzar per a altres serveis Python.
+
+---
+
+## Pregunta 15 (oberta): Alpine vs debian-slim al BernatLab
+
+**Resposta model**:
+
+La decisio entre `alpine` i `debian-slim` te varios eixos:
+
+**Mida final**:
+- Alpine: ~50 MB de base. Imatge final tipica: 80-150 MB.
+- Debian-slim: ~150 MB de base. Imatge final tipica: 200-400 MB.
+
+**Compatibilitat de llibreries**:
+- Alpine usa `musl` en lloc de `glibc`. Moltes llibreries natives assumeixen glibc i fallen o tenen bugs subtils. Exemples classics: `numpy`, `cryptography`, `psycopg2`.
+- Debian-slim usa `glibc` (mateixa que Ubuntu). Totes les llibreries estandard funcionen.
+
+**Temps de build**:
+- Alpine triga mes perque ha de compilar dependencies natives des de font (no hi ha binaris precompilats per a musl).
+- Debian-slim te binaris precompilats per a `manylinux`, molt mes rapid.
+
+**Seguretat**:
+- Alpine te menys paquets i una superficie d'atac mes petita. Pero tambe te un gestor de paquets menys madur (apk).
+- Debian-slim te mes paquets pero tots auditats per la comunitat Debian (reputacio de estabilitat).
+
+**Recomanacio per al BernatLab**:
+- Per a serveis simples (nginx, alpine, scripts Python sense dependencies natives): **Alpine** perfecte.
+- Per a serveis amb dependencies natives (pandas, cryptography, opencv): **Debian-slim**. Estalvia temps de build i mal de cap.
+- Per a serveis de produccio on la mida importa molt (desplegaments repetits): **Alpine** si tot funciona.
+- Per a un homelab amb temps limitat: **Debian-slim** per defecte. La diferencia de 100 MB no justifica els possibles problemes de compatibilitat.
+
+Personalment, al BernatLab uso Debian-slim per defecte i nomes passo a Alpine quan la imatge es critica per mida o per algun motiu especific (com ara imatges de Go o Rust ja optimitzades amb base Alpine).
+
+---
+
 ## Que fer si has fallat moltes preguntes
 
 - **5-8 encerts**: Rellegir el resum i fer l'exercici practic.

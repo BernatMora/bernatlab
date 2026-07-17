@@ -110,6 +110,126 @@ Aixi cada cosa te el tractament adequat: les dades grosses al bind mount (peracc
 
 ---
 
+## Pregunta 11 (oberta): Per que els volums son una capa d'abstraccio
+
+**Resposta model**:
+
+Docker va triar dissenyar els volums com a capa d'abstraccio a sobre del sistema de fitxers de l'amfitrio per resoldre quatre problemes practics:
+
+1. **Permisos entre UID del contenidor i de l'amfitrio**: si munto directament `/home/pi/photos` al contenidor, el UID del procés dins el contenidor (sovint 33 per www-data) pot no tenir permisos d'escriptura. Els volums nomenats permeten a Docker gestionar aixo transparentement.
+
+2. **Portabilitat entre sistemes operatius**: un bind mount a `/home/pi/photos` nomes funciona a Linux. A Windows o Mac les rutes son diferents. Els volums nomenats son independents del sistema de fitxers de l'amfitrio: `volum-db:/var/lib/postgresql/data` funciona igual a tot arreu.
+
+3. **Eines de backup consistents**: Docker pot fer un backup consistent del volum garantit que nomes es captura quan el volum no esta en us. Un bind mount es nomes una carpeta de l'amfitrio i pot estar sent modificada en qualsevol moment.
+
+4. **Evitar perdre dades per accident**: si un script esborra `/home/pi/fotos/`, tot es perd. Els volums nomenats viuen a `/var/lib/docker/volumes/` i nomes Docker els gestiona; no es toquen facilment per accident.
+
+Aixo es el que es coneix com el principi de "abstraccio del emmagatzematge" (storage abstraction). Es el mateix principi que en programacio: no acoblar-se als detalls de la maquina.
+
+---
+
+## Pregunta 12 (oberta): Volums i estrategia de backup
+
+**Resposta model**:
+
+L'eleccio entre volum nomenat i bind mount afecta directament la teva estrategia de backup. Si tens una hora per configurar el BernatLab i vols minimitzar la feina futura, triaria aquesta estrategia:
+
+1. **Volums nomenats per a totes les dades d'aplicacio**: PostgreSQL, MariaDB, Nextcloud data, InfluxDB, etc. Raons: `docker volume ls` et dona tots els volums, pots fer un loop que els empaqueti tots amb un script, i el backup es consistent. Per exemple, un script que faci `for vol in $(docker volume ls -q); do docker run --rm -v $vol:/data -v /backups:/backup alpine tar czf /backup/$vol.tar.gz /data; done`.
+
+2. **Bind mounts nomes per a coses que necessites accedir des de l'amfitrio**: configuracio, scripts personals, fotos originals. Raons: els vols editar amb un editor normal, accedir per SMB, o compartir amb altres serveis.
+
+3. **Volum centralitzat per a backups**: un volum anomenat `backups` que esta montat a tots els contenidors de backup. Aixi s'escriuen tots al mateix lloc i es poden sincronitzar al núvol amb rsync/restic.
+
+4. **Documentar la ubicacio de cada volum**: un `README` al costat del `docker-compose.yml` que digui "volum db: conte la base de dades PostgreSQL, fer backup diari, retenir 7 dies". D'aqui un any, ho agrairas.
+
+Aquesta estrategia et permet fer un backup complet del BernatLab amb una sola ordre i restaurar en un altre maquina nomes copiant els volums i el compose.
+
+---
+
+## Pregunta 13 (oberta): Argumentar contra `docker cp`
+
+**Resposta model**:
+
+Si un company em digues que guarda les dades amb `docker cp`, li explicaria els riscos amb aquesta analogia: es com guardar els diners a la butxaca d'una jaqueta que pots llençar a la rentadora en qualsevol moment.
+
+**Risques concrets**:
+
+1. **Contenidor corromput**: si el contenidor no arranca, no pots fer `docker cp` perque el contenidor no existeix. Les dades queden inaccessible. En canvi, un volum nomenat esta al sistema de fitxers de l'amfitrio, accessible sempre.
+
+2. **Actualitzacio de la imatge**: si fas `docker pull nextcloud:28` i el contenidor antic es substituit, les dades son a la capa escribible del contenidor antic que s'ha eliminat. Amb volum, fas `docker run -v nextcloud-data:/var/www/html/data nextcloud:28` i les dades continuen allà.
+
+3. **Esborrat accidental**: `docker rm nextcloud` esborra el contenidor i amb ell la capa escribible. Bye-bye dades. Amb volum, `docker rm` nomes toca el contenidor, no pas el volum.
+
+4. **No es pot fer backup consistent**: `docker cp` copia fitxer a fitxer mentres el contenidor esta actiu. Pot capturar estats inconsistents. Els volums es poden backupar amb el contenidor aturat (`docker stop` + tar) o amb eines com `restic` que garanteixen consistència.
+
+5. **Portabilitat zero**: si vols moure les dades a una altra maquina, amb `docker cp` has de fer un altre cop. Amb volum, nomes cal moure la carpeta `/var/lib/docker/volumes/nextcloud-data/`.
+
+L'alternativa robusta es: volum nomenat per a les dades + `docker run` amb `-v` o `docker-compose.yml` amb `volumes:`. Es la mateixa complexitat que `docker cp` pero molt mes segur.
+
+---
+
+## Pregunta 14 (oberta): Estrategia de volums per a 4 serveis del BernatLab
+
+**Resposta model**:
+
+Per a aquests quatre serveis, l'estrategia de volums seria:
+
+**Nextcloud (fitxers dels usuaris)**:
+- **Volum nomenat** `nextcloud-data` mapat a `/var/www/html/data`.
+- Justificacio: les dades son critiques (irreemplaçables) i el volum es pot fer backup amb `restic` o un script tar. Mida esperada: 5-100 GB.
+- **Volum nomenat** separat `nextcloud-config` per a `/var/www/html/config` (aixo es nomes uns pocs fitxers PHP).
+- **Volum nomenat** `nextcloud-db` per a la base de dades (si es SQLite dins el propi contenidor, en cas contrari va a part).
+
+**PostgreSQL (base de dades)**:
+- **Volum nomenat** `postgres-data` mapat a `/var/lib/postgresql/data`.
+- Justificacio: nomes es gestiona amb `pg_dump` per backup logic, pero el volum es la "font de veritat" per si cal reinicialitzar.
+- **Volum nomenat** `postgres-config` per a `/etc/postgresql`.
+- Mida esperada: 1-10 GB.
+
+**InfluxDB (metriques de sensors)**:
+- **Volum nomenat** `influxdb-data` mapat a `/var/lib/influxdb2`.
+- Justificacio: pot créixer molt amb el temps (cada sensor genera punts). Cal poder-lo inspeccionar o netejar.
+- Politica de retencio: 90 dies dins InfluxDB, despres els snapshots van al backup.
+- Mida esperada: 1-50 GB.
+
+**Ollama (models LLM)**:
+- **Volum nomenat** `ollama-data` mapat a `/root/.ollama`.
+- Justificacio: els models son grans (4-30 GB cadascun) i es poden tornar a baixar, pero la descarrega es lenta. Mantenir-los al volum evita haver-los de rebaixar.
+- **NO cal fer backup** dels models: es poden recuperar amb `ollama pull`.
+- Mida esperada: 10-50 GB.
+
+**Estrategia global**: tots els volums son nomenats i es listen amb `docker volume ls`. Un script de backup pot fer un tar.gz de cada un i pujar-lo al núvol. La configuracio de cada servei (compose) esta a Git.
+
+---
+
+## Pregunta 15 (oberta): Bind mounts vs volums nomenats en seguretat
+
+**Resposta model**:
+
+Els bind mounts exposen rutes de l'amfitrio directament al contenidor. Si un atacant compromet el proces dins el contenidor, pot accedir a tots els fitxers de la ruta montada (i sovint mes, si te permisos elevats). Aixo es un risc de seguretat significatiu.
+
+**Risques dels bind mounts**:
+- Un exploit a Nextcloud pot accedir a `/home/pi/photos/` i totes les subcarpetes.
+- Si el bind mount es al directori `/home/pi` (per compartir config), pot accedir a les teves claus SSH, configuracio, etc.
+- Els permisos de fitxers (UID/GID) son visibles i manipulables.
+
+**Avantatges dels volums nomenats**:
+- Aillament: nomes veu el volum, no pas altres carpetes de l'amfitrio.
+- Permisos controlats per Docker: el daemon gestiona els UID.
+- Un atacant nomes pot accedir al volum especific, no a tot `/home/pi`.
+
+**Excepcio**: els bind mounts en **read-only** son relativament segurs. Pots muntar `/home/pi/photos:/photos:ro` i el contenidor nomes pot llegir, no escriure ni esborrar. Es perfecte per a casos com la lectura d'imatges per a un visor.
+
+**Recomanacio al BernatLab**:
+- Volums nomenats per defecte per a totes les dades dinamiques.
+- Bind mounts nomes quan calgui editar des de l'amfitrio o quan calgui read-only.
+- Mai bind mounts a directoris pares (`/home/pi`, `/`).
+- Usar `:ro` sempre que el cas d'us ho permeti.
+
+Aixi, encara que un servei sigui compromes, l'impacte queda limitat al seu volum.
+
+---
+
 ## Que fer si has fallat moltes preguntes
 
 - **5-8 encerts**: Rellegir el resum i fer l'exercici practic.

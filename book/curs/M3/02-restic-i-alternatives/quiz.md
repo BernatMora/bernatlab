@@ -1,6 +1,6 @@
-# Qüestionari — Capitol 2: Restic i alternatives modernes de backup
+# Qüestionari - Capitol 2: Restic i alternatives modernes de backup
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min
 
 ## Pregunta 1
 Quina eina de backup fa servir el BernatLab per defecte?
@@ -35,7 +35,7 @@ Quantes copies de seguretat recomana la regla 3-2-1?
 - [ ] 5
 
 ## Pregunta 5
-Quin es l'avantatge principal de la desduplicacio?
+Quin es lavantatge principal de la desduplicacio?
 
 - [ ] Comprimeix els fitxers amb gzip
 - [x] Estalvia espai nomes copiant les parts dels fitxers que canvien
@@ -78,7 +78,52 @@ Pistes per respondre:
 Imagina que tens 50 GB de dades de l'hort i vols fer backup al núvol. Compara fer-ho amb `rsync` nomes vs amb `restic` + Backblaze B2. Quin escolliries i per que?
 
 Pistes per respondre:
-- Cost d'emmagatzematge al núvol.
+- Cost demmagatzematge al núvol.
 - Amplada de banda i temps de pujada.
 - Recuperacio davant un desastre (incendi, robatori).
-- Recuperacio d'un fitxer esborrat per error fa 2 setmanes.
+- Recuperacio dun fitxer esborrat per error fa 2 setmanes.
+
+## Pregunta 11 (oberta)
+Per que creus que restic ha introduit la desduplicacio i el xifratge com a funcionalitats per defecte, en lloc de ser opcionals? Quin impacte te aixo en la teva estrategia de backup al BernatLab?
+
+Pistes per respondre:
+- La desduplicacio nomes funciona si esta sempre activada (cross-snapshot).
+- Xifratge per defecte = segur per error.
+- Trade-off: rendiment vs funcionalitat.
+- Al BernatLab, quantes vegades has oblidat activar el xifratge manualment?
+
+## Pregunta 12 (oberta)
+Quina relacio hi ha entre la frequencia de backups i el temps de pujada al núvol? Com afecta al BernatLab (100.115.134.76) tenir una conexio lenta vs rapida? Calcula exemples amb nombres reals.
+
+Pistes per respondre:
+- 1 GB de dades noves al dia.
+- Pujada a 10 Mbps = 15 min. A 100 Mbps = 1.5 min.
+- 10 GB nous al dia: 2.5 h a 10 Mbps.
+- Com afecta si el backup nomes pot correr de nit?
+
+## Pregunta 13 (oberta)
+Imagina que el teu company et diu: "per que complicar-te amb restic si amb un `tar.gz` i un `cron` ja en tens prou?". Argumenta per que aixo es insuficient al BernatLab, especialment per a dades de sensors que creixen cada dia.
+
+Pistes per respondre:
+- tar.gz ocupa tot l'espai cada vegada.
+- Sense versionat, no pots recuperar versions antigues.
+- Sense xifratge, les dades viatgen desprotegides.
+- Sense desduplicacio, els backups al núvol son cars.
+
+## Pregunta 14 (oberta)
+Aplica el concepte de restic al cas concret del BernatLab amb 4 fonts de dades: base de dades SQLite de l'hort (5 MB), coleccio de fotos dels bancals (2 GB), configuracio del sistema (50 MB), logs de l'aplicacio (200 MB que roten). Dissenya una politica de retencio amb `restic forget` especificant quantes copies diaries, setmanals i mensuals conservaries per a cada cas.
+
+Pistes per respondre:
+- Les dades de sensors: alta freq, canvis petits cada vegada.
+- Les fotos: canvis esporadics, volem mes retencio.
+- La configuracio: pocs canvis, retencio llarga.
+- Els logs: alta freq, retencio curta.
+
+## Pregunta 15 (oberta)
+Quines consequencies te per a la seguretat de les dades la politica de retencio de restic? Si nomes conserves 7 dies de copies, que passa si no t'adones d'un problema fins passats 10 dies? Argumenta amb exemples del BernatLab.
+
+Pistes per respondre:
+- Bug que corromp dades i no es detecta durant dies.
+- Atacant que entra i es queda silent.
+- Error de l'operador que no es veu fins mes tard.
+- Trade-off: espai al núvol vs capacitat de recuperacio.

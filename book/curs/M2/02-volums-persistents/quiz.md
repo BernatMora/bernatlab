@@ -1,6 +1,6 @@
 # Qüestionari - Capitol 2: Volums persistents
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min
 
 ## Pregunta 1
 Que passa amb les dades d'un contenidor quan fas `docker rm`?
@@ -81,3 +81,46 @@ Pistes per respondre:
 - Les fotos originals: bind mount o volum nomenat? Per que?
 - La base de dades: volum nomenat? Per que?
 - Pensa en com faries el backup de cada un.
+
+## Pregunta 11 (oberta)
+Per que creus que Docker va triar dissenyar els volums com a capa d'abstraccio a sobre del sistema de fitxers de l'amfitrio en lloc de deixar l'usuari triar directament la carpeta? Quins problemes evita?
+
+Pistes per respondre:
+- Permisos entre UID del contenidor i de l'amfitrio.
+- Path que canvia entre sistemes operatius (Windows, Mac, Linux).
+- Eines de backup consistents.
+- Portabilitat del docker-compose entre maquines.
+
+## Pregunta 12 (oberta)
+Quina relacio hi ha entre l'eleccio de volum i l'estrategia de backup? Si nomes tens una hora per configurar el BernatLab (100.115.134.76), quina estrategia de volums triaries per facilitar-te la vida mes endavant?
+
+Pistes per respondre:
+- Volums nomenats vs bind mounts: com es fa cadascun de backup?
+- Que passa si canvies la ruta del bind mount? El contenidor es trenca?
+- Com ho faries perque un `rsync` extern pugui copiar tots els volums facilment?
+
+## Pregunta 13 (oberta)
+Imagina que el teu company de feina et diu: "jo guardo les dades del contenidor dins del propi contenidor amb `docker cp`". Argumenta per que aixo es una mala idea al BernatLab i proposa una alternativa mes robusta.
+
+Pistes per respondre:
+- Que passa quan el contenidor es corromp o no arranca?
+- Que passa quan vols actualitzar la imatge?
+- On guardes les dades perque sobrevisquin a un `docker rm` accidental?
+
+## Pregunta 14 (oberta)
+Aplica el concepte de volum persistent al cas concret del BernatLab amb 4 serveis: Nextcloud (fitxers dels usuaris), PostgreSQL (base de dades), InfluxDB (metriques de sensors) i Ollama (models LLM). Per a cada un, tria el tipus de volum adequat i justifica. Pensa tambe en la mida esperada i la politica de backup.
+
+Pistes per respondre:
+- Nextcloud: pocs GB pero molt importants (irreemplaçables).
+- PostgreSQL: pocs MB-GB pero ha de ser consistent.
+- InfluxDB: pot créixer molt amb el temps.
+- Ollama: alguns GB per model, pero es poden tornar a baixar.
+
+## Pregunta 15 (oberta)
+Quines consequencies te per a la seguretat fer servir bind mounts que apunten a directoris de l'amfitrio on hi ha altres coses? Per que els volums nomenats son una mica mes segurs? Pensa en el cas concret d'un atac que comprometi el contenidor.
+
+Pistes per respondre:
+- Amb bind mount, un procés malicios pot accedir a tota la carpeta montada.
+- Amb volum nomenat, nomes pot accedir al volum.
+- Que passa amb els permisos de fitxers (UID/GID)?
+- Es pot muntar un bind mount en mode lectura nomes?

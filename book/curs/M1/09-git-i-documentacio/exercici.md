@@ -1,13 +1,14 @@
 # Exercici pràctic — Capítol 9: Git i documentació
 
-> 45-60 min · Real al teu sistema
+> 60-75 min · Real al teu sistema
 
 ## Objectiu
-Posar tot `/home/bernat/homelab/` sota control de versions amb Git, crear la documentació bàsica (README, CHANGELOG, decisions), i practicar el flux de treball diari.
+
+Posar tot `/home/bernat/homelab/` sota control de versions amb Git, crear la documentació bàsica (README, CHANGELOG, decisions), practicar el flux de treball diari, i aprendre a fer branques.
 
 ## Requisits
 - Tots els capítols anteriors complets
-- 45-60 minuts
+- 60-75 minuts
 
 ## Pas 1: Inicialitza el repo (10 min)
 
@@ -50,6 +51,8 @@ Contingut:
 **/*.pem
 **/api_key
 **/token
+**/id_ed25519
+**/id_*.pub.bak
 
 # Logs
 *.log
@@ -64,6 +67,8 @@ node_modules/
 *.swp
 *~
 ```
+
+Important: NO posis `id_ed25519` (clau privada) al repo, ni tan sols al .gitignore — simplement no l'hi posis.
 
 ## Pas 3: Crea l'estructura de notes (10 min)
 
@@ -122,6 +127,8 @@ El meu homelab personal, allotjat en una Raspberry Pi 4 (4 GB) amb Debian 13.
 - Estructura inicial del BernatLab
 - Serveis: Portainer, Uptime Kuma, Homepage, Whoami
 - Documentacio basica
+- Configuracio SSH amb claus
+- Bot de Telegram per alertes
 ```
 
 **decisions.md**:
@@ -134,6 +141,23 @@ Debian 13 Lite. Estabilitat maxima, cicle de release llarg, -300 MB RAM vs Ubunt
 
 ## 2026-07-16 - Per que Tailscale i no WireGuard?
 Tailscale. MagicDNS, configuracio automatica, gratuit fins a 100 dispositius.
+
+## 2026-07-16 - Per que Docker Compose i no Swarm/K8s?
+Compose. Simplicitat, perfecte per a una sola maquina, mes rapid d'aprendre.
+```
+
+**incidencies.md**:
+
+```markdown
+# Incidencies
+
+Format: YYYY-MM-DD - Titol breu. Descripcio. Resolucio. Temps de caiguda.
+
+## 2026-07-16 - Portainer no responia
+Símptoma: HTTP 502 al navegador.
+Causa: contenidor parat per OOM (out of memory).
+Resolucio: `docker start portainer`, reducció d'altres serveis.
+Accio preventiva: considerar limitar RAM per contenidor.
 ```
 
 ## Pas 4: Primer commit (5 min)
@@ -173,31 +197,69 @@ chmod +x scripts/info-rpi.sh
 # 2. Prova'l
 ./scripts/info-rpi.sh
 
-# 3. Fes commit
+# 3. Mira què canviaria
+git status
+git diff scripts/info-rpi.sh
+
+# 4. Fes commit nomes d'aquest fitxer
 git add scripts/info-rpi.sh
 git commit -m "Afegeix script info-rpi.sh per veure estat del sistema"
 ```
 
-## Pas 6: Fes un canvi al docker-compose (opcional, 10 min)
+## Pas 6: Fes un canvi al docker-compose (10 min)
 
 Afegeix un comentari o una variable d'entorn, i commita'l:
 
 ```bash
 nano docker/docker-compose.yml
 # Afegeix un comentari o una variable buida
+# Exemple: "# Versio: 1.0.0 - 2026-07-16" a la primera linia
 
+# Mira el diff
 git diff
 git add docker/docker-compose.yml
 git commit -m "Documenta serveis al docker-compose amb comentaris"
 ```
 
-## Pas 7: Documenta
+## Pas 7: Aprèn a fer branques (15 min)
+
+Les branques permeten experimentar sense trencar res:
+
+```bash
+# Crea una branca nova
+git branch experiment-rpi-zero
+git checkout experiment-rpi-zero
+
+# Modifica alguna cosa
+nano scripts/info-rpi.sh
+# Afegeix una linia nova: echo "Kernel: $(uname -r)"
+
+git add scripts/info-rpi.sh
+git commit -m "Afegeix versio del kernel a info-rpi.sh"
+
+# Mira les dues branques
+git log --oneline --all
+
+# Torna a la principal
+git checkout main
+# El fitxer info-rpi.sh NO tindra la modificacio
+
+# Fusiona la branca experimental
+git merge experiment-rpi-zero
+# Ara la principal tambe te la modificacio
+
+# Esborra la branca (ja no cal)
+git branch -d experiment-rpi-zero
+```
+
+## Pas 8: Documenta
 
 Crea `book/curs/M1/09-git-i-documentacio/diari.md` amb:
-
 - Sortida de `git log --oneline` (els teus commits).
 - Sortida de `git status` (ha de dir "nothing to commit").
+- Sortida de `git branch -a`.
 - Notes sobre què t'ha semblat el flux.
+- Quina és la propera cosa que vols versionar.
 
 ## Validació
 
@@ -205,8 +267,9 @@ Has acabat si:
 - [ ] Git inicialitzat a `~/homelab/`.
 - [ ] `.gitignore` cobreix secrets, logs, volums.
 - [ ] Tens `notes/README.md`, `CHANGELOG.md`, `decisions.md`, `incidencies.md`.
-- [ ] Has fet almenys 2 commits.
+- [ ] Has fet almenys 3 commits.
 - [ ] Has practicat el flux complet (status, add, diff, commit).
+- [ ] Has creat una branca, has fet canvis, i l'has fusionada.
 - [ ] `git log` mostra l'historial.
 - [ ] Has documentat a `diari.md`.
 
@@ -216,3 +279,60 @@ Has acabat si:
 - Investiga les branques: crea una branca "experiment", toca alguna cosa, fusiona o descarta.
 - Afegeix un alias de Git: `git config --global alias.st status`.
 - Investiga com migrar un repo a Gitea self-hosted.
+- Configura un missatge de commit estàndard amb plantilla.
+- Investiga `git stash` per desar canvis sense commit.
+- Practica `git blame` per veure qui (o quin commit) va tocar una línia.
+
+## Ves un pas més enllà
+
+**Repte avançat: simula una recuperació de desastre**.
+
+Imagina que la teva microSD s'ha mort i tens una RPi nova amb Debian 13 acabat d'instal·lar. Com recuperaries el teu BernatLab?
+
+Com que encara no has fet push a cap remot (i està bé!), has de pensar una mica més enllà:
+
+1. Fes una còpia de seguretat del repo a una altra màquina:
+   ```bash
+   # Des del teu portatil, amb Tailscale
+   scp -r bernat@hortosona:~/homelab/ ./bernatlab-backup-$(date +%Y%m%d)
+   ```
+
+2. Documenta al `notes/README.md` quin és el procediment de recuperació:
+   - Quin hardware cal (quins models concrets)?
+   - Quin sistema operatiu (quina imatge)?
+   - Quines ordres s'han d'executar un cop tenim el sistema base?
+   - Quines dades externes cal (tokens de Tailscale, etc.)?
+
+3. Crea un script `scripts/restore.sh` que automatitzi el màxim possible:
+   ```bash
+   #!/bin/bash
+   set -e
+
+   echo "=== Restauracio del BernatLab ==="
+
+   # Instal·la Docker
+   curl -fsSL https://get.docker.com -o get-docker.sh
+   sudo sh get-docker.sh
+   sudo usermod -aG docker $USER
+
+   # Instal·la Tailscale
+   curl -fsSL https://tailscale.com/install.sh | sh
+   sudo tailscale up
+
+   # Clona el repo (assumint que l'hem pujat a algun lloc)
+   # git clone https://github.com/bernatmora/bernatlab.git ~/homelab
+   # cd ~/homelab
+
+   # O be, descomprimeix el backup
+   # tar -xzvf bernatlab-backup.tar.gz -C ~/
+
+   # Aixeca els serveis
+   cd ~/homelab/docker
+   docker compose up -d
+
+   echo "Restauracio completada!"
+   ```
+
+4. Fes commit d'aquest script i de la nova secció del README.
+
+Ara tens un pla de recuperació documentat i automatitzat. Això és el que diferencia un homelab "juguina" d'un projecte seriós.

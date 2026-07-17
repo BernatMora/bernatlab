@@ -1,6 +1,6 @@
 # Qüestionari — Capítol 9: Git i documentació
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min
 
 ## Pregunta 1
 Què és Git?
@@ -30,7 +30,7 @@ Què és l'estat "staging" a Git?
 Quin fitxer serveix per excloure fitxers del repositori?
 
 - [ ] .gitconfig
-- [ ] .gitignore
+- [x] .gitignore
 - [ ] .exclude
 - [ ] .skip
 
@@ -66,15 +66,48 @@ Per a què serveix un fitxer CHANGELOG.md?
 - [ ] Per documentar l'API
 - [ ] Per guardar la configuració
 
-## Pregunta 9 (oberta)
+## Pregunta 9
+Quina diferència hi ha entre `git pull` i `git fetch`?
+
+- [ ] Són el mateix
+- [x] `fetch` descarrega canvis; `pull` descarrega i fusiona
+- [ ] `pull` és per a un commit; `fetch` per a una branca
+- [ ] `pull` és local; `fetch` és remot
+
+## Pregunta 10
+Què és una "branch" a Git?
+
+- [ ] Un commit especial
+- [x] Una línia de desenvolupament independent
+- [ ] Un tipus de fitxer
+- [ ] Una eina externa
+
+## Pregunta 11
+Què és un "merge conflict"?
+
+- [ ] Un error de xarxa
+- [x] Quan dos canvis a la mateixa línia no es poden fusionar automàticament
+- [ ] Un commit fallit
+- [ ] Un problema amb el .gitignore
+
+## Pregunta 12
+Quin avantatge té un README.md en un projecte tècnic?
+
+- [ ] Fer-lo més llarg
+- [x] Explicar ràpidament què és i com començar
+- [ ] Documentar l'API
+- [ ] Guardar secrets
+
+## Pregunta 13 (oberta)
 Explica amb les teves paraules: per què és important versionar l'homelab? Posa 3 motius pràctics.
 
 Pistes per respondre:
 - Què passa si la SD es trenca?
 - Què passa si toques algo i es trenca un servei?
 - Quin avantatge té un README per a tu mateix d'aquí 6 mesos?
+- Quin avantatge té un registre de decisions (ADR)?
 
-## Pregunta 10 (oberta)
+## Pregunta 14 (oberta)
 Descriu el flux per afegir un nou servei (per exemple, PiHole) i que el canvi quedi versionat correctament al repo del BernatLab. Quins passos faries?
 
 Pistes per respondre:
@@ -82,3 +115,13 @@ Pistes per respondre:
 - Actualitzar el services.yaml de Homepage.
 - Fer el commit.
 - Comprovar que ha entrat bé.
+- Què passa si canvies un servei existent (vs. afegir-ne un de nou)?
+
+## Pregunta 15 (oberta)
+Imagina que el 15 de març de 2027 vols reproduir l'estat exacte del teu BernatLab d'avui. Quina informació necessites tenir versionada i quina NO? Posa exemples concrets.
+
+Pistes per respondre:
+- La configuració (docker-compose.yml) ha d'estar al repo?
+- Les dades dels volums (bases de dades, fitxers pujats) han d'estar al repo?
+- Com ho faries per clonar la RPi en una màquina nova?
+- Quin paper juga un sistema de backup extern?

@@ -1,6 +1,6 @@
 # Qüestionari - Capitol 3: Xarxes Docker
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min
 
 ## Pregunta 1
 Quin driver de xarxa Docker es el que ve per defecte?
@@ -81,3 +81,47 @@ Pistes per respondre:
 - Quantes xarxes farien falta? Una sola no protegeix prou.
 - On posaries el frontend per a que sigui accessible?
 - Com asseguraries que la base de dades nomes es vegi desde el backend?
+
+## Pregunta 11 (oberta)
+Per que creus que Docker va triar crear una abstraccio de xarxa a sobre de les xarxes reals de Linux? Quins problemes et va estalviar respecte a configurar manualment `iptables`, `iptables-restore`, etc?
+
+Pistes per respondre:
+- Cada contenidor nomes veu una interficie "eth0" virtual.
+- Els noms dels contenidors es resolen com a DNS intern.
+- Les xarxes custom permeten aillar trafic per aplicacio.
+
+## Pregunta 12 (oberta)
+Quina relacio hi ha entre la topologia de xarxes i la superficie d'atac? Al BernatLab (100.115.134.76) amb 5 serveis, quantes xarxes crearies i quins serveis anirien junts? Dibuixa mentalment el graf de connexions.
+
+Pistes per respondre:
+- Xarxa publica: nomes el que toca internet.
+- Xarxa backend: la resta.
+- Que passa si un servei public es compromet? Pot accedir a la resta?
+- DNS intern vs exposar ports a l'amfitrio.
+
+## Pregunta 13 (oberta)
+Imagina que el teu company et pregunta: "per que no posem tots els serveis en `network host`? Aixi no cal mapejar ports i es mes rapid". Explica-li quan te sentit i quan no, amb exemples del BernatLab.
+
+Pistes per respondre:
+- Rendiment: el mode host evita el doble NAT, es mes rapid.
+- Ailllament: el mode host trenca l'ailllament, tot veu tot.
+- Cas d'us valid: eines de monitoritzacio que necessiten veure moltes interficies.
+- Cas invalid: serveis multi-tenant o amb dades sensibles.
+
+## Pregunta 14 (oberta)
+Aplica el concepte de xarxa al cas concret del BernatLab amb el sistema Hort Osona (Ollama, ChromaDB, Open WebUI). Explica quantes xarxes necessites, quins serveis van a quina xarxa, i quins ports (si n'hi ha) exposeixes a l'exterior. Per que es una bona practica?
+
+Pistes per respondre:
+- Open WebUI es la unica interficie que veu l'usuari.
+- Ollama ha de ser accessible per WebUI pero potser no directament per l'exterior.
+- ChromaDB nomes l'ha de veure Ollama.
+- Que passa si exposes ChromaDB a internet? Es un risc.
+
+## Pregunta 15 (oberta)
+Quines consequencies te per al rendiment i la seguretat exposar ports amb `-p 0.0.0.0:80:80` en lloc de `-p 127.0.0.1:80:80`? Al BernatLab, quina estrategia de binding fas servir i per que?
+
+Pistes per respondre:
+- 0.0.0.0 vol dir accessible des de qualsevol interficie de xarxa.
+- 127.0.0.1 nomes accessible des del propi amfitrio.
+- Si el BernatLab nomes l'uses via VPN, quina combinacio te sentit?
+- Si el BernatLab esta exposat a internet, quines capes de proteccio calen?

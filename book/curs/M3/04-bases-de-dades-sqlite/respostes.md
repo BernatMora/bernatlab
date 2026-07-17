@@ -126,6 +126,310 @@ Si despres de netejar segueix creixent (per exemple, tens 50 sensors i cada un e
 
 ---
 
+## Pregunta 11 (oberta): Per que SQLite es la BD mes usada del mon
+
+**Resposta model**:
+
+SQLite es la base de dades mes utilitzada del mon (inclús mes que MySQL o PostgreSQL) per varies raons que sovint es passen per alt:
+
+**1. Esta integrada a tot arreu**:
+
+Cada telefon Android, cada Mac, cada Windows 10/11, cada navegador Chrome/Firefox, cada instancia de Python te SQLite. Son milers de milions de copies en dispositius. Aixo supera amb diferencia qualsevol altre base de dades.
+
+**2. No cal configurar res**:
+
+No hi ha servidor, no hi ha dimonis, no hi ha ports oberts. Es un sol fitxer. Pots usar-la amb una sola línea de codi en qualsevol llenguatge.
+
+**3. Cumple el 80/20**:
+
+Per al 80% dels casos d'us, SQLite es mes que suficient. No cal la potencia d'Oracle o PostgreSQL. La gent ho descobreix i l'adopta.
+
+**4. Tests d'unitat**:
+
+Es l'eina estandard per fer tests d'aplicacions. No cal aixecar un PostgreSQL nomes per testejar.
+
+**5. Aplicacions embarques**:
+
+Sistemes embeguts (IoT, dispositius medic, avions) usen SQLite per la seva petita mida i zero configuracio. Airbus, per exemple, la usa en alguns sistemes critics.
+
+**6. Edge computing**:
+
+Quan tens dades que es generen a ledge (sensors IoT, aplicacions mòbils), pujar-les a un núvol es costós i lent. SQLite permet processar-les localment.
+
+**7. Maduresa i estabilitat**:
+
+El codi de SQLite te mes de 20 anys de proves. Es una de les biblioteques de programari mes audidades del mon. Pocs bugs, alta fiabilitat.
+
+**Lliço per al BernatLab**:
+
+La lliço es clara: **no sempre necessites la tecnologia mes potent**. Al BernatLab:
+- Per a l'hort IoT amb 5 sensors: SQLite es perfecte.
+- Per a Nextcloud o Gitea: ja cal PostgreSQL per volum d'usuaris.
+- Per a metriques de Grafana: InfluxDB (no SQLite).
+
+La regla es: comença amb el mes simple (SQLite) i migra nomes quan cal. La migracio es cara (temps, risc), pero el canvi a mes potent es gratis.
+
+**Analogia**: no compris un Ferrari per anar a comprar pa. Un bon bicicleta et porta igual de lluny amb mes salut i menys cost.
+
+---
+
+## Pregunta 12 (oberta): WAL i rendiment en escriptures
+
+**Resposta model**:
+
+El mode **WAL (Write-Ahead Log)** canvia fonamentalment com SQLite gestiona les escriptures i lectures concurrents. Aixo es particularment important al BernatLab amb sensors que escriuen constantment.
+
+**Com funciona SQLite sense WAL (rollback journal)**:
+
+1. Un proces vol escriure. Agafa un lock exclusiu.
+2. Cap altre pot llegir ni escriure fins que sha fet el commit.
+3. Si una lectura triga 5 segons, les escriptures esperen.
+4. Si una escriptura triga 10 ms, les lectures esperen.
+
+**Amb WAL**:
+
+1. Un proces vol escriure. Afegeix al log WAL.
+2. Les lectures poden continuar usant la versio antiga.
+3. Periòdicament, WAL es "checkpointed" al fitxer principal.
+4. Lectures i escriptures no es bloquegen entre si (en la majoria de casos).
+
+**Impacte al BernatLab amb 10 sensors escrivint cada segon**:
+
+- **Sense WAL**: 10 escriptures/segon serialitzades. Si cada escriptura triga 5 ms, es pot gestionar, pero les lectures pateixen.
+- **Amb WAL**: 10 escriptures/segon en paral·lel amb lectures. Millor experiencia.
+
+**Cas real al BernatLab**:
+
+Tens una aplicacio web (Nextcloud o una API) que llegeix les dades dels sensors de SQLite per mostrar grafiques. Mentrestant, els sensors segueixen escrivint.
+
+- Sense WAL: quan un sensor escriu, la web ha desperar. Grafiques amb delay.
+- Amb WAL: la web llegeix la versio consistent mes recent sense delays.
+
+**Activar WAL**:
+
+```sql
+PRAGMA journal_mode=WAL;
+PRAGMA synchronous=NORMAL;  -- opcional, mes rapid pero menys segur
+```
+
+**Important**: WAL te un cost. Crea un fitxer `database.db-wal` a mes del principal. Cal fer backup tambe daquest fitxer, no nomes del principal.
+
+**Limitacions de WAL**:
+
+- WAL no funciona be en xarxes NFS (no es recomana).
+- Si el sistema es penja entre un write a WAL i el checkpoint, el proper read fara automatic checkpoint. Pero cal `PRAGMA wal_checkpoint(TRUNCATE)` periòdicament.
+- En bases de dades molt grans (>1 GB), WAL pot ser mes lent que el mode tradicional per certes operacions.
+
+**Recomanacio al BernatLab**: activa WAL per defecte a totes les BD SQLite. El benefici en rendiment es clar i els inconvenients son minims per a casos tipics.
+
+---
+
+## Pregunta 13 (oberta): SQLite no es una BD de joguina
+
+**Resposta model**:
+
+El mite que "SQLite es una BD de joguina" es fals i pot fer que la gent esculli solucions mes complexes innecesariament. Casos reals on SQLite es la eleccio correcta:
+
+**1. Aplicacions desktori milionaries**:
+
+- **Firefox**: usa SQLite per guardar historial, marcadors, cookies, cache. Milions dusuaris.
+- **Chrome**: igual que Firefox. Cada perfil es una BD SQLite.
+- **Apple Photos**: la galeria de fotos de macOS i iOS usa SQLite per metadades.
+- **Android**: cada app pot tenir la seva BD SQLite.
+
+Son aplicacions amb milions dusuaris, altament optimitzades, que confien en SQLite.
+
+**2. Embedded systems**:
+
+- **Airbus A350**: usa SQLite en alguns sistemes de cabina.
+- **Boeing 787**: igual.
+- **Tesla**: usa SQLite en el sistema dinfotainment.
+- **Sistemes militars**: per la seva petita mida i zero configuracio.
+
+**3. Web apps petites i mitjanes**:
+
+Moltes web apps amb milers dusuaris diaries usen SQLite amb exit:
+- **Django** (framework Python): per defecte usa SQLite en desenvolupament, pero tambe en produccio per a molts casos.
+- **WordPress** (parcialment): pot usar SQLite amb un plugin.
+- **Moltes SaaS petites**: comencen amb SQLite i creixen a PostgreSQL nomes quan cal.
+
+**4. Casos al BernatLab**:
+
+- **Cataleg de plantes** (hortosona): 500 plantes, 20 atributs = perfecte per SQLite.
+- **Blog personal**: 50 articles, 100 visites diaries = perfecte per SQLite.
+- **App de notes local**: perfecte per SQLite.
+- **Lector RSS**: perfecte per SQLite.
+- **Calculadora de cultius**: perfecte per SQLite.
+
+**Arguments tecnics a favor de SQLite**:
+
+- **Atomicitat**: les transaccions son ACID. Mes robust que moltes BD.
+- **Concurrencia**: amb WAL, mes rapid que MySQL en molts casos.
+- **Fiabilitat**: zero perdua de dades en 20+ anys de proves.
+- **Simplicitat**: un sol fitxer, zero administracio.
+
+**Limitacions que SI cal reconeixer**:
+
+- Concurrencia massiva (>100 escriptures/segon): limita.
+- Replicacio nativa: no inclou.
+- Consultes massivament paral·leles: no es el seu fort.
+- Mes de 1 TB de dades: no es practic.
+
+**Conclusio**: al BernatLab, per al 80% dels casos, SQLite es mes que suficient. No la descartis per prejudicis.
+
+---
+
+## Pregunta 14 (oberta): Esquema SQLite per a l'hort IoT
+
+**Resposta model**:
+
+Per a 5 sensors que escriuen lectures cada minut al BernatLab, un esquema SQLite optimitzat seria:
+
+**Opcio A: Una sola taula per a tots els sensors**:
+
+```sql
+CREATE TABLE lectures (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sensor_id INTEGER NOT NULL,
+    timestamp TEXT NOT NULL,  -- ISO 8601 UTC
+    valor REAL NOT NULL,
+    unitat TEXT,  -- 'C', '%', 'lux', etc.
+    FOREIGN KEY (sensor_id) REFERENCES sensors(id)
+);
+
+CREATE INDEX idx_lectures_sensor_ts ON lectures(sensor_id, timestamp);
+CREATE INDEX idx_lectures_ts ON lectures(timestamp);
+
+CREATE TABLE sensors (
+    id INTEGER PRIMARY KEY,
+    nom TEXT NOT NULL,
+    tipus TEXT NOT NULL,  -- 'temperatura', 'humitat', 'llum'
+    ubicacio TEXT,  -- 'bancal-1', 'bancal-2', etc.
+    actiu BOOLEAN DEFAULT 1
+);
+```
+
+**Avantatges**: una sola consulta agafa tot. Facil d'agregar nous sensors.
+
+**Opcio B: Una taula per tipus de sensor**:
+
+```sql
+CREATE TABLE temperatura (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sensor_id INTEGER NOT NULL,
+    timestamp TEXT NOT NULL,
+    valor REAL NOT NULL,  -- graus Celsius
+    FOREIGN KEY (sensor_id) REFERENCES sensors(id)
+);
+
+CREATE TABLE humitat (...);
+CREATE TABLE llum (...);
+```
+
+**Avantatges**: cada taula es petita, consultes optimitzades per tipus.
+
+**Desventatges**: cal una consulta per tipus. Menys flexible.
+
+**Indexacio**:
+
+Per a les consultes tipiques "valor del sensor X en les ultimes 24 h":
+- `CREATE INDEX idx_temp_sensor_ts ON temperatura(sensor_id, timestamp);`
+- Permet cerques per rang de temps dun sensor en O(log n).
+
+**Politica de retencio**:
+
+```sql
+-- Esborrar lectures mes antigues de 1 any
+DELETE FROM lectures WHERE timestamp < datetime('now', '-1 year');
+```
+
+O usar **tables particionades per temps** (mes complicat pero mes rapid).
+
+**Volum esperat**:
+
+5 sensors x 1 lectura/min x 60 min x 24 h x 365 dies = 2.628.000 lectures/any. A 100 bytes/lectura = 263 MB/any. En 5 anys: 1.3 GB. Encara acceptable per SQLite.
+
+**Backup**:
+
+```bash
+# Backup consistent amb sqlite3
+sqlite3 /var/lib/bernatlab/hort.db ".backup /home/pi/backups/hort-$(date +%F).db"
+
+# O exportar a SQL
+sqlite3 /var/lib/bernatlab/hort.db .dump > /home/pi/backups/hort-$(date +%F).sql
+```
+
+**Optimitzacions**:
+
+- `PRAGMA journal_mode=WAL;` per millorar concurrencia.
+- `PRAGMA synchronous=NORMAL;` per millorar rendiment (menys segur pero acceptable).
+- `VACUUM;` periodicament per netejar espai.
+- Considerar movir a InfluxDB si es passa de 5 sensors o el volum creix.
+
+---
+
+## Pregunta 15 (oberta): Consequencies de SQLite nomes una escriptura a la vegada
+
+**Resposta model**:
+
+SQLite te una limitacio fundamental: nomes permet una escriptura a la vegada (sense WAL). Al BernatLab, cal entendre quan aixo es un problema i quan no.
+
+**Com funciona el lock**:
+
+Quan un proces vol fer un INSERT o UPDATE:
+1. Agafa un lock exclusiu sobre tota la BD.
+2. Fins que sha fet el commit, cap altre pot escriure.
+3. Les lectures poden continuar (sobretot amb WAL).
+4. Si dos processos intenten escriure alhora, un sha desperar.
+
+**Impacte amb pocs sensors (cas BernatLab)**:
+
+Amb 5 sensors escribint cada minut:
+- Frequencia: 5 INSERT cada 60 segons = 1 cada 12 segons.
+- Durada de cada INSERT: <10 ms.
+- Probabilitat de colissio: molt baixa.
+- L'usuari no nota res.
+
+**Impacte amb molts sensors**:
+
+Amb 100 sensors escribint cada segon:
+- Frequencia: 100 INSERT per segon.
+- Durada de cada INSERT: 5-10 ms.
+- Temps total: 500-1000 ms per segon = 50-100% del temps.
+- Colissions constants. Rendiment baixa molt.
+
+**Solucions**:
+
+**1. WAL**: permet paral·lelisme parcial. No elimina la limitacio, pero la millora.
+
+**2. Aplicar batching**: en lloc de fer 1 INSERT per lectura, fer 1 INSERT per minut amb 60 lectures. Molt mes efficient.
+
+**3. Canviar a una BD amb mes concurrencia**:
+- **PostgreSQL**: suporta milers d'escriptures concurrents.
+- **InfluxDB**: dissenyat especificament per series temporals.
+- **TimescaleDB**: extensio de PostgreSQL per series temporals.
+
+**4. Buffer intermedi**: usar un sistema de cues (MQTT, Redis) que reculli les dades i un sol proces les escrigui a SQLite en batches.
+
+**Cas concret al BernatLab**:
+
+Tens un hort amb 10 sensors que escriuen cada 30 segons:
+- FreqUencia: 20 INSERT per minut.
+- Triguen 0.5 ms cadascun: 10 ms total per minut = 0.017% del temps.
+- Nomes hi hauria problemes amb 1000+ sensors.
+- Per tant, SQLite es perfecte.
+
+**Si creixes**:
+
+Si passes a 100+ sensors, cada 5 segons:
+- 1200 INSERT per minut.
+- Probable saturacio.
+- Cal canviar a InfluxDB o similar.
+
+**Conclusio**: la limitacio de SQLite es important pero nomes arriba a ser un problema a escales grans. Al BernatLab amb pocs sensors, no es un problema. Pero cal saber que existeix per planificar el creixement.
+
+---
+
 ## Que fer si has fallat moltes preguntes
 
 - **5-8 encerts**: Rellegir el resum.

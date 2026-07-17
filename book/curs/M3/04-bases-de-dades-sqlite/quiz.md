@@ -1,6 +1,6 @@
-# Qüestionari — Capitol 4: Bases de dades SQLite
+# Qüestionari - Capitol 4: Bases de dades SQLite
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min
 
 ## Pregunta 1
 Quin tipus de base de dades es SQLite?
@@ -35,9 +35,9 @@ Quina ordre faries servir per fer un backup consistent d'una BD SQLite?
 - [ ] No cal fer backup, ja es consistent sempre
 
 ## Pregunta 5
-Quin es l'avantatge principal de SQLite respecte a PostgreSQL?
+Quin es lavantatge principal de SQLite respecte a PostgreSQL?
 
-- [ ] Mes rapid per a milions d'escriptures
+- [ ] Mes rapid per a milions descriptures
 - [x] No necessita servidor, es un sol fitxer
 - [ ] Millor concurrencia
 - [ ] Millor seguretat
@@ -67,7 +67,7 @@ Quin cas NO es adequat per a SQLite?
 - [ ] Una app de notes local
 
 ## Pregunta 9 (oberta)
-Explica amb les teves paraules: quan triaries SQLite i quan triaries PostgreSQL per a un servei del BernatLab. Posa exemples concrets.
+Explica amb les teves paraules: quan triaries SQLite i quan triaries PostgreSQL per a un servei del BernatLab? Posa exemples concrets.
 
 Pistes per respondre:
 - Quin volum de dades tindras?
@@ -83,3 +83,49 @@ Pistes per respondre:
 - Es pot netejar la BD vella?
 - Quines avantatges tindria migrar a PostgreSQL?
 - Quin cost te la migracio (temps, risc)?
+
+## Pregunta 11 (oberta)
+Per que creus que SQLite ha esdevingut la base de dades mes usada al mon (mes que MySQL o PostgreSQL)? Quina lliço podem extreure per a les nostres decisions al BernatLab?
+
+Pistes per respondre:
+- Esta integrada en moltes aplicacions (telefons, navegadors, etc).
+- La simplicitat guanya a la potencia en la majoria de casos.
+- Menys parts móbils = menys fallades.
+- Trade-off: simplicitat vs potència.
+
+## Pregunta 12 (oberta)
+Quina relacio hi ha entre el mode WAL (Write-Ahead Log) i el rendiment de SQLite en escriptures concurrents? Com afecta al BernatLab si tens 10 sensors escrivint cada segon? Argumenta amb exemples.
+
+Pistes per respondre:
+- WAL permet lectures i escriptures simultanies.
+- Sense WAL, les lectures bloquegen les escriptures.
+- Al BernatLab amb sensors continus, WAL es recomanable.
+- Trade-off: un fitxer adicional vs rendiment.
+
+## Pregunta 13 (oberta)
+Imagina que el teu company et diu: "SQLite es una base de dades de joguina, no serveix per res seriós". Argumenta per que aixo es fals al BernatLab, donant exemples de projectes grans que usen SQLite en produccio.
+
+Pistes per respondre:
+- Moltes aplicacions d'escriptori i mobil usen SQLite.
+- Fins i tot Airbus l'usa en alguns sistemes.
+- Cada vegada mes llocs web petits usen SQLite amb molts de visites.
+- Al BernatLab, per a molts casos es mes que suficient.
+
+## Pregunta 14 (oberta)
+Aplica el concepte de SQLite al cas concret del BernatLab amb l'hort IoT: tens 5 sensors que escriuen lectures cada minut a una base de dades SQLite local. Dissenya l'esquema de taules, les indexacions, i la estrategia de backup. Considera el creixement esperat a 5 anys.
+
+Pistes per respondre:
+- Una taula per sensor o una taula amb sensor_id?
+- Quins indexos calen per consultes freqUents?
+- On guardes el fitxer .db?
+- Quan faries backup i com?
+
+## Pregunta 15 (oberta)
+Quines consequencies te per al rendiment del sistema el fet que SQLite nomes permet una escriptura a la vegada (fora de WAL)? Com afecta a l'aplicacio si tens pics de 100 escriptures per segon? Argumenta amb exemples del BernatLab.
+
+Pistes per respondre:
+- Sense WAL, les escriptures es serialitzen.
+- WAL permet paral·lelisme parcial.
+- Al BernatLab amb pocs sensors, no es problema.
+- Si cresquis a 1000 sensors, caldria canviar.
+- Trade-off: simplicitat de SQLite vs necessitat de paral·lelisme.

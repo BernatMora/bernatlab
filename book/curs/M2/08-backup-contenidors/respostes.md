@@ -187,6 +187,223 @@ Aixo es la **regla 3-2-1 complerta**: 3 copies (original, SSD, núvol), 2 suport
 
 ---
 
+## Pregunta 11 (oberta): Per que la gent no fa backups
+
+**Resposta model**:
+
+La gent no fa backups fins que perd dades per una combinacio de factors psicologics i economics:
+
+**Factors psicologics**:
+
+1. **Optimisme irracional**: "a mi no em pasara". Es la mateixa logica que porta a la gent a no fer testament o a no portar cinturo. La vulnerabilitat es invisible fins que es real.
+
+2. **Cost tangible vs benefici intangible**: el backup costa temps, espai, configuracio. El benefici nomes es materialitza en cas de perdua, que es un esdeveniment futur i improbable. El cervell prioriza el present.
+
+3. **Pensament magic**: "tinc una RAID", "tinc el núvol", "el meu proveidor ja fa còpies". Totes son excuses per evitar la tasca. Cap es equivalent a un backup real.
+
+4. **Por d'admetre la perdua**: si no tinc backup, no he de pensar en que passaria si ho perdés. Es mes facil viure en la negacio.
+
+5. **Procrastinacio tecnologica**: "quan tingui temps ho fare". El temps no arriba mai. I quan arriba un incident, ja es massa tard.
+
+**Cas emocional al BernatLab**:
+
+Imagina que tens un Nextcloud amb 5 anys de fotos familiars: vacances, moments amb fills, documents importants. Un dia la microSD falla. Les fotos son **irreemplaçables**: no hi ha còpia al núvol de Google, no hi ha album de la iaia. Tot es al teu Nextcloud que ja no arranca.
+
+El sentiment es devastador. No es una perdua economica, es una perdua personal. I passa mes sovint del que sembla: les microSD tenen una vida util limitada (~5 anys d'escriptura), els discs SSD fallen, els lladres entren a cases, els ramsomware son reals.
+
+**Solucio realista**:
+
+1. **Automatitza el backup**: un cop configurat, el backup es transparent. No cal pensar-hi mes.
+2. **Fes-lo un cop i oblida't**: posa el cron a les 3 de la matinada. El backup es nomes responsabilitat del sistema.
+3. **Verifica un cop al trimestre**: dedica 1 hora cada 3 mesos a restaurar un fitxer random. Això et recorda que el backup funciona.
+4. **Documenta el procés de restauracio**: quan tinguis que restaurar (i tindras que restaurar), no vols haver d'aprendre com fer-ho enmig del panic.
+
+El millor backup es el que ja esta configurat abans que el necessitis.
+
+---
+
+## Pregunta 12 (oberta): Mida del backup i RPO
+
+**Resposta model**:
+
+El **RPO (Recovery Point Objective)** es la quantitat maxima de dades que estaries disposat a perdre en cas d'incident. Es un parametre que defineixes tu segons el valor de les dades i el cost del backup.
+
+**Exemples de RPO al BernatLab**:
+
+| Servei | RPO acceptable | Freq backup | Motiu |
+|---|---|---|---|
+| Nextcloud (documents) | 1 dia | Diari | Documents de feina es poden refer pero costa |
+| Nextcloud (fotos) | 1 setmana | Setmanal | Fotos son irreemplaçables, pero el volum es gran |
+| Base de dades (Postgres) | 1 hora | Horari | Canvis petits pero constants |
+| Logs d'aplicacio | 1 dia | Diari | Util per debug pero no critic |
+| Configuracio (compose) | N/A | Git | Ja esta versionat |
+| Models LLM (Ollama) | N/A | Mai | Es poden tornar a baixar |
+
+**Calcul del cost d'un RPO d'1 hora**:
+
+Si tens 50 GB de dades que canvien activament:
+- Backup horari: 50 GB/hora x 24 = 1.2 TB/dia (si es backup complet).
+- Backup incremental: nomes els canvis. 1-2 GB/hora x 24 = 24-50 GB/dia.
+- Restic deduplica: encara menys.
+
+**Trade-off RPO vs cost**:
+
+- RPO = 1 setmana: backup setmanal. Economic. Acceptable per a fotos.
+- RPO = 1 dia: backup diari. Cost moderat. Acceptable per a documents.
+- RPO = 1 hora: backup continu (o molt frequent). Cost alt. Per a dades critiques.
+- RPO = 0 (zero perdua): replicacio sincrona. Molt car. Nomes per a produccio profesional.
+
+**Recomanacio al BernatLab**:
+
+- Documents personals: backup diari amb retencio de 30 dies.
+- Bases de dades: backup horari amb retencio de 7 dies + 1 backup diari amb retencio de 30 dies.
+- Fotos: backup setmanal (son grans i no canvien sovint).
+
+**Realitat practica**: la majoria d'incidents al BernatLab son humans (rm -rf accidental, contenidor borrat, etc.) i no pas fallades de hardware. Un backup diari minimitza el risc en aquests casos.
+
+---
+
+## Pregunta 13 (oberta): RAID no es backup
+
+**Resposta model**:
+
+El company que diu "tinc RAID al servidor, no cal backup" te una confusio comuna pero perillosa. RAID i backup son dues coses completament diferents que resolen problemes diferents:
+
+**Que protegeix RAID**:
+
+- Fallada d'un disc individual. Si tens RAID 1 (mirror) o RAID 5 (parity), el sistema continua funcionant quan un disc falla. Potes substituir el disc i reconstruir.
+
+**Que NO protegeix RAID**:
+
+1. **Borrat accidental**: si un `rm -rf` esborre un directori, el RAID replica la perdua. Tots els discs del mirror tenen la mateixa informacio borrada.
+
+2. **Ransomware**: si un atacant xifra els teus fitxers, el RAID tambe es xifra. El ransomware actua sobre les dades, no sobre el hardware.
+
+3. **Atac amb rootkit/backdoor**: si un atacant instal·la un programa malicios que es replica, tambe es replica al mirror.
+
+4. **Desastre fisic**: incendi, inundacio, robatori. Si es perden tots els discs junts (per exemple, al servidor), el RAID no salva res.
+
+5. **Corrupcio silenciosa de dades**: alguns discs poden corrompre dades sense avisar. RAID nomes detecta quan un disc falla del tot, no quan alguns bits canvien.
+
+6. **Errors d'usuari en lots**: si un script aplica canvis no desitjats a totes les dades (per exemple, un update de Nextcloud que falla), el RAID tambe es veu afectat.
+
+**Combinacio correcta**:
+
+Per a un BernatLab amb dades importants, la combinacio ideal es:
+- **RAID 1** (mirror) o **RAID-Z1** (ZFS): per tolerancia a fallada de disc.
+- **Backup separat**: per protegir contra borrat, ransomware, desastre.
+- **Backup al núvol**: per protegir contra desastre fisic.
+
+**Analogia**: RAID es com tenir dos cotxes iguals (un de recanvi). Backup es com tenir les fotografies dels cotxes al núvol. Si els dos cotxes son robats, les fotografies son al núvol. Si nomes tens un cotxe (RAID = 1, no mirror), no tens res.
+
+**Al BernatLab**: molta gent fa servir la RPi amb una microSD i un SSD USB. El SSD te una copia? Si no, considera posar-ne dos en RAID 1 (amb `mdadm` o ZFS). I encara mes important: backup al núvol.
+
+---
+
+## Pregunta 14 (oberta): Politica de backup per a Hort Osona
+
+**Resposta model**:
+
+Per a l'stack Hort Osona amb Ollama, ChromaDB, Open WebUI i InfluxDB, l'analisi de criticitat de cada component:
+
+**Ollama (models LLM)**:
+- Criticitat: BAIXA. Els models es poden tornar a baixar amb `ollama pull`.
+- Backup: NO cal.
+- Justificacio: cada model es 4-30 GB. Fer backup d'ells al núvol es costos i innecesari.
+- Excepcio: si descarregues models custom o els has entrenat tu, llavors si cal.
+
+**ChromaDB (vector store)**:
+- Criticitat: MITJANA-ALTA. Conte els embeddings dels documents Hort Osona. Es pot regenerar (reindexar) pero triga 30 min.
+- Backup: setmanal, amb retencio de 4 setmanes.
+- Eina: `docker exec chromadb tar czf /backup/chromadb-$(date +%F).tar.gz /chroma`. O un script dedicat.
+- Validacio: que es pugui muntar i llegir.
+
+**Open WebUI (configuracio i historial)**:
+- Criticitat: MITJANA. Conte configuracio personalitzada, historials de conversa, usuaris.
+- Backup: diari, nomes la base de dades SQLite.
+- Eina: copiar `/app/backend/data/webui.db` (es nomes uns MB).
+
+**InfluxDB (dades de sensors)**:
+- Criticitat: ALTA si els sensors son de produccio. MITJANA si son experimentals.
+- Backup: diari amb retencio de 30 dies, exportacio a CSV setmanal.
+- Eina: `influx backup` (oficial).
+- Validacio: poder restaurar i llegir les ultimes 24 h.
+
+**Script d'indexacio (codi Python)**:
+- Criticitat: ALTA pero ja esta a Git.
+- Backup: N/A (versionat a Git).
+
+**Resum de la politica**:
+
+| Component | Criticitat | Freq | Retencio | Eina |
+|---|---|---|---|---|
+| Ollama | Baixa | Mai | - | - |
+| ChromaDB | Mitjana | Setmanal | 4 setmanes | tar.gz |
+| Open WebUI | Mitjana | Diari | 30 dies | cp webui.db |
+| InfluxDB | Alta | Diari | 30 dies | influx backup |
+| Codi indexacio | Alta | Git | Infinit | git push |
+
+**Validacio**: una vegada al mes, restaura ChromaDB en un entorn de test i comprova que el sistema RAG funciona correctament. Això et dona la confiança que els backups son utils.
+
+---
+
+## Pregunta 15 (oberta): Privacitat dels backups al núvol
+
+**Resposta model**:
+
+Fer backups al núvol de dades sensibles te implicacions importants que cal considerar:
+
+**Riscos de pujar dades al núvol**:
+
+1. **El proveidor te acces**: Backblaze, AWS S3, Google Cloud, tots tenen tecnicament la capacitat d'accedir a les teves dades. Encara que la politica digui que no ho fan, hi ha casos documentats on s'ha accedit per ordre judicial o per accident.
+
+2. **Vulnerabilitats del proveidor**: si el proveidor te una bretxa de seguretat (cosa que pasa), les teves dades queden exposades.
+
+3. **Compliance**: si les dades son d'un client o d'un treball (no personal), pujar-les al núvol pot ser una violacio de GDPR o altres normatives.
+
+4. **Transferencia internacional**: les dades viatgen per la xarxa i poden passar per servidors en altres paisos. Algunes normatives ho regulen.
+
+**Solucions**:
+
+**1. Xifrat local abans de pujar**:
+- Restic xifra per defecte amb AES-256. La clau la defines tu.
+- BorgBackup tambe permet xifrat.
+- La clau d'encriptacio ha d'estar guardada **fora** del backup (altrament no pots recuperar).
+- Avantatge: encara que el proveidor sigui compromes, les dades son illegibles.
+
+**2. Xifrat manual amb GPG**:
+- `tar czf - /path | gpg -c --cipher-algo AES256 > backup.tar.gz.gpg`
+- Control total, pero mes manual.
+
+**3. Només dades no sensibles al núvol**:
+- Els documents de feina al núvol (xifrats), les fotos personals nomes local.
+- Trade-off: en cas de desastre, perds les fotos personals.
+
+**4. No usar núvol public**:
+- Usar una maquina propia a casa d'un amic o familiar.
+- O un NAS remot amb VPN.
+- Mes control pero mes feina.
+
+**Recomanacio al BernatLab**:
+
+- **Restic amb `--encryption-mode repokey`**: xifrat fort amb clau que nomes tu tens.
+- **Guardar la clau al password manager** (Bitwarden, KeePass) **i impresa en paper** en un lloc segur (caixa forta). Si perds la clau, no pots recuperar res.
+- **Restrictir el que puges al núvol**: nomes dades que poden ser llegides per un atacant sense consequencies greus. El DNI escanejat, millor en local.
+- **Politica de retencio agressiva al núvol**: nomes 30 dies, no pas 10 anys. Menys exposicio.
+
+**Exemple de configuracio Restic**:
+
+```bash
+restic -r b2:bucket-name:/bernatlab backup /home/pi/important \
+    --encryption-mode repokey \
+    --tag important \
+    --exclude-file=exclude.txt
+```
+
+Aixo puja les dades xifrades amb AES-256 a Backblaze B2. La clau es la que poses al `restic init` i l'has de guardar be.
+
+---
+
 ## Que fer si has fallat moltes preguntes
 
 - **5-8 encerts**: Rellegir el resum i fer l'exercici practic.

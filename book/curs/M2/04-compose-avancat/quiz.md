@@ -1,6 +1,6 @@
 # Qüestionari - Capitol 4: Compose avançat
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min
 
 ## Pregunta 1
 Quin es l'objectiu principal dels perfils a Docker Compose?
@@ -81,3 +81,45 @@ Pistes per respondre:
 - Quantes xarxes necessites?
 - Quins volums nomes?
 - Com expresses l'ordre d'arrencada?
+
+## Pregunta 11 (oberta)
+Per que creus que Docker Compose ha introduit els perfils en lloc de simplement tenir un fitxer `.yml` per a cada entorn? Quins avantatges te tenir un sol fitxer amb perfils respecte a tenir-ne tres de separats?
+
+Pistes per respondre:
+- Un sol fitxer evita duplicar serveis comuns (la base de dades, la xarxa).
+- Es mes facil de revisar amb un `diff` quin canvi hi ha entre entorns.
+- Per que pot ser problematic tenir la configuracio de prod en un fitxer separat que pot divergir?
+
+## Pregunta 12 (oberta)
+Quina relacio hi ha entre els healthchecks i el `depends_on: condition: service_healthy`? Per que no n'hi ha prou amb `depends_on` tot sol? Dona un exemple del BernatLab on la diferencia es importanta.
+
+Pistes per respondre:
+- Un servei pot estar "iniciat" pero no "llest" (per exemple, una base de dades que encara esta fent recovery).
+- Si el backend es connecta massa aviat, falla.
+- Que passaria amb un Nextcloud que espera MariaDB pero aquesta encara no ha acabat d'inicialitzar?
+
+## Pregunta 13 (oberta)
+Imagina que el teu company et diu: "el docker-compose.yml es un fitxer de configuracio, no cal posar-hi comentaris". Argumenta per que aixo es una mala practica, especialment al BernatLab on probablement nomes treballes tu pero vols recordar per que vas prendre cada decisio d'aqui 6 mesos.
+
+Pistes per respondre:
+- Que passa quan tornes al fitxer despres d'un any?
+- Els comentaris expliquen el "per que", no nomes el "que".
+- Un bon `docker-compose.yml` es documentacio viva.
+- Exemple: per que aquest servei te `cap_drop: ALL`? Vale la pena un comentari.
+
+## Pregunta 14 (oberta)
+Aplica els conceptes del capitol al cas concret del BernatLab amb l'stack de monitoritzacio: Prometheus, Grafana, cAdvisor, node-exporter i Uptime Kuma. Escriu mentalment un `docker-compose.yml` que: usi perfils per separar eines opcionals (Grafana nomes en dev?), defineixi una xarxa comuna, munti volums per a la persistencia de Prometheus i Grafana, i configuri un ordre d'arrencada correcte.
+
+Pistes per respondre:
+- Quins serveis son essencials i quins opcionals?
+- Que passa si Prometheus arranca abans que els altres? No passa res perque ell fa "scrape" periodicament.
+- Comprova: Grafana depen de Prometheus? Si.
+
+## Pregunta 15 (oberta)
+Quines consequencies te per a la seguretat i la mantenibilitat posar totes les variables d'entorn al fitxer `docker-compose.yml` en lloc d'usar un `.env` separat o els `secrets`? Al BernatLab, quina estrategia tries per gestionar credencials de bases de dades, tokens d'API, etc?
+
+Pistes per respondre:
+- Si el compose es puja a Git (inclús privat), les contrasenyes queden exposades.
+- Els `.env` es poden posar al `.gitignore` i carregar-se nomes en runtime.
+- Els `secrets` (amb fitxers) son encara millors: xifrats, permisos estrictes.
+- Trade-off: complexitat vs seguretat.

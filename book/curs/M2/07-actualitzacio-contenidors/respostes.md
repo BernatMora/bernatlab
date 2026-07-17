@@ -189,6 +189,232 @@ Aquest proces es pot trigar 30-60 minuts pero es la manera **correcta** d'actual
 
 ---
 
+## Pregunta 11 (oberta): Per que les actualitzacions tenen mala fama
+
+**Resposta model**:
+
+Les actualitzacions automatitzades tenen mala fama entre administradors per una combinacio d'experiencies reals i mites:
+
+**Experiencies reals (legitimes)**:
+
+1. **L'actualitzacio de les 3 de la matinada**: el 2014, una actualitzacio de GLibc a Linux va trencar milers de servidors quan els processos antics es reiniciaven. Watchtower automatic podria haver causat una caiguda global.
+
+2. **Incompatibilitat entre versions**: actualitzar Nextcloud pot requerir tambe actualitzar el schema de la base de dades. Si Watchtower actualitza Nextcloud pero la DB no esta preparada, el sistema queda inconsistent.
+
+3. **Pèrdua de configuracio**: algunes imatges sobrescriuen configuracio a `/config` o `/etc/app/` durant l'actualitzacio. Un reinici automatic pot perdre hores de configuracio manual.
+
+4. **Plugins incompatibles**: Nextcloud te plugins de tercers. Una actualitzacio pot trencar la compatibilitat amb els teus plugins.
+
+**Mites (menys justificats)**:
+
+1. "Les actualitzacions sempre trencen coses": en realitat, la majoria son transparents. Les que trencen son minoria pero son molt visibles.
+
+2. "Millor no tocar res": deixar un sistema sense actualitzar es la **garantia** de tenir problemes. La questio no es si, sino quan.
+
+3. "Les actualitzacions automatiques son insegures": el risc real es baix comparat amb el risc de no actualitzar.
+
+**Aplica al BernatLab**:
+
+Watchtower al BernatLab esta en un entorn **controlat** (la teva propia xarxa, els teus serveis). Si una actualitzacio falla, l'impacte es limitat. Per tant, els riscos son mes petits que en produccio.
+
+**Recomanacio**: configura Watchtower amb:
+- `WATCHTOWER_NOTIFICATIONS=true` (t'avisa per email/Telegram).
+- `WATCHTOWER_CLEANUP=true` (neteja imatges antigues).
+- Labels per activar Watchtower nomes en serveis de baix risc.
+- Un interval de 24h (no 5 min).
+
+Aixi tens el millor dels dos mons: actualitzacions regulars pero amb temps per reaccionar.
+
+---
+
+## Pregunta 12 (oberta): Frequencia d'actualitzacio i finestra de risc
+
+**Resposta model**:
+
+La **finestra de risc** es el temps entre que es publica una vulnerabilitat i el moment que el teu sistema la te corregida. Com mes llarga es la finestra, mes probable es que algú t'ataqui.
+
+**Calcul mental**:
+
+Si vols dir "estic segur perquè actualitzo cada setmana", la teva finestra de risc es de 7 dies. Pero el temps entre que es publica una vulnerabilitat i l'exploit public es cada vegada mes curt:
+- 2010: mesos.
+- 2015: setmanes.
+- 2020: dies.
+- 2024: hores (vulnerabilitats 0-day son explotades el mateix dia).
+
+Per tant, una finestra de 7 dies es **insuficient** per a serveis exposats a internet. Caldria actualitzar en hores.
+
+**Cas del BernatLab (100.115.134.76)**:
+
+Si tens serveis exposats:
+- Watchtower amb interval de 24h: finestra maxima de 24h. Acceptable.
+- Watchtower amb interval d'1h: finestra maxima d'1h. Pero mes carrega de xarxa.
+- Manual: finestra variable, pot ser setmanes. Perillos.
+
+Si tens serveis nomes a la xarxa local:
+- Fins i tot 7 dies es acceptable perque l'atacant necessita acces a la xarxa local.
+
+**Cas especial: actualitzacions de kernel o sistema base**:
+Aquestes NO les gestiona Watchtower. Son actualitzacions del sistema operatiu de la RPi, que cal fer manualment amb `apt upgrade`. Cal planificar una finestra de manteniment mensual o trimestral.
+
+**Recomanacio al BernatLab**:
+
+- Watchtower diari per a serveis exposats.
+- Watchtower setmanal per a serveis interns.
+- `unattended-upgrades` al sistema base per pegats de seguretat automatics.
+- Auditoria manual mensual de les actualitzacions majors.
+
+**Equilibri**: una finestra de 24h es bona. Mes curta comença a ser excessiva (massa actualitzacions, possibles falles). Mes llarga es perillosa.
+
+---
+
+## Pregunta 13 (oberta): Estrategia mixta d'actualitzacio
+
+**Resposta model**:
+
+El company que diu "Watchtower es perillos, jo actualitzo manualment" assumeix un cost operatiu mes alt del que sembla. Arguments i alternativa:
+
+**Cost amagat del manual**:
+
+1. **Memoria humana**: actualitzar "quan me'n recordo" vol dir mai. El cervell prioritza coses urgents; les actualitzacions preventives sempre queden al final.
+
+2. **Temps de context**: cada vegada que actualitzes, has de recordar quins serveis tens, quines versions, quins canvis hi ha hagut. Es un overhead mental.
+
+3. **Inconsistencia**: pots oblidar serveis. Si tens 20 serveis i nomes n'actualitzes 18, els 2 restants son punts febles.
+
+4. **Ventana de risc oberta**: mentre recordes actualitzar, la vulnerabilitat pot ser explotada.
+
+**Estrategia mixta proposada**:
+
+1. **Watchtower nomes per actualitzacions de seguretat**:
+   - `WATCHTOWER_LABEL_ENABLE=true` nomes serveis marcats.
+   - Marcar nomes serveis on les actualitzacions son segures (nginx, postgres).
+   - NO marcar serveis amb estat (bases de dades, sistemes amb volums).
+
+2. **Notifications (no updates) per a serveis critics**:
+   - Usar `Diun` (Docker Image Update Notifier) que nomes t'avisa.
+   - Tu decideixes quan i com actualitzar.
+
+3. **Actualitzacions majors manuals**:
+   - Nextcloud 27 -> 28: manual, amb backup previ, finestres de manteniment.
+   - Un cop al mes o quan hi ha un canvi important.
+
+4. **Calendari recordatori**:
+   - Un recordatori al calendari: "revisar actualitzacions manuals".
+   - El primer diumenge de cada mes, 1 hora.
+
+**Exemple practic al BernatLab**:
+
+```yaml
+# Serveis que Watchtower pot actualitzar automatic:
+- nginx (web, recovery rapid)
+- portainer (UI, no te estat)
+- uptime-kuma (no te estat)
+- dozzle (logs, no te estat)
+
+# Serveis que actualitzo manualment:
+- nextcloud (amb backup previ)
+- postgres (verificar migrations)
+- mariadb (verificar versions)
+- influxdb (verificar compatibilitat amb Grafana)
+- ollama (pot trencar embeddings)
+```
+
+Aixi automatitzes el 60% (lo facil) i controles el 40% (lo critic). Es el millor dels dos mons.
+
+---
+
+## Pregunta 14 (oberta): Politica d'actualitzacio per a Hort Osona
+
+**Resposta model**:
+
+Per a l'stack d'Hort Osona amb Ollama, ChromaDB i Open WebUI, la politica d'actualitzacio seria:
+
+**Ollama**:
+- **Politica**: mixta.
+- **Justificacio**: Ollama actualitza sovint amb nous models i optimitzacions. Pero actualitzar pot canviar la compatibilitat amb els embeddings existents. Si actualitzes Ollama pero el model d'embeddings nomes el tens en una versio antiga, la base de coneixement queda inconsistent.
+- **Practica**: actualitza manualment cada 2-3 mesos. Abans, comprova que el model d'embeddings (per exemple `nomic-embed-text`) esta en la versio esperada. Si canvies Ollama i el model, has de reindexar ChromaDB (30 min).
+- **Watchtower**: NO.
+
+**ChromaDB**:
+- **Politica**: manual.
+- **Justificacio**: ChromaDB te versions breaking changes. Actualitzar pot requerir reindexar tota la base de coneixement. A mes, ChromaDB es l'emmagatzematge de les dades; actualitzar automatic es arriscat.
+- **Practica**: actualitza nomes quan hi ha un feature que necessites o una vulnerabilitat critica. Cada 6-12 mesos.
+- **Watchtower**: NO.
+- **Backup**: obligatori abans de qualsevol actualitzacio (es pot exportar la DB).
+
+**Open WebUI**:
+- **Politica**: automatica amb Watchtower.
+- **Justificacio**: es una aplicacio web front-end. Les actualitzacions son majorment compatibles. Watchtower pot gestionar-ho be.
+- **Practica**: Watchtower amb label, interval 24h.
+- **Watchtower**: SI.
+
+**Resum de la politica**:
+- Ollama: manual cada 2-3 mesos, amb reindexacio preventiva.
+- ChromaDB: manual cada 6-12 mesos, amb backup.
+- Open WebUI: automatic via Watchtower.
+
+**Avantatge**: el que te Watchtower, s'actualitza. El que es critic, el controles. La teva atencio va a les coses que importen.
+
+---
+
+## Pregunta 15 (oberta): Finestres de manteniment i disponibilitat
+
+**Resposta model**:
+
+Al BernatLab, fins i tot si ets lunic usuari, les finestres de manteniment son importants per minimitzar la interrupcio. Consideracions:
+
+**Quan fer manteniment**:
+
+1. **Hora de baixa activitat**: si uses els serveis intensivament durant el dia, la matinada es ideal.
+2. **Dia de baixa activitat personal**: caps de setmana, festius.
+3. **Sense deadlines propers**: no fer actualitzacio el dia abans d'un treball important que usara els serveis.
+
+**Exemple al BernatLab**:
+- "Diumenges a les 4 de la matinada" es la finestra tipica.
+- Pero: a les 4 dorms. Si algo falla, te n'adones al mati.
+- Alternativa: diumenges a les 10 del mati, quan estas despert i pots revisar.
+
+**Eines per planificar**:
+
+1. **Uptime Kuma amb finestres de manteniment**: configura finestres on les caigudes no generen alertes.
+2. **Watchtower amb schedule**: pots configurar a quina hora fa els checks (no nomes cada 24h, sino a les 03:00 cada nit).
+3. **Scripts amb "dry-run"**: alguns scripts de backup poden fer un simulacre abans de fer res.
+
+**Pla de rollback**:
+
+Sempre que facis una actualitzacio important, tingues un pla per tornar enrera:
+
+1. **Backup abans** (sempre).
+2. **Coneix la versio anterior** (no vagis a la ultima de cop).
+3. **Documenta l'ordre per revertir** (tots la podem executar en 5 min).
+4. **Practica el rollback** almenys un cop abans que calgui fer-lo realment.
+
+**Exemple**:
+
+```bash
+# Abans d'actualitzar:
+docker compose pull
+docker exec nextcloud-db pg_dump -U user nextcloud > backup_pre_upgrade.sql
+
+# Actualitzar:
+docker compose up -d
+
+# Si falla, tornar enrera:
+docker compose down
+# Restaurar imatges antigues
+docker tag nextcloud:28 nextcloud:28-broken
+docker pull nextcloud:27
+docker compose up -d
+# Restaurar DB si cal
+psql -U user nextcloud < backup_pre_upgrade.sql
+```
+
+**Disponibilitat vs seguretat**:
+
+Al BernatLab, el risc de tenir una caiguda de 30 min un diumenge al mati es **menys greu** que el risc de tenir una vulnerabilitat sense pegat durant setmanes. Per tant, val la pena actualitzar sovint, encara que sigui molest.
+
+---
+
 ## Que fer si has fallat moltes preguntes
 
 - **5-8 encerts**: Rellegir el resum. Watchtower es la clau.

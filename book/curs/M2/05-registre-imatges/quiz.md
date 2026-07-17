@@ -1,6 +1,6 @@
 # Qüestionari - Capitol 5: Registre d'imatges
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min
 
 ## Pregunta 1
 Quin es el registre public per defecte de Docker?
@@ -83,3 +83,49 @@ Pistes per respondre:
 - ghcr.io es privat per defecte pero limitat.
 - Un registre propi et dona control total pero cal mantenir-lo.
 - Pensa en confidencialitat, cost i manteniment.
+
+## Pregunta 11 (oberta)
+Per que creus que els registres privats han de tenir TLS obligatoriament? Quins atacs evita i quines consequencies te si un atacant pot fer push al teu registre?
+
+Pistes per respondre:
+- Un atacant que pugui fer push pot substituir imatges legitimes per versions malicioses.
+- Si el registre es HTTP, les credencials viatgen en clar.
+- Un atac "man-in-the-middle" pot substituir descarregues.
+- Que passaria al BernatLab si algú canvia la imatge de Nextcloud per una amb backdoor?
+
+## Pregunta 12 (oberta)
+Quina relacio hi ha entre un registre privat i l'estrategia de "supply chain security"? Com influeix tenir un registre propi en la teva capacitat de confiar en les imatges que executes al BernatLab?
+
+Pistes per respondre:
+- Supply chain: la cadena desde el codi font fins al contenidor en execucio.
+- Cada pas es un punt d'atac: registre, descarrega, execucio.
+- Un registre propi amb politiques de signatura dona mes control.
+- L'escaneig de vulnerabilitats (Trivy, Docker scan) es pot fer abans de pujar.
+
+## Pregunta 13 (oberta)
+Imagina que el teu company et diu: "el Docker Hub es rapid, per que ens molestem en muntar un registre privat al BernatLab?". Convence'l amb arguments de velocitat, fiabilitat i privacitat, usant exemples concrets del teu cas.
+
+Pistes per respondre:
+- Velocitat: ample de banda de la RPi vs ample de banda de Docker Hub.
+- Fiabilitat: que passa quan Docker Hub te una caiguda?
+- Privacitat: que passa si la teva app conte logica de negoci sensible?
+- Mirror: el registre privat pot actuar com a cache de Docker Hub.
+
+## Pregunta 14 (oberta)
+Aplica el concepte de registre al cas concret del BernatLab amb un stack de 5 serveis propis: una API FastAPI, un worker per processar tasques, una base de dades PostgreSQL, una eina de monitoritzacio custom i un bot de Telegram. Com organizaries les imatges al registre? Usaries un sol registre o mes? Quins tags faries servir (latest? versions? data?)?
+
+Pistes per respondre:
+- Noms: prefix per projecte (bernatlab/api, bernatlab/worker).
+- Tags: evita `latest` nomes. Usa versions semantiques o data.
+- Si tens mes registres (per exemple un per dev i un per prod), com els sincronitzaries?
+- Backups del registre: com els faries?
+
+## Pregunta 15 (oberta)
+Quines consequencies te per a l'operativa diaria triar entre un registre simple (`registry:2`) i una solucio completa com Harbor al BernatLab? Pensa en complexitat, espai, funcionalitats i temps de manteniment. Argumenta una recomanacio per a un homelab amb temps limitat.
+
+Pistes per respondre:
+- `registry:2`: minimalista, nomes emmagatzema imatges. Pocs recursos.
+- Harbor: te UI web, LDAP, escaneig de vulnerabilitats, replicacio. Molts recursos.
+- Al BernatLab amb 4 GB de RAM, Harbor es massa?
+- Es pot començar amb `registry:2` i migrar a Harbor mes endavant?
+- Trade-off final: funcionalitat vs simplicitat.

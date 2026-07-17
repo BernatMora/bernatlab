@@ -1,14 +1,15 @@
 # Exercici pràctic — Capítol 8: Homepage
 
-> 30-45 min · Real al teu sistema
+> 45-60 min · Real al teu sistema
 
 ## Objectiu
-Instal·lar Homepage, configurar els serveis del BernatLab, i deixar un dashboard personalitzat amb almenys 5 serveis i 2 widgets.
+
+Instal·lar Homepage, configurar els serveis del BernatLab amb bind mount per poder editar la configuració còmodament, afegir widgets i deixar un dashboard personalitzat amb 5+ serveis, 2 widgets i un aspecte propi.
 
 ## Requisits
 - Docker corrent
 - Tailscale actiu
-- 30-45 minuts
+- 45-60 minuts
 - Tenir Portainer, Uptime Kuma i whoami operatius (caps 6-7)
 
 ## Pas 1: Afegeix Homepage al compose (5 min)
@@ -147,6 +148,10 @@ Substitueix el contingut per:
     - Cloudflare:
         href: https://dash.cloudflare.com
         icon: cloudflare
+    - DuckDuckGo:
+        href: https://duckduckgo.com
+        icon: duckduckgo
+        siteMonitor: https://duckduckgo.com
 ```
 
 Recarrega `http://hortosona:3010` (5-10 segons) i comprova els canvis.
@@ -189,11 +194,75 @@ theme: dark
 
 Recarrega la pàgina.
 
-## Pas 6: Comprova i documenta
+## Pas 6: Afegeix el widget d'Uptime Kuma (5 min)
+
+Afegeix un widget que consumeixi la Status Page que vas crear al cap. 7:
+
+```bash
+nano ~/homelab/config/homepage/widgets.yaml
+```
+
+Afegeix a sota de `search:`:
+
+```yaml
+uptimekuma:
+    - bernatlab Status Page
+```
+
+Ara navega a la teva Status Page pública d'Uptime Kuma, copia l'URL, i configura l'API:
+
+```bash
+nano ~/homelab/config/homepage/settings.yaml
+```
+
+Afegeix:
+
+```yaml
+---
+# ... el que ja tens ...
+# (deixa el que ja hi ha)
+```
+
+Afegeix un fitxer nou:
+
+```bash
+nano ~/homelab/config/homepage/uptimekuma.yaml
+```
+
+```yaml
+---
+- name: BernatLab
+  id: bernatlab
+  url: http://localhost:3001/status/bernatlab
+  type: statusPage
+```
+
+Comprova que apareix un widget amb l'estat dels teus serveis.
+
+## Pas 7: Personalitza el tema (5 min)
+
+Prova diferents combinacions:
+
+```bash
+nano ~/homelab/config/homepage/settings.yaml
+```
+
+Canvia:
+- `color: slate` → `color: indigo`, `color: emerald`, `color: amber`
+- `theme: dark` → `theme: light`
+- Prova diferents URLs al `background.image`
+
+Recarrega la pàgina cada vegada. Escull el que més t'agradi.
+
+## Pas 8: Comprova i documenta
 
 Mira com queda tot plegat. Comparteix la URL amb tu mateix via Telegram i obre-la al mòbil (necessitaràs Tailscale al mòbil).
 
-Documenta a `book/curs/M1/08-homepage/diari.md` amb una captura de pantalla i els fitxers YAML.
+Documenta a `book/curs/M1/08-homepage/diari.md` amb:
+- Captura de pantalla del dashboard final.
+- Els 4 fitxers YAML finals.
+- Quines personalitzacions has fet i per què.
+- Quin widget trobes més útil.
 
 ## Validació
 
@@ -203,6 +272,7 @@ Has acabat si:
 - [ ] Tens almenys 5 serveis al dashboard.
 - [ ] El widget `resources` funciona (CPU/RAM/temp).
 - [ ] El widget `search` funciona.
+- [ ] El widget d'Uptime Kuma mostra l'estat dels teus serveis.
 - [ ] El títol i tema estan personalitzats.
 - [ ] Has documentat l'experiència.
 
@@ -212,3 +282,63 @@ Has acabat si:
 - Crea una icona personalitzada per a un servei que no en tingui.
 - Experimenta amb diferents fons i paletes de colors.
 - Afegeix un widget de temps per a la teva localitat (Vic, Manresa, etc.).
+- Configura múltiples grups de serveis (per categoria).
+- Afegeix bookmarks per a les webs que visites sovint.
+
+## Ves un pas més enllà
+
+**Repte avançat: layout responsive i personalitzat**.
+
+Homepage permet organitzar els widgets en columnes. Per exemple, pots tenir el `resources` a l'esquerra, els serveis al centre, i un quadre de notes personal a la dreta.
+
+1. Afegeix un quadre de notes a `~/homelab/config/homepage/widgets.yaml`:
+
+```yaml
+---
+# ... el que ja tens ...
+notes:
+    - Cos a fer:
+        - [ ] Comprar sensor temperatura hort
+        - [ ] Configurar backups automatics
+        - [ ] Acabar M2 del curs
+    - Comandes utils:
+        - ssh bernat@hortosona
+        - cd ~/homelab/docker && docker compose ps
+```
+
+2. Configura un layout de columnes a `settings.yaml`:
+
+```yaml
+---
+# ... el que ja tens ...
+layout:
+    header:
+        style: row
+    sidebar:
+        style: column
+        widgets: [resources, search]
+    top:
+        style: row
+        widgets: [notes]
+```
+
+3. Crea un quadre de meteo local. Busca a https://openweathermap.org/ una API key gratuïta i:
+
+```bash
+nano ~/homelab/config/homepage/widgets.yaml
+```
+
+```yaml
+weather:
+    - Vic:
+        lat: 41.9304
+        lon: 2.2549
+        provider: openweathermap
+        apiKey: LA_TEVA_API_KEY
+        units: metric
+        cache: 30
+```
+
+4. Comprova que tot es veu com esperes. Fes captures a mòbil i escriptori — ha de ser usable als dos.
+
+Ara tens un dashboard real, útil, i personalitzat. Comparteix-lo amb orgull.

@@ -1,6 +1,6 @@
-# Qüestionari — Capitol 3: Backup de volums Docker
+# Qüestionari - Capitol 3: Backup de volums Docker
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min
 
 ## Pregunta 1
 On emmagatzema Docker els volums natius per defecte?
@@ -14,7 +14,7 @@ On emmagatzema Docker els volums natius per defecte?
 Quina es la diferencia entre un volum natiu i un bind mount?
 
 - [ ] Son el mateix, noms diferents
-- [x] Un volum natiu el gestiona Docker; un bind mount tu tries una ruta de l'amfitrio
+- [x] Un volum natiu el gestiona Docker; un bind mount tu tries una ruta de lamfitrio
 - [ ] El bind mount nomes serveix per a Linux
 - [ ] El volum natiu es mes lent
 
@@ -45,7 +45,7 @@ Quin metode NO atura el contenidor productiu per fer el backup?
 ## Pregunta 6
 Que vol dir "DR test" en el context de backups?
 
-- [ ] Disaster Recovery test: provar que el backup es pot restaurar correctament
+- [x] Disaster Recovery test: provar que el backup es pot restaurar correctament
 - [ ] Daily Restart test
 - [ ] Docker Registry test
 - [ ] Data Replication test
@@ -72,13 +72,59 @@ Explica amb les teves paraules: per que es important provar de restaurar els bac
 Pistes per respondre:
 - Quin descobriment pots fer quan intentes restaurar un backup "trencat"?
 - Quina diferencia hi ha entre "tinc backup" i "tinc un backup que funciona"?
-- Amb quina freqUencia hauries de provar la restauracio?
+- Amb quina frequencia hauries de provar la restauracio?
 
 ## Pregunta 10 (oberta)
-Al BernatLab tens Grafana, InfluxDB, Mosquitto, Nextcloud i PostgreSQL corrent en Docker. Dissenya un pla de backup: quina freqUencia per a cada un, quin metode (tar o dump), i on els guardes. Justifica cada decisio.
+Al BernatLab tens Grafana, InfluxDB, Mosquitto, Nextcloud i PostgreSQL corrent en Docker. Dissenya un pla de backup: quina frequencia per a cada un, quin metode (tar o dump), i on els guardes. Justifica cada decisio.
 
 Pistes per respondre:
 - Grafana: configuracio + dashboards. Son petits.
 - InfluxDB: moltes lectures de sensors. Creixen rapid.
 - Nextcloud: fitxers dels usuaris. Poden ser grans.
 - PostgreSQL: dades estructurades. Cal consistencia.
+
+## Pregunta 11 (oberta)
+Per que creus que Docker va triar tenir volums nomenats en lloc de que tot fossin bind mounts? Com afecta a la teva estrategia de backup aquesta decisio al BernatLab?
+
+Pistes per respondre:
+- Els volums nomenats viuen a /var/lib/docker/volumes/, camins llargs i críptics.
+- Els bind mounts son mes fàcils de recordar i copiar.
+- Docker vol abstraccio pero alhora practicitat.
+- Trade-off: portabilitat vs simplicitat.
+
+## Pregunta 12 (oberta)
+Quina relacio hi ha entre el metode de backup (tar, dump logic, snapshot) i la consistencia de les dades restaurades? Quan es acceptable cada metode al BernatLab? Dona exemples concrets.
+
+Pistes per respondre:
+- tar en calent: risc de corrupcio.
+- pg_dump: sempre consistent, pero nomes BD.
+- Snapshot del filesystem: consistent pero cal parar.
+- Per a cada servei, quin metode te sentit?
+
+## Pregunta 13 (oberta)
+Imagina que el teu company et diu: "estic fent backup amb `cp -r` de la carpeta de Nextcloud cada dia, ja esta be". Argumenta per que aixo te riscos al BernatLab i proposa una alternativa mes robusta.
+
+Pistes per respondre:
+- Fitxers parcials si Nextcloud esta escrivint.
+- No es un backup amb versionat.
+- Si Nextcloud es corromp, el backup tambe (es una copia identica).
+- Proposta: restic amb versionat o snapshot amb contenidor aturat.
+
+## Pregunta 14 (oberta)
+Aplica el concepte de backup de volums al cas concret del BernatLab amb l'hort IoT. Tinc InfluxDB amb 2 anys de lectures, Grafana amb 15 dashboards, Mosquitto amb configuracio i un broker MQTT. Dissenya un script de backup periodic que automatitzi el procés i que pugui restaurar en cas d'error.
+
+Pistes per respondre:
+- InfluxDB: usar `influx backup` (consistent).
+- Grafana: exportar dashboards via API o copiar el volum.
+- Mosquitto: copia de la configuracio (text, petita).
+- On guardar cada backup?
+
+## Pregunta 15 (oberta)
+Quines consequencies te per a la recuperacio davant desastres (DR) no tenir un test periodic de restauracio al BernatLab? Argumenta amb exemples reals de quan un backup "existent" no serveix per res.
+
+Pistes per respondre:
+- Backup corrupte que no es detecta fins al moment de restaurar.
+- Format de backup canviat per una actualitzacio.
+- Permissos canviats que impedeixen la lectura.
+- Clau de xifrat perduda.
+- El cost d'un test de restauracio vs el cost d'un desastre real.

@@ -1,15 +1,16 @@
 # Exercici pràctic — Capítol 7: Uptime Kuma
 
-> 45-60 min · Real al teu sistema
+> 60-75 min · Real al teu sistema
 
 ## Objectiu
-Posar en marxa Uptime Kuma, configurar els primers monitors dels teus serveis, i activar alertes per Telegram. Acabaràs amb un sistema que t'avisa al mòbil quan alguna cosa falla.
+
+Posar en marxa Uptime Kuma, configurar els primers monitors dels teus serveis, activar alertes per Telegram i construir una Status Page. Acabaràs amb un sistema que t'avisa al mòbil quan alguna cosa falla.
 
 ## Requisits
 - Docker instal·lat i corrent
 - Tailscale actiu
 - Telegram instal·lat al mòbil
-- 45-60 minuts
+- 60-75 minuts
 
 ## Pas 1: Afegeix Uptime Kuma al compose (10 min)
 
@@ -63,7 +64,7 @@ docker compose ps
 2. Crea l'usuari admin.
 3. Ja ets al dashboard.
 
-## Pas 3: Crea els primers monitors (15 min)
+## Pas 3: Crea els primers monitors (20 min)
 
 Vés a "Add New Monitor" per cadascun:
 
@@ -103,6 +104,13 @@ Vés a "Add New Monitor" per cadascun:
 - Interval: 5 min
 - Save
 
+**Monitor 6: Tailscale (opcional)**
+- Type: Ping
+- Name: `Tailscale gateway`
+- Hostname: `100.100.100.100` (el servidor DERP de Tailscale)
+- Interval: 5 min
+- Save
+
 Després de 2-3 minuts hauries de veure tots els monitors amb check verd (UP).
 
 ## Pas 4: Crea el bot de Telegram (10 min)
@@ -118,6 +126,8 @@ Després de 2-3 minuts hauries de veure tots els monitors amb check verd (UP).
    `https://api.telegram.org/bot<EL_TEU_TOKEN>/getUpdates`
    Hauries de veure un JSON amb el teu `chat.id` (un número).
 9. Anota el token i el chat_id.
+
+**Compte amb el token**: és com una contrasenya. Si el penges a un commit de Git, algú podria fer-lo servir per spam. No el comparteixis.
 
 ## Pas 5: Configura l'alerta a Uptime Kuma (10 min)
 
@@ -138,6 +148,8 @@ Després de 2-3 minuts hauries de veure tots els monitors amb check verd (UP).
 4. Configura: "When the monitor goes down" + "When the monitor goes back up".
 5. Repeteix per a "Whoami", "SSH", i algun altre.
 
+Configura també el "retry" a 3 intents (per evitar falsos positius quan la xarxa va lenta).
+
 ## Pas 7: Prova l'alerta (10 min)
 
 1. Para un servei: `docker stop whoami`.
@@ -146,6 +158,11 @@ Després de 2-3 minuts hauries de veure tots els monitors amb check verd (UP).
 4. Torna a aixecar: `docker start whoami`.
 5. Espera ~60 segons.
 6. Alerta: "Whoami is UP".
+
+Si no reps l'alerta, comprova:
+- Has iniciat conversa amb el bot?
+- El chat_id és correcte?
+- Tens internet al mòbil?
 
 ## Pas 8: Crea una Status Page (5 min)
 
@@ -156,6 +173,17 @@ Després de 2-3 minuts hauries de veure tots els monitors amb check verd (UP).
 5. Public: yes.
 6. Afegeix tots els monitors.
 7. Desa i obre `http://hortosona:3001/status/bernatlab`.
+
+Aquesta pàgina és pública — qualsevol amb l'enllaç pot veure l'estat dels teus serveis. Si vols que sigui privada, desactiva "Public".
+
+## Pas 9: Documenta
+
+Crea `book/curs/M1/07-uptime-kuma/diari.md` amb:
+- Captura del dashboard amb tots els monitors verds.
+- Sortida del test de Telegram.
+- L'enllaç a la teva Status Page.
+- Quines alertes has configurat i per què.
+- Una reflexió: quin servei trobes més crític i per què?
 
 ## Validació
 
@@ -174,3 +202,48 @@ Has acabat si:
 - Afegeix un monitor de tipus "Push" per a scripts que s'executen periòdicament.
 - Configura un segon canal d'alertes (Email) com a backup.
 - Investiga la "Maintenance" per silenciar alertes durant finestres de manteniment.
+- Crea un monitor de tipus "Docker Container" per a cada contenidor actiu.
+- Afegeix un monitor de temperatura que llegeixi un script amb `vcgencmd measure_temp`.
+- Investiga la "Heartbeat" per a scripts personalitzats.
+
+## Ves un pas més enllà
+
+**Repte avançat: alerta de temperatura de la RPi**.
+
+Combina el que has après als capítols anteriors. Crea un sistema que t'avisi si la CPU passa de 75°C.
+
+1. Crea un script a `~/homelab/scripts/check-temp.sh`:
+   ```bash
+   #!/bin/bash
+   TEMP=$(vcgencmd measure_temp | grep -oP '\d+\.\d+')
+   THRESHOLD=75
+   if (( $(echo "$TEMP > $THRESHOLD" | bc -l) )); then
+     echo "ALERTA: CPU a ${TEMP} graus" >&2
+     exit 1
+   else
+     echo "OK: CPU a ${TEMP} graus"
+     exit 0
+   fi
+   ```
+
+2. Fes-lo executable: `chmod +x ~/homelab/scripts/check-temp.sh`.
+
+3. Prova'l: `~/homelab/scripts/check-temp.sh; echo $?` (1 = alerta, 0 = ok).
+
+4. A Uptime Kuma, crea un nou monitor:
+   - Type: **Push**
+   - Name: `CPU temperature`
+   - Push URL: el que et doni Uptime Kuma (un secret llarg).
+
+5. Programa el script perquè faci "push" cada minut:
+   ```bash
+   crontab -e
+   # Afegeix:
+   * * * * * curl -s "EL_PUSH_URL" > /dev/null
+   ```
+
+6. Comprova a Uptime Kuma que el monitor rep "pings" periòdics.
+
+7. Per provar l'alerta, executa `stress --cpu 4 --timeout 120` en una altra finestra. La temperatura pujarà i rebràs una alerta al Telegram.
+
+Ara tens monitoratge bàsic + alerta al mòbil per a la temperatura. Ets un pas més a prop d'un homelab professional.
