@@ -83,3 +83,17 @@ Pistes per respondre:
 - 500 m: loRa SF10 es suficient; BLE no arriba; WiFi no arriba; cellular depen de cobertura.
 - 3 km: nomes LoRa SF12 o cellular (si tens cobertura).
 - Considera tambe el cost del sensor i el consum.
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que LoRa sha triomfat per a IoT a zones rurals
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es el spreading factor i com afecta labast i la velocitat
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Com dissenyaries una xarxa LoRa per cobrir 1 hectarea dhort amb 10 sensors
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BernatLab · Glossari</title>
+<style>
+:root {
+    --bg: #0f1115;
+    --bg-card: #1a1d24;
+    --bg-code: #0d1117;
+    --fg: #e6e6e6;
+    --fg-dim: #9aa3b2;
+    --accent: #7fc3a0;
+    --accent-strong: #5da784;
+    --border: #2a2f3a;
+    --highlight: #ffd966;
+    --warn: #e6a23c;
+    --exemple-bg: rgba(127, 195, 160, 0.06);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+}
+header {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(15, 17, 21, 0.92);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    backdrop-filter: blur(8px);
+}
+h1 {
+    margin: 0 0 0.4rem 0;
+    font-size: 1.6rem;
+    color: var(--accent);
+}
+header .subtitle {
+    color: var(--fg-dim);
+    font-size: 0.9rem;
+}
+.layout {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 0;
+}
+@media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static !important; height: auto !important; border-right: 0 !important; border-bottom: 1px solid var(--border); }
+}
+nav.toc {
+    position: sticky; top: 88px; align-self: start;
+    height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding: 1.5rem 1.2rem;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+}
+nav.toc h2 {
+    margin: 0 0 0.8rem 0;
+    font-size: 1rem;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+nav.toc input[type="search"] {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    background: var(--bg-card);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+nav.toc input[type="search"]:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+nav.toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+nav.toc li.lvl2 {
+    margin: 0.15rem 0;
+}
+nav.toc a {
+    color: var(--fg);
+    text-decoration: none;
+    display: block;
+    padding: 0.35rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.92rem;
+    border-left: 2px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+}
+nav.toc a:hover {
+    background: var(--bg-card);
+    border-left-color: var(--accent);
+}
+main {
+    padding: 1.5rem 2rem 4rem;
+    max-width: 920px;
+}
+main h1, main h2 {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.3rem;
+}
+main h2 {
+    margin-top: 2.5rem;
+    color: var(--accent);
+    font-size: 1.4rem;
+    scroll-margin-top: 100px;
+}
+main h3.term {
+    margin-top: 1.6rem;
+    color: var(--accent-strong);
+    font-size: 1.05rem;
+    border-left: 3px solid var(--accent);
+    padding-left: 0.6rem;
+    scroll-margin-top: 100px;
+}
+main p {
+    margin: 0.5rem 0;
+}
+main p.exemple {
+    background: var(--exemple-bg);
+    border-left: 3px solid var(--accent);
+    padding: 0.5rem 0.8rem;
+    border-radius: 0 6px 6px 0;
+    margin: 0.5rem 0 0.6rem 0;
+    font-size: 0.95rem;
+}
+main p.veure {
+    color: var(--fg-dim);
+    font-size: 0.88rem;
+    font-style: italic;
+    margin: 0.2rem 0 1.4rem 0;
+}
+main code {
+    background: var(--bg-code);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.88em;
+    border: 1px solid var(--border);
+}
+main pre {
+    background: var(--bg-code);
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+}
+main blockquote {
+    border-left: 3px solid var(--border);
+    margin: 0.8rem 0;
+    padding: 0.4rem 1rem;
+    color: var(--fg-dim);
+}
+main hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+}
+main a { color: var(--accent); text-decoration: none; }
+main a:hover { text-decoration: underline; }
+mark.hl {
+    background: var(--highlight);
+    color: #1a1d24;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+.hidden { display: none !important; }
+footer {
+    text-align: center;
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    padding: 2rem 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+}
+</style>
+</head>
+<body>
+<header>
+    <h1>BernatLab &middot; Glossari</h1>
+    <div class="subtitle">Tots els termes tecnics del projecte, explicats en catala. Cerca al panell lateral.</div>
+</header>
+<div class="layout">
+<nav class="toc" aria-label="Taula de continguts">
+<h2>Index</h2>
+<input type="search" id="filter" placeholder="Cerca un terme..." aria-label="Filtrar termes">
+<ul>
+<li class="lvl2"><a href="#xarxa-i-connectivitat">Xarxa i connectivitat</a></li>
+<li class="lvl2"><a href="#maquinari">Maquinari</a></li>
+<li class="lvl2"><a href="#sistema-operatiu-linux">Sistema operatiu Linux</a></li>
+<li class="lvl2"><a href="#contenidors-i-docker">Contenidors i Docker</a></li>
+<li class="lvl2"><a href="#dades-i-bases-de-dades">Dades i bases de dades</a></li>
+<li class="lvl2"><a href="#monitoritzacio">Monitoritzacio</a></li>
+<li class="lvl2"><a href="#seguretat">Seguretat</a></li>
+<li class="lvl2"><a href="#intelligencia-artificial">Intel·ligencia artificial</a></li>
+<li class="lvl2"><a href="#iot-i-sensors">IoT i sensors</a></li>
+<li class="lvl2"><a href="#desenvolupament-web">Desenvolupament web</a></li>
+<li class="lvl2"><a href="#hort-osona">Hort Osona</a></li>
+<li class="lvl2"><a href="#termes-generals">Termes generals</a></li>
+<li class="lvl2"><a href="#com-contribuir">Com contribuir</a></li>
+</ul>
+</nav>
+<main>
+<h1>Glossari del BernatLab</h1>
+<blockquote>
+<p>Tots els termes tecnics que fas servir al projecte, explicats en catala de manera clara.</p>
+</blockquote>
+<p>Aquest glossari recull, organitza i defineix la terminologia tecnica que apareix al llarg dels set moduls del BernatLab (M1 a M7). Cada entrada porta una definicio curta i, quan es posible, un exemple aplicat al projecte i un enllac al capitol del llibre on sha tractat amb mes profunditat.</p>
+<p>Com utilitzar-lo:</p>
+<ul>
+<li><strong>Lectura lineal</strong> si acabes d'arribar al projecte: et posara al dia amb el vocabulari basic.</li>
+<li><strong>Consulta puntual</strong> quan trobis un terme que no reconeixes mentre llegeixes un capitol o fas una tasca de manteniment.</li>
+<li><strong>Referencia rapida</strong> abans de fer un runbook, una auditoria o un DRP.</li>
+</ul>
+<p>Si hi trobes a faltar un terme o vols afegir-ne un de nou, obre una PR a <code>bernatlab/book/glossari.md</code>.</p>
+<hr>
+<h2>Xarxa i connectivitat</h2>
+<h3 class="term">IP (adreca IP)</h3>
+<p>Identificador numeric unic que rep cada dispositiu dins d'una xarxa. En IPv4 son quatre grups de fins a tres xifres (p. ex. <code>192.168.1.42</code>); en IPv6 son vuit grups de quatre hexadecimals. 
+<strong>Al BernatLab:</strong> la Raspberry te una IP local del tipus <code>192.168.1.42</code> a la LAN de casa, i una IP publica assignada per l'operador que canvia sovint. 
+Veure: capitol 4 (Xarxa, SSH i Tailscale).</p>
+<h3 class="term">DNS (Domain Name System)</h3>
+<p>Sistema que tradueix noms de domini (<code>bernatlab.cat</code>) a adreces IP. Es el "agenda de telefon" d'Internet. 
+<strong>Al BernatLab:</strong> MagicDNS de Tailscale ens permet accedir a <code>pi.bernatlab.ts.net</code> sense recordar la IP. 
+Veure: capitols 4 i 44.</p>
+<h3 class="term">DHCP (Dynamic Host Configuration Protocol)</h3>
+<p>Protocol pel qual un router assigna automaticament una IP, mascara de subxarxa, porta d'enllac i DNS als dispositius de la xarxa. 
+<strong>Al BernatLab:</strong> el router de casa fa de servidor DHCP; la Raspberry rep la IP <code>192.168.1.42</code> en engegar. 
+Veure: capitol 4.</p>
+<h3 class="term">Port</h3>
+<p>Numero de 16 bits (0-65535) que identifica una aplicacio o servei dins d'una IP. Combinant IP + port s'identifica un punt de comunicacio unic. 
+<strong>Al BernatLab:</strong> port 22 per a SSH, 80/443 per a HTTP/HTTPS, 1883 per a MQTT, 8086 per a InfluxDB, 3000 per a Grafana, 9000 per a Portainer, 9090 per a Prometheus, 11434 per a Ollama. 
+Veure: capitols 4, 12, 15, 19.</p>
+<h3 class="term">NAT (Network Address Translation)</h3>
+<p>Mecanisme pel qual el router tradueix adreces privades internes a una adreca publica quan un dispositiu surt a Internet. Permet compartir una sola IP publica entre molts dispositius. 
+<strong>Al BernatLab:</strong> la Raspberry surt a Internet a traves del router de casa fent NAT; per aixi la IP publica no es veu des de fora sense fer port forwarding. 
+Veure: capitol 4.</p>
+<h3 class="term">Firewall (tallafoc)</h3>
+<p>Sistema que filtra el trafic de xarxa segons regles: permet o denega connexions per IP, port, protocol o direccio. 
+<strong>Al BernatLab:</strong> tenim el tallafoc del router (WAN) i un tallafoc de host amb UFW. 
+Veure: capitol 47 (fail2ban i tallafocs).</p>
+<h3 class="term">VPN (Virtual Private Network)</h3>
+<p>Connexio xifrada que crea un "tunel" segur entre dos punts a traves d'una xarxa no confiable com Internet. Permet accedir a la xarxa de casa des de fora com si hi fossis fisicament. 
+<strong>Al BernatLab:</strong> Tailscale actua com a VPN basada en WireGuard, creant una xarxa privada entre la Raspberry, el Mac, el mobil i el portatil de viatge. 
+Veure: capitols 4 i 44.</p>
+<h3 class="term">Tailscale</h3>
+<p>Servei de VPN mesh basat en WireGuard que crea una xarxa privada entre dispositius sense necessitat d'obrir ports al router. Inclou MagicDNS i ACLs. 
+<strong>Al BernatLab:</strong> es la columna vertebral de la nostra xarxa: tots els serveis s'accedeixen nomes a traves de Tailscale, mai directament per Internet. 
+Veure: capitols 4, 44, 59.</p>
+<h3 class="term">MagicDNS</h3>
+<p>Funcionalitat de Tailscale que resol automticament els noms dels nodes de la xarxa Tailscale sense configurar un servidor DNS manual. 
+<strong>Al BernatLab:</strong> podem fer <code>ssh bernat@pi</code> en lloc de buscar la IP <code>100.x.y.z</code>. 
+Veure: capitols 4 i 44.</p>
+<h3 class="term">ACL (Access Control List)</h3>
+<p>Llista de regles que defineix que pot fer cada usuari o dispositiu dins d'una xarxa o servei. A Tailscale, les ACLs determinen quin node pot accedir a quin altre node i per quin port. 
+<strong>Al BernatLab:</strong> el node <code>pi</code> pot accedir a <code>mac</code> per SSH (port 22), pero <code>mac</code> no pot accedir a <code>pi</code> per Portainer (port 9000) si no ho permetem explicitament. 
+Veure: capitol 44.</p>
+<h3 class="term">Node</h3>
+<p>Dispositiu dins d'una xarxa. A Tailscale, cada maquina que hi esta connectada es considera un node. 
+<strong>Al BernatLab:</strong> els nodes son la Raspberry Pi (<code>pi</code>), el Mac (<code>mac</code>), el portatil (<code>laptop</code>), el servidor VPS (<code>vps</code>) i el mobil (<code>phone</code>). 
+Veure: capitols 4 i 44.</p>
+<h3 class="term">SSH (Secure Shell)</h3>
+<p>Protocol de xarxa que permet accedir a la linia de comandes d'un servidor remot de forma xifrada. Substitueix telnet i FTP sense xifrat. 
+<strong>Al BernatLab:</strong> es la porta d'entrada al servidor. <code>ssh bernat@pi</code> ens connecta a la Raspberry des de qualsevol node de Tailscale. 
+Veure: capitol 4.</p>
+<h3 class="term">Clau publica / clau privada</h3>
+<p>Parell de fitxers criptografics: la clau privada es queda al teu dispositiu i es secreta; la clau publica es copia al servidor. Serviran per autenticacio sense contrasenya. 
+<strong>Al BernatLab:</strong> tenim una clau Ed25519 generada al Mac, la clau publica copiada a <code>~/.ssh/authorized_keys</code> de la Raspberry, i la privada protegida a <code>~/.ssh/id_ed25519</code>. 
+Veure: capitol 4.</p>
+<h3 class="term">Agent SSH</h3>
+<p>Programa que desa les claus privades desxifrades en memoria per evitar haver-les d'introduir cada vegada. Es el <code>ssh-agent</code> a Unix o Pageant a Windows. 
+<strong>Al BernatLab:</strong> <code>ssh-add ~/.ssh/id_ed25519</code> despres d'arrencar l'agent permet fer multiples connexions SSH sense reintroduir la passphrase. 
+Veure: capitol 4.</p>
+<h3 class="term">TLS (Transport Layer Security)</h3>
+<p>Protocol criptografic que xifra el transit entre client i servidor. Es el successor de SSL. 
+<strong>Al BernatLab:</strong> tots els serveis web exposats a Internet haurien d'anar sobre TLS, ja sigui amb Tailscale HTTPS o amb un reverse proxy + Let's Encrypt. 
+Veure: capitols 20, 38, 44.</p>
+<h3 class="term">Certificat (digital)</h3>
+<p>Document electronic signat per una autoritat de certificacio (CA) que garanteix que una clau publica pertany a un domini concret. 
+<strong>Al BernatLab:</strong> els certificats de Let's Encrypt es renoven automaticament cada 90 dies amb un client ACME. 
+Veure: capitol 20.</p>
+<h3 class="term">Let's Encrypt</h3>
+<p>Autoritat de certificacio gratuita, automatitzada i oberta que emet certificats TLS valids per qualsevol domini. 
+<strong>Al BernatLab:</strong> l'usem per exposar serveis amb HTTPS valid (cadenat verd al navegador) sense pagar. 
+Veure: capitol 20.</p>
+<h3 class="term">HTTP / HTTPS</h3>
+<p>HTTP es el protocol base de la web (port 80). HTTPS es HTTP sobre TLS (port 443), xifrat. 
+<strong>Al BernatLab:</strong> Tailscale exposa serveis HTTP que es beneficien d'HTTPS automatic gestionat per Tailscale. 
+Veure: capitols 4, 20, 38.</p>
+<h3 class="term">REST (Representational State Transfer)</h3>
+<p>Estil d'arquitectura per dissenyar APIs web on cada URL representa un recurs i les operacions es fan amb verbs HTTP (GET, POST, PUT, DELETE). 
+<strong>Al BernatLab:</strong> la nostra API publica de dades de sensors segueix principis REST (<code>GET /api/sensors/temperature?range=24h</code>). 
+Veure: capitol 20.</p>
+<h3 class="term">API (Application Programming Interface)</h3>
+<p>Conjunt de definicions i protocols que permeten que dues aplicacions es comuniquin. Una API web es sol exposar sobre HTTP/HTTPS. 
+<strong>Al BernatLab:</strong> consumim la API d'Ollama per fer consultes al LLM local i exposem una API propia de dades de sensors. 
+Veure: capitols 20, 39.</p>
+<h3 class="term">JSON (JavaScript Object Notation)</h3>
+<p>Format de text estructurat en parells clau-valor i llistes, molt utilitzat per intercanviar dades entre serveis. 
+<strong>Al BernatLab:</strong> tots els missatges MQTT que publiquen els sensors van en JSON: <code>{"temp": 21.4, "hum": 58, "ts": 1712345678}</code>. 
+Veure: capitols 12, 14, 20.</p>
+<h3 class="term">WireGuard</h3>
+<p>Protocol de VPN modern, rapid i minimalista, basat en criptografia d'elliptic curves. Es el cor de Tailscale. 
+<strong>Al BernatLab:</strong> mai no configurem WireGuard directament, pero Tailscale l'utilitza per sota. 
+Veure: capitol 4.</p>
+<h3 class="term">LAN / WAN</h3>
+<p>LAN (Local Area Network) es la xarxa local de casa; WAN (Wide Area Network) es Internet o la xarxa de l'operador. 
+<strong>Al BernatLab:</strong> la Raspberry es a la LAN; el portatil de viatge accedeix a la LAN a traves de Tailscale. 
+Veure: capitol 4.</p>
+<h3 class="term">Port forwarding</h3>
+<p>Regla al router que redirigeix un port entrant de la WAN a un port concret d'un dispositiu de la LAN. 
+<strong>Al BernatLab:</strong> evitem fer-ne servir gracies a Tailscale, que no requereix obrir cap port al router. 
+Veure: capitol 4.</p>
+<hr>
+<h2>Maquinari</h2>
+<h3 class="term">Raspberry Pi</h3>
+<p>Ordinador de placa unica (SBC) de mida targeta de credit, fabricat per la Raspberry Pi Foundation. Es el cor del BernatLab. 
+<strong>Al BernatLab:</strong> la Raspberry Pi 4 amb 4 o 8 GB de RAM allotja tots els serveis via Docker. 
+Veure: capitols 2, 57, 59.</p>
+<h3 class="term">ARM</h3>
+<p>Arquitectura de processador RISC usada per la Raspberry Pi i per quasi tots els telefoncs. Es diferent de x86 (Intel/AMD) i algunes imatges Docker no hi son compatibles. 
+<strong>Al BernatLab:</strong> triem imatges Docker multiarch (linux/arm64 o linux/arm/v7) perque la Pi 4 es ARMv8. 
+Veure: capitol 2.</p>
+<h3 class="term">CPU (Unitat Central de Proces)</h3>
+<p>El processador principal del sistema. 
+<strong>Al BernatLab:</strong> la Pi 4 te un Broadcom BCM2711 amb 4 nuclis Cortex-A72 a 1.8 GHz. 
+Veure: capitol 2.</p>
+<h3 class="term">RAM (Random Access Memory)</h3>
+<p>Memoria de treball volatil on el sistema i les aplicacions carreguen dades actives. Es perd en apagar. 
+<strong>Al BernatLab:</strong> la Pi 4 amb 4 GB limita quants contenidors podem tenir simultanis. Monitoritzem l'us amb Prometheus i Grafana. 
+Veure: capitols 2, 52, 67.</p>
+<h3 class="term">microSD</h3>
+<p>Targeta de memoria flash on viu el sistema operatiu de la Raspberry. Es l'arrel d'arrencada. 
+<strong>Al BernatLab:</strong> usem una microSD de 32 GB o mes, classe A2 per millor rendiment. 
+Veure: capitol 2.</p>
+<h3 class="term">GPIO (General Purpose Input/Output)</h3>
+<p>Pins fisics de la Raspberry que es poden programar com a entrada o sortida digital per connectar sensors, LEDs, relés, etc. 
+<strong>Al BernatLab:</strong> usem GPIO per llegir sensors casolans o controlar un relé d'enllumenat. 
+Veure: capítols 2, 28, 59.</p>
+<h3 class="term">Ethernet</h3>
+<p>Standard de xarxa per cable (RJ45). Es la connexio mes estable i rapida. 
+<strong>Al BernatLab:</strong> la Pi esta connectada per Ethernet al router per minimitzar latencia i desconnexions. 
+Veure: capítols 2, 4, 27.</p>
+<h3 class="term">Wi-Fi</h3>
+<p>Standard de xarxa sense fils (IEEE 802.11). 
+<strong>Al BernatLab:</strong> la Wi-Fi es reserva per a dispositius mobils o per a una Raspberry sense Ethernet. 
+Veure: capítols 2, 4.</p>
+<h3 class="term">USB (Universal Serial Bus)</h3>
+<p>Standard de connexio per a periferics: tecles, discs, modems, sensors. 
+<strong>Al BernatLab:</strong> el gateway LoRa es connecta per USB a la Raspberry. 
+Veure: capítols 2, 27.</p>
+<h3 class="term">HDMI</h3>
+<p>Connector de video/audio digital. 
+<strong>Al BernatLab:</strong> nomes l'usem per instal·lacio inicial; un cop configurada, la Raspberry va sense pantalla. 
+Veure: capitol 2.</p>
+<h3 class="term">Font d'alimentacio</h3>
+<p>Dispositiu que subministra electricitat al maquinari. La Raspberry Pi 4 necessita 5V i almenys 3A per USB-C. 
+<strong>Al BernatLab:</strong> usem la font oficial de 5.1V/3.0A per evitar avisos de baixa tensio que farien throttling. 
+Veure: capítols 2, 57.</p>
+<h3 class="term">Voltatge</h3>
+<p>Diferencia de potencial electric, mesurat en volts (V). 
+<strong>Al BernatLab:</strong> 5V per a la Pi, 3.3V per als GPIO, 12V per a alguns sensors. 
+Veure: capitols 2, 24, 28.</p>
+<h3 class="term">Amperatge</h3>
+<p>Intensitat del corrent electric, mesurada en ampers (A). 
+<strong>Al BernatLab:</strong> una font de 5V/3A pot subministrar fins a 3 ampers, que es el minim recomanat per a la Pi 4 amb disc USB. 
+Veure: capítols 2, 28.</p>
+<h3 class="term">Temperatura</h3>
+<p>Mesura termica en graus Celsius. Les RPi es poden escalfar molt i afecten el rendiment. 
+<strong>Al BernatLab:</strong> grafiquem la temperatura de la CPU per anticipar throttling. 
+Veure: capítols 2, 52, 67.</p>
+<h3 class="term">Throttling</h3>
+<p>Reduccio automatica de la frequencia del processador per evitar que es faci malbe per calor excessiva. 
+<strong>Al BernatLab:</strong> veiem pics de throttling a l'estiu si la Pi es en un armari tancat. La mitigem amb dissipadors o un ventilador. 
+Veure: capitols 2, 67.</p>
+<h3 class="term">Sensor</h3>
+<p>Dispositiu que mesura una magnitud fisica (temperatura, humitat, llum, etc.) i la converteix en un senyal electric. 
+<strong>Al BernatLab:</strong> tenim sensors de temperatura i humitat, sensors de substrat, i un node LoRa amb BME280. 
+Veure: capítols 14, 23, 28.</p>
+<h3 class="term">Actuador</h3>
+<p>Dispositiu que realitza una accio fisica (obrir una valvula, encendre un LED) a partir d'un senyal electric. 
+<strong>Al BernatLab:</strong> tenim un actuador per obrir/tancar el reg del hort, controlat per Node-RED. 
+Veure: capítols 17, 18.</p>
+<h3 class="term">Microcontrolador</h3>
+<p>Xip que integra CPU, memoria i perifèrics en un sol circuit, optimitzat per controlar dispositius electronics. 
+<strong>Al BernatLab:</strong> els nodes LoRa utilitzen un microcontrolador ESP32-S3 o STM32WL. 
+Veure: capítols 28, 29.</p>
+<h3 class="term">ESP32</h3>
+<p>Familia de microcontroladors de baix cost amb Wi-Fi i Bluetooth integrats, fabricats per Espressif. 
+<strong>Al BernatLab:</strong> molt usat en nodes sensors DIY per la seva facilitat de programacio amb Arduino IDE o MicroPython. 
+Veure: capítols 28, 29.</p>
+<h3 class="term">Disc SSD extern</h3>
+<p>Disc dur d'estat solid connectat per USB, usat com a emmagatzematge persistent per a la Raspberry. 
+<strong>Al BernatLab:</strong> l'usem per moure la base de dades d'InfluxDB fora de la microSD i evitar-ne el desgast. 
+Veure: capítols 15, 22, 45.</p>
+<hr>
+<h2>Sistema operatiu Linux</h2>
+<h3 class="term">Kernel</h3>
+<p>Nucleu del sistema operatiu, el programa que gestiona CPU, memoria, dispositius i processos. 
+<strong>Al BernatLab:</strong> fem servir el kernel de Raspberry Pi OS basat en Linux 6.x. 
+Veure: capitol 3.</p>
+<h3 class="term">Distribucio</h3>
+<p>Paquet que inclou el kernel Linux, un sistema d'instal·lacio, un gestor de paquets i un entorn d'usuari. 
+<strong>Al BernatLab:</strong> Raspberry Pi OS Lite (sense escriptori) es la nostra distribucio. 
+Veure: capitols 2, 3.</p>
+<h3 class="term">Debian</h3>
+<p>Una de les distribucions Linux mes exteses i estables. Es la base de Raspberry Pi OS i d'Ubuntu. 
+<strong>Al BernatLab:</strong> la majoria de documentacio de Debian ens serveix directament per a Raspberry Pi OS. 
+Veure: capitol 3.</p>
+<h3 class="term">Raspberry Pi OS</h3>
+<p>Distribucio oficial basada en Debian optimitzada per a la Raspberry Pi. 
+<strong>Al BernatLab:</strong> la versio Lite (sense entorn grafic) es la mes eficient per servidors. 
+Veure: capitols 2, 3, 59.</p>
+<h3 class="term">Sistema de fitxers</h3>
+<p>Forma en que el sistema operatiu organitza els fitxers en un disc. Exemples: ext4, FAT32, NTFS, btrfs, ZFS. 
+<strong>Al BernatLab:</strong> la microSD porta ext4, que es el standard a Linux. 
+Veure: capitol 3.</p>
+<h3 class="term">Particio</h3>
+<p>Divisio logica d'un disc. Cada particio te el seu propi sistema de fitxers. 
+<strong>Al BernatLab:</strong> tenim una particio a la microSD (<code>/</code>) i una altra al SSD extern (<code>/mnt/dades</code>). 
+Veure: capitol 3.</p>
+<h3 class="term">mount</h3>
+<p>Accio de fer accessible una particio o un sistema de fitxers dins l'arbre de directoris. 
+<strong>Al BernatLab:</strong> muntem el SSD a <code>/mnt/dades</code> cada arrencada. 
+Veure: capitol 3.</p>
+<h3 class="term">fstab</h3>
+<p>Fixer <code>/etc/fstab</code> que llista els sistemes de fitxers que es munten automaticament en arrencar. 
+<strong>Al BernatLab:</strong> hi afegim el SSD perque es munti automaticament. 
+Veure: capítols 3, 22.</p>
+<h3 class="term">Usuari / grup</h3>
+<p>Linux es multiusuari. Cada compte te un UID numeric i pertany a un o mes grups. 
+<strong>Al BernatLab:</strong> l'usuari <code>bernat</code> pertany als grups <code>sudo</code>, <code>docker</code>, <code>dialout</code> i <code>gpio</code>. 
+Veure: capitols 3, 48, 60.</p>
+<h3 class="term">Permisos</h3>
+<p>Sistema que defineix que pot fer cada usuari sobre cada fitxer. Son tres bits: lectura (r), escriptura (w), execucio (x), per a tres actors: propietari (u), grup (g), altres (o). 
+<strong>Al BernatLab:</strong> els fitxers de configuracio tenen permisos <code>600</code> (només el propietari llegeix i escriu). 
+Veure: capitol 3.</p>
+<h3 class="term">chmod</h3>
+<p>Comanda per canviar els permisos d'un fitxer o directori. 
+<strong>Al BernatLab:</strong> <code>chmod 600 ~/.ssh/id_ed25519</code> protegeix la clau privada. 
+Veure: capitols 3, 4.</p>
+<h3 class="term">chown</h3>
+<p>Comanda per canviar el propietari i el grup d'un fitxer o directori. 
+<strong>Al BernatLab:</strong> <code>sudo chown -R influxdb:influxdb /mnt/dades/influxdb</code>. 
+Veure: capitol 3.</p>
+<h3 class="term">Sudo</h3>
+<p>Comanda que permet executar altres comandes amb privilegis de superusuari (root). 
+<strong>Al BernatLab:</strong> l'usuari <code>bernat</code> pot fer <code>sudo</code> gracies a pertanyer al grup <code>sudo</code>. 
+Veure: capítols 3, 48.</p>
+<h3 class="term">Root</h3>
+<p>Superusuari de Linux, amb acces absolut al sistema. UID 0. 
+<strong>Al BernatLab:</strong> mai no ens hi connectem directament; sempre usem <code>sudo</code>. 
+Veure: capítols 3, 48, 60.</p>
+<h3 class="term">PATH</h3>
+<p>Variable d'entorn que llista els directoris on el shell busca les comandes. 
+<strong>Al BernatLab:</strong> afegim <code>~/.local/bin</code> al PATH per tenir les eines de Python. 
+Veure: capitol 3.</p>
+<h3 class="term">Servei</h3>
+<p>Programa que s'executa en segon pla i ofereix una funcionalitat continua. 
+<strong>Al BernatLab:</strong> Docker, Mosquitto, Grafana, Node-RED son serveis. 
+Veure: capítols 3, 5, 12.</p>
+<h3 class="term">systemd</h3>
+<p>Sistema d'inicialitzacio i gestor de serveis de la majoria de distribucions Linux modernes. 
+<strong>Al BernatLab:</strong> gestiona l'arrencada de Docker i dels seus contenidors. 
+Veure: capitols 3, 22, 54.</p>
+<h3 class="term">Unit (unitat systemd)</h3>
+<p>Definicio d'un recurs que systemd pot gestionar: servei, timer, mount, socket, target, etc. 
+<strong>Al BernatLab:</strong> tenim un timer que executa el backup diariament. 
+Veure: capítols 22, 45, 54.</p>
+<h3 class="term">journalctl</h3>
+<p>Comanda per consultar els logs del sistema que desa systemd. 
+<strong>Al BernatLab:</strong> <code>journalctl -u docker -f</code> ens mostra els logs de Docker en temps real. 
+Veure: capítols 3, 49, 56.</p>
+<h3 class="term">Proces</h3>
+<p>Instancia d'un programa en execucio, identificada per un PID unic. 
+<strong>Al BernatLab:</strong> cada contenidor Docker es un proces per al sistema operatiu amfitrio. 
+Veure: capitol 3.</p>
+<h3 class="term">PID (Process Identifier)</h3>
+<p>Numero unic que identifica un proces en el sistema. 
+<strong>Al BernatLab:</strong> <code>ps aux</code> ens mostra tots els PIDs actius. 
+Veure: capitol 3.</p>
+<h3 class="term">Signal</h3>
+<p>Senyal que s'envia a un proces per comunicar-li algo (aturar-se, recarregar, etc.). 
+<strong>Al BernatLab:</strong> enviem <code>SIGTERM</code> (15) per aturar un contenidor de manera neta. 
+Veure: capítols 3, 5.</p>
+<h3 class="term">kill</h3>
+<p>Comanda per enviar un signal a un proces. 
+<strong>Al BernatLab:</strong> <code>kill 1234</code> envia SIGTERM al proces amb PID 1234. 
+Veure: capitol 3.</p>
+<h3 class="term">Paquet</h3>
+<p>Arxiu que conte un programa i les seves metadades, preparat per ser instal·lat pel gestor de paquets. 
+<strong>Al BernatLab:</strong> <code>docker-ce</code>, <code>mosquitto</code>, <code>curl</code> son exemples de paquets Debian. 
+Veure: capitol 3.</p>
+<h3 class="term">APT (Advanced Package Tool)</h3>
+<p>Gestor de paquets de Debian i derivats. 
+<strong>Al BernatLab:</strong> <code>sudo apt install mosquitto-clients</code> per instal·lar el client MQTT. 
+Veure: capitol 3.</p>
+<h3 class="term">Repositori</h3>
+<p>Servidor que allotja paquets per a una distribucio concreta. 
+<strong>Al BernatLab:</strong> afegim el repositori oficial de Docker per tenir versions actualitzades. 
+Veure: capítols 3, 61.</p>
+<h3 class="term">snap</h3>
+<p>Sistema d'instal·lacio universal de paquets, gestionat per Canonical. Alternativa als paquets nadius. 
+<strong>Al BernatLab:</strong> no l'usem, preferim Docker o APT. 
+Veure: capitol 3.</p>
+<h3 class="term">Shell</h3>
+<p>Programa que interpreta les comandes de l'usuari. 
+<strong>Al BernatLab:</strong> el shell per defecte a la Pi es bash. 
+Veure: capitol 3.</p>
+<h3 class="term">bash</h3>
+<p>Un dels shells mes estesos a Linux. Es el per defecte a Raspberry Pi OS. 
+<strong>Al BernatLab:</strong> els nostres scripts de manteniment son <code>.sh</code> executables per bash. 
+Veure: capítols 3, 54, 55.</p>
+<h3 class="term">Terminal</h3>
+<p>Programa que mostra un shell en una finestra. 
+<strong>Al BernatLab:</strong> accedim al terminal de la Pi per SSH amb el terminal nadiu del Mac o amb Windows Terminal. 
+Veure: capitol 3.</p>
+<h3 class="term">stdout / stderr</h3>
+<p>Canals de sortida estandard d'un proces: stdout per a la sortida normal, stderr per a errors. 
+<strong>Al BernatLab:</strong> redirigim <code>stderr</code> a un fitxer de log separat. 
+Veure: capítols 3, 49, 54.</p>
+<h3 class="term">pipe</h3>
+<p>Operador <code>|</code> que connecta la sortida d'una comanda amb l'entrada d'una altra. 
+<strong>Al BernatLab:</strong> <code>docker ps | grep mosquitto</code> filtra els contenidors que contenen "mosquitto". 
+Veure: capitol 3.</p>
+<h3 class="term">Cron</h3>
+<p>Dimoni que executa comandes programades a hores determinades. 
+<strong>Al BernatLab:</strong> el backup diari es programa amb cron (o amb un timer de systemd). 
+Veure: capítols 22, 45, 54.</p>
+<h3 class="term">Cron</h3>
+<p>Dimoni que executa comandes a intervals regulars segons un fitxer crontab. 
+<strong>Al BernatLab:</strong> <code>0 3 * * * /opt/bernatlab/backup.sh</code> llança el backup cada nit a les 3:00. 
+Veure: capítols 22, 45, 54.</p>
+<h3 class="term">systemd-timer</h3>
+<p>Alternativa moderna a cron, integrada amb systemd i els seus logs. 
+<strong>Al BernatLab:</strong> preferim timers abans que cron per tenir logs centralitzats a journald. 
+Veure: capítols 22, 54, 55.</p>
+<h3 class="term">entorn grafic / GUI</h3>
+<p>Entorn d'escriptori amb finestres, icones i ratoli. 
+<strong>Al BernatLab:</strong> la Pi no te entorn grafic per estalviar recursos; tot es fa per linia de comandes o via web. 
+Veure: capítols 2, 3.</p>
+<h3 class="term">headless</h3>
+<p>Servidor sense pantalla, teclat ni ratoli connectats. Es gestiona remotament. 
+<strong>Al BernatLab:</strong> la Raspberry opera headless des del primer dia. 
+Veure: capítols 2, 4, 59.</p>
+<h3 class="term">SSH</h3>
+<p>Veure l'entrada a Xarxa i connectivitat.</p>
+<hr>
+<h2>Contenidors i Docker</h2>
+<h3 class="term">Contenidor</h3>
+<p>Instancia aillada d'un programa que s'executa sobre el kernel de l'amfitrio, amb el seu propi sistema de fitxers, xarxa i processos. Es una alternativa mes lleugera a una maquina virtual. 
+<strong>Al BernatLab:</strong> cada servei (Grafana, InfluxDB, Mosquitto, Node-RED) corre dins del seu propi contenidor. 
+Veure: capítols 5, 6, 61.</p>
+<h3 class="term">Imatge</h3>
+<p>Plantilla de solament lectura que serveix com a base per crear un contenidor. Conte el sistema de fitxers, llibreries i el codi de l'aplicacio. 
+<strong>Al BernatLab:</strong> la imatge <code>grafana/grafana:10.4.0</code> es la que usem per crear el contenidor de Grafana. 
+Veure: capitol 5.</p>
+<h3 class="term">Dockerfile</h3>
+<p>Fixer de text amb les instruccions per construir una imatge Docker pas a pas. 
+<strong>Al BernatLab:</strong> no n'escrivim cap (usem imatges oficials), pero els entenem per a futurs serveis custom. 
+Veure: capitol 5.</p>
+<h3 class="term">Volum</h3>
+<p>Mecanisme per persistir dades d'un contenidor fora del seu sistema de fitxers temporal. 
+<strong>Al BernatLab:</strong> el volum <code>influxdb-data</code> manté la base de dades encara que el contenidor es recrei. 
+Veure: capítols 5, 15, 22.</p>
+<h3 class="term">xarxa Docker</h3>
+<p>Xarxa virtual gestionada per Docker que connecta contenidors entre si. 
+<strong>Al BernatLab:</strong> creem una xarxa anomenada <code>bernatlab</code> per on es comuniquen tots els serveis. 
+Veure: capítols 5, 6, 61.</p>
+<h3 class="term">link (enllaç)</h3>
+<p>Connexio entre contenidors que els permet comunicar-se per nom dins la mateixa xarxa Docker. 
+<strong>Al BernatLab:</strong> avui dia preferim les xarxes Docker definides explicitament. 
+Veure: capitol 5.</p>
+<h3 class="term">Docker Compose</h3>
+<p>Eina que permet definir i orquestrar multiples contenidors amb un sol fitxer <code>docker-compose.yml</code>. 
+<strong>Al BernatLab:</strong> tot el BernatLab es defineix en un o mes fitxers <code>compose.yaml</code> que mantenim al repo. 
+Veure: capítols 5, 6, 61.</p>
+<h3 class="term">servei (a Compose)</h3>
+<p>Bloc dins d'un <code>docker-compose.yml</code> que defineix un contenidor concret. 
+<strong>Al BernatLab:</strong> el servei <code>mosquitto</code> configura el contenidor del broker MQTT. 
+Veure: capítols 5, 6, 13, 61.</p>
+<h3 class="term">stack</h3>
+<p>Conjunt de serveis que s'executen conjuntament, generalment definits en un <code>compose.yaml</code> i desplegats amb Portainer. 
+<strong>Al BernatLab:</strong> el "stack bernatlab" conte 12 serveis: mosquitto, influxdb, telegraf, nodered, grafana, prometheus, etc. 
+Veure: capítols 5, 6.</p>
+<h3 class="term">Registre / Hub</h3>
+<p>Repositori d'imatges Docker accessible per xarxa. Docker Hub es el mes conegut. 
+<strong>Al BernatLab:</strong> descarreguem imatges de Docker Hub (<code>docker pull grafana/grafana</code>). 
+Veure: capitol 5.</p>
+<h3 class="term">pull / push</h3>
+<p><code>docker pull</code> descarrega una imatge des d'un registre; <code>docker push</code> hi puja una imatge local. 
+<strong>Al BernatLab:</strong> <code>docker compose pull</code> actualitza totes les imatges del stack. 
+Veure: capítols 5, 6, 22.</p>
+<h3 class="term">Multi-stage build</h3>
+<p>Tecnica de Dockerfile que permet construir una imatge en multiples etapes per obtenir una imatge final mes petita i segura. 
+<strong>Al BernatLab:</strong> l'usem quan escribim imatges custom per allotjar scripts de Python. 
+Veure: capitol 5.</p>
+<h3 class="term">Layer ( capa)</h3>
+<p>Cada instruccio d'un Dockerfile genera una capa a la imatge. Docker reutilitza capes no modificades per accelerar les construccions. 
+<strong>Al BernatLab:</strong> combinar <code>RUN apt update &amp;&amp; apt install</code> en una sola capa evita imatges inflades. 
+Veure: capitol 5.</p>
+<h3 class="term">Portainer</h3>
+<p>Eina web per gestionar Docker de forma visual: contenidors, imatges, volums, xarxes, stacks. 
+<strong>Al BernatLab:</strong> Portainer es la nostra GUI principal per administrar el stack. 
+Veure: capítols 6, 61.</p>
+<h3 class="term">Traefik</h3>
+<p>Reverse proxy i balancejador modern pensat per a Docker, amb deteccio automatica de serveis i TLS automatic. 
+<strong>Al BernatLab:</strong> es l'opcio que mirem per exposar serveis amb HTTPS valid sense Tailscale. 
+Veure: capitol 20.</p>
+<h3 class="term">Nginx</h3>
+<p>Servidor web i reverse proxy molt utilizat i madur. 
+<strong>Al BernatLab:</strong> l'usem com a reverse proxy dins d'alguns serveis i per allotjar el web estatic del projecte. 
+Veure: capítols 8, 20.</p>
+<h3 class="term">Watchtower</h3>
+<p>Contenidor que vigila les imatges dels altres contenidors i els actualitza automaticament. 
+<strong>Al BernatLab:</strong> el tenim en proves; per entorns productius prefereixo actualitzar manualment. 
+Veure: capitol 22.</p>
+<h3 class="term">restart policy</h3>
+<p>Regla que defineix quan Docker ha de reiniciar un contenidor: <code>no</code>, <code>on-failure</code>, <code>always</code>, <code>unless-stopped</code>. 
+<strong>Al BernatLab:</strong> tots els nostres serveis son <code>restart: unless-stopped</code> perque es reiniciin si la Pi es reinicia. 
+Veure: capítols 5, 6, 22.</p>
+<h3 class="term">healthcheck</h3>
+<p>Prova que Docker fa periodica al contenidor per saber si esta sa. 
+<strong>Al BernatLab:</strong> Grafana, InfluxDB i Mosquitto porten healthcheck definit al compose. 
+Veure: capítols 5, 6, 22.</p>
+<hr>
+<h2>Dades i bases de dades</h2>
+<h3 class="term">Base de dades</h3>
+<p>Sistema que permet emmagatzemar, consultar i actualitzar dades de forma persistent i estructurada. 
+<strong>Al BernatLab:</strong> tenim InfluxDB per a dades temporals de sensors i, per a metadades, avaluem SQLite. 
+Veure: capítols 15, 22.</p>
+<h3 class="term">SQL (Structured Query Language)</h3>
+<p>Llenguatge estandard per fer consultes a bases de dades relacionals. 
+<strong>Al BernatLab:</strong> les consultes a InfluxDB 1.x usen una variant d'SQL anomenada InfluxQL. 
+Veure: capitol 15.</p>
+<h3 class="term">NoSQL</h3>
+<p>Categoria de bases de dades que no usen el model relacional: documentals, clau-valor, columnars, graf. 
+<strong>Al BernatLab:</strong> InfluxDB es considera NoSQL per la seva estructura de series temporals. 
+Veure: capitol 15.</p>
+<h3 class="term">Taula</h3>
+<p>Estructura d'una base de dades relacional que organitza les dades en files i columnes. 
+<strong>Al BernatLab:</strong> a PostgreSQL (si l'usessim), tindriem una taula <code>sensors</code> amb columnes <code>id</code>, <code>nom</code>, <code>tipus</code>, <code>ubicacio</code>. 
+Veure: capitols 15, 22.</p>
+<h3 class="term">Columna / fila</h3>
+<p>Una columna es un camp de la taula; una fila es un registre concret. 
+<strong>Al BernatLab:</strong> cada lectura de sensor es una fila amb columnes <code>sensor_id</code>, <code>valor</code>, <code>timestamp</code>. 
+Veure: capitol 15.</p>
+<h3 class="term">Primary key</h3>
+<p>Columna o conjunt de columnes que identifica univocament cada fila d'una taula. 
+<strong>Al BernatLab:</strong> a la taula <code>lectures</code>, la primary key es la composicio <code>(sensor_id, timestamp)</code>. 
+Veure: capitol 15.</p>
+<h3 class="term">Index</h3>
+<p>Estructura auxiliar que accelera les consultes a una taula. 
+<strong>Al BernatLab:</strong> InfluxDB ja porta un index temporal implicit que fa rapides les consultes per rang. 
+Veure: capitol 15.</p>
+<h3 class="term">SQLite</h3>
+<p>Base de dades relacional embeguda en un unic fitxer, sense servidor separat. 
+<strong>Al BernatLab:</strong> la fem servir per guardar configuracio i metadades petites (per exemple, l'estat del Hort Osona). 
+Veure: capítols 21, 22.</p>
+<h3 class="term">PostgreSQL</h3>
+<p>Base de dades relacional open source molt robusta i extesa. 
+<strong>Al BernatLab:</strong> la considerem per a metadades de llarga vida (cataleg de sensors, usuaris). 
+Veure: capitol 22.</p>
+<h3 class="term">InfluxDB</h3>
+<p>Base de dades de series temporals open source, pensada per a dades amb marca de temps (metrics, sensors, events). 
+<strong>Al BernatLab:</strong> es la base de dades principal del BernatLab. Emmagatzema lectures de temperatura, humitat, etc. 
+Veure: capitol 15.</p>
+<h3 class="term">TimescaleDB</h3>
+<p>Extensio de PostgreSQL que afegeix capacitats de serie temporal: hypertable, compressio, retencio automatica. 
+<strong>Al BernatLab:</strong> l'avaluem com a substitut d'InfluxDB si mai necessitem transaccions SQL. 
+Veure: capitol 15.</p>
+<h3 class="term">Continuous query</h3>
+<p>Consulta a InfluxDB 1.x que s'executa periodicament i desa el resultat en una nova serie agregada. 
+<strong>Al BernatLab:</strong> la fem servir per calcular la mitjana horaria de temperatura. 
+Veure: capítols 15, 18, 52.</p>
+<h3 class="term">Retention policy (politica de retencio)</h3>
+<p>Regla que defineix quant de temps es guarden les dades d'una serie temporal. 
+<strong>Al BernatLab:</strong> tenim una retencio de 90 dies per a dades en cru i 5 anys per a dades agregades. 
+Veure: capitols 15, 22, 45.</p>
+<h3 class="term">Bucket</h3>
+<p>Contenidor logic dins d'InfluxDB 2.x que agrupa dades amb una politica de retencio. 
+<strong>Al BernatLab:</strong> el bucket <code>sensors</code> desa les lectures en cru; el bucket <code>sensors_agregats</code> desa les mitjanes horaries. 
+Veure: capitol 15.</p>
+<h3 class="term">Measurement</h3>
+<p>Equivalent a una "taula" a InfluxDB: un tipus de dada amb camps i etiquetes. 
+<strong>Al BernatLab:</strong> tenim els measurements <code>temperature</code>, <code>humitat</code>, <code>pressio</code>. 
+Veure: capitol 15.</p>
+<h3 class="term">Tag</h3>
+<p>A InfluxDB, etiqueta indexada que serveix per filtrar i agrupar (per exemple, <code>sensor_id</code>, <code>ubicacio</code>). 
+<strong>Al BernatLab:</strong> el tag <code>sensor_id</code> ens permet filtrar rapidament les dades d'un sensor concret. 
+Veure: capítols 14, 15, 19.</p>
+<h3 class="term">Field</h3>
+<p>A InfluxDB, valor numeric no indexat associat a un measurement. 
+<strong>Al BernatLab:</strong> els camps <code>value=21.4</code> contenen la lectura real del sensor. 
+Veure: capítols 14, 15.</p>
+<h3 class="term">Backup</h3>
+<p>Copia de seguretat de les dades per poder-les restaurar en cas d'incident. 
+<strong>Al BernatLab:</strong> backup diari amb Restic de la base de dades, configuracions i volum de Grafana. 
+Veure: capítols 22, 45, 50.</p>
+<h3 class="term">Restore</h3>
+<p>Accio de recuperar dades des d'un backup. 
+<strong>Al BernatLab:</strong> restaurem InfluxDB des del darrer backup valid quan calgui. 
+Veure: capítols 22, 45, 50.</p>
+<h3 class="term">Dump</h3>
+<p>Exportacio completa d'una base de dades a un fitxer. 
+<strong>Al BernatLab:</strong> <code>influx backup</code> genera un dump que es pot restaurar en un altre node. 
+Veure: capitols 15, 22, 45.</p>
+<h3 class="term">Snapshot</h3>
+<p>Estat consistent d'un volum o d'una maquina virtual en un moment donat. 
+<strong>Al BernatLab:</strong> abans d'actualitzar InfluxDB fem un snapshot del volum. 
+Veure: capítols 22, 45.</p>
+<h3 class="term">Restic</h3>
+<p>Eina de backups moderna, xifrada, amb deduplicacio i versionat. 
+<strong>Al BernatLab:</strong> Restic es la nostra eina principal de backups, amb desti a un disc extern i a un bucket S3. 
+Veure: capítols 22, 45.</p>
+<h3 class="term">Borg (BorgBackup)</h3>
+<p>Alternativa a Restic, tambe amb deduplicacio, xifrat i montatge de backups com a sistemes de fitxers. 
+<strong>Al BernatLab:</strong> considerat, pero ens quedem amb Restic per la seva simplicitat. 
+Veure: capitol 45.</p>
+<h3 class="term">rsync</h3>
+<p>Eina classica per sincronitzar fitxers entre maquines de manera incremental. 
+<strong>Al BernatLab:</strong> la fem servir per sincronitzar carpetes petites entre la Pi i el Mac. 
+Veure: capítols 22, 45.</p>
+<h3 class="term">Volum persistent</h3>
+<p>Volum Docker que sobreviu a la recreacio del contenidor i garanteix persistencia. 
+<strong>Al BernatLab:</strong> <code>influxdb-data</code> es un volum persistent nadiu de Docker. 
+Veure: capítols 5, 15, 22.</p>
+<h3 class="term">Volum muntat</h3>
+<p>Volum o directori de l'amfitrio muntat dins d'un contenidor, compartint fitxers amb el sistema amfitrio. 
+<strong>Al BernatLab:</strong> <code>/mnt/dades/influxdb</code> es munta dins del contenidor a <code>/var/lib/influxdb2</code>. 
+Veure: capítols 5, 15.</p>
+<h3 class="term">Sharding</h3>
+<p>Distribucio de dades entre multiples nodes o maquines per escalar. 
+<strong>Al BernatLab:</strong> no l'apliquem (un sol node), pero el tenim en compte per al futur. 
+Veure: capitol 22.</p>
+<h3 class="term">Replica</h3>
+<p>Copia d'una base de dades que es manté sincronitzada amb la principal per alta disponibilitat. 
+<strong>Al BernatLab:</strong> avui dia sense replica; en un futur, una replica en un VPS. 
+Veure: capitol 22.</p>
+<h3 class="term">WAL (Write-Ahead Log)</h3>
+<p>Registre previ a l'escriptura que permet recoverabilitat en cas de crash. 
+<strong>Al BernatLab:</strong> InfluxDB escriu primer al WAL i despres compacta; per aixi podem perdre pocs segons de dades en cas de tall. 
+Veure: capitol 15.</p>
+<hr>
+<h2>Monitoritzacio</h2>
+<h3 class="term">Metrica</h3>
+<p>Valor numeric mesurable d'un sistema, capturat periodicament. 
+<strong>Al BernatLab:</strong> CPU, RAM, temperatura, nombre de contenidors, latencia MQTT. 
+Veure: capítols 52, 67.</p>
+<h3 class="term">Log</h3>
+<p>Registre d'esdeveniments amb marca de temps que un sistema o aplicacio escriu per deixar constancia del que ha passat. 
+<strong>Al BernatLab:</strong> els logs de Docker van a journald, els de Grafana al seu fitxer, els de Mosquitto a journald. 
+Veure: capítols 49, 56.</p>
+<h3 class="term">Alerta</h3>
+<p>Notificacio automatica que s'envia quan una metrica supera un llindar o passa un esdeveniment. 
+<strong>Al BernatLab:</strong> rebem una alerta a Telegram si la CPU passa del 85% o si un servei esta down. 
+Veure: capítols 53, 67.</p>
+<h3 class="term">Prometheus</h3>
+<p>Sistema de monitoritzacio i base de dades de series temporals orientat a metriques, basat en model pull. 
+<strong>Al BernatLab:</strong> Prometheus recull metriques de la propia Pi, dels serveis i de l'ESP32. 
+Veure: capitol 67.</p>
+<h3 class="term">Exporter</h3>
+<p>Petit programa que exposa metriques internes d'un servei en format Prometheus. 
+<strong>Al BernatLab:</strong> <code>node_exporter</code> exposa metriques de la Pi; <code>mosquitto-exporter</code> exposa les del broker. 
+Veure: capitol 67.</p>
+<h3 class="term">scrape</h3>
+<p>Accio de Prometheus de preguntar a un endpoint per obtenir les metriques actuals. 
+<strong>Al BernatLab:</strong> scrapejem <code>node_exporter:9100</code> cada 15 segons. 
+Veure: capitol 67.</p>
+<h3 class="term">PromQL</h3>
+<p>Llenguatge de consultes propi de Prometheus, optimitzat per a metriques. 
+<strong>Al BernatLab:</strong> la consulta <code>rate(cpu_usage[5m])</code> ens dona la CPU mitjana dels ultims 5 minuts. 
+Veure: capitol 67.</p>
+<h3 class="term">Grafana</h3>
+<p>Eina de visualitzacio de dades temporals que es connecta a multiples fonts (Prometheus, InfluxDB, Loki). 
+<strong>Al BernatLab:</strong> Grafana es la nostra eina de dashboards per a sensors, sistema i operativa. 
+Veure: capítols 19, 52, 67.</p>
+<h3 class="term">Dashboard</h3>
+<p>Conjunt de panells organitzats en una graella que mostren visualitzacions d'un sistema. 
+<strong>Al BernatLab:</strong> el dashboard "BernatLab overview" mostra CPU, RAM, temperatura i estat de serveis. 
+Veure: capítols 19, 52, 67.</p>
+<h3 class="term">Panel</h3>
+<p>Un element individual dins d'un dashboard: un grafic, una taula, un gauge, etc. 
+<strong>Al BernatLab:</strong> un panel mostra la temperatura de la CPU de les ultimes 24 hores. 
+Veure: capítols 19, 52, 67.</p>
+<h3 class="term">Alertmanager</h3>
+<p>Component de Prometheus que gestiona les alertes: deduplica, agrupa i les redirigeix al canal adequat. 
+<strong>Al BernatLab:</strong> Alertmanager envia alertes a Telegram via un webhook. 
+Veure: capítols 53, 67.</p>
+<h3 class="term">Uptime Kuma</h3>
+<p>Eina self-hosted de monitoritzacio de disponibilitat: comprova periodicament que un servei respon i envia alertes si cau. 
+<strong>Al BernatLab:</strong> Uptime Kuma vigila 14 serveis: Portainer, Grafana, Mosquitto, etc. 
+Veure: capítols 7, 62.</p>
+<h3 class="term">SLA (Service Level Agreement)</h3>
+<p>Acord sobre el nivell de servei esperat, sovint expressat com a percentatge de disponibilitat. 
+<strong>Al BernatLab:</strong> ens autoimposem un SLA del 99% per al stack principal. 
+Veure: capítols 7, 53.</p>
+<h3 class="term">Pinging</h3>
+<p>Comprovacio activa d'un servei enviant una peticio i esperant resposta. 
+<strong>Al BernatLab:</strong> Uptime Kuma fa pings HTTP, TCP i ICMP cada 60 segons. 
+Veure: capítols 7, 62.</p>
+<h3 class="term">ELK (Elasticsearch, Logstash, Kibana)</h3>
+<p>Pila classica de gestio de logs: Elasticsearch indexa, Logstash processa, Kibana visualitza. 
+<strong>Al BernatLab:</strong> massa pesada per a la Pi, pero la coneixem per si creixem. 
+Veure: capitol 49.</p>
+<h3 class="term">Loki</h3>
+<p>Sistema de gestio de logs desenvolupat per Grafana Labs, optimitzat per etiquetar en lloc d'indexar text complet. 
+<strong>Al BernatLab:</strong> considerat per substituir journald centralitzat, pero de moment fem servir journald + un parell de scripts. 
+Veure: capítols 49, 52.</p>
+<h3 class="term">journald</h3>
+<p>Dimoni de systemd que recull els logs del sistema i els serveis. 
+<strong>Al BernatLab:</strong> <code>journalctl -u mosquitto -f</code> ens mostra els logs en directe del broker. 
+Veure: capítols 3, 49, 56.</p>
+<h3 class="term">Heartbeat</h3>
+<p>Comprovacio periodica que un sistema esta viu. 
+<strong>Al BernatLab:</strong> Grafana i Uptime Kuma s'envien heartbeats per confirmar que un es operatiu. 
+Veure: capitol 67.</p>
+<h3 class="term">Dead man's switch</h3>
+<p>Alerta que es dispara si un sistema deixa d'emetre un senyal esperat. 
+<strong>Al BernatLab:</strong> un script fa ping a Healthchecks.io cada 5 minuts; si deixa de fer-ho, Healthchecks ens avisa. 
+Veure: capitols 53, 69.</p>
+<hr>
+<h2>Seguretat</h2>
+<h3 class="term">Contrasenya</h3>
+<p>Cadenca secreta que autentica un usuari. 
+<strong>Al BernatLab:</strong> mai no usem contrasenyes per a SSH (clau publica); per a serveis web usem contrasenyes llargues desades a Bitwarden. 
+Veure: capítols 4, 46, 60.</p>
+<h3 class="term">Hash</h3>
+<p>Funcio criptografica unidireccional que transforma una entrada en una cadena de longitud fixa. 
+<strong>Al BernatLab:</strong> <code>/etc/shadow</code> desa els hashes de les contrasenyes, mai les contrasenyes en clar. 
+Veure: capítols 46, 48.</p>
+<h3 class="term">Salt</h3>
+<p>Cadena aleatoria que s'afegeix a la contrasenya abans d'aplicar el hash per evitar atacs amb taules precalculades. 
+<strong>Al BernatLab:</strong> bcrypt i scrypt fan salts automaticament. 
+Veure: capitol 46.</p>
+<h3 class="term">2FA / MFA</h3>
+<p>Segon factor d'autenticacio: a mes de la contrasenya, cal un codi temporal o un dispositiu fisic. 
+<strong>Al BernatLab:</strong> activem 2FA a Tailscale, GitHub, Bitwarden, Portainer, Grafana, InfluxDB. 
+Veure: capitol 46.</p>
+<h3 class="term">TOTP (Time-based One-Time Password)</h3>
+<p>Algorisme que genera codis de 6 digits que caduquen cada 30 segons, basat en un secret compartit i l'hora actual. 
+<strong>Al BernatLab:</strong> l'app Aegis o Yubico Authenticator ens genera els TOTPs de Tailscale i Grafana. 
+Veure: capitol 46.</p>
+<h3 class="term">U2F / WebAuthn</h3>
+<p>Estandard de segon factor amb clau criptografica fisica (YubiKey, Titan Key). 
+<strong>Al BernatLab:</strong> considerem afegir una YubiKey per a comptes critics (GitHub, Tailscale admin). 
+Veure: capitol 46.</p>
+<h3 class="term">SSH hardening</h3>
+<p>Conjunt de practiques per endureir la configuracio SSH: deshabilitar login amb root, deshabilitar contrasenyes, canviar port, etc. 
+<strong>Al BernatLab:</strong> editem <code>/etc/ssh/sshd_config</code> per aplicar aquestes mesures. 
+Veure: capítols 4, 48, 60.</p>
+<h3 class="term">fail2ban</h3>
+<p>Eina que vigila els logs i baneja temporalment les IP que fallen massa l'inici de sessio. 
+<strong>Al BernatLab:</strong> fail2ban vigila SSH i ens avisa quan una IP es banejada. 
+Veure: capitol 47.</p>
+<h3 class="term">Port knocking</h3>
+<p>Tecnica que obre ports del tallafoc nomes quan es rep una sequencia especifica de connexions a altres ports. 
+<strong>Al BernatLab:</strong> no l'usem (Tailscale ja ens dona seguretat), pero el coneixem. 
+Veure: capitol 47.</p>
+<h3 class="term">UFW (Uncomplicated Firewall)</h3>
+<p>Tallafoc senzill per a Ubuntu/Debian que simplifica la gestio de iptables. 
+<strong>Al BernatLab:</strong> UFW nomes permet SSH (port 22) des de Tailscale; la resta queda tancada. 
+Veure: capítols 47, 60.</p>
+<h3 class="term">iptables</h3>
+<p>Sistema de tallafoc de baix nivell del kernel Linux. 
+<strong>Al BernatLab:</strong> l'entenem pero no l'editem a ma; UFW i Docker gestionen les regles. 
+Veure: capitol 47.</p>
+<h3 class="term">nftables</h3>
+<p>Successor modern d'iptables, tambe al kernel Linux. 
+<strong>Al BernatLab:</strong> Debian 12 ja porta nftables; UFW genera regles nftables. 
+Veure: capitol 47.</p>
+<h3 class="term">Codi malicios (malware)</h3>
+<p>Programari dissenyat a fer mal: virus, troians, ransomware, spyware. 
+<strong>Al BernatLab:</strong> el risc es baix perque la Pi nomes exposa serveis via Tailscale, pero el tenim en compte. 
+Veure: capitols 43, 47.</p>
+<h3 class="term">Virus</h3>
+<p>Programa que s'auto-replica infectant altres fitxers o sistemes. 
+<strong>Al BernatLab:</strong> molt menys prevalent a Linux que a Windows, pero no inexistent. 
+Veure: capitol 47.</p>
+<h3 class="term">Ransomware</h3>
+<p>Programari que xifra les dades de la victima i demana un rescat per desxifrar-les. 
+<strong>Al BernatLab:</strong> el risc es mitiga amb backups desates (Restic + bucket S3 fora de la Raspberry). 
+Veure: capítols 22, 45, 50.</p>
+<h3 class="term">Amenaca</h3>
+<p>Qualsevol esdeveniment que pugui comprometre la seguretat del sistema. 
+<strong>Al BernatLab:</strong> amenaces principals: atac de força bruta a SSH, exposicio accidental d'un servei, robo de credencials. 
+Veure: capítols 43, 47, 48.</p>
+<h3 class="term">Vulnerabilitat</h3>
+<p>Defecte en un sistema que pot ser explotat per una amenaca. 
+<strong>Al BernatLab:</strong> un port obert sense autenticacio es una vulnerabilitat. 
+Veure: capítols 43, 48, 49.</p>
+<h3 class="term">Exploit</h3>
+<p>Codi o tecnica que aprofita una vulnerabilitat concreta. 
+<strong>Al BernatLab:</strong> <code>apt upgrade</code> i l'actualitzacio periodica de les imatges Docker ens protegeix dels exploits coneguts. 
+Veure: capítols 22, 48.</p>
+<h3 class="term">CVE (Common Vulnerabilities and Exposures)</h3>
+<p>Identificador public d'una vulnerabilitat coneguda. 
+<strong>Al BernatLab:</strong> el monitoritzem amb un parell d'eines per a les imatges que fem servir. 
+Veure: capítols 48, 49.</p>
+<h3 class="term">Zero-day</h3>
+<p>Vulnerabilitat que encara no te pegat oficial. 
+<strong>Al BernatLab:</strong> el risc es minim gracies a Tailscale i a que no exposem res directament a Internet. 
+Veure: capitol 43.</p>
+<h3 class="term">Xifrat</h3>
+<p>Transformacio d'una informacio per fer-la illegible sense una clau. 
+<strong>Al BernatLab:</strong> xifrem la microSD (LUKS), els backups (Restic), i el transit (Tailscale, TLS). 
+Veure: capítols 4, 22, 45, 50.</p>
+<h3 class="term">GPG (GNU Privacy Guard)</h3>
+<p>Eina per xifrar i signar dades i correus amb criptografia asimetrica. 
+<strong>Al BernatLab:</strong> el fem servir per signar els commits de Git i per xifrar alguns fitxers de configuracio. 
+Veure: capítols 9, 45, 48.</p>
+<h3 class="term">age</h3>
+<p>Eina moderna de xifratge de fitxers amb criptografia asimetrica, alternativa a GPG mes simple. 
+<strong>Al BernatLab:</strong> valorada com a substitut de GPG per a scripts de backup. 
+Veure: capitol 45.</p>
+<h3 class="term">Auditoria</h3>
+<p>Revisio periodica de la seguretat i l'operativa del sistema. 
+<strong>Al BernatLab:</strong> fem una auditoria completa un cop al trimestre, seguint una checklist del llibre. 
+Veure: capítols 43, 49, 50.</p>
+<h3 class="term">Compliance</h3>
+<p>Conjunt de normes i bones practiques que un sistema ha de complir. 
+<strong>Al BernatLab:</strong> no tenim compliance extern obligatori, pero seguim bones practiques de hardening. 
+Veure: capítols 43, 48.</p>
+<h3 class="term">GDPR</h3>
+<p>Reglament General de Proteccio de Dades de la UE. 
+<strong>Al BernatLab:</strong> nomes processem dades personals propies; apliquem minimitzacio i transparencia. 
+Veure: capítols 41, 43.</p>
+<h3 class="term">Bitwarden</h3>
+<p>Gestor de contrasenyes self-hosted o al núvol. 
+<strong>Al BernatLab:</strong> Bitwarden allotja totes les contrasenyes, TOTPs i notes segures del projecte. 
+Veure: capítols 4, 46.</p>
+<h3 class="term">KeePassXC</h3>
+<p>Alternativa local a Bitwarden, amb un sol fitxer de base de dades xifrat. 
+<strong>Al BernatLab:</strong> el tenim com a backup local, pero el dia a dia es amb Bitwarden. 
+Veure: capítols 46, 60.</p>
+<h3 class="term">LUKS (Linux Unified Key Setup)</h3>
+<p>Standard de xifratge de discs a Linux. 
+<strong>Al BernatLab:</strong> xifrem la microSD i el SSD extern amb LUKS. 
+Veure: capítols 45, 48, 50.</p>
+<hr>
+<h2>Intel·ligencia artificial</h2>
+<h3 class="term">LLM (Large Language Model)</h3>
+<p>Model d'intel·ligencia artificial entrenat amb grans volums de text capaç de generar, resumir, traduir i raonar en llenguatge natural. 
+<strong>Al BernatLab:</strong> fem servir LLMs locals via Ollama (Llama 3, Mistral, Phi-3) per a tasques ofimatiques i d'analisi. 
+Veure: capítols 33, 35, 39.</p>
+<h3 class="term">Model (IA)</h3>
+<p>Arxiu de pesos entrenats que, combinat amb un runtime, pot fer una tasca d'IA. 
+<strong>Al BernatLab:</strong> <code>llama3.1:8b</code> es el model que usem per defecte al Mac. 
+Veure: capítols 33, 34, 35.</p>
+<h3 class="term">Prompt</h3>
+<p>Text d'entrada que s'envia a un LLM per obtenir una resposta. 
+<strong>Al BernatLab:</strong> els nostres prompts son curts i específics: "Resumeix aquest log en 5 linies". 
+Veure: capítols 33, 39, 40.</p>
+<h3 class="term">Tokens</h3>
+<p>Unitats minims de text que un LLM processa: aproximadament 4 caracters o 0.75 paraules en angles. 
+<strong>Al BernatLab:</strong> amb un model de 8B calen ~5 GB de VRAM o RAM per a context de 4096 tokens. 
+Veure: capítols 33, 35, 39.</p>
+<h3 class="term">Context window</h3>
+<p>Nombre maxim de tokens que un model pot processar en una sola conversa. 
+<strong>Al BernatLab:</strong> Llama 3.1 te una finestra de 128k tokens; per a tasques locals en fem servir 8k-32k. 
+Veure: capítols 33, 35, 39.</p>
+<h3 class="term">Ollama</h3>
+<p>Runtime per a LLMs locals que descarrega, executa i serveix models amb una sola comanda. 
+<strong>Al BernatLab:</strong> Ollama es la nostra eina principal per a inferencia local. 
+Veure: capítols 34, 35, 39.</p>
+<h3 class="term">Llama (Meta)</h3>
+<p>Familia de LLMs open source de Meta. 
+<strong>Al BernatLab:</strong> <code>llama3.1:8b</code> ens dona un bon equilibri qualitat/recursos al Mac. 
+Veure: capítols 35, 39.</p>
+<h3 class="term">Mistral</h3>
+<p>Familia de LLMs open source francesos, amb variants petites pero potents. 
+<strong>Al BernatLab:</strong> <code>mistral:7b</code> es una alternativa a Llama, molt bona en catala. 
+Veure: capitol 35.</p>
+<h3 class="term">Phi (Microsoft)</h3>
+<p>Familia de petits LLMs de Microsoft optimitzats per a eficiencia. 
+<strong>Al BernatLab:</strong> <code>phi3:mini</code> es ideal per ordinadors modestos. 
+Veure: capitol 35.</p>
+<h3 class="term">Gemma (Google)</h3>
+<p>Familia de LLMs open source de Google, derivats de Gemini. 
+<strong>Al BernatLab:</strong> <code>gemma2:9b</code> es una bona opcio per al Mac. 
+Veure: capitol 35.</p>
+<h3 class="term">Embedding</h3>
+<p>Representacio numerica d'un text (o d'una imatge, audio, etc.) en un espai vectorial on la distancia entre vectors indica la similitud semantica. 
+<strong>Al BernatLab:</strong> generem embeddings de les fitxes d'hort amb <code>nomic-embed-text</code>. 
+Veure: capítols 36, 37.</p>
+<h3 class="term">Vector (IA)</h3>
+<p>Llista de nombres que representa l'embedding. 
+<strong>Al BernatLab:</strong> cada embedding es un vector de 768 o 1024 dimensions. 
+Veure: capitol 36.</p>
+<h3 class="term">Similitud (cosine similarity)</h3>
+<p>Metrica que mesura l'angle entre dos vectors; 1.0 = identics, 0.0 = ortogonals, -1.0 = oposats. 
+<strong>Al BernatLab:</strong> ens indica quan un document es semanticament proper a una consulta. 
+Veure: capítols 36, 37.</p>
+<h3 class="term">RAG (Retrieval-Augmented Generation)</h3>
+<p>Patron d'IA que combina cerca en una base de coneixement amb generacio de text per part d'un LLM. 
+<strong>Al BernatLab:</strong> el RAG ens permet preguntar coses sobre les 76 fitxes d'hort sense entrenar un model nou. 
+Veure: capítols 36, 37, 42.</p>
+<h3 class="term">Retrieval</h3>
+<p>Pas del RAG en que cerquem els documents mes rellevants per a la pregunta. 
+<strong>Al BernatLab:</strong> la cerca es fa per similitud de embeddings. 
+Veure: capítols 36, 37.</p>
+<h3 class="term">Augmented</h3>
+<p>El LLM rep com a contexte els documents trobats al pas de retrieval, augmentant el seu coneixement. 
+<strong>Al BernatLab:</strong> "Augmenta" la resposta del LLM amb dades reals del nostre hort. 
+Veure: capitol 37.</p>
+<h3 class="term">Generation</h3>
+<p>Pas final del RAG en que el LLM genera la resposta a partir de la pregunta i el contexte. 
+<strong>Al BernatLab:</strong> el model genera una resposta en catala citant les fitxes utilitzades. 
+Veure: capitol 37.</p>
+<h3 class="term">Vector database</h3>
+<p>Base de dades optimitzada per emmagatzemar i cercar vectors d'embedding. 
+<strong>Al BernatLab:</strong> ChromaDB ens serveix perfectament per al volum de fitxes que tenim. 
+Veure: capítols 36, 37.</p>
+<h3 class="term">ChromaDB</h3>
+<p>Base de dades vectorial open source, senzilla i integrable. 
+<strong>Al BernatLab:</strong> l'usem per emmagatzemar els embeddings de les fitxes d'hort. 
+Veure: capítols 36, 37.</p>
+<h3 class="term">FAISS</h3>
+<p>Llibreria de Meta per a cerca de veïns mes propers en grans volums de vectors. 
+<strong>Al BernatLab:</strong> valorada per si el volum creix per sobre del que ChromaDB aguanta. 
+Veure: capítols 36, 37.</p>
+<h3 class="term">Fine-tuning</h3>
+<p>Entrenament addicional d'un model pre-entrenat amb dades especifiques per adaptar-lo a un cas concret. 
+<strong>Al BernatLab:</strong> no l'hem fet servir encara; el RAG ens cobreix el cas. 
+Veure: capítols 37, 42.</p>
+<h3 class="term">Transfer learning</h3>
+<p>Tecnica que reaprofita un model entrenat per a una tasca com a punt de partida per a una altra. 
+<strong>Al BernatLab:</strong> els nostres models son pre-entrenats; el fine-tuning n'és un cas. 
+Veure: capitol 37.</p>
+<h3 class="term">Inferencia</h3>
+<p>Pas de passar una entrada per un model per obtenir una sortida. 
+<strong>Al BernatLab:</strong> "Fer inferencia" vol dir executar el model. 
+Veure: capítols 33, 35, 39.</p>
+<h3 class="term">GPU (Graphics Processing Unit)</h3>
+<p>Processador optimitzat per a calculs en paral·lel, essencial per a inferencia rapida de LLMs grans. 
+<strong>Al BernatLab:</strong> al Mac amb Apple Silicon la GPU es unificada amb la CPU i s'anomena "Neural Engine" o "GPU Metal". 
+Veure: capítols 33, 35.</p>
+<h3 class="term">VRAM</h3>
+<p>Memoria RAM de la GPU. Limita la mida del model i la finestra de contexte. 
+<strong>Al BernatLab:</strong> un Mac amb 16 GB de RAM unificada pot servir models de fins a ~12B. 
+Veure: capítols 33, 35.</p>
+<h3 class="term">Neural Engine</h3>
+<p>Processador dedicat a ML en xip Apple Silicon. 
+<strong>Al BernatLab:</strong> CoreML i Ollama l'aprofiten per accelerar la inferencia. 
+Veure: capítols 33, 34, 35.</p>
+<h3 class="term">Whisper</h3>
+<p>Model d'OpenAI per a transcripcio automatica d'audio a text. 
+<strong>Al BernatLab:</strong> valorem integrar-lo per a transcrure audios de camp. 
+Veure: capitol 40.</p>
+<h3 class="term">TTS (Text-to-Speech)</h3>
+<p>Sintesi de veu a partir de text. 
+<strong>Al BernatLab:</strong> valorem XTTS o Piper per a resums en veu alta. 
+Veure: capitol 40.</p>
+<h3 class="term">Hallucinacio</h3>
+<p>Fenomen pel qual un LLM "inventa" informacio que sona versemblant pero es incorrecta. 
+<strong>Al BernatLab:</strong> el RAG redueix les hallucinations perquè el model sempre parteix de dades reals. 
+Veure: capítols 37, 41, 42.</p>
+<h3 class="term">Prompt injection</h3>
+<p>Atac en que un usuari introdueix instruccions dins d'un prompt per fer que el LLM ignori les seves ordres originals. 
+<strong>Al BernatLab:</strong> el risc es minim perque els models son locals i no exposem interfícies publiques. 
+Veure: capítols 41, 42.</p>
+<h3 class="term">Privadesa</h3>
+<p>Principi de minimitzar l'exposicio de dades personals i de mantenir el control sobre elles. 
+<strong>Al BernatLab:</strong> tota la IA es local; cap dada va a núvols de tercers. 
+Veure: capitols 33, 41, 43.</p>
+<hr>
+<h2>IoT i sensors</h2>
+<h3 class="term">Sensor</h3>
+<p>Veure l'entrada a Maquinari.</p>
+<h3 class="term">Actuador</h3>
+<p>Veure l'entrada a Maquinari.</p>
+<h3 class="term">Microcontrolador</h3>
+<p>Veure l'entrada a Maquinari.</p>
+<h3 class="term">MiFlora</h3>
+<p>Sensor Bluetooth de Xiaomi que mesura temperatura, humitat, lluminositat, conductivitat i fertilitat del substrat. 
+<strong>Al BernatLab:</strong> l'integrariem amb un proxy BLE per a l'hort. 
+Veure: capítols 14, 21, 28.</p>
+<h3 class="term">Bluetooth</h3>
+<p>Standard de comunicacio sense fils de curt abast (2.4 GHz). 
+<strong>Al BernatLab:</strong> el fem servir per als sensors MiFlora, que requereixen una pasarel·la BLE. 
+Veure: capítols 14, 28.</p>
+<h3 class="term">BLE (Bluetooth Low Energy)</h3>
+<p>Variant de Bluetooth optimitzada per a baix consum, ideal per a sensors amb bateria. 
+<strong>Al BernatLab:</strong> els MiFlora son BLE; el gateway ha d'estar a prop (~10 m). 
+Veure: capítols 14, 28.</p>
+<h3 class="term">LoRa (Long Range)</h3>
+<p>Modulacio radio de llarg abast i baix consum, pensada per a IoT. 
+<strong>Al BernatLab:</strong> els nostres nodes de camp fan servir LoRa a 868 MHz per arribar a 2-5 km. 
+Veure: capítols 23, 24, 25.</p>
+<h3 class="term">SX1262</h3>
+<p>Xip de Semtech que implementa la modulacio LoRa, molt usat en nodes moderns. 
+<strong>Al BernatLab:</strong> els nostres nodes DIY porten un SX1262 connectat per SPI. 
+Veure: capítols 24, 28.</p>
+<h3 class="term">868 MHz</h3>
+<p>Banda de frequencia ISM a Europa per a LoRa i altres tecnologies de llarg abast. 
+<strong>Al BernatLab:</strong> a Osona usem 868 MHz, que permet mes potencia que 433 MHz i no interfereix amb Wi-Fi. 
+Veure: capítols 24, 25, 28.</p>
+<h3 class="term">Spreading Factor (SF)</h3>
+<p>Parametre de LoRa que determina l'abast i el temps a l'aire: SF7 a SF12. Mes SF = mes abast pero menys ample de banda. 
+<strong>Al BernatLab:</strong> usem SF7 per defecte i SF12 nomes en casos de cobertura extrema. 
+Veure: capítols 24, 28, 32.</p>
+<h3 class="term">LoRaWAN</h3>
+<p>Protocol de xarxa sobre LoRa que defineix com els nodes es connecten a una xarxa centralitzada amb un servidor de xarxa (TTN, ChirpStack). 
+<strong>Al BernatLab:</strong> tenim una prova pilot amb The Things Network. 
+Veure: capítols 25, 26.</p>
+<h3 class="term">P2P (point-to-point)</h3>
+<p>Comunicacio directa entre dos nodes LoRa sense servidor de xarxa intermedi. 
+<strong>Al BernatLab:</strong> la majoria de nodes del BernatLab son P2P per simplicitat. 
+Veure: capítols 25, 31, 32.</p>
+<h3 class="term">Gateway</h3>
+<p>Dispositiu que fa de pont entre una xarxa d'area local (Wi-Fi, Ethernet) i una xarxa d'area ampla (LoRa, cellular). 
+<strong>Al BernatLab:</strong> la Raspberry amb un SX1303 fa de gateway LoRa i rebeu tots els missatges dels nodes. 
+Veure: capítols 26, 27.</p>
+<h3 class="term">MQTT (Message Queuing Telemetry Transport)</h3>
+<p>Protocol de missatgeria lleuger, basat en publish/subscribe, pensat per a IoT. 
+<strong>Al BernatLab:</strong> tots els nodes publiquen les seves dades via MQTT al broker Mosquitto. 
+Veure: capítols 12, 13, 14, 28, 29.</p>
+<h3 class="term">Mosquitto</h3>
+<p>Broker MQTT open source lleuger, mantingut per Eclipse Foundation. 
+<strong>Al BernatLab:</strong> Mosquitto es el cor de la xarxa IoT: tots els sensors publiquen aqui. 
+Veure: capítols 12, 13, 63.</p>
+<h3 class="term">Broker</h3>
+<p>Servidor central d'una xarxa MQTT que rep tots els missatges i els redistribueix als subscribers. 
+<strong>Al BernatLab:</strong> Mosquitto actua com a broker unic. 
+Veure: capítols 12, 13.</p>
+<h3 class="term">Topic</h3>
+<p>Cadenca jerarquica que identifica un canal MQTT, per exemple <code>sensors/hort/temp01</code>. 
+<strong>Al BernatLab:</strong> usem la convencio <code>bernatlab/&lt;ubicacio&gt;/&lt;sensor&gt;/&lt;tipus&gt;</code>. 
+Veure: capítols 12, 13, 14, 29.</p>
+<h3 class="term">Publish / Subscribe</h3>
+<p>Model de missatgeria on els clients "publiquen" missatges a un topic i altres clients es "subscriuen" per rebre'ls. 
+<strong>Al BernatLab:</strong> un node publica a <code>sensors/temp01</code>; Grafana, Node-RED i Telegraf subscriuen. 
+Veure: capítols 12, 13, 17.</p>
+<h3 class="term">QoS (Quality of Service)</h3>
+<p>Nivell de garantia d'entrega d'un missatge MQTT: 0 (at most once), 1 (at least once), 2 (exactly once). 
+<strong>Al BernatLab:</strong> usem QoS 1 per a dades de sensors normals. 
+Veure: capítols 12, 13.</p>
+<h3 class="term">Retain (flag MQTT)</h3>
+<p>Si un publisher posa el flag retain, el broker desa l'ultim missatge del topic i l'entrega als nous subscribers. 
+<strong>Al BernatLab:</strong> tots els nostres sensors publiquen amb retain=true perque Grafana tingui valor immediat. 
+Veure: capítols 12, 13, 14.</p>
+<h3 class="term">Last Will and Testament (LWT)</h3>
+<p>Missatge que MQTT envia automaticament quan un client es desconnecta de forma inesperada. 
+<strong>Al BernatLab:</strong> si un node es queda sense bateria, podem saber-ho per la LWT. 
+Veure: capítols 12, 13, 29.</p>
+<h3 class="term">Payload</h3>
+<p>Cos del missatge MQTT, amb la informacio efectiva (temperatura, humitat, etc.). 
+<strong>Al BernatLab:</strong> payload en JSON: <code>{"temp": 21.4, "hum": 58}</code>. 
+Veure: capítols 12, 14, 29.</p>
+<h3 class="term">JSON</h3>
+<p>Veure l'entrada a Xarxa i connectivitat.</p>
+<h3 class="term">Protobuf (Protocol Buffers)</h3>
+<p>Format de serialitzacio binari desenvolupat per Google, mes compacte i rapid que JSON. 
+<strong>Al BernatLab:</strong> el considerem per a nodes amb ample de banda molt limitat. 
+Veure: capítols 12, 14.</p>
+<h3 class="term">BME280</h3>
+<p>Sensor combinat de Bosch que mesura temperatura, humitat i pressio atmosferica. 
+<strong>Al BernatLab:</strong> l'usem als nodes LoRa i al gateway. 
+Veure: capítols 14, 28, 65.</p>
+<h3 class="term">DHT22</h3>
+<p>Sensor de temperatura i humitat digital de baix cost amb un sol cable de dades. 
+<strong>Al BernatLab:</strong> l'usem en prototips ràpids. 
+Veure: capitol 14.</p>
+<h3 class="term">DS18B20</h3>
+<p>Sensor de temperatura digital amb bus 1-Wire, precís i econòmic. 
+<strong>Al BernatLab:</strong> ideal per a mesurar la temperatura del substrat. 
+Veure: capitol 14.</p>
+<hr>
+<h2>Desenvolupament web</h2>
+<h3 class="term">HTML (HyperText Markup Language)</h3>
+<p>Llenguatge d'etiquetatge que estructura el contingut d'una pagina web. 
+<strong>Al BernatLab:</strong> l'index del projecte, la web estàtica i el panell de Grafana son HTML. 
+Veure: capítols 8, 38.</p>
+<h3 class="term">CSS (Cascading Style Sheets)</h3>
+<p>Llenguatge que defineix l'aparença visual d'una pagina HTML. 
+<strong>Al BernatLab:</strong> el <code>curs.css</code> aplica colors i tipografies al curs. 
+Veure: capítols 8, 38.</p>
+<h3 class="term">JavaScript</h3>
+<p>Llenguatge de programacio que s'executa al navegador i dona interactivitat a les pagines. 
+<strong>Al BernatLab:</strong> el <code>curs.js</code> valida els qüestionaris i la cerca. 
+Veure: capítols 17, 38.</p>
+<h3 class="term">PWA (Progressive Web App)</h3>
+<p>Aplicacio web que es comporta com una app nativa: es pot instal·lar, funciona offline i envia notificacions. 
+<strong>Al BernatLab:</strong> la web del BernatLab es pot instal·lar com a PWA al mobil. 
+Veure: capitol 38.</p>
+<h3 class="term">Service worker</h3>
+<p>Script que el navegador executa en segon pla i permet缓存, offline mode i notificacions push. 
+<strong>Al BernatLab:</strong> el service worker fa que la web del projecte funcioni offline. 
+Veure: capitol 38.</p>
+<h3 class="term">Manifest (web)</h3>
+<p>Fitxer JSON que defineix el nom, icones, colors i comportament d'una PWA. 
+<strong>Al BernatLab:</strong> <code>manifest.json</code> permet instal·lar el projecte com a PWA. 
+Veure: capitol 38.</p>
+<h3 class="term">Git</h3>
+<p>Sistema de control de versions distribuit que ens permet seguir l'historial de canvis i col·laborar. 
+<strong>Al BernatLab:</strong> tot el projecte es versiona amb Git i allotjat a GitHub. 
+Veure: capítols 9, 60.</p>
+<h3 class="term">commit</h3>
+<p>Conjunt de canvis atòmic amb un missatge descriptiu. 
+<strong>Al BernatLab:</strong> cada commit al repo segueix Conventional Commits. 
+Veure: capítols 9, 60.</p>
+<h3 class="term">branch</h3>
+<p>Línia independent de desenvolupament dins d'un repo Git. 
+<strong>Al BernatLab:</strong> la <code>main</code> es la branca estable; treballem en <code>feat/xxx</code> i <code>fix/xxx</code>. 
+Veure: capítols 9, 60.</p>
+<h3 class="term">merge</h3>
+<p>Accio d'integrar els canvis d'una branca dins d'una altra. 
+<strong>Al BernatLab:</strong> un PR es fusiona amb <code>merge commit</code> o <code>squash and merge</code> segons el cas. 
+Veure: capitols 9, 60.</p>
+<h3 class="term">PR (Pull Request)</h3>
+<p>Proposta de canvis d'una branca a una altra, amb revisio i discussio abans de fusionar. 
+<strong>Al BernatLab:</strong> tot canvi al BernatLab passa per una PR amb revisio. 
+Veure: capítols 9, 60.</p>
+<h3 class="term">README</h3>
+<p>Primer fitxer que es mira d'un projecte: explica que es, com instal·lar-lo i com contribuir-hi. 
+<strong>Al BernatLab:</strong> <code>bernatlab/README.md</code> es la porta d'entrada al projecte. 
+Veure: capítols 9, 60.</p>
+<h3 class="term">CHANGELOG</h3>
+<p>Fixer que recull els canvis significatius de cada versio. 
+<strong>Al BernatLab:</strong> mantenim un <code>CHANGELOG.md</code> per a cada versio del BernatLab. 
+Veure: capitol 9.</p>
+<h3 class="term">LICENSE</h3>
+<p>Fixer que defineix els termes legals sota els quals es distribueix el projecte. 
+<strong>Al BernatLab:</strong> el projecte es publica sota llicencia MIT. 
+Veure: capitol 9.</p>
+<h3 class="term">Markdown</h3>
+<p>Llenguatge de marcat lleuger que permet escriure text amb format (títols, llistes, enllaços, codi) llegible en pla i convertible a HTML. 
+<strong>Al BernatLab:</strong> tots els capitols del llibre son fitxers Markdown. 
+Veure: capítols 9, 38.</p>
+<h3 class="term">YAML</h3>
+<p>Llenguatge de serialitzacio de dades molt usat en fitxers de configuracio. 
+<strong>Al BernatLab:</strong> els nostres <code>docker-compose.yml</code> son YAML. 
+Veure: capítols 5, 6, 61.</p>
+<h3 class="term">TOML</h3>
+<p>Llenguatge de serialitzacio de dades, similar a YAML pero mes simple i consistent. 
+<strong>Al BernatLab:</strong> alguns serveis (Vault, Pyproject) l'usen. 
+Veure: capítols 5, 22.</p>
+<h3 class="term">JSON</h3>
+<p>Veure l'entrada a Xarxa i connectivitat.</p>
+<h3 class="term">GitHub Pages</h3>
+<p>Servei de GitHub que publica pagines web estatiques directament des d'un repo. 
+<strong>Al BernatLab:</strong> la web publica del projecte es serveix desde GitHub Pages. 
+Veure: capitols 9, 60.</p>
+<h3 class="term">domini</h3>
+<p>Nom que identifica un lloc a Internet, com <code>bernatlab.cat</code>. 
+<strong>Al BernatLab:</strong> tenim el domini <code>bernatlab.cat</code> registrat a un proveïdor. 
+Veure: capítols 20, 44.</p>
+<h3 class="term">DNS</h3>
+<p>Veure l'entrada a Xarxa i connectivitat.</p>
+<h3 class="term">Cloudflare</h3>
+<p>Empresa que ofereix CDN, DNS, protecció DDoS i serveis d'optimitzacio web. 
+<strong>Al BernatLab:</strong> Cloudflare gestiona el DNS de <code>bernatlab.cat</code> i ens fa de proxy invers gratuit. 
+Veure: capítols 20, 44.</p>
+<h3 class="term">CDN (Content Delivery Network)</h3>
+<p>Xarxa de servidors repartits pel mon que serveixen contingut estatic mes a prop de l'usuari. 
+<strong>Al BernatLab:</strong> Cloudflare fa de CDN per a la web estàtica. 
+Veure: capitol 20.</p>
+<h3 class="term">HTTPS</h3>
+<p>Veure l'entrada a Xarxa i connectivitat.</p>
+<hr>
+<h2>Hort Osona</h2>
+<h3 class="term">Sembra</h3>
+<p>Accio de posar llavors o planters a la terra per iniciar un cultiu. 
+<strong>Al BernatLab:</strong> la sembra de tomàquets es fa al març en safates al viver. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Trasplantament</h3>
+<p>Pas de les plàntules del viver al seu lloc definitiu a l'hort. 
+<strong>Al BernatLab:</strong> trasplantem els tomàquets a l'exterior a mitjans de maig. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Collita</h3>
+<p>Recol·leccio dels fruits o productes un cop madurs. 
+<strong>Al BernatLab:</strong> la collita de tomàquets va de juliol a octubre. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Compost</h3>
+<p>Material organic descompost que s'afegeix a la terra per millorar-ne l'estructura i la fertilitat. 
+<strong>Al BernatLab:</strong> fem compost amb restes de cuina i poda. 
+Veure: capitol 21.</p>
+<h3 class="term">Mulching</h3>
+<p>Cobriment del sol amb material organic (palla, fullatge, tela) per conservar humitat i evitar males herbes. 
+<strong>Al BernatLab:</strong> apliquem mulching de palla als tomàquets. 
+Veure: capitol 21.</p>
+<h3 class="term">Rotacio de cultius</h3>
+<p>Practica de no plantar la mateixa familia de plantes al mateix lloc any rere any. 
+<strong>Al BernatLab:</strong> rotem tomàquets, pebrot i albergínia en parcels diferents cada any. 
+Veure: capitol 21.</p>
+<h3 class="term">Plaga</h3>
+<p>Poblacio d'insectes o altres organismes que danya els cultius. 
+<strong>Al BernatLab:</strong> la plaga mes habitual a Osona es el pugó. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Malaltia</h3>
+<p>Alteracio fisiologica de la planta causada per fongs, bacteris o virus. 
+<strong>Al BernatLab:</strong> el mildiu i l'oïdi son les malalties mes comuns. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Tractament fitosanitari</h3>
+<p>Aplicacio d'un producte (biologic o quimic) per controlar plagues o malalties. 
+<strong>Al BernatLab:</strong> prioritzem tractaments biologics (Bacillus thuringiensis, sabó potàssic). 
+Veure: capitol 21.</p>
+<h3 class="term">Conserva</h3>
+<p>Tecnica per guardar aliments mes enlla de la collita: conserva en vinagre, melmelada, confitat. 
+<strong>Al BernatLab:</strong> fem conserva de tomàquet i pebrot cada setembre. 
+Veure: capitol 21.</p>
+<h3 class="term">Fermentacio</h3>
+<p>Transformacio d'un aliment per accio de microorganismes, que el conserva i en millora el sabor. 
+<strong>Al BernatLab:</strong> fermentem col per fer sauerkraut i pebrots per fer ximixurri. 
+Veure: capitol 21.</p>
+<h3 class="term">Assecat</h3>
+<p>Tecnica de conservacio que elimina l'aigua de l'aliment per evitar-ne la degradacio. 
+<strong>Al BernatLab:</strong> assequem herbes aromatiques i pebrot per a l'hivern. 
+Veure: capitol 21.</p>
+<h3 class="term">Calendari de plantacio</h3>
+<p>Taula que indica quan sembrar i trasplantar cada cultiu segons el clima local. 
+<strong>Al BernatLab:</strong> el nostre calendari te en compte les gelades tardanes d'Osona. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Planificacio</h3>
+<p>Procés de decidir que plantarem, on i quan, tenint en compte rotacio, espai i temps. 
+<strong>Al BernatLab:</strong> planifiquem l'hort cada hivern per a la temporada següent. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Osona</h3>
+<p>Comarca de Catalunya, al prepirineu, amb capital a Vic. 
+<strong>Al BernatLab:</strong> l'hort del projecte es a Osona, amb un clima especific. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Prepirineu</h3>
+<p>Zona de transicio entre la plana i les muntanyes del Pirineu. 
+<strong>Al BernatLab:</strong> Osona es considera prepirineu pel seu relleu suau. 
+Veure: capitol 21.</p>
+<h3 class="term">Altitud</h3>
+<p>Distancia vertical sobre el nivell del mar. Influeix en el clima i el calendari de cultiu. 
+<strong>Al BernatLab:</strong> l'hort es a uns 550 m, cosa que retarda les sembres primaverals. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Clima</h3>
+<p>Conjunt de condicions meteorologiques habituals d'una zona. 
+<strong>Al BernatLab:</strong> Osona te un clima continental humit amb hiverns freds i estius suaus. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Gelada</h3>
+<p>Temperatura sota zero que pot malmetre cultius sensibles. 
+<strong>Al BernatLab:</strong> les gelades tardanes d'abril-maig son el risc principal. 
+Veure: capítols 21, 32.</p>
+<h3 class="term">Banc de llavors</h3>
+<p>Col·leccio de llavors conservades per a sembrar temporades futures. 
+<strong>Al BernatLab:</strong> mantenim un banc de llavors de varietats locals. 
+Veure: capitol 21.</p>
+<h3 class="term">Hivernacle</h3>
+<p>Estructura que protegeix els cultius del fred i permet allargar la temporada. 
+<strong>Al BernatLab:</strong> tenim un hivernacle petit per als planters. 
+Veure: capitol 21.</p>
+<h3 class="term">Reg</h3>
+<p>Subministrament d'aigua als cultius. 
+<strong>Al BernatLab:</strong> el reg es controla per un actuador connectat al sistema. 
+Veure: capítols 17, 18, 21.</p>
+<h3 class="term">Substrat</h3>
+<p>Mescla de materials sobre la que creixen les plantes en testos o planters. 
+<strong>Al BernatLab:</strong> usem substrat universal amb perlita per als planters. 
+Veure: capitol 21.</p>
+<hr>
+<h2>Termes generals</h2>
+<h3 class="term">Homelab</h3>
+<p>Conjunt de servidors i serveis que hom allotja a casa seva per aprendre, experimentar o cobrir necessitats personals. 
+<strong>Al BernatLab:</strong> el projecte es un homelab complet al voltant d'una Raspberry Pi. 
+Veure: capítols 1, 10, 51.</p>
+<h3 class="term">Servidor</h3>
+<p>Ordinador que ofereix serveis a altres maquines o usuaris per xarxa. 
+<strong>Al BernatLab:</strong> la Raspberry Pi fa de servidor de Grafana, Mosquitto, InfluxDB, etc. 
+Veure: capítols 1, 3.</p>
+<h3 class="term">Cloud</h3>
+<p>Conjunt de servidors allotjats en centres de dades de tercers, accessibles per Internet. 
+<strong>Al BernatLab:</strong> fem servir cloud nomes per a coses puntuals (DNS, mirror de backups). 
+Veure: capítols 1, 51.</p>
+<h3 class="term">Contenidor</h3>
+<p>Veure l'entrada a Contenidors i Docker.</p>
+<h3 class="term">Virtualitzacio</h3>
+<p>Tecnica que permet executar multiples "sistemes operatius convidats" sobre un sol sistema amfitrio amb un hipervisor. 
+<strong>Al BernatLab:</strong> no la fem servir (preferim contenidors), pero entenem KVM i Proxmox. 
+Veure: capítols 1, 5.</p>
+<h3 class="term">Hipervisor</h3>
+<p>Programa que permet crear i executar maquines virtuals. Tipus 1 (bare-metal: Proxmox) o tipus 2 (host: VirtualBox). 
+<strong>Al BernatLab:</strong> l'estudiem com a pas previ a Docker en el curs. 
+Veure: capítols 1, 5.</p>
+<h3 class="term">API</h3>
+<p>Veure l'entrada a Xarxa i connectivitat.</p>
+<h3 class="term">CLI (Command Line Interface)</h3>
+<p>Interficie d'usuari basada en linia de comandes. 
+<strong>Al BernatLab:</strong> tota l'operativa es fa per CLI (bash, docker, mosquitto_sub...). 
+Veure: capítols 3, 5.</p>
+<h3 class="term">GUI (Graphical User Interface)</h3>
+<p>Interficie grafica d'usuari, amb finestres, icones i ratoli. 
+<strong>Al BernatLab:</strong> Portainer, Grafana i Homepage son GUI web que ens estalvien teclejar. 
+Veure: capítols 3, 6, 19.</p>
+<h3 class="term">TUI (Text-based User Interface)</h3>
+<p>Interficie d'usuari textual, com <code>htop</code>, <code>vim</code> o <code>curses</code>. 
+<strong>Al BernatLab:</strong> <code>htop</code> per veure processos, <code>nano</code> per editar fitxers. 
+Veure: capitol 3.</p>
+<h3 class="term">Debug</h3>
+<p>Procés d'identificar i corregir errors en un programa o sistema. 
+<strong>Al BernatLab:</strong> debuguem mirant logs, fent <code>docker exec</code> i usant <code>mosquitto_sub -t '#' -v</code>. 
+Veure: capítols 3, 56.</p>
+<h3 class="term">Log</h3>
+<p>Veure l'entrada a Monitoritzacio.</p>
+<h3 class="term">Traça (stack trace)</h3>
+<p>Llista de crides de funcions que mostra on ha fallat un programa. 
+<strong>Al BernatLab:</strong> Node-RED ens mostra traces quan un node falla. 
+Veure: capítols 17, 56.</p>
+<h3 class="term">Error</h3>
+<p>Esdeveniment que indica que algo no ha anat com esperavem. 
+<strong>Al BernatLab:</strong> un error pot ser desde un avís (warning) fins a una fallada critica. 
+Veure: capítols 17, 49, 56.</p>
+<h3 class="term">Exception</h3>
+<p>Condicio anomala que interrompel'execucio d'un programa. 
+<strong>Al BernatLab:</strong> capturem exceptions als nostres scripts per evitar que un error pari el backup. 
+Veure: capitol 56.</p>
+<h3 class="term">Documentacio</h3>
+<p>Conjunt de textos que expliquen com funciona un sistema, com instal·lar-lo, com usar-lo. 
+<strong>Al BernatLab:</strong> la documentacio es al repo, al llibre i al wiki. 
+Veure: capítols 9, 10, 55.</p>
+<h3 class="term">Runbook</h3>
+<p>Document operatiu que descriu pas a pas com resoldre un problema o dur a terme una tasca. 
+<strong>Al BernatLab:</strong> tenim runbooks per a "Restaura InfluxDB", "Recupera la Pi d'una fallada de SD", etc. 
+Veure: capítols 55, 56, 68.</p>
+<h3 class="term">Manual</h3>
+<p>Document d'us d'un sistema o aplicacio. 
+<strong>Al BernatLab:</strong> el manual del BernatLab son els 69 capítols del llibre. 
+Veure: capítols 9, 10.</p>
+<h3 class="term">SOP (Standard Operating Procedure)</h3>
+<p>Procediment operatiu estandard: checklist per a una tasca repetitiva. 
+<strong>Al BernatLab:</strong> SOP per a "Actualitzacio mensual del stack". 
+Veure: capítols 22, 55.</p>
+<h3 class="term">Comunitat</h3>
+<p>Grup de persones que comparteixen interessos i col·laboren. 
+<strong>Al BernatLab:</strong> la comunitat oberta del projecte ens ajuda a millorar i documentar. 
+Veure: capítols 9, 51.</p>
+<h3 class="term">Contribucio</h3>
+<p>Accio d'afegir valor a un projecte, sovint com a codi o documentacio. 
+<strong>Al BernatLab:</strong> tothom pot contribuir amb PRs, traduccions o noves fitxes d'hort. 
+Veure: capítols 9, 51.</p>
+<h3 class="term">Codi obert (open source)</h3>
+<p>Programari el codi font del qual es public i pot ser estudiat, modificat i redistribuit. 
+<strong>Al BernatLab:</strong> tot el que fem servir (Docker, Grafana, InfluxDB, Mosquitto, Node-RED) es open source. 
+Veure: capítols 9, 51.</p>
+<h3 class="term">Llicencia</h3>
+<p>Document legal que defineix com es pot usar, modificar i redistribuir un programari. 
+<strong>Al BernatLab:</strong> el projecte es publica sota MIT; la majoria d'eines que usem son Apache 2.0 o MIT. 
+Veure: capitol 9.</p>
+<h3 class="term">Fork</h3>
+<p>Copia d'un projecte que es desenvolupa de forma independent. 
+<strong>Al BernatLab:</strong> un fork ens permet experimentar sense afectar el projecte principal. 
+Veure: capítols 9, 60.</p>
+<h3 class="term">Issue</h3>
+<p>Entrada al sistema de seguiment de tasques d'un repo (GitHub Issues, GitLab Issues). 
+<strong>Al BernatLab:</strong> cada bug o millora te la seva issue a GitHub. 
+Veure: capítols 9, 60.</p>
+<h3 class="term">Roadmap</h3>
+<p>Planificacio temporal de les funcionalitats que es desenvoluparan en un projecte. 
+<strong>Al BernatLab:</strong> el roadmap esta publicat al README i al capítol 10. 
+Veure: capítols 10, 51.</p>
+<h3 class="term">Stack</h3>
+<p>Conjunt de tecnologies que componen un sistema. 
+<strong>Al BernatLab:</strong> el nostre stack es Raspberry Pi OS + Docker + Tailscale + Mosquitto + InfluxDB + Grafana. 
+Veure: capítols 1, 5, 61.</p>
+<h3 class="term">Tag (a Git o Docker)</h3>
+<p>Etiqueta que marca un punt a l'historial (Git) o una versio d'imatge (Docker). 
+<strong>Al BernatLab:</strong> usem tags semantiques (v1.2.3) per a les releases del BernatLab. 
+Veure: capítols 9, 60.</p>
+<h3 class="term">Versio semantica (SemVer)</h3>
+<p>Esquema de numeracio MAJOR.MINOR.PATCH que indica tipus de canvis. 
+<strong>Al BernatLab:</strong> v1.0.0 es la primera versio estable; v1.1.0 afegirà noves funcionalitats. 
+Veure: capítols 9, 22.</p>
+<h3 class="term">SLA</h3>
+<p>Veure l'entrada a Monitoritzacio.</p>
+<h3 class="term">Uptime</h3>
+<p>Temps durant el qual un sistema esta operatiu. 
+<strong>Al BernatLab:</strong> Grafana i Uptime Kuma ens permeten veure l'uptime de cada servei. 
+Veure: capítols 7, 19, 62.</p>
+<h3 class="term">Disponibilitat</h3>
+<p>Percentatge de temps que un sistema esta operatiu. 
+<strong>Al BernatLab:</strong> objectiu del 99% mensual per al stack principal. 
+Veure: capítols 7, 53, 67.</p>
+<h3 class="term">Alta disponibilitat (HA)</h3>
+<p>Arquitectura que garanteix que un sistema segueix operatiu encara que falli algun component. 
+<strong>Al BernatLab:</strong> avui dia no la tenim; en un futur, una replica passiva. 
+Veure: capitol 22.</p>
+<h3 class="term">DRP (Disaster Recovery Plan)</h3>
+<p>Pla de recuperacio davant desastres: que fer si ho perdem absolutament tot. 
+<strong>Al BernatLab:</strong> el DRP inclou restaurar des d'un backup a una microSD nova. 
+Veure: capítols 50, 69.</p>
+<h3 class="term">RPO (Recovery Point Objective)</h3>
+<p>Quantitat maxima de dades que estem disposats a perdre, mesurada en temps. 
+<strong>Al BernatLab:</strong> RPO de 24 h (backup diari). 
+Veure: capítols 22, 50.</p>
+<h3 class="term">RTO (Recovery Time Objective)</h3>
+<p>Temps maxim que estem disposats a trigar a recuperar el sistema. 
+<strong>Al BernatLab:</strong> RTO de 4 hores per al stack principal. 
+Veure: capítols 50, 69.</p>
+<h3 class="term">Post-mortem</h3>
+<p>Document que analiza un incident passat per aprendre'n i evitar que es repeteixi. 
+<strong>Al BernatLab:</strong> escrivim un post-mortem sempre que un servei cau mes d'una hora. 
+Veure: capítols 50, 56.</p>
+<h3 class="term">SRE (Site Reliability Engineering)</h3>
+<p>Disciplina que aplica enginyeria de software a la operativa de sistemes. 
+<strong>Al BernatLab:</strong> ens n'inspiren els principis (SLOs, error budgets, runbooks). 
+Veure: capítols 51, 53.</p>
+<hr>
+<h2>Com contribuir</h2>
+<p>Si trobes a faltar un terme, una definicio o un enllaç, obre una PR a <code>bernatlab/book/glossari.md</code> amb:</p>
+<ol>
+<li>La paraula nova o la correccio.</li>
+<li>La definicio curta (1-3 frases) en catala.</li>
+<li>Si tens, un exemple aplicat al BernatLab.</li>
+<li>El numero de capitol on sha tractat (M1 a M7).</li>
+</ol>
+<p>El glossari es viu: creix amb el projecte.</p>
+<hr>
+<p><em>Ultima revisio: generada automaticament a partir de l'estructura dels 69 capítols del BernatLab.</em></p>
+</main>
+</div>
+<footer>
+    Generat automaticament a partir de <code>book/glossari.md</code> &middot; BernatLab
+</footer>
+<script>
+(function () {
+    // Filtre de termes (cerca al panell lateral + marcar coincidencies al main).
+    const filter = document.getElementById('filter');
+    const main = document.querySelector('main');
+    if (!filter || !main) return;
+
+    const items = Array.from(main.querySelectorAll('h3.term'));
+
+    // Agrupem cada terme amb el seu paragraf d'exemple i "veure" seguent.
+    const groups = items.map((h) => {
+        const group = [h];
+        let n = h.nextElementSibling;
+        let safety = 6;
+        while (n && safety-- > 0) {
+            if (n.tagName === 'H3' || n.tagName === 'H2') break;
+            group.push(n);
+            n = n.nextElementSibling;
+        }
+        return group;
+    });
+
+    function clearHighlights() {
+        main.querySelectorAll('mark.hl').forEach((m) => {
+            const t = document.createTextNode(m.textContent);
+            m.parentNode.replaceChild(t, m);
+        });
+    }
+
+    function highlight(text) {
+        if (!text) return;
+        const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        let n;
+        while ((n = walker.nextNode())) nodes.push(n);
+        const re = new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        nodes.forEach((node) => {
+            if (!node.parentNode || node.parentNode.tagName === 'SCRIPT' || node.parentNode.tagName === 'STYLE') return;
+            const m = node.nodeValue.match(re);
+            if (!m) return;
+            const span = document.createTextNode(node.nodeValue);
+            let html = node.nodeValue;
+            html = html.replace(re, (match) => `<mark class="hl">${match}</mark>`);
+            const tmp = document.createElement('span');
+            tmp.innerHTML = html;
+            const frag = document.createDocumentFragment();
+            while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+            node.parentNode.replaceChild(frag, node);
+        });
+    }
+
+    filter.addEventListener('input', () => {
+        clearHighlights();
+        const q = filter.value.trim().toLowerCase();
+        groups.forEach((g) => {
+            const text = g.map((el) => el.textContent).join(' ').toLowerCase();
+            const match = !q || text.includes(q);
+            g.forEach((el) => el.classList.toggle('hidden', !match));
+        });
+        if (q) highlight(q);
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,185 +1,438 @@
 # Exercici practic - Capitol 8: RAG - implementacio completa
 
-> 45-60 min - RPi amb Ollama
+> 50-65 min · Real al teu servidor
 
 ## Objectiu
-
-Muntar un pipeline RAG complet de cap a peus: carregar documents, fragmentarlos, generar embeddings, indexarlos, i respondre preguntes.
+Construir un sistema RAG complet, de cap a cap, que respongui preguntes sobre la base de coneixement de l'Hort Osona. Es l'exercici mes important del modul.
 
 ## Requisits
 
-- Ollama funcionant amb el model `nomic-embed-text` i `llama3.2` (o similar)
+- Python 3.10+
+- Ollama amb `nomic-embed-text` i `llama3.2:3b`
 - ChromaDB instal·lat
-- Python 3.11
-- 5-10 fitxers .md de prova (pots crear-ne alguns sobre l'hort)
+- 50-65 minuts
 
-## Pas 1: Preparar documents de prova (10 min)
-
-Crea una carpeta amb 5-10 fitxers `.md` curts sobre horticultura:
+## Pas 1: Prepara el projecte (5 min)
 
 ```bash
-mkdir -p ~/rag-test/docs
-cd ~/rag-test/docs
+mkdir -p ~/bernatlab-exercicis/M4/08-rag-complet
+cd ~/bernatlab-exercicis/M4/08-rag-complet
 
-# Crear 5 fitxers d'exemple
-cat > tomàquet.md << 'EOF'
-# El tomàquet
-El tomàquet (Solanum lycopersicum) es cultiva a l'estiu. Vol sol directe i reg moderat. Es sembra entre març i maig. Les plagues mes comuns son el mildiu i la mosca blanca. Es bona companyia de la mongeta i l'alfàbrega. S'ha de regar al mati, mai al vespre.
+python3 -m venv venv
+source venv/bin/activate
+
+pip install chromadb ollama
+```
+
+## Pas 2: Crea una base de coneixement (10 min)
+
+Crea la carpeta de documents:
+
+```bash
+mkdir -p documents
+cat > documents/01-tomatecs.md << 'EOF'
+# Tomàquets a l'Hort Osona
+
+## Sembrament
+Els tomàquets es sembren en semiller a l'interior al febrer-març. Es trasplanten a l'exterior a partir de mitjans d'abril, quan ja no hi ha risc de glaçades.
+
+## Reg
+Necessiten reg regular pero sense entollar. Es recomana reg per degoteig. La frequencia depen del temps, pero en general 2-3 cops per setmana a l'estiu.
+
+## Varietats
+Per a Osona (900m d'altitud), les varietats que millor funcionen son:
+- Montserrat: tradicional, bona per a amanir.
+- Poma: dolça, ideal per a nens.
+- Cor de Bou: gran, per a farcir.
 EOF
 
-cat > enciam.md << 'EOF'
-# L'enciam
-L'enciam (Lactuca sativa) es una verdura de fulla. Es cultiva tot l'any excepte l'estiu mes fort. Vol reg frequent pero no xuclar. Es sembra cada 3 setmanes per collita esglaonada. Plagues: llimacs i pugons. Companyia bona amb la pastanaga i el rave.
+cat > documents/02-enciams.md << 'EOF'
+# Enciams a l'Hort Osona
+
+## Sembrament
+Es poden sembrar tot l'any menys a l'estiu (juliol-agost). Les varietats d'estiu (tipus iceberg) son mes resistents a la calor.
+
+## Reg
+Reg diari pero sense entollar. Els enciams son sensibles a la sequera pero tambe al'exces d'aigua.
+
+## Recol·leccio
+30-60 dies despres del sembrament. Es poden tallar les fulles externes deixant el cor per rebrotar.
 EOF
 
-cat > carbassa.md << 'EOF'
-# La carbassa
-La carbassa (Cucurbita maxima) vol molt d'espai i sol. Es sembra a la primavera un cop passades les gelades. Reg abundant pero espaiat. Es cull a la tardor. Plagues: aranya roja i pugons. Es bona companyia del blat de moro.
-EOF
+cat > documents/03-sensors.md << 'EOF'
+# Sensors de l'Hort Osona
 
-cat > mongeta.md << 'EOF'
-# La mongeta
-La mongeta (Phaseolus vulgaris) fixa nitrogen al sol. Es sembra a la primavera. Volsol i reg moderat. Es cull entre juliol i octubre. Plagues: coleopters. Bona companyia del tomàquet i la pastanaga. Millor no plantar amb ceba o all.
-EOF
+## DS18B20
+Mesura la temperatura del sol a 5cm de profunditat. Protocol 1-Wire. Precisio: 0.5 graus. Connexio GPIO 4.
 
-cat > calçot.md << 'EOF'
-# El calçot
-El calçot (Allium cepa) es un tipus de ceba. Es sembra a la tardor. Es calça (cobrir la base) a l'estiu per blanquejar. Es cull entre gener i març. Vol reg moderat. Plagues: mosca de la ceba. Es menja a la calcotada.
+## DHT22
+Mesura humitat i temperatura ambient. Protocol digital. Precisio: 2-5% humitat, 0.5 graus temperatura. Connexio GPIO 17.
+
+## Capacitive Soil Moisture
+Mesura la humitat del terra. Sortida analogica. Calibrar entre 0-100%. Connexio GPIO amb ADC (MCP3008).
 EOF
 ```
 
-## Pas 2: Script d'indexacio complet (15 min)
+## Pas 3: Script d'indexacio (15 min)
 
 Crea `indexar.py`:
 
 ```python
 import chromadb
-import requests
+import ollama
 from pathlib import Path
 
+def carregar_documents(base_path):
+    """Carrega tots els .md d'una carpeta."""
+    docs = []
+    for md_file in Path(base_path).rglob("*.md"):
+        content = md_file.read_text(encoding='utf-8')
+        docs.append({
+            'path': str(md_file),
+            'content': content,
+            'filename': md_file.name,
+        })
+    return docs
+
+def chunk_text(text, chunk_size=500, overlap=50):
+    """Parteix el text en chunks amb overlap."""
+    # Primer separem per paragrafs
+    paragrafs = text.split('\n\n')
+    chunks = []
+    chunk_actual = ""
+    
+    for paragraf in paragrafs:
+        if len(chunk_actual) + len(paragraf) <= chunk_size:
+            chunk_actual += "\n\n" + paragraf if chunk_actual else paragraf
+        else:
+            if chunk_actual:
+                chunks.append(chunk_actual.strip())
+            chunk_actual = paragraf
+    
+    if chunk_actual:
+        chunks.append(chunk_actual.strip())
+    
+    return chunks
+
+def obtenir_embedding(text):
+    """Calcula embedding amb Ollama."""
+    r = ollama.embeddings(model='nomic-embed-text', prompt=text)
+    return r['embedding']
+
+# Carregar documents
+print("Carregant documents...")
+docs = carregar_documents('./documents')
+print(f"Trobats {len(docs)} documents")
+
+# Chunking
+print("Fent chunking...")
+tots_chunks = []
+tots_ids = []
+tots_metadades = []
+for doc in docs:
+    chunks = chunk_text(doc['content'])
+    for i, chunk in enumerate(chunks):
+        chunk_id = f"{doc['filename']}_{i}"
+        tots_chunks.append(chunk)
+        tots_ids.append(chunk_id)
+        tots_metadades.append({
+            'path': doc['path'],
+            'filename': doc['filename'],
+            'chunk_index': i,
+        })
+
+print(f"Total chunks: {len(tots_chunks)}")
+
+# Inicialitzar ChromaDB
 client = chromadb.PersistentClient(path="./chroma_db")
-collection = client.get_or_create_collection(name="hort")
+collection = client.get_or_create_collection(
+    name="hort_osona",
+    metadata={"hnsw:space": "cosine"}
+)
 
-def get_embedding(text, model="nomic-embed-text"):
-    r = requests.post(
-        "http://localhost:11434/api/embeddings",
-        json={"model": model, "prompt": text}
+# Netejar si ja existia
+try:
+    collection.delete(where={})
+except:
+    pass
+
+# Calcular embeddings i afegir
+print("Calculant embeddings i indexant...")
+for i, (chunk, chunk_id, metadata) in enumerate(zip(tots_chunks, tots_ids, tots_metadades)):
+    embedding = obtenir_embedding(chunk)
+    collection.add(
+        documents=[chunk],
+        embeddings=[embedding],
+        ids=[chunk_id],
+        metadatas=[metadata]
     )
-    return r.json()['embedding']
+    if (i+1) % 10 == 0:
+        print(f"  Indexats {i+1}/{len(tots_chunks)} chunks")
 
-def chunk_text(text, size=300, overlap=50):
-    words = text.split()
-    return [' '.join(words[i:i+size])
-            for i in range(0, len(words), size - overlap)]
-
-# Carregar i indexar
-doc_id = 0
-for md_file in Path("./docs").glob("*.md"):
-    content = md_file.read_text(encoding='utf-8')
-    chunks = chunk_text(content)
-    for chunk in chunks:
-        emb = get_embedding(chunk)
-        collection.add(
-            embeddings=[emb],
-            documents=[chunk],
-            metadatas=[{"source": md_file.name}],
-            ids=[f"doc_{doc_id}"]
-        )
-        doc_id += 1
-    print(f"  Indexat {md_file.name}: {len(chunks)} fragments")
-
-print(f"\nTotal: {doc_id} fragments indexats a ChromaDB")
+print(f"\nFet! {collection.count()} chunks indexats")
 ```
 
-Executa:
-```bash
-cd ~/rag-test
-python indexar.py
-```
-
-## Pas 3: Script de consulta (15 min)
+## Pas 4: Script de consulta (10 min)
 
 Crea `consultar.py`:
 
 ```python
 import chromadb
-import requests
+import ollama
 
-client = chromadb.PersistentClient(path="./chroma_db")
-collection = client.get_collection(name="hort")
+def obtenir_embedding(text):
+    r = ollama.embeddings(model='nomic-embed-text', prompt=text)
+    return r['embedding']
 
-def get_embedding(text, model="nomic-embed-text"):
-    r = requests.post(
-        "http://localhost:11434/api/embeddings",
-        json={"model": model, "prompt": text}
+def cercar_chunks(pregunta, n=3):
+    """Cerca els N chunks mes rellevants."""
+    client = chromadb.PersistentClient(path="./chroma_db")
+    collection = client.get_collection("hort_osona")
+    
+    embedding = obtenir_embedding(pregunta)
+    resultats = collection.query(
+        query_embeddings=[embedding],
+        n_results=n
     )
-    return r.json()['embedding']
+    return resultats
 
-def ask(question, k=3):
-    # 1. Embedding de la pregunta
-    q_emb = get_embedding(question)
-    # 2. Cerca
-    results = collection.query(
-        query_embeddings=[q_emb],
-        n_results=k
-    )
-    # 3. Preparar contexte
-    context = "\n\n".join(results['documents'][0])
-    fonts = [m['source'] for m in results['metadatas'][0]]
-    # 4. Prompt al LLM
-    prompt = f"""Respon en catala nomes amb el contexte donat. Si no saps, digues-ho.
+def generar_resposta(pregunta, chunks):
+    """Genera resposta amb el LLM."""
+    context = "\n\n---\n\n".join(chunks)
+    
+    prompt = f"""Ets un assistent expert en horticultura a Osona (Catalunya).
+Respon la pregunta basant-te nomes en el contexte proporcionat.
+Si no tens prou informacio, digues-ho honestament.
+Respon en catala, amb concisio (max 200 paraules).
 
-Context:
+CONTEXTE:
 {context}
 
-Pregunta: {question}
-Resposta:"""
-    # 5. Generar
-    r = requests.post(
-        "http://localhost:11434/api/generate",
-        json={"model": "llama3.2", "prompt": prompt, "stream": False}
-    )
-    return r.json()['response'], fonts
+PREGUNTA: {pregunta}
 
-# Proves
-preguntes = [
-    "Com he de regar el tomàquet?",
-    "Quan es sembra l'enciam?",
-    "Quines plagues te la carbassa?",
-    "Que puc plantar al costat de la mongeta?"
+RESPOSTA:"""
+    
+    r = ollama.chat(
+        model='llama3.2:3b',
+        messages=[
+            {'role': 'system', 'content': 'Ets un expert en horticultura. Respon sempre en catala.'},
+            {'role': 'user', 'content': prompt}
+        ]
+    )
+    return r['message']['content']
+
+def preguntar(pregunta):
+    """Funcio principal: pregunta -> resposta."""
+    print(f"\nPregunta: {pregunta}")
+    print("-" * 60)
+    
+    # 1. Cercar chunks
+    resultats = cercar_chunks(pregunta, n=3)
+    chunks = resultats['documents'][0]
+    print(f"Trobats {len(chunks)} chunks rellevants")
+    
+    # 2. Mostrar contexte
+    print("\nContext recuperat:")
+    for i, chunk in enumerate(chunks):
+        print(f"  [{i+1}] {chunk[:100]}...")
+    
+    # 3. Generar resposta
+    print("\nGenerant resposta...")
+    resposta = generar_resposta(pregunta, chunks)
+    print(f"\nResposta:\n{resposta}")
+    return resposta
+
+if __name__ == '__main__':
+    # Exemples de preguntes
+    preguntes = [
+        "Quan he de plantar tomàquets?",
+        "Com es el reg dels enciams?",
+        "Quin sensor mesura la humitat del terra?",
+        "Quina varietat de tomàquet es dolça?",
+    ]
+    
+    for p in preguntes:
+        preguntar(p)
+        print("\n" + "="*60)
+```
+
+## Pas 5: Avaluacio qualitativa (10 min)
+
+Crea `evaluar.py`:
+
+```python
+import json
+from consultar import preguntar
+
+# Test cases amb respostes esperades
+tests = [
+    {
+        "pregunta": "Quan es planten els tomàquets?",
+        "ha_de_contenir": ["abril", "trasplanten"],
+        "no_ha_de_contenir": ["hivern", "gener"]
+    },
+    {
+        "pregunta": "Quin sensor mesura la humitat del terra?",
+        "ha_de_contenir": ["Capacitive", "Soil"],
+        "no_ha_de_contenir": ["DHT22", "DS18B20"]
+    },
+    {
+        "pregunta": "Com es reguen els enciams?",
+        "ha_de_contenir": ["diari"],
+        "no_ha_de_contenir": ["setmanal"]
+    },
 ]
 
-for p in preguntes:
-    print(f"\nQ: {p}")
-    resposta, fonts = ask(p)
-    print(f"R: {resposta}")
-    print(f"Fonts: {fonts}")
+print("Avaluant qualitat del RAG...\n")
+correctes = 0
+for test in tests:
+    print(f"Pregunta: {test['pregunta']}")
+    resposta = preguntar(test['pregunta'])
+    print(f"\nValidant...")
+    
+    # Comprovar contingut
+    te_correcte = all(p in resposta for p in test['ha_de_contenir'])
+    no_incorrecte = all(p not in resposta for p in test['no_ha_de_contenir'])
+    
+    if te_correcte and no_incorrecte:
+        print("[OK] Resposta valida\n")
+        correctes += 1
+    else:
+        print(f"[FAIL] Falten: {test['ha_de_contenir']}")
+        print(f"       Hi ha incorrectes: {test['no_ha_de_contenir']}\n")
+    print("-" * 60)
+
+print(f"\nResultat final: {correctes}/{len(tests)} = {correctes/len(tests)*100:.0f}%")
 ```
 
-Executa:
-```bash
-python consultar.py
+## Pas 6: Optimitzacio - chunking millorat (10 min)
+
+Crea `indexar_v2.py` amb chunking per seccions:
+
+```python
+import chromadb
+import ollama
+import re
+from pathlib import Path
+
+def carregar_documents(base_path):
+    docs = []
+    for md_file in Path(base_path).rglob("*.md"):
+        docs.append({
+            'path': str(md_file),
+            'content': md_file.read_text(encoding='utf-8'),
+            'filename': md_file.name,
+        })
+    return docs
+
+def chunk_per_seccio(text):
+    """Parteix per seccions (H2, H3)."""
+    # Separem per H2 (##)
+    seccions = re.split(r'\n## ', text)
+    chunks = []
+    for seccio in seccions:
+        seccio = seccio.strip()
+        if not seccio:
+            continue
+        # Si la seccio es massa llarga (>1500 chars), la parteixo per paragrafs
+        if len(seccio) > 1500:
+            paragrafs = seccio.split('\n\n')
+            chunk_actual = ""
+            for p in paragrafs:
+                if len(chunk_actual) + len(p) <= 800:
+                    chunk_actual += "\n\n" + p if chunk_actual else p
+                else:
+                    if chunk_actual:
+                        chunks.append(chunk_actual.strip())
+                    chunk_actual = p
+            if chunk_actual:
+                chunks.append(chunk_actual.strip())
+        else:
+            chunks.append(seccio)
+    return chunks
+
+# Carregar i indexar amb el nou chunking
+docs = carregar_documents('./documents')
+
+client = chromadb.PersistentClient(path="./chroma_db_v2")
+collection = client.get_or_create_collection(
+    name="hort_osona",
+    metadata={"hnsw:space": "cosine"}
+)
+
+try:
+    collection.delete(where={})
+except:
+    pass
+
+for doc in docs:
+    chunks = chunk_per_seccio(doc['content'])
+    for i, chunk in enumerate(chunks):
+        emb = ollama.embeddings(model='nomic-embed-text', prompt=chunk)['embedding']
+        collection.add(
+            documents=[chunk],
+            embeddings=[emb],
+            ids=[f"{doc['filename']}_{i}"],
+            metadatas=[{'path': doc['path'], 'filename': doc['filename']}]
+        )
+
+print(f"Indexats {collection.count()} chunks amb chunking per seccions")
 ```
 
-## Pas 4: Afinar el prompt (10 min)
+## Pas 7: Compara les dues versions (10 min)
 
-Observa les respostes. Prova a:
-- Afegir "Sigues concis, max 2-3 frases" al prompt.
-- Canviar k=5 i veure si canvia la resposta.
-- Canviar la instruccio del prompt per ser mes estricte ("Cita nomes informacio del contexte").
+Crea `comparar_versions.py`:
+
+```python
+import chromadb
+
+client1 = chromadb.PersistentClient(path="./chroma_db")
+client2 = chromadb.PersistentClient(path="./chroma_db_v2")
+col1 = client1.get_collection("hort_osona")
+col2 = client2.get_collection("hort_osona")
+
+preguntes = [
+    "Quan es planten els tomàquets?",
+    "Quin sensor faig servir per la humitat?",
+    "Com es el reg dels enciams?",
+]
+
+for pregunta in preguntes:
+    print(f"\n{'='*60}\n{pregunta}\n{'='*60}")
+    
+    print("\n--- V1 (chunking per paragrafs) ---")
+    r1 = col1.query(query_texts=[pregunta], n_results=2)
+    for doc in r1['documents'][0]:
+        print(f"  - {doc[:80]}...")
+    
+    print("\n--- V2 (chunking per seccions) ---")
+    r2 = col2.query(query_texts=[pregunta], n_results=2)
+    for doc in r2['documents'][0]:
+        print(f"  - {doc[:80]}...")
+```
 
 ## Validacio
 
 Has acabat si:
-- [ ] Tinc 5 documents .md creats
-- [ ] L'script d'indexacio ha funcionat i mostra el total
-- [ ] L'script de consulta respon 4 preguntes correctament
-- [ ] Les respostes inclouen informacio especifica dels documents (no generals)
-- [ ] He provat almenys una optimitzacio de prompt
+
+- [ ] Has indexat els 3 documents sobre l'Hort Osona.
+- [ ] Has fet el sistema RAG complet que respon preguntes.
+- [ ] Has avaluat la qualitat amb tests.
+- [ ] Has provat chunking per paragrafs vs per seccions.
+- [ ] Has vist la diferencia entre les dues estrategies.
 
 ## Per aprofundir
 
-- Prova amb una col·lecció mes gran (50+ documents).
-- Afegeix un sistema de cites: "Segons el document X...".
-- Guarda un log de les preguntes i respostes per avaluar qualitat.
-- Implementa streaming de la resposta (pas a pas).
+- Investiga "hybrid search": combinar cerca vectorial amb BM25 (paraules clau).
+- Prova "HyDE" (Hypothetical Document Embeddings): generar una resposta hipotetica i usar-la per cercar.
+- Compara el cost de re-indexar nomes el document nou vs tota la col·leccio.
+- Investiga "metadata filtering": filtrar per data, tipus, etc.
+
+## Ves un pas mes enlla
+
+**Repte avançat**: Afegeix un sistema de feedback al RAG. Despres de cada resposta, l'usuari pot dir si era bona o dolenta. Guarda aquest feedback. Usa'l per:
+1. Detectar quan el sistema falla.
+2. Re-entrenar el sistema (re-prioritzar chunks).
+3. Avisar quan calgui re-indexar (molts feedbacks negatius).
+
+Aixo es la base d'un sistema RAG que millora amb l'us.

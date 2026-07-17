@@ -81,3 +81,17 @@ Pistes per respondre:
 - Pot ser: CPU alta, memoria baixa, disc ple, temperatura, contenidor caigut, RPi no respon, servei concret caigut.
 - Cada regla ha de tenir una condicio clara i un temps minim.
 - Pensa quines son les 5 coses que mes et preocupen.
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que Telegram sha triomfat per a alertes vs correu electronic
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es una alerta ben dissenyada. Quins elements ha de tenir
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Si el teu hort te una alerta cada 5 minuts, que falla i com ho milloraries
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+  <!-- ========== DEFINICIONS ========== -->
+  <defs>
+    <!-- Fons -->
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf8f3"/>
+      <stop offset="100%" stop-color="#f3efe5"/>
+    </linearGradient>
+
+    <!-- Caixes estàndard amb ombra subtil -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#1a1a1a" flood-opacity="0.10"/>
+    </filter>
+
+    <!-- Fletxa estàndard -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5a5a55"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a7d44"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a6a8c"/>
+    </marker>
+
+    <!-- Icona cloud -->
+    <symbol id="cloud" viewBox="0 0 64 40">
+      <path d="M14 32 Q4 32 4 22 Q4 14 14 14 Q16 6 26 6 Q36 6 38 16 Q50 14 52 24 Q60 24 60 30 Q60 36 52 36 L14 36 Q10 36 10 32 Z"
+            fill="#ffffff" stroke="#5a5a55" stroke-width="1.5"/>
+    </symbol>
+
+    <!-- Icona servidor -->
+    <symbol id="server" viewBox="0 0 60 60">
+      <rect x="6" y="6" width="48" height="48" rx="4" fill="#e8e4d7" stroke="#5a5a55" stroke-width="1.5"/>
+      <rect x="12" y="12" width="36" height="10" rx="1" fill="#3a7d44"/>
+      <rect x="12" y="25" width="36" height="10" rx="1" fill="#3a7d44"/>
+      <rect x="12" y="38" width="36" height="10" rx="1" fill="#3a7d44"/>
+      <circle cx="42" cy="17" r="1.5" fill="#faf8f3"/>
+      <circle cx="42" cy="30" r="1.5" fill="#faf8f3"/>
+      <circle cx="42" cy="43" r="1.5" fill="#faf8f3"/>
+    </symbol>
+
+    <!-- Icona contenidor Docker -->
+    <symbol id="docker" viewBox="0 0 60 60">
+      <rect x="4" y="30" width="52" height="22" rx="2" fill="#3a6a8c" opacity="0.9"/>
+      <g fill="#faf8f3">
+        <rect x="6" y="32" width="6" height="6"/>
+        <rect x="14" y="32" width="6" height="6"/>
+        <rect x="22" y="32" width="6" height="6"/>
+        <rect x="30" y="32" width="6" height="6"/>
+        <rect x="38" y="32" width="6" height="6"/>
+        <rect x="46" y="32" width="6" height="6"/>
+        <rect x="10" y="24" width="6" height="6"/>
+        <rect x="18" y="24" width="6" height="6"/>
+        <rect x="26" y="24" width="6" height="6"/>
+        <rect x="34" y="24" width="6" height="6"/>
+        <rect x="42" y="24" width="6" height="6"/>
+        <rect x="14" y="16" width="6" height="6"/>
+        <rect x="22" y="16" width="6" height="6"/>
+        <rect x="30" y="16" width="6" height="6"/>
+        <rect x="38" y="16" width="6" height="6"/>
+        <rect x="22" y="8" width="6" height="6"/>
+        <rect x="30" y="8" width="6" height="6"/>
+        <rect x="38" y="8" width="6" height="6"/>
+      </g>
+    </symbol>
+
+    <!-- Icona portàtil -->
+    <symbol id="laptop" viewBox="0 0 60 40">
+      <rect x="10" y="6" width="40" height="26" rx="2" fill="#5a5a55"/>
+      <rect x="12" y="8" width="36" height="22" fill="#3a7d44"/>
+      <path d="M4 34 L56 34 L52 32 L8 32 Z" fill="#5a5a55"/>
+    </symbol>
+
+    <!-- Icona mòbil -->
+    <symbol id="phone" viewBox="0 0 30 50">
+      <rect x="3" y="3" width="24" height="44" rx="3" fill="#5a5a55"/>
+      <rect x="5" y="8" width="20" height="32" fill="#3a7d44"/>
+      <circle cx="15" cy="44" r="1.5" fill="#faf8f3"/>
+    </symbol>
+  </defs>
+
+  <!-- ========== FONS ========== -->
+  <rect width="1200" height="720" fill="url(#bg)"/>
+
+  <!-- ========== TITOL ========== -->
+  <text x="600" y="40" text-anchor="middle" font-size="26" font-weight="700" fill="#2a2a25">BernatLab — Arquitectura de Xarxa i Sistema</text>
+  <text x="600" y="62" text-anchor="middle" font-size="14" fill="#7a7a75">Raspberry Pi 4 · Debian 13 · Docker · Tailscale · Serveis autoallotjats</text>
+  <line x1="40" y1="80" x2="1160" y2="80" stroke="#c4bfae" stroke-width="1"/>
+
+  <!-- ========== ZONA 1: CLIENTS / EXTERIOR ========== -->
+  <g>
+    <rect x="40" y="110" width="320" height="220" rx="10" fill="#ffffff" stroke="#c4bfae" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="200" y="135" text-anchor="middle" font-size="15" font-weight="600" fill="#5a5a55">Clients i Exterior</text>
+    <text x="200" y="152" text-anchor="middle" font-size="11" fill="#8a8a85">Dispositius de l'usuari i Internet</text>
+
+    <!-- Internet (cloud) -->
+    <use href="#cloud" x="100" y="175" width="120" height="75"/>
+    <text x="160" y="265" text-anchor="middle" font-size="13" font-weight="600" fill="#5a5a55">Internet</text>
+    <text x="160" y="280" text-anchor="middle" font-size="10" fill="#8a8a85">Tailscale coordinació</text>
+
+    <!-- Portàtil -->
+    <use href="#laptop" x="260" y="190" width="70" height="50"/>
+    <text x="295" y="260" text-anchor="middle" font-size="12" font-weight="500" fill="#5a5a55">PC / Portàtil</text>
+    <text x="295" y="275" text-anchor="middle" font-size="10" fill="#8a8a85">bernat@</text>
+
+    <!-- Mòbil -->
+    <use href="#phone" x="345" y="190" width="20" height="35"/>
+    <text x="355" y="260" text-anchor="middle" font-size="12" font-weight="500" fill="#5a5a55">Mòbil</text>
+    <text x="355" y="275" text-anchor="middle" font-size="10" fill="#8a8a85">Tailscale app</text>
+  </g>
+
+  <!-- ========== ZONA 2: TAILSCALE / VPN ========== -->
+  <g>
+    <rect x="395" y="110" width="280" height="220" rx="10" fill="#eaf2ec" stroke="#3a7d44" stroke-width="2" filter="url(#shadow)"/>
+    <text x="535" y="135" text-anchor="middle" font-size="15" font-weight="600" fill="#3a7d44">Xarxa Tailscale (100.x)</text>
+    <text x="535" y="152" text-anchor="middle" font-size="11" fill="#5a5a55">VPN WireGuard · xarxa privada mesh</text>
+
+    <!-- Icona Tailscale -->
+    <g transform="translate(415, 175)">
+      <rect x="0" y="0" width="100" height="100" rx="6" fill="#3a7d44"/>
+      <path d="M 50 18 L 70 50 L 30 50 Z" fill="#faf8f3" opacity="0.95"/>
+      <circle cx="50" cy="68" r="6" fill="#faf8f3"/>
+    </g>
+    <text x="465" y="295" text-anchor="middle" font-size="13" font-weight="600" fill="#3a7d44">Tailscale</text>
+    <text x="465" y="310" text-anchor="middle" font-size="10" fill="#5a5a55">RPi: 100.115.134.76</text>
+
+    <!-- Llistat avantatges -->
+    <g transform="translate(530, 185)" font-size="11" fill="#3a3a35">
+      <text y="0" font-weight="600" fill="#3a7d44">• Sense NAT</text>
+      <text y="18">• Sense obrir ports</text>
+      <text y="36">• Xifrat WireGuard</text>
+      <text y="54">• MagicDNS</text>
+      <text y="72" font-style="italic" fill="#7a7a75">Accés segur des de</text>
+      <text y="86" font-style="italic" fill="#7a7a75">qualsevol lloc del món</text>
+    </g>
+  </g>
+
+  <!-- ========== ZONA 3: RASPBERRY PI (COR) ========== -->
+  <g>
+    <rect x="710" y="110" width="450" height="440" rx="10" fill="#ffffff" stroke="#3a7d44" stroke-width="2.5" filter="url(#shadow)"/>
+    <text x="935" y="135" text-anchor="middle" font-size="16" font-weight="700" fill="#3a7d44">Raspberry Pi 4 — BernatLab</text>
+    <text x="935" y="153" text-anchor="middle" font-size="11" fill="#7a7a75">Debian 13 Lite · Docker Engine · /home/bernat/</text>
+
+    <!-- Host (RPi) -->
+    <g>
+      <rect x="730" y="175" width="200" height="65" rx="6" fill="#eef5f0" stroke="#3a7d44" stroke-width="1.5"/>
+      <use href="#server" x="740" y="183" width="50" height="50"/>
+      <text x="800" y="200" font-size="13" font-weight="600" fill="#3a3a35">RPi 4 — Host</text>
+      <text x="800" y="216" font-size="10" fill="#5a5a55">Tailscale daemon</text>
+      <text x="800" y="230" font-size="10" fill="#5a5a55">Docker Engine</text>
+    </g>
+
+    <!-- SSH accés -->
+    <g>
+      <rect x="950" y="175" width="190" height="65" rx="6" fill="#f4ede0" stroke="#a89065" stroke-width="1.5"/>
+      <text x="1045" y="200" text-anchor="middle" font-size="13" font-weight="600" fill="#3a3a35">SSH (port 22)</text>
+      <text x="1045" y="216" text-anchor="middle" font-size="10" fill="#5a5a55">clau pública ed25519</text>
+      <text x="1045" y="230" text-anchor="middle" font-size="10" fill="#5a5a55">AllowUsers bernat</text>
+    </g>
+
+    <!-- Títol pila Docker -->
+    <text x="935" y="265" text-anchor="middle" font-size="12" font-weight="600" fill="#3a6a8c">Pila Docker (compose/...</text>
+
+    <!-- ===== Sub-grup: CORE ===== -->
+    <g>
+      <rect x="730" y="280" width="200" height="120" rx="6" fill="#ffffff" stroke="#c4bfae" stroke-width="1"/>
+      <text x="830" y="298" text-anchor="middle" font-size="11" font-weight="700" fill="#3a3a35">CORE</text>
+
+      <g transform="translate(740, 308)">
+        <rect x="0" y="0" width="85" height="38" rx="4" fill="#eaf2ec" stroke="#3a7d44" stroke-width="1"/>
+        <text x="42" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Portainer</text>
+        <text x="42" y="30" text-anchor="middle" font-size="9" fill="#5a5a55">:9443</text>
+      </g>
+      <g transform="translate(835, 308)">
+        <rect x="0" y="0" width="85" height="38" rx="4" fill="#eaf2ec" stroke="#3a7d44" stroke-width="1"/>
+        <text x="42" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Homepage</text>
+        <text x="42" y="30" text-anchor="middle" font-size="9" fill="#5a5a55">:3000</text>
+      </g>
+      <g transform="translate(740, 352)">
+        <rect x="0" y="0" width="85" height="38" rx="4" fill="#eaf2ec" stroke="#3a7d44" stroke-width="1"/>
+        <text x="42" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Uptime Kuma</text>
+        <text x="42" y="30" text-anchor="middle" font-size="9" fill="#5a5a55">:3001</text>
+      </g>
+      <g transform="translate(835, 352)">
+        <rect x="0" y="0" width="85" height="38" rx="4" fill="#eaf2ec" stroke="#3a7d44" stroke-width="1"/>
+        <text x="42" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Filebrowser</text>
+        <text x="42" y="30" text-anchor="middle" font-size="9" fill="#5a5a55">:8080</text>
+      </g>
+    </g>
+
+    <!-- ===== Sub-grup: IOT ===== -->
+    <g>
+      <rect x="940" y="280" width="200" height="120" rx="6" fill="#ffffff" stroke="#c4bfae" stroke-width="1"/>
+      <text x="1040" y="298" text-anchor="middle" font-size="11" font-weight="700" fill="#3a3a35">IoT</text>
+
+      <g transform="translate(950, 308)">
+        <rect x="0" y="0" width="85" height="38" rx="4" fill="#e8f0f5" stroke="#3a6a8c" stroke-width="1"/>
+        <text x="42" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Mosquitto</text>
+        <text x="42" y="30" text-anchor="middle" font-size="9" fill="#5a5a55">:1883</text>
+      </g>
+      <g transform="translate(1045, 308)">
+        <rect x="0" y="0" width="85" height="38" rx="4" fill="#e8f0f5" stroke="#3a6a8c" stroke-width="1"/>
+        <text x="42" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Node-RED</text>
+        <text x="42" y="30" text-anchor="middle" font-size="9" fill="#5a5a55">:1880</text>
+      </g>
+      <g transform="translate(950, 352)">
+        <rect x="0" y="0" width="85" height="38" rx="4" fill="#e8f0f5" stroke="#3a6a8c" stroke-width="1"/>
+        <text x="42" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Telegraf</text>
+        <text x="42" y="30" text-anchor="middle" font-size="9" fill="#5a5a55">agent</text>
+      </g>
+      <g transform="translate(1045, 352)">
+        <rect x="0" y="0" width="85" height="38" rx="4" fill="#e8f0f5" stroke="#3a6a8c" stroke-width="1"/>
+        <text x="42" y="17" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">ChirpStack</text>
+        <text x="42" y="30" text-anchor="middle" font-size="9" fill="#5a5a55">LoRaWAN NS</text>
+      </g>
+    </g>
+
+    <!-- ===== Sub-grup: DATA ===== -->
+    <g>
+      <rect x="730" y="410" width="200" height="60" rx="6" fill="#ffffff" stroke="#c4bfae" stroke-width="1"/>
+      <text x="830" y="428" text-anchor="middle" font-size="11" font-weight="700" fill="#3a3a35">DATA</text>
+      <g transform="translate(740, 436)">
+        <rect x="0" y="0" width="85" height="28" rx="3" fill="#f5efe0" stroke="#a89065" stroke-width="1"/>
+        <text x="42" y="18" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">InfluxDB</text>
+      </g>
+      <g transform="translate(835, 436)">
+        <rect x="0" y="0" width="85" height="28" rx="3" fill="#f5efe0" stroke="#a89065" stroke-width="1"/>
+        <text x="42" y="18" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">PostgreSQL</text>
+      </g>
+    </g>
+
+    <!-- ===== Sub-grup: MONITORING ===== -->
+    <g>
+      <rect x="940" y="410" width="200" height="60" rx="6" fill="#ffffff" stroke="#c4bfae" stroke-width="1"/>
+      <text x="1040" y="428" text-anchor="middle" font-size="11" font-weight="700" fill="#3a3a35">MONITORING</text>
+      <g transform="translate(950, 436)">
+        <rect x="0" y="0" width="85" height="28" rx="3" fill="#f3e8e8" stroke="#a8554a" stroke-width="1"/>
+        <text x="42" y="18" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Grafana</text>
+      </g>
+      <g transform="translate(1045, 436)">
+        <rect x="0" y="0" width="85" height="28" rx="3" fill="#f3e8e8" stroke="#a8554a" stroke-width="1"/>
+        <text x="42" y="18" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Prometheus</text>
+      </g>
+    </g>
+
+    <!-- ===== Sub-grup: API & WEB ===== -->
+    <g>
+      <rect x="730" y="480" width="410" height="55" rx="6" fill="#ffffff" stroke="#c4bfae" stroke-width="1"/>
+      <text x="935" y="498" text-anchor="middle" font-size="11" font-weight="700" fill="#3a3a35">API &amp; WEB PÚBLICA</text>
+      <g transform="translate(750, 506)">
+        <rect x="0" y="0" width="120" height="24" rx="3" fill="#e8e4d7" stroke="#5a5a55" stroke-width="1"/>
+        <text x="60" y="16" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">FastAPI (Hort Osona)</text>
+      </g>
+      <g transform="translate(880, 506)">
+        <rect x="0" y="0" width="120" height="24" rx="3" fill="#e8e4d7" stroke="#5a5a55" stroke-width="1"/>
+        <text x="60" y="16" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">Nginx reverse proxy</text>
+      </g>
+      <g transform="translate(1010, 506)">
+        <rect x="0" y="0" width="120" height="24" rx="3" fill="#e8e4d7" stroke="#5a5a55" stroke-width="1"/>
+        <text x="60" y="16" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a35">GitHub Pages (web)</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========== ZONA 4: DADES PERSISTENTS (a sota) ========== -->
+  <g>
+    <rect x="40" y="370" width="635" height="180" rx="10" fill="#ffffff" stroke="#a89065" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="358" y="395" text-anchor="middle" font-size="15" font-weight="600" fill="#5a5a55">Emmagatzematge i Scripts</text>
+    <text x="358" y="412" text-anchor="middle" font-size="11" fill="#7a7a75">Dades, volums Docker i scripts al servidor</text>
+
+    <g transform="translate(60, 430)">
+      <rect x="0" y="0" width="180" height="100" rx="6" fill="#f5efe0" stroke="#a89065" stroke-width="1.5"/>
+      <text x="90" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#3a3a35">/home/bernat/homelab/data/</text>
+      <text x="90" y="42" text-anchor="middle" font-size="10" fill="#5a5a55">Bind mounts persistents</text>
+      <text x="20" y="65" font-size="10" fill="#3a3a35">• influxdb/</text>
+      <text x="20" y="80" font-size="10" fill="#3a3a35">• postgres/</text>
+      <text x="20" y="95" font-size="10" fill="#3a3a35">• mosquitto/</text>
+    </g>
+
+    <g transform="translate(260, 430)">
+      <rect x="0" y="0" width="180" height="100" rx="6" fill="#f5efe0" stroke="#a89065" stroke-width="1.5"/>
+      <text x="90" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#3a3a35">/home/bernat/backups/</text>
+      <text x="90" y="42" text-anchor="middle" font-size="10" fill="#5a5a55">Còpies amb restic</text>
+      <text x="20" y="65" font-size="10" fill="#3a3a35">• Snapshots diaris</text>
+      <text x="20" y="80" font-size="10" fill="#3a3a35">• Xifrat AES-256</text>
+      <text x="20" y="95" font-size="10" fill="#3a3a35">• Destí: NAS extern</text>
+    </g>
+
+    <g transform="translate(460, 430)">
+      <rect x="0" y="0" width="200" height="100" rx="6" fill="#eaf2ec" stroke="#3a7d44" stroke-width="1.5"/>
+      <text x="100" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#3a7d44">bernatlab/ (repo Git)</text>
+      <text x="100" y="42" text-anchor="middle" font-size="10" fill="#5a5a55">Font de la veritat</text>
+      <text x="20" y="65" font-size="10" fill="#3a3a35">• book/ — llibre + curs</text>
+      <text x="20" y="80" font-size="10" fill="#3a3a35">• homelab/scripts/ — automatització</text>
+      <text x="20" y="95" font-size="10" fill="#3a3a35">• projects/hort-osona/ (submodule)</text>
+    </g>
+  </g>
+
+  <!-- ========== LLEGENDA ========== -->
+  <g transform="translate(40, 580)">
+    <rect x="0" y="0" width="635" height="120" rx="10" fill="#ffffff" stroke="#c4bfae" stroke-width="1" filter="url(#shadow)"/>
+    <text x="20" y="25" font-size="13" font-weight="700" fill="#3a3a35">Llegendes</text>
+
+    <text x="20" y="50" font-size="12" font-weight="600" fill="#3a7d44">Capes de serveis:</text>
+    <g transform="translate(140, 42)">
+      <rect x="0" y="0" width="14" height="14" rx="2" fill="#eaf2ec" stroke="#3a7d44" stroke-width="1"/>
+      <text x="20" y="11" font-size="10" fill="#3a3a35">Core (gestió)</text>
+      <rect x="100" y="0" width="14" height="14" rx="2" fill="#e8f0f5" stroke="#3a6a8c" stroke-width="1"/>
+      <text x="120" y="11" font-size="10" fill="#3a3a35">IoT (sensors)</text>
+      <rect x="200" y="0" width="14" height="14" rx="2" fill="#f5efe0" stroke="#a89065" stroke-width="1"/>
+      <text x="220" y="11" font-size="10" fill="#3a3a35">Dades (volums)</text>
+      <rect x="320" y="0" width="14" height="14" rx="2" fill="#f3e8e8" stroke="#a8554a" stroke-width="1"/>
+      <text x="340" y="11" font-size="10" fill="#3a3a35">Monitoring</text>
+    </g>
+
+    <text x="20" y="80" font-size="12" font-weight="600" fill="#3a7d44">Connexions:</text>
+    <line x1="140" y1="78" x2="180" y2="78" stroke="#3a7d44" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <text x="190" y="82" font-size="10" fill="#3a3a35">tràfic Tailscale / xifrat</text>
+    <line x1="340" y1="78" x2="380" y2="78" stroke="#5a5a55" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="390" y="82" font-size="10" fill="#3a3a35">bind mount / volum</text>
+    <line x1="140" y1="100" x2="180" y2="100" stroke="#3a6a8c" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <text x="190" y="104" font-size="10" fill="#3a3a35">tràfic MQTT / dades</text>
+  </g>
+
+  <!-- ========== CONNEXIONS / FLETXES ========== -->
+  <!-- Internet -> Tailscale (coordinació) -->
+  <line x1="220" y1="220" x2="395" y2="220" stroke="#3a7d44" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#arrow-green)"/>
+  <text x="307" y="212" text-anchor="middle" font-size="9" fill="#3a7d44" font-style="italic">coord. DERP relays</text>
+
+  <!-- PC -> Tailscale -->
+  <line x1="330" y1="215" x2="395" y2="215" stroke="#3a7d44" stroke-width="2" marker-end="url(#arrow-green)"/>
+  <text x="362" y="208" text-anchor="middle" font-size="9" fill="#3a7d44">100.x</text>
+
+  <!-- Tailscale -> RPi (gateway entrada) -->
+  <line x1="675" y1="220" x2="710" y2="207" stroke="#3a7d44" stroke-width="2.5" marker-end="url(#arrow-green)"/>
+  <text x="690" y="200" text-anchor="middle" font-size="10" font-weight="600" fill="#3a7d44">WireGuard</text>
+
+  <!-- RPi intern — pila docker (cap avall) -->
+  <line x1="830" y1="240" x2="830" y2="278" stroke="#5a5a55" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Core -> Monitoring (Grafana consulta InfluxDB) -->
+  <path d="M 830 400 Q 830 425, 850 425" fill="none" stroke="#3a6a8c" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <path d="M 1040 470 Q 1040 450, 1020 440" fill="none" stroke="#3a6a8c" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <text x="945" y="420" font-size="9" fill="#3a6a8c" font-style="italic">consulta dades</text>
+
+  <!-- RPi -> dades (volums bind) -->
+  <line x1="730" y1="600" x2="260" y2="530" stroke="#a89065" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow)"/>
+  <text x="490" y="585" font-size="10" fill="#a89065" font-style="italic">bind mounts /home/bernat/homelab/data/</text>
+
+  <!-- RPi -> backups -->
+  <line x1="730" y1="615" x2="440" y2="530" stroke="#a89065" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow)"/>
+  <text x="500" y="608" font-size="10" fill="#a89065" font-style="italic">restic backup</text>
+
+  <!-- ========== PEU ========== -->
+  <text x="600" y="710" text-anchor="middle" font-size="10" fill="#8a8a85" font-style="italic">BernatLab · Arquitectura general — Capítols 4, 5, 6, 7, 8 del llibre</text>
+</svg>

@@ -83,3 +83,29 @@ Pistes per respondre:
 - Bugs i caigudes: que passa si Tailscale falla?
 - Errades de configuracio: que passa si un servei escolta a 0.0.0.0 per error?
 - Segmentacio: pots fer que un servei nomes sigui accessible desde la interficie local.
+
+
+## Pregunta 11
+Explica per que un firewall nomes amb la politica per defecte 'deny incoming' ja dona molta seguretat.
+
+**Pistes**: Pistes: Principi de minim, superficie datac, llistes blanques.
+
+## Pregunta 12
+Quina relacio hi ha entre ports oberts i serveis exposats? Pensa en el teu hort IoT.
+
+**Pistes**: Pistes: Port 22, port 9443, port 3000, escaneig, servei.
+
+## Pregunta 13
+Si nomes tens SSH i Portainer, quines serien les regles UFW mes adients? Escriu-les.
+
+**Pistes**: Pistes: 22/tcp, 9443/tcp, default deny, limit.
+
+
+## Pregunta 14 (oberta amb pistes)
+Per que un firewall nomes amb la politica per defecte deny incoming ja dona molta seguretat
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 15 (oberta amb pistes)
+Quina relacio hi ha entre ports oberts i serveis exposats al teu hort IoT
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

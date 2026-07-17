@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El meu primer dia amb la Raspberry Pi - BernatLab</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #2a2a28; background: #faf8f3; }
+        h1 { color: #3a7d44; border-bottom: 2px solid #3a7d44; padding-bottom: 0.5rem; }
+        h2 { color: #3a7d44; margin-top: 2rem; padding-bottom: 0.3rem; border-bottom: 1px solid #c8d8c0; }
+        h3 { color: #5a5a55; }
+        blockquote { background: #e8f3ea; border-left: 4px solid #3a7d44; padding: 0.5rem 1rem; margin: 1rem 0; }
+        pre { background: #1a1d24; color: #e6e6e6; padding: 1rem; border-radius: 4px; overflow-x: auto; overflow-wrap: break-word; white-space: pre-wrap; }
+        code { background: #f0ede4; padding: 0.1rem 0.3rem; border-radius: 3px; font-family: monospace; }
+        table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+        th, td { border: 1px solid #d8d4c8; padding: 0.5rem; text-align: left; }
+        th { background: #e8f3ea; }
+        ul, ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+        li { margin: 0.3rem 0; }
+        p { margin: 0.5rem 0; }
+        .back { margin: 2rem 0; padding: 1rem; background: #e8f3ea; border-radius: 4px; }
+        .back a { background: #3a7d44; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="back">
+        <a href="https://bernatmora.github.io/bernatlab/">Tornar a BernatLab</a>
+    </div>
+<h1>El meu primer dia amb la Raspberry Pi</h1>
+
+<blockquote>Guia practica per posar en marxa un servidor personal BernatLab en una tarda. De RPi acabada de comprar fins a tenir serveis funcionant.</blockquote>
+
+<h2>Que necessites</h2>
+
+<h3>Maquinari (~200 EUR total)</h3>
+
+<ul>
+<li>Raspberry Pi 4 Model B (4 GB RAM) — ~70 EUR</li>
+<li>Targeta microSD 32 GB Clase 10 — ~10 EUR</li>
+<li>Alimentador USB-C 5V/3A oficial — ~12 EUR</li>
+<li>Carcasa amb dissipadors — ~10 EUR</li>
+<li>Cable Ethernet Cat 6 (1-2 m) — ~5 EUR</li>
+<li>Monitor + cable micro-HDMI (per a la primera configuracio) — opcional si tens accés per SSH</li>
+<li>Teclat + ratoli USB — opcional per a la primera configuracio</li>
+</ul>
+
+<h3>Programari</h3>
+
+<ul>
+<li>**Raspberry Pi Imager** (des de https://www.raspberrypi.com/software/)</li>
+<li>**SSH client** (PowerShell a Windows ja en te un)</li>
+<li>**Tailscale** (al final de la guia)</li>
+</ul>
+
+<h2>Temps estimat</h2>
+
+<table>
+<thead><tr>
+<th>Fase</th>
+<th>Durada</th>
+<th>Dificultat</th>
+</tr></thead><tbody>
+<tr>
+<td>1. Flashejar la microSD</td>
+<td>10 min</td>
+<td>Facil</td>
+</tr>
+<tr>
+<td>2. Primera arrencada</td>
+<td>10 min</td>
+<td>Facil</td>
+</tr>
+<tr>
+<td>3. Configurar xarxa</td>
+<td>15 min</td>
+<td>Facil</td>
+</tr>
+<tr>
+<td>4. Actualitzacio inicial</td>
+<td>20 min</td>
+<td>Facil</td>
+</tr>
+<tr>
+<td>5. Instal·lar Docker</td>
+<td>10 min</td>
+<td>Mitjana</td>
+</tr>
+<tr>
+<td>6. Instal·lar Portainer</td>
+<td>10 min</td>
+<td>Facil</td>
+</tr>
+<tr>
+<td>7. Instal·lar Uptime Kuma</td>
+<td>5 min</td>
+<td>Facil</td>
+</tr>
+<tr>
+<td>8. Instal·lar Homepage</td>
+<td>5 min</td>
+<td>Facil</td>
+</tr>
+<tr>
+<td>9. Configurar Tailscale</td>
+<td>15 min</td>
+<td>Mitjana</td>
+</tr>
+<tr>
+<td>10. Verificar-ho tot</td>
+<td>10 min</td>
+<td>Facil</td>
+</tr>
+<tr>
+<td>**TOTAL**</td>
+<td>**~2 hores**</td>
+<td>**Facil-Mitjana**</td>
+</tr>
+</tbody></table>
+
+<p>---</p>
+
+<h2>Fase 1: Flashejar la microSD (10 min)</h2>
+
+<h3>A. Descarrega Raspberry Pi Imager</h3>
+
+<ol>
+<li>Ves a https://www.raspberrypi.com/software/</li>
+<li>Descarrega la versio per al teu sistema (Windows / Mac / Linux).</li>
+<li>Instal·la'l.</li>
+</ul>
+
+<h3>B. Selecciona el sistema operatiu</h3>
+
+<ol>
+<li>Obre Raspberry Pi Imager.</li>
+<li>Click a **"Choose OS"**.</li>
+<li>Tria **"Raspberry Pi OS (other)"** → **"Raspberry Pi OS Lite (64-bit)"**.</li>
+</ul>
+<p>   - "Lite" perque no volem escriptor ni navegador.</p>
+<p>   - "64-bit" perque la RPi 4 ho suporta.</p>
+
+<h3>C. Selecciona la targeta</h3>
+
+<ol>
+<li>Click a **"Choose Storage"**.</li>
+<li>Tria la teva targeta microSD.</li>
+</ul>
+
+<h3>D. Preconfigura (important!)</h3>
+
+<p>Click a la <strong>icona de la rodeta</strong> (o prem `Ctrl+Shift+X`):</p>
+
+<ol>
+<li>**Hostname**: `hortosona` (o el que vulguis, pero consistent).</li>
+<li>**Enable SSH**: activa.</li>
+<li>**Set username and password**: posa `bernat` i una **contrasenya forta** (despres la canviaras).</li>
+<li>**Configure wireless**: pots posar-la ometre si fas servir Ethernet.</li>
+<li>**Set locale settings**: posa el teu fus horari.</li>
+<li>**Enable telemetry**: NO.</li>
+<li>Click **SAVE**.</li>
+</ul>
+
+<h3>E. Escriu</h3>
+
+<ol>
+<li>Click **"WRITE"**.</li>
+<li>Espera 5-10 minuts.</li>
+<li>Quan acabi, treu la targeta.</li>
+</ul>
+
+<p>---</p>
+
+<h2>Fase 2: Primera arrencada (10 min)</h2>
+
+<h3>A. Insereix la microSD a la RPi</h3>
+
+<ol>
+<li>Apaga la RPi.</li>
+<li>Insereix la microSD.</li>
+<li>Connecta el cable Ethernet al router.</li>
+<li>Connecta el monitor i teclat (només per a la primera arrencada).</li>
+<li>Endolla l'alimentacio.</li>
+</ul>
+
+<h3>B. Arrenca</h3>
+
+<ol>
+<li>La RPi arrencara en 30-60 segons.</li>
+<li>Hauries de veure un login a la consola.</li>
+<li>Entra com `bernat` amb la contrasenya.</li>
+</ul>
+
+<h3>C. Comprova la xarxa</h3>
+
+<pre>
+ip a
+</pre>
+
+<p>Hauries de veure `eth0` amb una IP del tipus `192.168.1.X`.</p>
+
+<p>---</p>
+
+<h2>Fase 3: Configurar xarxa (15 min)</h2>
+
+<h3>A. IP fixa al router (recomanat)</h3>
+
+<ol>
+<li>Entra al router (normalment http://192.168.1.1).</li>
+<li>Busca la seccio **DHCP** o **Address Reservation**.</li>
+<li>Reserva la IP actual de la RPi (per exemple, `192.168.1.100`).</li>
+<li>D'aquesta manera, la RPi sempre tindra la mateixa IP a la teva xarxa local.</li>
+</ul>
+
+<h3>B. Verificar</h3>
+
+<pre>
+ping 8.8.8.8
+ping google.com
+</pre>
+
+<p>Si funciona, tens internet. Si no:</p>
+<ul>
+<li>Comprova el cable Ethernet.</li>
+<li>Comprova la configuracio del router.</li>
+</ul>
+
+<h3>C. SSH des del teu PC</h3>
+
+<p>Ara pots treure el monitor i treballar només per SSH:</p>
+
+<p><strong>Des de Windows PowerShell</strong>:</p>
+<pre>
+ssh bernat@192.168.1.100
+</pre>
+
+<p>Si funciona, ja tens el primer pas fet!</p>
+
+<p>---</p>
+
+<h2>Fase 4: Actualitzacio inicial (20 min)</h2>
+
+<h3>A. Actualitza el sistema</h3>
+
+<pre>
+sudo apt update
+sudo apt upgrade -y
+sudo apt autoremove -y
+</pre>
+
+<p>Pot trigar 5-15 minuts.</p>
+
+<h3>B. Instal·la eines basiques</h3>
+
+<pre>
+sudo apt install -y curl wget git nano htop vim net-tools
+</pre>
+
+<h3>C. Configura el hostname (si no ho has fet a l'imager)</h3>
+
+<pre>
+sudo hostnamectl set-hostname hortosona
+</pre>
+
+<p>Edita `/etc/hosts`:</p>
+<pre>
+sudo nano /etc/hosts
+</pre>
+
+<p>Canvia la linia amb `127.0.1.1` per:</p>
+<pre>
+127.0.1.1 hortosona
+</pre>
+
+<p>Guarda amb `Ctrl+O`, `Enter`, `Ctrl+X`.</p>
+
+<h3>D. Reinicia</h3>
+
+<pre>
+sudo reboot
+</pre>
+
+<p>---</p>
+
+<h2>Fase 5: Instal·lar Docker (10 min)</h2>
+
+<h3>A. Script oficial</h3>
+
+<pre>
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+rm get-docker.sh
+</pre>
+
+<h3>B. Afegeix el teu usuari al grup docker</h3>
+
+<pre>
+sudo usermod -aG docker bernat
+</pre>
+
+<p><strong>Important</strong>: tanca la sessio SSH i torna a entrar perque el canvi tingui efecte:</p>
+<pre>
+exit
+ssh bernat@192.168.1.100
+</pre>
+
+<h3>C. Verifica</h3>
+
+<pre>
+docker --version
+docker run hello-world
+</pre>
+
+<p>Si veus el missatge "Hello from Docker!", funciona.</p>
+
+<h3>D. Instal·la Docker Compose</h3>
+
+<p>Ja ve amb Docker modern, pero verifica:</p>
+<pre>
+docker compose version
+</pre>
+
+<p>---</p>
+
+<h2>Fase 6: Instal·lar Portainer (10 min)</h2>
+
+<h3>A. Crea un volum per les dades</h3>
+
+<pre>
+docker volume create portainer_data
+</pre>
+
+<h3>B. Arrenca Portainer</h3>
+
+<pre>
+docker run -d -p 9000:9000 -p 9443:9443 \
+  --name portainer \
+  --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  portainer/portainer-ce:latest
+</pre>
+
+<h3>C. Configura</h3>
+
+<ol>
+<li>Obre el navegador: https://192.168.1.100:9443</li>
+<li>Crea un compte d'administrador (la primera vegada).</li>
+<li>Selecciona **"Get Started"** amb el Docker local.</li>
+</ul>
+
+<p>Ara ja tens un panell per gestionar tots els teus contenidors!</p>
+
+<p>---</p>
+
+<h2>Fase 7: Instal·lar Uptime Kuma (5 min)</h2>
+
+<h3>A. Crea el directori</h3>
+
+<pre>
+mkdir -p /home/bernat/homelab/uptime-kuma
+cd /home/bernat/homelab/uptime-kuma
+</pre>
+
+<h3>B. Crea el docker-compose.yml</h3>
+
+<pre>
+cat &gt; docker-compose.yml &lt;&lt; 'EOF'
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: always
+    ports:
+      - 3001:3001
+    volumes:
+      - uptime-kuma:/app/data
+
+volumes:
+  uptime-kuma:
+EOF
+</pre>
+
+<h3>C. Arrenca</h3>
+
+<pre>
+docker compose up -d
+</pre>
+
+<h3>D. Configura</h3>
+
+<ol>
+<li>Obre: http://192.168.1.100:3001</li>
+<li>Crea un compte.</li>
+<li>Afegeix monitors:</li>
+</ul>
+<p>   - <strong>Portainer</strong>: `https://192.168.1.100:9443` (cada minut)</p>
+<p>   - <strong>Homepage</strong> (quan estigui): http://192.168.1.100:3000</p>
+<p>   - <strong>Hort Osona</strong> (web publica): https://bernatmora.github.io/hort-osona/</p>
+<p>   - <strong>BernatLab</strong> (web publica): https://bernatmora.github.io/bernatlab/</p>
+
+<p>---</p>
+
+<h2>Fase 8: Instal·lar Homepage (5 min)</h2>
+
+<h3>A. Crea el directori</h3>
+
+<pre>
+mkdir -p /home/bernat/homelab/homepage
+cd /home/bernat/homelab/homepage
+</pre>
+
+<h3>B. Crea el docker-compose.yml</h3>
+
+<pre>
+cat &gt; docker-compose.yml &lt;&lt; 'EOF'
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - ./config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=192.168.1.100,hortosona.local
+EOF
+</pre>
+
+<h3>C. Crea la configuracio inicial</h3>
+
+<pre>
+mkdir -p config/services
+cat &gt; config/services.yaml &lt;&lt; 'EOF'
+---
+- Portainer:
+    - Container: portainer
+      Description: Gestor de contenidors
+      URL: https://192.168.1.100:9443
+      Icon: portainer
+
+- Uptime Kuma:
+    - Container: uptime-kuma
+      Description: Monitoritzacio
+      URL: http://192.168.1.100:3001
+      Icon: uptime-kuma
+
+- BernatLab:
+    - Web publica del projecte
+      URL: https://bernatmora.github.io/bernatlab/
+      Icon: github
+
+- Hort Osona:
+    - Web publica de lhort
+      URL: https://bernatmora.github.io/hort-osona/
+      Icon: leaf
+EOF
+
+cat &gt; config/widgets.yaml &lt;&lt; 'EOF'
+---
+- search:
+    provider: custom
+    url: https://www.google.com/search
+
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+EOF
+
+cat &gt; config/settings.yaml &lt;&lt; 'EOF'
+---
+title: BernatLab
+background:
+  opacity: 50
+theme: dark
+color: slate
+EOF
+</pre>
+
+<h3>D. Arrenca</h3>
+
+<pre>
+docker compose up -d
+</pre>
+
+<h3>E. Verifica</h3>
+
+<p>Obre: http://192.168.1.100:3000</p>
+
+<p>Hauries de veure el teu panell personalitzat.</p>
+
+<p>---</p>
+
+<h2>Fase 9: Configurar Tailscale (15 min)</h2>
+
+<h3>A. Instal·la Tailscale</h3>
+
+<pre>
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+</pre>
+
+<p>Et donara un enllaç per autenticar-te. Segueix-lo.</p>
+
+<h3>B. Comprova la IP Tailscale</h3>
+
+<pre>
+tailscale ip -4
+</pre>
+
+<p>Hauries de veure una IP del tipus `100.X.Y.Z`. <strong>Aquesta es la teva IP Tailscale</strong> (anota-la).</p>
+
+<h3>C. Verifica l'accés extern</h3>
+
+<p>Des del teu PC:</p>
+<pre>
+ssh bernat@100.X.Y.Z
+</pre>
+
+<p>Si funciona, ja pots accedir a la RPi des de qualsevol lloc amb Tailscale.</p>
+
+<h3>D. Configura MagicDNS</h3>
+
+<p>Tailscale ja ve amb MagicDNS activat per defecte. Pots accedir amb `ssh bernat@hortosona` des de qualsevol node Tailscale.</p>
+
+<p>---</p>
+
+<h2>Fase 10: Verificar-ho tot (10 min)</h2>
+
+<h3>A. Comprova que tot esta corrent</h3>
+
+<pre>
+docker ps
+</pre>
+
+<p>Hauries de veure 3 contenidors actius:</p>
+<ul>
+<li>portainer</li>
+<li>uptime-kuma</li>
+<li>homepage</li>
+</ul>
+
+<h3>B. Comprova la xarxa</h3>
+
+<pre>
+curl -k https://localhost:9443/api/status
+curl http://localhost:3001
+curl http://localhost:3000
+</pre>
+
+<p>Tots han de respondre.</p>
+
+<h3>C. Accedeix des del navegador</h3>
+
+<table>
+<thead><tr>
+<th>Servei</th>
+<th>URL local</th>
+<th>URL Tailscale</th>
+</tr></thead><tbody>
+<tr>
+<td>Portainer</td>
+<td>https://192.168.1.100:9443</td>
+<td>https://100.X.Y.Z:9443</td>
+</tr>
+<tr>
+<td>Uptime Kuma</td>
+<td>http://192.168.1.100:3001</td>
+<td>http://100.X.Y.Z:3001</td>
+</tr>
+<tr>
+<td>Homepage</td>
+<td>http://192.168.1.100:3000</td>
+<td>http://100.X.Y.Z:3000</td>
+</tr>
+</tbody></table>
+
+<h3>D. Configura alertes a Uptime Kuma</h3>
+
+<ol>
+<li>Ves a Uptime Kuma → Settings → Notifications.</li>
+<li>Afegeix **Telegram** (veure documentacio oficial).</li>
+<li>Configura una alerta per quan qualsevol servei caigui.</li>
+</ul>
+
+<p>---</p>
+
+<h2>Que fer despres?</h2>
+
+<h3>Dia 1 (avui):</h3>
+<ul>
+<li>Tot lo anterior.</li>
+<li>Familiaritzar-te amb cada eina.</li>
+</ul>
+
+<h3>Dia 2 (dema):</h3>
+<ul>
+<li>Configurar **SSH amb claus** (M8 cap 1).</li>
+<li>Configurar el **perfil SSH** al teu PC (M8 cap 3).</li>
+<li>**Backup** de la configuracio de la RPi.</li>
+</ul>
+
+<h3>Dia 3 (mes tard):</h3>
+<ul>
+<li>**Node-RED** per a automatitzacions.</li>
+<li>**Grafana + Prometheus** per a visualitzacio.</li>
+<li>**MQTT (Mosquitto)** per als sensors.</li>
+</ul>
+
+<h3>Mes endavant:</h3>
+<ul>
+<li>**LoRa SX1262** per als sensors llunyans.</li>
+<li>**InfluxDB** per emmagatzemar series temporals.</li>
+<li>**Ollama** per a IA local.</li>
+</ul>
+
+<p>---</p>
+
+<h2>Solucio de problemes</h2>
+
+<h3>Si SSH no connecta</h3>
+
+<ol>
+<li>Comprova que la RPi te IP (`ip a`).</li>
+<li>Comprova que el firewall permet SSH (`sudo ufw status`).</li>
+<li>Comprova que SSH esta actiu (`sudo systemctl status ssh`).</li>
+</ul>
+
+<h3>Si Docker no arrenca</h3>
+
+<ol>
+<li>Comprova els logs (`sudo journalctl -u docker`).</li>
+<li>Comprova que tens memoria suficient (`free -h`).</li>
+<li>Reinstalla (`sudo apt reinstall docker.io`).</li>
+</ul>
+
+<h3>Si un port esta ocupat</h3>
+
+<ol>
+<li>Comprova qui l'ocupa (`sudo netstat -tlnp | grep PORT`).</li>
+<li>Canvia el port al `docker-compose.yml`.</li>
+</ul>
+
+<h3>Si Tailscale no autentica</h3>
+
+<ol>
+<li>Verifica que tens internet a la RPi.</li>
+<li>Torna a provar (`sudo tailscale up`).</li>
+<li>Si segueix fallant, surt (`sudo tailscale down`) i torna a entrar.</li>
+</ul>
+
+<p>---</p>
+
+<h2>Recursos adicionals</h2>
+
+<ul>
+<li>**Curs del BernatLab**: https://bernatmora.github.io/bernatlab/book/curs/</li>
+<li>**Llibre del BernatLab**: https://bernatmora.github.io/bernatlab/</li>
+<li>**Glossari**: https://bernatmora.github.io/bernatlab/book/glossari.html</li>
+<li>**Hort Osona**: https://bernatmora.github.io/hort-osona/</li>
+<li>**Runbook Tailscale recovery**: https://github.com/BernatMora/bernatlab/blob/main/book/curs/recursos/recuperacio-emergencia-tailscale.md</li>
+</ul>
+
+<p>---</p>
+
+<blockquote>*Guia redactada per Hermes, el copilot del BernatLab. Adaptada a la RPi de l'usuari Bernat Mora, configurada a hortosona amb Debian 13 Lite.*</blockquote>
+
+</body>
+</html>

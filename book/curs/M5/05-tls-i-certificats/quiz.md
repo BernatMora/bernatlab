@@ -85,3 +85,29 @@ Pistes per respondre:
 - Pots fer servir certificats auto-signats o la CA de Tailscale.
 - Explica quan NO cal Let's Encrypt.
 - Dona un exemple amb `tailscale cert`.
+
+
+## Pregunta 11
+Per que es important tenir HTTPS nomes a dins de la teva xarxa Tailscale? No cal TLS si ja soc jo?
+
+**Pistes**: Pistes: Defensive in depth, atac intern, malware, sniff, futur.
+
+## Pregunta 12
+Explica que es un certificat auto-signat i quan pot ser acceptable.
+
+**Pistes**: Pistes: Cost, facil, navegador avisa, xarxa privada.
+
+## Pregunta 13
+Quina relacio hi ha entre la validesa dun certificat i la seguretat? Pensa en 1 any, 5 anys, 10 anys.
+
+**Pistes**: Pistes: Renovacio, canvis, revocacio, atac.
+
+
+## Pregunta 14 (oberta amb pistes)
+Per que es important tenir HTTPS nomes a dins de la teva xarxa Tailscale
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 15 (oberta amb pistes)
+Explica que es un certificat auto-signat i quan pot ser acceptable
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

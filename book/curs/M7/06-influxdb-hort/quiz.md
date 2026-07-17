@@ -85,3 +85,17 @@ Pistes per respondre:
 - Downsample 1d: 5 anys (mitjana diaria, ocupacio 1/1440).
 - Crea tasks automatitzades amb Flux.
 - Explica quant espai estalviaries per a 5 sensors a 5 min.
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que InfluxDB sha triomfat per a dades de sensors
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es una retention policy i per que es important per a dades IoT
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Com dissenyaries les teves measurements a InfluxDB per al teu hort
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

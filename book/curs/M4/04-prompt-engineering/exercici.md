@@ -1,140 +1,229 @@
 # Exercici practic - Capitol 4: Prompt engineering
 
-> 30-45 min · Real al teu servidor
+> 35-50 min · Real amb Ollama
 
 ## Objectiu
-
-Experimentar amb diferents tecniques de prompt engineering aplicades a un cas real del BernatLab: analitzar logs del sistema. Comparar resultats de prompts dolents, regulars i optimitzats.
+Practicar les tecniques de prompt engineering mes importants: especificitat, role prompting, few-shot, chain of thought, i control de la sortida. Acabaras sabent com obtenir respostes mes utils del teu LLM local.
 
 ## Requisits
 
-- Ollama instal·lat amb `llama3.2:3b` (o similar)
-- 30-45 minuts
-- ~100 MB d'espai lliure
+- Ollama instal·lat amb un model de 3B o mes
+- Python amb `requests`
+- 35-50 minuts
 
-## Pas 1: Crea un directori amb dades de prova (5 min)
-
-```bash
-mkdir -p ~/bernatlab-exercicis/M4/04-prompts/dades
-cd ~/bernatlab-exercicis/M4/04-prompts/dades
-
-# Crea un fitxer de logs simulats
-cat > logs.txt << 'EOF'
-Mar 15 03:42:17 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2
-Mar 15 03:42:18 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2
-Mar 15 03:42:19 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2
-Mar 15 03:42:20 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2
-Mar 15 03:42:21 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2
-Mar 15 03:45:02 rpi sshd[1234]: Failed password for invalid user admin from 92.118.39.11 port 55210 ssh2
-Mar 15 08:12:33 rpi cron[5678]: (root) CMD (test -x /usr/sbin/anacron || run-parts /etc/cron.daily)
-Mar 15 12:01:00 rpi systemd[1]: Started Daily apt download activities.
-Mar 15 12:05:23 rpi apt[9012]: Get:1 http://deb.debian.org/debian trixie/main arm64 libssl3 arm64 3.0.13-1~deb13u1 [2345 kB]
-Mar 15 14:30:11 rpi dockerd[789]: containerd starts... container ff123abc started
-Mar 15 18:22:45 rpi sshd[1456]: Accepted password for bernat from 192.168.1.50 port 51234 ssh2
-Mar 15 18:23:01 rpi sudo: bernat : TTY=pts/0 ; PWD=/home/bernat ; USER=root ; COMMAND=/usr/bin/apt update
-Mar 15 20:15:00 rpi ollama[3456]: [GIN] 2024/03/15 20:15:00 | 200 |    1.2s |  127.0.0.1 | POST     "/api/generate"
-EOF
-
-# Mostra el contingut
-cat logs.txt
-```
-
-## Pas 2: Prompt MAL dissenyat (zero-shot sense contexte) (5 min)
+## Pas 1: Prepara l'entorn (3 min)
 
 ```bash
-curl -s http://localhost:11434/api/generate -d '{
-  "model": "llama3.2:3b",
-  "prompt": "Que hi ha en aquest log?",
-  "stream": false
-}' | jq -r '.response'
+mkdir -p ~/bernatlab-exercicis/M4/04-prompts
+cd ~/bernatlab-exercicis/M4/04-prompts
 ```
 
-Observa la resposta. Probablement es massa generica o no enten que vols.
+Crea `prompts.py` amb les funcions base:
 
-## Pas 3: Prompt millorat amb rol i contexte (10 min)
+```python
+import requests
 
-```bash
-curl -s http://localhost:11434/api/chat -d '{
-  "model": "llama3.2:3b",
-  "messages": [
-    {
-      "role": "system",
-      "content": "Ets un expert en seguretat informatica. Analitza logs de Linux en angles i respon sempre en catala. Sigues concis pero precís."
-    },
-    {
-      "role": "user",
-      "content": "Analitza aquest log d una Raspberry Pi 4 amb SSH obert a Internet. Indica: 1) quines anomalies veus, 2) el nivell de risc (1-5), 3) dues accions concretes a fer.\n\nLOG: '$(cat logs.txt | head -5 | tr "\n" " ")'"
-    }
-  ],
-  "stream": false
-}' | jq -r '.message.content'
+def preguntar(prompt, model='llama3.2:3b', system=None, temperature=0.7):
+    messages = []
+    if system:
+        messages.append({'role': 'system', 'content': system})
+    messages.append({'role': 'user', 'content': prompt})
+    
+    r = requests.post(
+        'http://localhost:11434/api/chat',
+        json={
+            'model': model,
+            'messages': messages,
+            'stream': False,
+            'options': {'temperature': temperature}
+        }
+    )
+    return r.json()['message']['content']
 ```
 
-Compara amb el Pas 2. Veus la diferencia?
+## Pas 2: Compara un mal prompt amb un bon prompt (10 min)
 
-## Pas 4: Few-shot amb exemples (10 min)
+Crea `comparar_prompts.py`:
 
-```bash
-curl -s http://localhost:11434/api/chat -d '{
-  "model": "llama3.2:3b",
-  "messages": [
-    {
-      "role": "system",
-      "content": "Ets un expert en seguretat. Classifica cada linia de log segons el risc."
-    },
-    {
-      "role": "user",
-      "content": "Exemple 1: '\''Jan 1 10:00 rpi cron[123]: CMD (run-parts /etc/cron.hourly)'\''\nRisc: BAIX. Es una tasca programada normal.\n\nExemple 2: '\''Jan 1 03:00 rpi sshd[456]: Failed password for root from 1.2.3.4 port 12345'\''\nRisc: ALT. Possible atac de força bruta.\n\nAra classifica aquesta linia: '\''Mar 15 03:42:17 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2'\''\n\nRespon en format:\nRisc: [BAIX/MITJA/ALT]\nMotiu: [1 frase]"
-    }
-  ],
-  "stream": false
-}' | jq -r '.message.content'
+```python
+from prompts import preguntar
+
+# MAL prompt
+print("=== MAL PROMPT ===")
+print(preguntar("Explica Docker."))
+
+print("\n" + "="*60 + "\n")
+
+# BON prompt
+print("=== BON PROMPT ===")
+print(preguntar(
+    "Explica quines son les 3 diferencies principals entre Docker i una maquina virtual tradicional, "
+    "adreçat a un administrador de sistemes amb 5 anys d'experiencia. Limita la resposta a 150 paraules. "
+    "Escriu en catala."
+))
 ```
 
-## Pas 5: Chain-of-thought (10 min)
+Executa i observa la diferencia. El bon prompt ha de donar una resposta mes enfocada, mes especifica i mes util.
 
-```bash
-curl -s http://localhost:11434/api/chat -d '{
-  "model": "llama3.2:3b",
-  "messages": [
-    {
-      "role": "system",
-      "content": "Ets un expert en seguretat que raona pas a pas."
-    },
-    {
-      "role": "user",
-      "content": "Analitza aquesta linia de log:\n'\''Mar 15 03:42:17 rpi sshd[1234]: Failed password for root from 185.143.223.47 port 44231 ssh2'\''\n\nProcediment:\n1. Identifica el servei (sshd? cron? apt?).\n2. Identifica l esdeveniment (login fallit? exit? error?).\n3. Avalua la gravetat: es normal o sospitos?\n4. Recomana una accio concreta.\n\nRaona pas a pas i dona la teva conclusio final."
-    }
-  ],
-  "stream": false
-}' | jq -r '.message.content'
+## Pas 3: Experimenta amb role prompting (8 min)
+
+Crea `role_prompting.py`:
+
+```python
+from prompts import preguntar
+
+pregunta = "Tinc errors intermitents amb el contenidor de Mosquitto. Que puc fer?"
+
+# Sense rol
+print("=== SENSE ROL ===")
+print(preguntar(pregunta))
+
+# Amb rol d'expert
+print("\n=== AMB ROL EXPERT ===")
+print(preguntar(
+    pregunta,
+    system="Ets un administrador de sistemes Linux senior amb 15 anys d'experiencia en homelabs. "
+           "Especialista en MQTT, Docker i Raspberry Pi. Respon sempre en catala, amb exemples de comandes."
+))
+
+# Amb rol d'amic
+print("\n=== AMB ROL D'AMIC ===")
+print(preguntar(
+    pregunta,
+    system="Ets un company de feina simpatic que intenta ajudar. "
+           "Parla en catala informal, sense tecnicismes excessius."
+))
 ```
 
-## Pas 6: Documenta la comparacio (10 min)
+Que diferencies hi ha entre les tres respostes?
 
-Crea `book/curs/M4/04-prompt-engineering/comparacio.md` amb:
+## Pas 4: Few-shot prompting (10 min)
 
-| Tecnica | Prompt resum | Qualitat (1-5) | Utilitat |
-|---|---|---|---|
-| Mal prompt (zero-shot) | "Que hi ha en aquest log?" | ... | ... |
-| Amb rol i contexte | ... | ... | ... |
-| Few-shot | ... | ... | ... |
-| Chain-of-thought | ... | ... | ... |
+Crea `few_shot.py`:
 
-Afegeix conclusions: quina tecnica ha funcionat millor? Per que?
+```python
+from prompts import preguntar
+
+# Zero-shot
+print("=== ZERO-SHOT (classifica l'alerta) ===")
+print(preguntar("Classifica aquesta alerta: 'CPU usage 95%'"))
+
+# Few-shot
+print("\n=== FEW-SHOT ===")
+prompt_few_shot = """Classifica les alertes en INFO, WARNING o CRITICAL.
+
+Exemples:
+- 'Disk usage 60%' -> INFO
+- 'Disk usage 85%' -> WARNING
+- 'Disk usage 98%' -> CRITICAL
+- 'Memory usage 45%' -> INFO
+- 'Memory usage 80%' -> WARNING
+- 'Service nginx down' -> CRITICAL
+
+Classifica: 'CPU usage 95%'"""
+print(preguntar(prompt_few_shot))
+```
+
+Que ha passat? El few-shot hauria de donar "CRITICAL" (CPU 95% es critic), pero el zero-shot potser ha donat una explicacio llarga i menys directa.
+
+## Pas 5: Chain of thought (10 min)
+
+Crea `chain_of_thought.py`:
+
+```python
+from prompts import preguntar
+
+# Problema logic
+problema = """Tinc 3 testos. Al primer hi ha 7 tomàquets. Al segon, el doble que al primer. 
+Al tercer, la meitat que al segon. Si un ocell menja 2 tomàquets del segon test, 
+quants tomàquets tinç en total?"""
+
+# Sense chain of thought
+print("=== SENSE CHAIN OF THOUGHT ===")
+print(preguntar(problema))
+
+# Amb chain of thought
+print("\n=== AMB CHAIN OF THOUGHT ===")
+print(preguntar(
+    f"{problema}\n\nPensa pas a pas, mostrant cada calcul intermedi. "
+    "Despres dona la resposta final."
+))
+```
+
+El "amb chain of thought" hauria de mostrar: 7 + 14 + 7 = 28, menys 2 = 26 tomàquets. El "sense" pot donar una resposta rapida pero erronia.
+
+## Pas 6: Control del format de sortida (8 min)
+
+Crea `format_sortida.py`:
+
+```python
+from prompts import preguntar
+import json
+
+# Sortida en JSON estructurat
+prompt_json = """Llista 3 avantatges i 3 inconvenients d'usar Docker en un homelab.
+Respon EXCLUSIVAMENT amb JSON valid en aquest format:
+{
+  "avantages": ["av1", "av2", "av3"],
+  "inconvenients": ["inc1", "inc2", "inc3"]
+}
+Nomes el JSON, sense texte adicional."""
+
+print("=== JSON ESTRUCTURAT ===")
+resposta = preguntar(prompt_json, temperature=0)
+print(resposta)
+
+# Intentem parsejar-lo
+try:
+    data = json.loads(resposta)
+    print("\n[OK] JSON valid!")
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+except json.JSONDecodeError as e:
+    print(f"\n[ERROR] JSON invalid: {e}")
+```
+
+## Pas 7: Experimenta amb temperature (5 min)
+
+Crea `temperature_test.py`:
+
+```python
+from prompts import preguntar
+
+prompt = "Escriu una frase curta sobre l'horticultura."
+
+for temp in [0.0, 0.5, 1.0]:
+    print(f"\n=== TEMPERATURE {temp} ===")
+    for i in range(3):
+        print(f"  {i+1}. {preguntar(prompt, temperature=temp)}")
+```
+
+Que observes? Temperature 0 hauria de donar respostes identiques. Temperature 1 hauria de ser molt variat.
 
 ## Validacio
 
 Has acabat si:
-- [ ] Has provat el prompt MAL dissenyat.
-- [ ] Has provat el prompt amb rol i contexte.
-- [ ] Has provat el prompt amb few-shot.
-- [ ] Has provat el prompt amb chain-of-thought.
-- [ ] Has documentat la comparacio.
+
+- [ ] Has vist la diferencia entre mal i bon prompt.
+- [ ] Has practicat role prompting amb 3 rols diferents.
+- [ ] Has usat few-shot per classificar alertes.
+- [ ] Has provat chain of thought amb un problema logic.
+- [ ] Has aconseguit una sortida en JSON valid.
+- [ ] Has experimentat amb temperature.
 
 ## Per aprofundir
 
-- Prova el mateix amb un model mes gran (phi3:mini) i mira si canvia la qualitat.
-- Investiga "self-consistency": fer la mateixa pregunta 5 cops i votar la resposta mes frequent.
-- Crea un script Python que automatitzi l'analisi de logs amb el millor prompt que hagis trobat.
-- Experimenta amb la "temperature" (0 = mes consistent, 1 = mes creatiu).
+- Investiga "self-consistency": demanar al model N respostes i quedar-te amb la mes comuna.
+- Llegeix sobre "ReAct prompting": alternar raonament i accions.
+- Prova "negative prompting": dir-li al model que NO faci certes coses.
+- Mira com fan servir prompts les eines populars: Aider, Cursor, Continue.
+
+## Ves un pas mes enlla
+
+**Repte avançat**: Crea una llibreria Python `bernatlab_prompts.py` amb prompts reusables per a les tasques comuns del BernatLab:
+- `resumir_log(log_text)`
+- `classificar_alerta(alerta_text)`
+- `generar_script(descripcio, llenguatge)`
+- `explicar_error(error_text)`
+- `respondre_pregunta_hort(pregunta)`
+
+Cada funcio ha de tenir un system prompt optimitzat per a la tasca. Despres, construeix un script que les faci servir totes en un menu interactiu.

@@ -1,97 +1,131 @@
 # Qüestionari - Capitol 6: Embeddings
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min · 7 test + 8 obertes
 
 ## Pregunta 1
-
 Que es un embedding?
 
-- [ ] Un tipus de LLM
-- [x] Un vector numeric que representa el significat d un text
+- [ ] Un tipus de base de dades
+- [x] Un vector numeric que representa el significat d'un text
+- [ ] Un model d'IA per generar text
 - [ ] Un sistema operatiu
-- [ ] Un protocol de xarxa
 
 ## Pregunta 2
+Quantes dimensions te habitualment un embedding modern?
 
-Quantes dimensions te normalment un embedding modern?
-
-- [ ] 10-50
-- [x] 384-1536
-- [ ] 10000+
-- [ ] Nomes 1
+- [ ] 10-20
+- [ ] 50-100
+- [x] 384, 768, 1024 o 1536
+- [ ] 1.000.000+
 
 ## Pregunta 3
+Que vol dir que dos embeddings son "propers"?
 
-Que mesura la "semblança cosinus"?
-
-- [ ] La distancia geografica entre dues ciutats
-- [x] El grau de semblança entre dos vectors (i per tant, entre dos textos)
-- [ ] El temps que triga un model a generar text
-- [ ] La mida d un fitxer
+- [ ] Que tenen el mateix nombre de digits
+- [x] Que els vectors corresponents son similars (mateixa direccio)
+- [ ] Que els textos tenen la mateixa longitud
+- [ ] Que les paraules son iguals
 
 ## Pregunta 4
+Quina es la metrica estandard per comparar embeddings?
 
-Quin valor de semblança cosinus indica "molt semblant"?
-
-- [ ] 0.0
-- [ ] 0.2
-- [x] 0.85
-- [ ] -0.5
+- [ ] Distancia euclidea
+- [ ] Manhattan distance
+- [x] Semblança cosinus
+- [ ] Distancia de Hamming
 
 ## Pregunta 5
+Quin rang te la semblança cosinus?
 
-Quin d'aquests es un model d'embeddings local disponible a Ollama?
-
-- [ ] BERT-base
-- [x] nomic-embed-text
-- [ ] Stable Diffusion
-- [ ] Whisper
+- [ ] 0 a 100
+- [x] -1 a 1
+- [ ] 0 a 1
+- [ ] -100 a 100
 
 ## Pregunta 6
+Quin model d'embeddings es bo per defecte a Ollama?
 
-Quina llibreria Python es l'estandard per a embeddings locals?
-
-- [ ] requests
-- [ ] flask
-- [x] sentence-transformers
-- [ ] matplotlib
+- [ ] llama3.2
+- [x] nomic-embed-text
+- [ ] mistral
+- [ ] phi3
 
 ## Pregunta 7
+Quina es la diferencia entre "el gat menja peix" i "el moix menja peix" en termes d'embedding?
 
-Quantes dimensions te l'embedding del model all-MiniLM-L6-v2?
+- [ ] Son completament diferents
+- [x] Son molt semblants perque volen dir el mateix
+- [ ] Son identics nomes si les paraules son identiques
+- [ ] Es impossible comparar-los
 
-- [ ] 128
-- [x] 384
-- [ ] 768
-- [ ] 1536
+## Pregunta 8 (oberta)
+Explica amb les teves paraules: que representa cada dimensio d'un embedding de 768 numeros? Es una dimensio = una paraula? Un concepte?
 
-## Pregunta 8
-
-Quin es el "sweet spot" recomanat per a dimensions d'embedding?
-
-- [ ] 50
-- [ ] 128
-- [x] 768
-- [ ] 10000
+Pistes per respondre:
+- No, una dimensio no es una paraula concreta.
+- Cada dimensio captura algun aspecte del significat.
+- Es mes semblant a "components abstractes" que a paraules.
+- Aixo te implicacions per entendre com funciona el model.
 
 ## Pregunta 9 (oberta)
-
-Per que els embeddings permeten "cercar per significat" en lloc de "cercar per paraules exactes"? Dona un exemple concret amb l'Hort Osona.
+Per que creus que la semblança cosinus es mes util que la distancia euclidea per comparar embeddings? Dona exemples concrets al BernatLab.
 
 Pistes per respondre:
-- Explica el mecanisme: vectors propers = significat semblant.
-- Pensa en una cerca tradicional: buscar "rega" nomes trobara la paraula "rega".
-- Amb embeddings: buscar "com controlo l aigua dels tomàquets" pot trobar un text que parla de "sistema de reg automatic".
-- Això es important per a l'Hort Osona: tenim 100 lectures de sensors amb paraules tecniques que l'usuari pot no recordar exactament.
+- Cosinus mesura l'angle (direccio), no la distancia.
+- Dos textos de longitud diferent poden ser similars.
+- Exemple: "el gat menja" i "el gat menja peix" son similars encara que tinguin longituds diferents.
+- Quan la euclidea falla i la cosinus encerta.
 
 ## Pregunta 10 (oberta)
-
-Has d'indexar 10.000 articles de documentacio tecnica. Quines decisions prendries sobre quin model d'embeddings fer servir i per que? Pensa en qualitat, velocitat, memoria i idioma.
+Si el model d'embeddings canvia (per exemple passes de `nomic-embed-text` a `mxbai-embed-large`), cal re-indexar tots els documents? Per que?
 
 Pistes per respondre:
-- Qualitat: com mes alt millor, pero fins a un punt.
-- Velocitat: sense GPU, 10.000 textos poden trigar molt.
-- Memoria: cada embedding ocupa memoria (768 floats = 3 KB per text).
-- Idioma: catala? angles? barreja?
-- Quin model especific triaries (nomic, mxbai, bge)?
-- Quant trigaries? Com ho optimitzaries?
+- Si, cal re-indexar.
+- Cada model te el seu propi "espai vectorial".
+- Embeddings del mateix text amb models diferents NO son comparables.
+- Aixo es un cost important a considerar quan es tria model.
+
+## Pregunta 11 (oberta)
+Compara "Word2Vec" (antic) i "Sentence Transformers" (modern) en quant a capacitat. Per que el primer ha quedat obsolet?
+
+Pistes per respondre:
+- Word2Vec: un embedding per paraula, no enten contexte.
+- Sentence Transformers: embedding per frase, enten contexte.
+- Exemple: "bank" en "river bank" vs "bank account" - Word2Vec no diferencia.
+- Els models moderns entenen polisemia i contexte.
+
+## Pregunta 12 (oberta)
+Quina relacio hi ha entre la mida del model d'embeddings i la qualitat dels resultats? Es sempre millor un model mes gran?
+
+Pistes per respondre:
+- Fins a cert punt, mes gran = millor.
+- Pero mes gran = mes lent i mes memoria.
+- Sweet spot: 100-500M parametres per a la majoria d'usos.
+- Aplica al BernatLab: quin model tries i per que.
+
+## Pregunta 13 (oberta)
+Imagina que vols comparar el contingut de 1.000 correus per trobar temes comuns. Com ho faries amb embeddings? Quin cost computacional tindria?
+
+Pistes per respondre:
+- Calcular 1.000 embeddings: pocs segons amb nomic-embed-text.
+- Calcular 1.000.000 de semblances (tots amb tots): 1M * 768 dimensions = 768M operacions.
+- A 1 mil milio per segon, son uns 0.7 segons. Trivial.
+- Clustering: k-means o DBSCAN per grup tematics.
+
+## Pregunta 14 (oberta)
+Quines consequencies te usar embeddings amb texts molt curts (1-2 paraules) o molt llargs (>1000 paraules)? Com ho gestionaries?
+
+Pistes per respondre:
+- Text molt curt: poques dimensions capturades, menys precissio.
+- Text molt llarg: truncar pot perdre informacio important.
+- Estrategia: truncar a 512 tokens (max habitual), o fer chunking.
+- Aplica al BernatLab: noms de sensors vs descripcions llargues.
+
+## Pregunta 15 (oberta)
+Argumenta: prefereixes calcular embeddings al núvol (OpenAI text-embedding-3) o local (Ollama + nomic-embed-text) al BernatLab? Posa arguments per les dues bandes.
+
+Pistes per respondre:
+- Arguments núvol: qualitat lleugerament millor, no cal hardware.
+- Arguments local: privadesa, cost zero, disponibilitat.
+- Cas concret: el BernatLab processa logs i dades personals.
+- Tria final: defensa-la amb un argument practic.

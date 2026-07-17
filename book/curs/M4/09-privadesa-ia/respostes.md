@@ -1,141 +1,312 @@
 # Respostes - Capitol 9: Privadesa de la IA
 
-## Pregunta 1: Que passa amb les dades al nuvol?
+> Mira les respostes DESPRES d'haver fet el qüestionari.
 
-**Resposta correcta**: S'envien a l'empresa que te el model.
+## Pregunta 1: Que s'envia a un LLM al nuvol?
 
-**Explicacio**: Quan uses ChatGPT, Claude, Gemini, etc., el texte de la teva pregunta, el contexte i la resposta viatgen als servidors d'aquesta empresa. Segons els termes del servei, poden guardar-les, analitzar-les o usar-les per entrenar futurs models. Es la diferencia fonamental amb la IA local.
+**Resposta correcta**: Preguntes, contexte adjunt, respostes, metadades.
 
----
-
-## Pregunta 2: Millor avantatge de la IA local?
-
-**Resposta correcta**: Les dades no surten del teu PC.
-
-**Explicacio**: Amb Ollama, tot el proces (embedding, cerca, generacio) passa al teu maquinari. Ningun mes te acces a les teves dades. Es la diferencia entre tenir un assistent al núvol i tenir-lo a casa teva.
+**Explicacio**: Tot. La pregunta, els fitxers adjunts, les respostes, i metadades com l'hora, la IP, el navegador. Es un detall que molta gent no considera.
 
 ---
 
-## Pregunta 3: NO es avantatge de la IA local?
+## Pregunta 2: Que es IA local?
 
-**Resposta correcta**: Te els millors models del mon.
+**Resposta correcta**: Una IA que s'executa al teu propi ordinador sense enviar dades a tercers.
 
-**Explicacio**: Els millors models (GPT-4, Claude Opus, Gemini Ultra) son al nuvol. La IA local te models mes petits pero suficients per a molts casos. La potencia punta encara es al nuvol.
-
----
-
-## Pregunta 4: Limitacio de la IA local?
-
-**Resposta correcta**: Menys potent (els millors models son al nuvol).
-
-**Explicacio**: Els models mes grans i entrenats amb mes dades son al nuvol perque requereixen infraestructura cara. La RPi o un PC normal no poden correr GPT-4 ni tan sols quantitat. Pero per a molts casos, els models locals son mes que suficients.
+**Explicacio**: Es la diferencia entre tenir l'assistent a casa (local) o tenir-lo a un edifici d'una empresa (nuvol). Al BernatLab, Ollama es la eina per fer IA local.
 
 ---
 
-## Pregunta 5: Que vol dir GDPR?
+## Pregunta 3: NO es un risc de la IA al nuvol
 
-**Resposta correcta**: General Data Protection Regulation (normativa UE de privadesa).
+**Resposta correcta**: El model es massa petit.
 
-**Explicacio**: El GDPR es la llei europea de proteccio de dades, en vigor des del 2018. Regula com les empreses poden recollir, emmagatzemar i processar dades personals. Important si vols usar serveis al nuvol amb dades de ciutadans europeus.
-
----
-
-## Pregunta 6: Bona practica de privadesa local?
-
-**Resposta correcta**: Xifrar els embeddings si s'emmagatzemen.
-
-**Explicacio**: Encara que els embeddings son vectors numerics, poden contenir informacio sensible reconstruible. Xifrar-los o guardar-los en una particio xifrada es una bona practica. Tambe es important netejar els historials de converses periodicament.
+**Explicacio**: La mida del model no te res a veure amb la privadesa. El risc es on s'executa i que fan amb les dades.
 
 ---
 
-## Pregunta 7 (oberta): 3 arguments per la IA local
+## Pregunta 4: Avantatge mes important al BernatLab
+
+**Resposta correcta**: Privadesa total.
+
+**Explicacio**: Al BernatLab processem dades personals i de l'hort familiar. Que no surtin del servidor es prioritari per sobre de qualsevol altre avantatge.
+
+---
+
+## Pregunta 5: Risc mes gran de la IA al nuvol
+
+**Resposta correcta**: Les teves dades poden ser usades per entrenar futurs models.
+
+**Explicacio**: Aixo es un risc real i sovint ignorat. Moltes empreses reserven el dret d'usar les converses per millorar els seus models. Les teves dades es converteixen en part del "coneixement" del model per sempre.
+
+---
+
+## Pregunta 6: Llei europea relevant
+
+**Resposta correcta**: GDPR.
+
+**Explicacio**: La GDPR (General Data Protection Regulation) es la llei que regula el tractament de dades personals a Europa. Afecta com qualsevol empresa pot usar les teves dades. Es la referencia legal per a la privadesa.
+
+---
+
+## Pregunta 7: NO es limitacio de la IA local
+
+**Resposta correcta**: Es mes cara.
+
+**Explicacio**: La IA local no te cost per consulta, nomes el cost d'electricitat i hardware. A llarg termini, es MES barata que les subscriptcions mensuals al nuvol.
+
+---
+
+## Pregunta 8 (oberta): Per que la privadesa es important
 
 **Resposta model**:
 
-La IA local es la opcio mes privada per 3 motius clars:
+La privadesa es un tema tant important perque **sovint enviem mes dades de les que pensem**. Aixo es per varies raons:
 
-1. **Les dades no viatgen**: amb Ollama, tot el proces passa al teu hardware. Les preguntes, els documents i les respostes mai surten del teu PC. No hi ha cap servidor extern involucrat, ni tan sols per a la fase d'entrenament del model (que ja esta fet).
+**1. Les dades sensibles son mes comunes del que creiem**. No es nomes informacio medica o financera. Son:
+- Correus sobre familia, amics, projectes personals.
+- Documents de feina amb informacio confidencial.
+- Histories de navegacio (que revelen molt de la teva vida).
+- Logs del sistema amb IPs, noms d'usuari, patrons d'us.
+- Captures de pantalla, fotos, videos.
 
-2. **Control absolut**: tu decideixes que es guarda, que es borra, i qui te acces. No depens de la politica de privadesa d'una empresa que pot canviar demà. Si vols esborrar tot, ho pots fer amb un `rm -rf`. No hi ha "data retention policy" de 30 dies.
+**2. Tenim tendencia a "exagerar" amb el contexte**. Quan demanem ajuda a un LLM, sovint copiem-enganxem molt text. "Mira aquesta linia de log", "llegeix aquest correu", "explica'm aquest contracte". Sense adonar-nos, estem enviant una mica de la nostra vida a un servidor extern.
 
-3. **Sense data breach extern**: el risc mes gran al nuvol no es l'empresa, sino els hackers. Un data breach pot exposar milions de converses. En local, nomes et pots hackejar a tu mateix (la teva RPi), i tens control sobre la seguretat.
+**3. Les dades son persistents**. Un cop envies una informacio, queda emmagatzemada. Pot ser borrada per l'empresa, pero no tens garanties reals. Si hi ha un data breach (cosa que passa cada any), les teves dades queden exposades.
 
-Aixo si, la IA local te inconvenients: velocitat i potencia. Pero per a molts casos d'us personal, la privadesa compensa.
+**4. Les dades son reutilitzables**. El que avui es "una consulta sobre un log", demà pot ser un fragment d'entrenament per a un model. Les teves paraules poden acabar formant part de les respostes d'altres usuaris.
+
+**Exemple concret**: imagina que escrius un correu sobre un problema amb el teu vei i el passes al LLM per "reformular-lo millor". Aquest correu conte informacio personal, opinions, possibles conflictes legals. Si queda emmagatzemat, pot ser problematic en el futur.
+
+La regla d'or: **mai enviïs a un LLM al nuvol res que no publicaries en un cartell al carrer**. Si tens dubtes, millor local.
 
 ---
 
-## Pregunta 8 (oberta): Cas on NO nuvol pero si local
+## Pregunta 9 (oberta): Riscos dun correu legal a ChatGPT
 
 **Resposta model**:
 
-Un cas clar: un **advocat o metge amb un homelab** que vol ajudar-se amb la IA per analitzar documents.
+Enviar un correu sobre una situacio legal delicada (com un conflicte amb un vei) a ChatGPT te **quatre riscos principals**:
 
-- **Per que NO nuvol**: els documents son confidencials per llei. Enviar histologies cliniques o expedients al nuvol vulnera el secret professional i el GDPR. Si l'empresa del nuvol te un data breach, la responsabilitat es de l'advocat/metge.
+**Risc 1 - Emmagatzematge perpetu**. OpenAI pot guardar el teu correu als seus servidors. Encara que el seuavis de privadesa digui que nomes per 30 dies, no tens garanties reals. Pot ser un backup, una copia de seguretat, un registre intern que mai s'esborra.
 
-- **Per que SI local**: amb Ollama a una RPi, pot indexar tots els seus documents i fer consultes sense que res surti del seu despatx. Es compliant amb GDPR per disseny.
+**Risc 2 - Us per entrenar**. Segons la politica d'OpenAI, les converses poden ser usades per entrenar futurs models (llevat que opt-out). El teu correu pot acabar formant part d'un dataset d'entrenament. No se sap exactament com s'usara, pero el text queda "fos" dins del model.
 
-- **Cas real**: un metge de capçalera vol consultar rapidament els seus 30 anys d'historial cliniques per trobar patrons. Amb RAG local, pot fer-ho. Al nuvol, no pot (o no hauria de poder).
+**Risc 3 - Data breach**. OpenAI, com qualsevol empresa, pot patir un atac informatic. Si un atacant roba la base de dades de converses, el teu correu sobre el conflicte amb el vei queda exposat. Aixo pot agreujar la situacio legal (l'altra part pot obtenir informacio que no volies compartir).
 
-L'avantatge: complir la llei I tenir l'eina. Al nuvol, son incompatibles per a dades sensibles.
+**Risc 4 - Cessio a tercers**. Empreses com OpenAI poden cedir dades a autoritats governamentals (amb ordre judicial), a socis comercials, o a empreses que els comprin. A mes, els seus servidors poden estar a Estats Units, fora de la jurisdiccio GDPR.
+
+**L'alternativa correcta**: usar un LLM local (Ollama). El correu queda al teu servidor, no s'envia a ningun tercer, i tens control absolut. Aixo es exactament el cas d'us per al que serveix Ollama al BernatLab: situacions delicades on la privadesa es critica.
+
+**Alternativa hibrida**: si necessites un model mes potent del que tens local, pots anonimitzar el correu (treure noms, dates, ubicacions) abans d'enviar-lo al nuvol. Pero sempre sera menys segur que el local.
 
 ---
 
-## Pregunta 9 (oberta): Trade-off local vs nuvol
+## Pregunta 10 (oberta): Privadesa i control
 
 **Resposta model**:
 
-El trade-off real es entre **privadesa** i **potencia**. No es absolut - depen molt del cas.
+La relacio entre privadesa i control es fonamental. **Privadesa es el resultat de tenir control**, i el control ve de la proximitat fisica i logica.
 
-**L'eix del trade-off**:
-- **Local**: maxima privadesa, cost zero, funciona offline, personalitzable, mes lent, menys potent.
-- **Nuvol**: poca privadesa, cal pagar, cal internet, menys control, mes rapid, mes potent.
+**Amb IA local**:
+- Tens el control absolut. Les dades son al teu disc, al teu servidor, a la teva xarxa.
+- Pots fer el que vulguis: esborrar, modificar, exportar, xifrar.
+- Ningun mes te acces sense el teu permis explicit.
+- Si vols deixar d'usar el model, simplement l'apagues.
 
-**No es absolut** perque:
-- Hi ha models al nuvol que son bastant privats (self-hosted en servidors europeus).
-- Hi ha models locals que son bastant potents (Mixtral, Llama 3 70B en un Mac potent).
-- Es pot combinar: local per defecte, nuvol per a tasques puntuals que necessitin potencia.
+**Amb IA al nuvol**:
+- El proveidor te les dades. Tu nomes tens un servei (l'API).
+- Les dades estan subjectes a les politiques del proveidor.
+- Si canvien les condicions, tu no tens opcio (o tens l'opcio de marxar, pero perds les dades).
+- Si el proveidor te problemes economics, les teves dades poden estar en joc.
 
-**La meva recomanacio**: regla del 80/20.
-- 80% de les tasques: local (consultes, embeddings, resums simples).
-- 20% de les tasques: nuvol (generacio de texte complex, multimodal, raonament llarg).
+**Analogia**: llogar una casa vs tenir-la en propietat.
+- Llogar: el propietari pot canviar les condicions, vendre la casa, o no renovar el contracte. Tu no tens control.
+- Propietat: tu decideixes que fer, quan marxar, com reformar. Tens control total.
 
-Aixi tens privadesa per defecte i pots usar el nuvol nomes quan realment cal.
+**Que pasa si el proveidor canvia les condicions?** Cas real: el 2023, StackOverflow va canviar la seva politica i va bloquejar l'access a dades historiques per a entrenar. El 2024, Reddit va fer el mateix. Son exemples de com una empresa pot canviar les regles del joc unilateralment.
+
+Al BernatLab, amb Ollama, **tu ets l'unic que pot canviar les regles**. Si vols afegir un model, l'afegixes. Si vols canviar la configuracio, la canvies. Si vols tancar el servidor, el tanques. Es la diferencia entre ser client i ser propietari.
 
 ---
 
-## Pregunta 10 (oberta): Correus confidencials
+## Pregunta 11 (oberta): ChatGPT Plus vs Ollama local
 
 **Resposta model**:
 
-Per a correus confidencials d'un client, la **regla d'or** es: **mai el nuvol, sempre local**.
+Fem el calcul economic per al BernatLab:
 
-**Pipeline mixt correcte**:
+**Opcio A - ChatGPT Plus (20$/mes)**:
+- Cost mensual: 20$.
+- Cost anual: 240$.
+- Cost a 5 anys: 1.200$.
+- **Limitacio**: les dades van al nuvol. Riscos de privadesa. Limits d'us (potser cal un plan mes car per us intensiu).
 
-1. **Indexacio local (Ollama + ChromaDB)**: indexar tots els correus al teu PC/RPi. Cap embedding surt de casa.
+**Opcio B - Ollama local**:
+- Hardware: una RPi 4 (4 GB) costa uns 60-80€. Un Mac mini M2 usat costa uns 500€.
+- Cost mensual d'electricitat: ~5€ (RPi) o ~10€ (Mac).
+- Cost anual: 60-120€ d'electricitat.
+- **A 1-2 anys**: el cost ja es inferior.
+- **Avantatges adicionals**: privadesa total, sense limits d'us, personalitzable, funciona offline.
 
-2. **Consulta local (RAG)**: quan vulguis buscar, la consulta es local. El LLM local llegeix el contexte i respon.
+**Payback period**:
+- Amb RPi nova (60€): payback en 3-6 mesos.
+- Amb Mac usat (500€): payback en 18-24 mesos.
 
-3. **Anonimitzacio previa**: si vols resumir tendencies (no casos individuals), pots anonimitzar les dades i llavors enviar-les al nuvol. Pero per a casos especifics d'un client, mai.
+**Arguments economics a favor de local**:
+- A llarg termini (2+ anys), el local es mes barat.
+- A curt termini, depen de si ja tens hardware.
+- Si tens una RPi, el cost es quasi zero.
+- Si necessites comprar un PC potent (2000€), triga mes a amortitzar-se.
 
-4. **Logs locals**: guarda un registre de totes les consultes. Si hi ha una fuga, saps on ha estat.
+**Arguments economics a favor del nuvol**:
+- Cost inicial zero.
+- Sense manteniment de hardware.
+- Sense configuracio (tot funciona desde el primer dia).
+- Si nomes l'us esporadicament, es mes economic.
 
-**Exemple de decisio**:
-- "Resumeix els ultims correus del client X" -> LOCAL nomes.
-- "Quin es l'estil general dels correus professionals" -> LOCAL + anonimitzeu + nuvol opcional.
-- "Genera una resposta formal al client X" -> LOCAL nomes.
+**La meva recomanacio**: **Ollama local** al BernatLab, per varies raons:
+1. Ja tenim una RPi al servidor. Cost marginal d'usar-la per IA: quasi zero.
+2. La privadesa es un valor intangible pero important.
+3. Tenim el control total.
+4. A 1-2 anys, el cost es inferior.
 
-**Bones practiques GDPR**:
-- No usar APIs de tercers per a dades identificables.
-- Xifrar el disc on es guarden els correus.
-- Limitar l'acces fisic a la RPi.
-- Netejar logs periodicament.
+Si nomes necessites IA ocasionalment (1-2 cops per setmana) i no t'importa la privadesa, ChatGPT Plus pot ser mes convenient. Pero per a un BernatLab que vol ser autosuficient i privat, local es la tria correcta.
 
-**Conclusio**: per a correus confidencials, la IA local es l'unica opcio etica. El nuvol es per a informacio que ja es publica o es pot anonimitzar.
+**Tercera opcio**: model mes petit (3B) local per a tasques simples + consultes puntuals al nuvol anonimitzades per a tasques complexes. Aixo dona el millor dels dos mons.
 
 ---
 
-## Què fer si has fallat moltes
+## Pregunta 12 (oberta): Canvi de politiques
 
-- **5-8 encerts**: Reflexiona sobre quines dades personales has enviat al nuvol fins ara. Considera migrar a local.
-- **3-4 encerts**: Rellegeix el resum. La clau es entendre que al nuvol **tot** va a l'empresa.
-- **0-2 encerts**: Comença llegint els termes del servei d'algun LLM al nuvol que usaves. Despres torna aqui.
+**Resposta model**:
+
+Que una empresa canviï les seves politiques de privadesa es un **risc real i subestimat**. Passa mes sovint del que pensem.
+
+**Exemples historics**:
+- **Instagram (2012)**: va canviar els termes i es va apropiar del dret a vendre les fotos dels usuaris. Protestes massives. Van revertir parcialment.
+- **WhatsApp (2021)**: va compartir dades amb Facebook per defecte. Canvi unilateral. Molts usuaris van marxar a Signal.
+- **Reddit (2023)**: va bloquejar l'access a dades historiques per a entrenar models. Els desenvolupadors que depenien d'aquestes dades van quedar penjats.
+- **Twitter/X (2022-2023)**: canvis massius de politiques d'API, privadesa, verificacio. Usuaris i desenvolupadors van perdre control.
+
+**Que ensenya aixo**: les empreses canvien les seves politiques **quan els convieneix economicament**, no quan es moralment correcte. Avui una empresa et promet privadesa, pero d'aqui 2 anys pot vendre la teva activitat a un altre que te altres prioritats.
+
+**L'avantatge de la IA local**: tu no depens de la bona voluntat de ningun. Si vols canviar la teva propia politica (per exemple, deixar d'enregistrar logs), nomes has de canviar la teva configuracio. Ningun altre te poder sobre les teves decisions.
+
+**Aplicat al BernatLab**: si demà OpenAI decideix usar totes les converses per entrenar (fins i tot les dels usuaris que van dir que no), els teus correus i logs poden acabar formant part d'un model. No pots fer-hi res. En canvi, amb Ollama local, **tu decideixes el desti de les teves dades**.
+
+**Conclusio**: en un mon on les empreses canvien les seves politiques sense previ avis, tenir control local es la unica garantia real de privadesa a llarg termini.
+
+---
+
+## Pregunta 13 (oberta): Bones practiques
+
+**Resposta model**:
+
+**Bones practiques generals (s'apliquen a local i nuvol)**:
+
+1. **Minimitzar dades enviades**: nomes envia el text necessari. Si pots resumir abans d'enviar, millor.
+
+2. **Anonimitzar sempre**: treu noms, emails, telèfons, IPs, ubicacions. Encara que sembli "innocu", millor curar-se en salut.
+
+3. **Xifrar al disc**: tant si es local com al nuvol, les dades emmagatzemades han d'estar xifrades (LUKS al local, xifrat del proveidor al nuvol).
+
+4. **Auditar periodicament**: cada 3-6 mesos, revisar quines dades s'han enviat, a on, i per que. Esborrar les que no calguin.
+
+5. **Logs minims**: desactiva els logs que no necessitis. Menys logs = menys dades exposades en cas de breach.
+
+6. **No usar el compte personal per a tot**: separa comptes (un per a feina, un per a personal, un per a experiments).
+
+**Bones practiques per a IA local (BernatLab)**:
+
+1. **Servidor en xarxa privada**: usa Tailscale per accedir des de fora. No exposar ports a Internet.
+
+2. **Actualitzar el sistema periodicament**: les vulnerabilitats es descobreixen cada setmana. Un sistema no actualitzat es un sistema vulnerable.
+
+3. **Backups xifrats**: fer còpies de seguretat pero xifrades. Guardar-les en un lloc segur (un altre disc, un altre edifici).
+
+4. **Limitar qui te acces**: nomes tu (i potser familia de confianca). Si comparteixes amb altres, tenir comptes separats.
+
+5. **Monitoritzar acces**: saber qui accedeix al servidor i quan. Logs basics (qui, quan, des d'on).
+
+**Bones practiques per a IA al nuvol (si l'usas puntualment)**:
+
+1. **Llegir els termes**: si, es avorrit, pero cal. Sabere que acceptes.
+
+2. **Usar comptes dedicats**: no el teu compte personal, sino un compte separat per a experiments.
+
+3. **Anonimitzar SEMPRE**: assumir que tot el que envies pot ser vist per humans i per futurs models.
+
+4. **Opt-out d'entrenament**: si el proveidor ho permet, desactivar l'us de converses per entrenar.
+
+5. **No compartir informacio personal o financera**: regla d'or.
+
+**Al BernatLab, la meva politica es**: totes les dades importants passen per Ollama local. nomes uso el nuvol per a tasques generals sense informacio personal (resumir un article public, generar una idea creativa, etc.).
+
+---
+
+## Pregunta 14 (oberta): Avaluacio de privadesa dun model
+
+**Resposta model**:
+
+Abans de fer servir un LLM, cal fer-se **sis preguntes clau**:
+
+**1. On s'executa?** Local o nuvol? Si es nuvol, en quins servidors? (Europa te GDPR mes estricte que EUA). Si es local, esta en un servidor que controlo?
+
+**2. Quines dades recull per defecte?** Molts models recullen metadades (IP, hora, navegador, historial). Cal revisar la politica de privadesa.
+
+**3. Pot usar les meves dades per entrenar?** Aquesta es la pregunta critica. Molts serveis gratuïts usen les converses per entrenar. Cal buscar l'opcio opt-out.
+
+**4. Te una opcio "no entrenar amb les meves dades"?** Si la resposta es no, es un mal senyal. Si la resposta es si pero nomes a canvi de pagar, tambe.
+
+**5. En cas de data breach, que pasa?** Tinc cap garantia? Ofereixen asseguurances? Qui em notifica?
+
+**6. Esta allotjat en servidors europeus (GDPR)?** Si es EUA o altres jurisdiccions, les meves dades poden estar subjectes a altres lleis (Cloud Act, etc.).
+
+**Exemple aplicat**:
+
+| Pregunta | Ollama local | OpenAI ChatGPT | Anthropic Claude |
+|---|---|---|---|
+| On s'executa? | Local (casa meva) | Nuvol (EUA) | Nuvol (EUA) |
+| Quines dades recull? | Cap (nomes el que jo guardi) | Metadades, converses | Metadades, converses |
+| Pot entrenar amb les meves dades? | No (no te centre de dades central) | Si, per defecte | Si, per defecte |
+| Opcio opt-out? | N/A (ja es privat) | Si (a la configuracio) | Si (a la configuracio) |
+| Garantia en breach? | N/A (aixo es casa meva) | Limitada | Limitada |
+| Servidors europeus? | N/A | No | No |
+
+**Conclusio**: Ollama local es la unica opcio que dona resposta "perfecta" a totes les preguntes. Per aixo es la tria del BernatLab.
+
+---
+
+## Pregunta 15 (oberta): Per que la IA local al BernatLab
+
+**Resposta model**:
+
+Encara que la IA local te limitacions evidents (model mes petit, menys potent, menys rapid que els millors al nuvol), al BernatLab **es la millor opcio** per tres arguments solids:
+
+**Argument 1 - Privadesa absoluta**. El BernatLab processa dades personals, lectures de sensors d'una llar, correus privats, possibles documents legals o financers. Aquestes dades **mai** haurien de sortir del servidor. La IA local garanteix que nomes jo (i les persones de la meva confianca) tenim acces. Cap data breach, cap politica canviada, cap empresa que vengui les meves dades. Es la diferencia entre un diari personal guardat sota el matalàs i un diari publicat a Internet.
+
+**Argument 2 - Cost a llarg termini**. Una inversio inicial de 60-500€ en hardware, mes 50-100€ anuals d'electricitat, es amortitza en 1-2 anys respecte a una subscripcio de 20-30€/mes al nuvol. A mes, el hardware dura 5-10 anys, fent el cost per any molt baix. No hi ha sorpreses: no hi ha pujades de preu, no hi ha nous plans que calgui pagar, no hi ha limitacions d'us sobtades.
+
+**Argument 3 - Control i independencia**. Jo decideixo quan actualitzar, quan canviar de model, quan tancar el sistema. No depenc de les decisions d'una empresa a 10.000 km. Si Meta decideix tancar el seu model, o Google puja els preus, o OpenAI canvia les condicions, a mi no m'afecta. El meu sistema segueix funcionant igual.
+
+**Argument bonus 4 - Personalitzacio**. Puc afinar el model amb les meves dades (RAG, fine-tuning), puc crear una API a mida, puc integrar-lo amb els meus sistemes (Grafana, InfluxDB, scripts) de manera natural. Al nuvol, estic limitat a les APIs i condicions que em donen.
+
+**Argument bonus 5 - Aprenentatge**. Muntar i mantenir un sistema d'IA local m'ensenya molt sobre com funciona la tecnologia. Aquest coneixement es transferible i em fa mes competent. Al nuvol, soc nomes un consumidor.
+
+**Conclusio final**: al BernatLab, la IA local no es una questio de capacitat tecnica (podriem usar el nuvol perfectament), sino de valors. Volem privadesa, control i autonomia. Aixo son valors que el nuvol no pot oferir, per mes barat o potent que sigui.
+
+---
+
+## Que fer si has fallat moltes preguntes
+
+- **10-12 encerts**: revisa la seccio de bones practiques del resum.
+- **7-9 encerts**: fes l'exercici practic d'auditoria, veuras on tens possibles fuites.
+- **0-6 encerts**: comença per l'inventari de dades (Pas 1) i la verificacio d'Ollama (Pas 3). Son les bases.
+
+## Que fer si has encertat totes
+
+- Passa al **Capitol 10** (aplicacio a Hort Osona).
+- O investiga "differential privacy" en mes detall.
+- O llegeix sobre la GDPR i com afecta el BernatLab.

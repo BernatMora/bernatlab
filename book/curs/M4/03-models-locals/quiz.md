@@ -1,100 +1,132 @@
 # Qüestionari - Capitol 3: Triar el model adequat
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min · 7 test + 8 obertes
 
 ## Pregunta 1
+Que vol dir "7B parametres" en un LLM?
 
-Que volen dir les "B" en "7B parametres"?
-
-- [ ] Bytes
-- [x] Bilions (milers de milions)
-- [ ] Bits
-- [ ] Bytes per segon
+- [ ] Set mil milions de documents amb que sha entrenat
+- [x] Set mil milions de pesos numerics que el model ha après
+- [ ] Set mil bits d'informacio
+- [ ] Set mil preguntes que pot respondre
 
 ## Pregunta 2
+Quina quantitzacio es la mes comuna als models d'Ollama per defecte?
 
-Quina es la mida aproximada en RAM d'un model de 7B quantitzat en Q4?
-
-- [ ] 1 GB
-- [ ] 2 GB
-- [x] 4-5 GB
-- [ ] 28 GB
+- [ ] Q8 (8 bits)
+- [x] Q4 (4 bits)
+- [ ] Q2 (2 bits)
+- [ ] Float32
 
 ## Pregunta 3
+Quina es la regla aproximada de RAM que necessita un model?
 
-Que vol dir "Q4" en quantitzacio?
-
-- [ ] 4 cores de CPU
-- [x] 4 bits per parametre (comprimit)
-- [ ] 4 capes de xarxa neuronal
-- [ ] Qualitat 4 sobre 5
+- [ ] 1 GB per parametre
+- [x] Uns 0.5-0.7 GB per mil milions de parametres en Q4
+- [ ] 10 GB per parametre
+- [ ] No importa la RAM
 
 ## Pregunta 4
+Quin d'aquests models NO es especialitzat en codi?
 
-Quin model es el mes adequat per defecte a una RPi 4 amb 4 GB de RAM?
-
-- [ ] llama3.1:70b
-- [ ] mistral:7b quantitzat
-- [x] llama3.2:3b
-- [ ] mixtral:8x7b
+- [ ] CodeLlama
+- [ ] CodeGemma
+- [x] Llama 3.2
+- [ ] DeepSeek Coder
 
 ## Pregunta 5
+Quin model es el sweet spot recomanat per a una RPi 4 amb 4 GB?
 
-Quants tokens per segon es consideren un bon ritme per a xatejar?
-
-- [ ] 1-2 t/s
-- [x] 10-20 t/s
-- [ ] 50-100 t/s
-- [ ] 1000+ t/s
+- [ ] mistral:7b
+- [x] llama3.2:3b
+- [ ] llama3.1:70b
+- [ ] phi3:medium
 
 ## Pregunta 6
+Que significa "tokens per segon" (t/s)?
 
-Que fa el parametre `num_predict` a Ollama?
-
-- [ ] Diu quantes vegades pot predir el model
-- [x] Limita el maxim de tokens que pot generar en una resposta
-- [ ] Indica quantes capes de xarxa te
-- [ ] Es el nom del prompt
+- [ ] El temps que triga el model a carregar-se
+- [x] La velocitat a la que el model genera text
+- [ ] La mida del model
+- [ ] La quantitat de memoria que usa
 
 ## Pregunta 7
+Quin model d'Ollama NO serveix per generar text, nomes per embeddings?
 
-Que fa `OLLAMA_KEEP_ALIVE=-1`?
+- [ ] llama3.2
+- [x] nomic-embed-text
+- [ ] phi3:mini
+- [ ] gemma2:2b
 
-- [ ] Descarrega el model despres de cada consulta
-- [ ] Carrega el model nomes al primer usuari
-- [x] Mantindra el model carregat a memoria indefinidament
-- [ ] No fa res especial
+## Pregunta 8 (oberta)
+Explica amb les teves paraules: que es la quantitzacio i per que es important? Pensa en la diferencia entre "emmagatzemar un nombre amb maxima precisio" i "emmagatzemar-lo de forma mes compacta".
 
-## Pregunta 8
-
-Quin d'aquests benchmarks mesura la capacitat de generar codi correcte?
-
-- [ ] MMLU
-- [x] HumanEval
-- [ ] GSM8K
-- [ ] HellaSwag
+Pistes per respondre:
+- Un float32 ocupa 32 bits (4 bytes) per numero.
+- Un Q4 nomes 4 bits: 8x menys espai.
+- Que es perd en la conversio? Precisio numerica.
+- Per que serveix igual per a LLMs?
 
 ## Pregunta 9 (oberta)
-
-Tens una Raspberry Pi 4 amb 4 GB de RAM. Has d'analitzar logs del sistema per detectar anomalies. Voldries un model que:
-- Analitzi linies de log en catala/angles
-- Suggerisca possibles causes
-- Generi comandes de shell per resoldre el problema
-
-Explica quin model triaries (entre els que hem vist), per que, i quines limitacions veuràs.
+Per que hi ha tants models diferents (Llama, Mistral, Phi, Gemma, Qwen)? No n'hi ha prou amb un de "perfecte"? Argumenta la resposta.
 
 Pistes per respondre:
-- Considera el volum de logs (10 linies? 10.000?).
-- Com ho faries amb un model de 1B vs un de 3B?
-- Que passaria amb un model que nomes "sap" angles?
-- Es preferible velocitat o qualitat aqui?
+- Cada empresa te la seva recerca i la seva filosofia.
+- Els models tenen punts forts diferents: velocitat, raonament, multilingüe, codi.
+- La competicio es beneficiosa: cada versio es millor que l'anterior.
+- Que passaria si nomes hi hagues un model?
 
 ## Pregunta 10 (oberta)
-
-Descriu la diferencia entre usar un model de 7B quantitzat en Q4 i un de 7B en float32. Pensa en: mida, qualitat, RAM necessaria, cas d'us.
+Al BernatLab tens una RPi 4 amb 4 GB. Has de triar entre `llama3.2:1b`, `llama3.2:3b` i `phi3:mini`. Escriu un cas d'us concret per a cadascun, justificant la tria.
 
 Pistes per respondre:
-- Mida al disc: 28 GB vs 4 GB.
-- RAM: quants GB ocupa cada un carregat?
-- Qualitat: hi ha diferencies notaves? En quines tasques?
-- Quan val la pena la versio sense comprimir?
+- `llama3.2:1b`: tasques simples i rapides (traduccions curtes, resums).
+- `llama3.2:3b`: equilibri (revisar logs, generar scripts petits).
+- `phi3:mini`: raonament mes complex (analisi de dades, debugging).
+- Que pèrdua de qualitat assumes amb cada tria?
+
+## Pregunta 11 (oberta)
+Quina relacio hi ha entre la mida d'un model i la qualitat de les seves respostes? Es sempre mes gran = millor? Posa exemples.
+
+Pistes per respondre:
+- Fins a un punt, mes parametres = mes capacitat.
+- Pero mes enlla de 70B, els guanys son marginals.
+- Un model ben entrenat de 7B pot superar un de mal entrenat de 13B.
+- Que compte mes: la mida o la qualitat de l'entrenament?
+
+## Pregunta 12 (oberta)
+Si tens 8 GB de RAM al servidor, pots correr un model de 13B? Explica el calcul i les consideracions.
+
+Pistes per respondre:
+- El model de 13B en Q4 ocupa uns 8-10 GB.
+- El sistema operatiu necessita 1-2 GB.
+- Total: 9-12 GB, mes que els 8 disponibles.
+- Solucions: swap, quantitzar mes, o triar un model de 7B.
+
+## Pregunta 13 (oberta)
+Explica per que els models especialitzats (CodeLlama, Phi-3) existeixen i quan val la pena usar-los al BernatLab.
+
+Pistes per respondre:
+- Els models especialitzats son entrenats (o afinats) amb dades especifiques.
+- CodeLlama ha vist milions de repositoris de codi.
+- Per a "revisar logs" un model general es bo.
+- Per a "generar un script Python" un model de codi es millor.
+
+## Pregunta 14 (oberta)
+Com evaluaries si un model es prou bo per a una tasca concreta al BernatLab? Descriu un metode practic amb exemples.
+
+Pistes per respondre:
+- Pas 1: defineix 5-10 preguntes representatives de la tasca.
+- Pas 2: passa-les al model i puntua les respostes (1-5).
+- Pas 3: compara amb un model de referencia (o amb el "ideal").
+- Pas 4: si la mitjana es >4, el model serveix.
+- Exemple concret: "explica aquest log" amb 10 logs reals.
+
+## Pregunta 15 (oberta)
+Imagina que d'aqui un any els models son 10x mes petits pero igual de bons. Com canviara la teva estrategia al BernatLab?
+
+Pistes per respondre:
+- Nous models mes eficients permetran correr 13B o 30B a la RPi.
+- O fer servir el mateix 3B pero a molt mes velocitat.
+- Cas d'us nous: veu en temps real, analisi continu de logs.
+- Quines capacitats noves desbloquegaries?

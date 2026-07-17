@@ -86,3 +86,17 @@ Pistes per respondre:
 - Si InfluxDB cau, el processador pot fer buffer a disc o esperar.
 - Si Mosquitto cau, els missatges nous es perden (no hi ha buffer persistent per defecte).
 - Raona sobre quin es l'element mes critic del pipeline.
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que sha de pensar en larquitectura de lhort abans de comprar sensors
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica les capes de larquitectura IoT amb un exemple del teu hort
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Quin seria el flux de dades del teu hort des del sensor fins a la web
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

@@ -85,3 +85,29 @@ Pistes per respondre:
 - Has de posar el rang 100.64.0.0/10 a ignoreip.
 - Explica per que posaries un maxretry de 5 (ni massa agressiu ni tou).
 - Esmenta com vols veure els bloquejos (logs, correu, etc).
+
+
+## Pregunta 11
+Per que es mes segur utilitzar claus SSH que contrasenyes? Explica el per que tecnic.
+
+**Pistes**: Pistes: Longitud, criptografia asimetrica, brute force, keylogger.
+
+## Pregunta 12
+Quina relacio hi ha entre 'PermitRootLogin no' i la seguretat del teu servidor? Pensa en un atac.
+
+**Pistes**: Pistes: Superusuari, escalada, audit, responsabilitat.
+
+## Pregunta 13
+Si un company te demana accedir al teu servidor, quina seria la millor manera? Pensa en les Bones Practiques.
+
+**Pistes**: Pistes: Usuaris separats, claus, auditar, revocar.
+
+
+## Pregunta 14 (oberta amb pistes)
+Per que es mes segur utilitzar claus SSH que contrasenyes
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 15 (oberta amb pistes)
+Quina relacio hi ha entre PermitRootLogin no i la seguretat del teu servidor
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

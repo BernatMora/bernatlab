@@ -83,3 +83,17 @@ Pistes per respondre:
 - Quines metricas son les mes importants per a la salut del servidor.
 - Quin tipus de panell (time series, stat, gauge) per cada una.
 - Com els organitzaries al dashboard (files, columnes).
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que Grafana sha convertit en leina de referencia per a monitoritzacio
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es un dashboard i quina diferencia hi ha entre un grafic i una metrica
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Quin seria el dashboard mes important del teu hort IoT amb 5 grafiques
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

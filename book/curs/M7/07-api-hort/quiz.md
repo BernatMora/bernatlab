@@ -83,3 +83,17 @@ Pistes per respondre:
 - El navegador verifica el header `Access-Control-Allow-Origin`.
 - `flask-cors` configura aquest header automaticament.
 - Pots limitar els origens permesos (whitelist).
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que sha de tenir una API al teu hort en lloc denviar les dades directament
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es un endpoint REST i quins 5 tindria la teva API de lhort
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Com gestionaries lautenticacio de la teva API si nomes la us tu i la teva familia
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

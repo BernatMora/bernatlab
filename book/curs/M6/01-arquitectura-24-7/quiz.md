@@ -81,3 +81,17 @@ Pistes per respondre:
 - Pensa en monitoritzacio automatica (que t'avisi).
 - Pensa en reinici automatic (que la RPi sola es reinicii o el contenidor es torni a aixecar).
 - Pensa en acces remot (per si necessites intervenir).
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que sha de pensar en 24/7 abans de tenir el sistema muntat
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica la diferencia entre disponibilitat i resiliencia amb un exemple del teu hort
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Quines serien les parts critiques que no poden caure mai al teu sistema
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

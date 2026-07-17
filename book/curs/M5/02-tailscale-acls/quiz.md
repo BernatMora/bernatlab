@@ -83,3 +83,29 @@ Pistes per respondre:
 - Explica com Tailscale canvia el pais: de "a tothom" a "nomes jo".
 - Esmenta quin risc queda un cop tens Tailscale activat.
 - Conclou amb una analogia: tenir casa a un carrer transitat vs un carrer privat.
+
+
+## Pregunta 11
+Per que Tailscale utilitza ACLs en lloc de regles de firewall tradicionals? Quins avantatges te per a un homelab?
+
+**Pistes**: Pistes: Identitat vs IP, escalabilitat, MagicDNS, nodes personals.
+
+## Pregunta 12
+Explica la diferencia entre una ACL que permet 'tag:server ssh' i una que permet '192.168.1.10:22'.
+
+**Pistes**: Pistes: Tags, identitat, manteniment, futur.
+
+## Pregunta 13
+Quines consequencies pot tenir una ACL massa permissiva al teu hort IoT? Pensa en sensors i dades personals.
+
+**Pistes**: Pistes: Exposicio, atac, dades personals, sensors.
+
+
+## Pregunta 14 (oberta amb pistes)
+Per que Tailscale utilitza ACLs en lloc de regles de firewall tradicionals
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 15 (oberta amb pistes)
+Explica la diferencia entre tag:server ssh i 192.168.1.10:22 a una ACL
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

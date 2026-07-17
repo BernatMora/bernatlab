@@ -80,3 +80,17 @@ Pistes:
 - Quantes sessions necessites realment?
 - Penses tenir mes de 4 servidors en el futur?
 - Hi ha alternatives gratuites (Tabby, Windows Terminal, etc.)?
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que MobaXterm sha triomfat vs alternatives natives com OpenSSH
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es una sessio a MobaXterm i per que es bona practica
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Com configuraries MobaXterm per accedir a la teva RPi amb un sol clic
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

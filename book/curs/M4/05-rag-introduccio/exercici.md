@@ -1,16 +1,15 @@
 # Exercici practic - Capitol 5: Que es RAG
 
-> 30-45 min · Real al teu servidor
+> 40-55 min · Real al teu servidor
 
 ## Objectiu
-
 Entendre el flux de RAG a ma: partir un document en chunks, calcular embeddings, i fer una cerca per semblança. Tot amb un script Python senzill per veure cada pas per separat.
 
 ## Requisits
 
 - Python 3.10+
-- Ollama instal·lat (per als embeddings, opcional)
-- 30-45 minuts
+- Ollama instal·lat (per als embeddings)
+- 40-55 minuts
 
 ## Pas 1: Prepara l'entorn (5 min)
 
@@ -18,11 +17,9 @@ Entendre el flux de RAG a ma: partir un document en chunks, calcular embeddings,
 mkdir -p ~/bernatlab-exercicis/M4/05-rag
 cd ~/bernatlab-exercicis/M4/05-rag
 
-# Crea un entorn virtual
 python3 -m venv venv
 source venv/bin/activate
 
-# Instal·la el client d'Ollama per Python
 pip install ollama numpy
 ```
 
@@ -72,7 +69,6 @@ def chunk_by_section(text):
     sections = re.split(r'\n## ', text)
     for section in sections:
         if section.strip():
-            # Netejem una mica
             section = section.replace('# Hort Osona - Manual de cultiu\n', '')
             section = '## ' + section if not section.startswith('##') else section
             chunks.append(section.strip())
@@ -91,24 +87,21 @@ Executa:
 python chunks.py
 ```
 
-Observa com tenim 4 chunks (un per seccio: tomàquets, enciams, sensors, reg).
-
 ## Pas 4: Calcular embeddings amb Ollama (10 min)
 
-Assegura't que tens Ollama actiu i un model descarregat. Aprofitem que alguns models serveixen per embeddings. Instal·la un model d'embeddings:
+Instal·la un model d'embeddings:
 
 ```bash
 ollama pull nomic-embed-text
 ```
 
-Ara crea `embeddings.py`:
+Crea `embeddings.py`:
 
 ```python
 import ollama
 import numpy as np
 from chunks import chunks
 
-# Calcular embedding per cada chunk
 embeddings = []
 for i, chunk in enumerate(chunks):
     response = ollama.embeddings(model='nomic-embed-text', prompt=chunk)
@@ -117,12 +110,6 @@ for i, chunk in enumerate(chunks):
     print(f"Chunk {i+1}: vector de {len(emb)} dimensions")
 
 print(f"\nTotal: {len(embeddings)} vectors de {len(embeddings[0])} dimensions")
-```
-
-Executa:
-
-```bash
-python embeddings.py
 ```
 
 ## Pas 5: Fer una cerca per semblança (10 min)
@@ -136,19 +123,14 @@ from chunks import chunks
 from embeddings import embeddings
 
 def cosine_similarity(a, b):
-    """Calcula la semblança cosinus entre dos vectors."""
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-# Pregunta de l'usuari
 pregunta = "Quin sensor faig servir per saber la temperatura del sol?"
 
-# Calcular embedding de la pregunta
 emb_pregunta = np.array(ollama.embeddings(model='nomic-embed-text', prompt=pregunta)['embedding'])
 
-# Calcular semblança amb cada chunk
 sims = [cosine_similarity(emb_pregunta, emb) for emb in embeddings]
 
-# Ordenar per semblança
 indexos = np.argsort(sims)[::-1]
 
 print(f"Pregunta: {pregunta}\n")
@@ -157,21 +139,12 @@ for i, idx in enumerate(indexos):
     print(f"{i+1}. Semblança: {sims[idx]:.4f}")
     print(f"   Chunk: {chunks[idx][:80]}...\n")
 
-# Els 2 mes rellevants
 print("=" * 60)
 print("Context per al LLM (els 2 millors chunks):")
 print("=" * 60)
 for idx in indexos[:2]:
     print(f"\n{chunks[idx]}\n")
 ```
-
-Executa:
-
-```bash
-python cerca.py
-```
-
-Que passa? La pregunta sobre el sensor de temperatura del sol ha trobat el chunk de "Sensors" en primer lloc? I si?
 
 ## Pas 6: Munta el prompt final (5 min)
 
@@ -189,7 +162,6 @@ emb_pregunta = np.array(ollama.embeddings(model='nomic-embed-text', prompt=pregu
 sims = [cosine_similarity(emb_pregunta, emb) for emb in embeddings]
 indexos = np.argsort(sims)[::-1]
 
-# Agafem els 2 millors chunks
 context = "\n\n".join([chunks[idx] for idx in indexos[:2]])
 
 prompt = f"""Respon la pregunta nomes basant-te en el contexte. Si no hi ha informacio, digues-ho.
@@ -209,22 +181,63 @@ response = ollama.chat(model='llama3.2:3b', messages=[
 print(response['message']['content'])
 ```
 
-Executa:
+## Pas 7: Avalua la qualitat del RAG (10 min)
 
-```bash
-python prompt_final.py
+Crea `evaluar.py`:
+
+```python
+import ollama
+from chunks import chunks
+from embeddings import embeddings
+from cerca import cosine_similarity
+import numpy as np
+
+preguntes_test = [
+    ("Quin sensor faig servir per saber la temperatura del sol?", "Sensors"),
+    ("Com es el reg dels enciams?", "Enciams"),
+    ("Quan es planten els tomàquets?", "Tomàquets"),
+    ("Quina varietat de tomàquet es bona per Osona?", "Tomàquets"),
+    ("Com funciona el reg automatic?", "Reg automatic"),
+    ("Quin es el millor fertilitzant?", None),  # No hauria de trobar res
+]
+
+correctes = 0
+total = 0
+
+for pregunta, chunk_esperat in preguntes_test:
+    if chunk_esperat is None:
+        continue
+    
+    emb_pregunta = np.array(ollama.embeddings(model='nomic-embed-text', prompt=pregunta)['embedding'])
+    sims = [cosine_similarity(emb_pregunta, emb) for emb in embeddings]
+    millor_idx = np.argmax(sims)
+    
+    chunk_trobat = chunks[millor_idx][:50]
+    match = chunk_esperat.lower() in chunks[millor_idx].lower()
+    
+    print(f"\nPregunta: {pregunta}")
+    print(f"Esperat: {chunk_esperat}")
+    print(f"Trobat:  {chunk_trobat}...")
+    print(f"Correcte: {'SI' if match else 'NO'}")
+    
+    total += 1
+    if match:
+        correctes += 1
+
+print(f"\n{'='*50}")
+print(f"Resultat: {correctes}/{total} = {correctes/total*100:.0f}%")
 ```
-
-Ara veuras com el LLM respon correctament usant el contexte. Es el flux RAG complet!
 
 ## Validacio
 
 Has acabat si:
+
 - [ ] Has preparat l'entorn amb venv i dependencies.
 - [ ] Has partit el document en chunks.
 - [ ] Has calculat els embeddings.
 - [ ] Has fet una cerca per semblança.
 - [ ] Has completat el prompt RAG i el LLM ha respost correctament.
+- [ ] Has avaluat la qualitat amb varies preguntes.
 
 ## Per aprofundir
 
@@ -232,3 +245,13 @@ Has acabat si:
 - Investiga altres models d'embeddings: `mxbai-embed-large`, `all-minilm`.
 - Prova amb un document mes llarg (100 pagines) i compara la velocitat.
 - Experimenta amb diferents estrategies de chunking (per paragrafs, per frases, per finestra de N paraules).
+- Investiga "re-ranking": un model que reordena els chunks per millor rellevancia.
+
+## Ves un pas mes enlla
+
+**Repte avançat**: Implementa un sistema RAG amb ChromaDB (en lloc de la teva base de dades casolana). ChromaDB es una base de dades de vectors optimitzada que:
+- Persistent en fitxers.
+- Cerca mes rapida.
+- Permet metadades (filtrar per data, autor, etc.).
+
+Aixo es el que veuras al capitol 7 (vector databases).

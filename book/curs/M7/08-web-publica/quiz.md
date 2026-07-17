@@ -83,3 +83,17 @@ Pistes per respondre:
 - Dades privades: lectures raw, configuracio, comandes.
 - Dos buckets d'InfluxDB: un privat amb API key, un altre public sense auth.
 - Dos endpoints a l'API: /private/* i /public/*.
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que sha de fer una web publica per a un hort privat
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es una PWA i quins avantatges te per a lhort
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Com promouriaries la teva web dhort a la teva comunitat local
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

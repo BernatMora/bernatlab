@@ -1,126 +1,229 @@
 # Exercici practic - Capitol 9: Privadesa de la IA
 
-> 20-30 min - RPi amb Ollama
+> 30-40 min · Real al teu sistema
 
 ## Objectiu
-
-Auditar el que ja tens a la RPi per entendre quina informacio es local i quina podria sortir al nuvol. Practicar bones practiques de privadesa.
+Auditar la privadesa del teu sistema d'IA al BernatLab, identificar possibles fuites, i implementar bones practiques. Acabaras amb un sistema mes segur i un document d'autoavaluacio.
 
 ## Requisits
 
-- RPi amb Ollama funcionant
-- 20-30 min
-- Paciencia per revisar fitxers
+- Ollama ja instal·lat
+- 30-40 minuts
+- Paciencia per fer una auditoria honesta
 
-## Pas 1: Inventari local (10 min)
+## Pas 1: Inventari de dades (10 min)
 
-Obre una terminal i fes un inventari de tot el que ja tens en local:
-
-```bash
-# On son els models d'Ollama?
-ollama list
-ls -la ~/.ollama/models/
-
-# On es la base de dades ChromaDB (si en tens)?
-find ~ -name "chroma*" -type d 2>/dev/null
-
-# Quins scripts usen Ollama?
-find ~ -name "*.py" -exec grep -l "ollama\|11434" {} \; 2>/dev/null
-
-# Fitxers .env amb possibles API keys?
-find ~ -name ".env" 2>/dev/null
-```
-
-Anota en un paper o fitxer quines dades tens en local i quines al núvol.
-
-## Pas 2: Configurar el navegador per a consultes privades (5 min)
-
-Si vols usar un LLM al núvol sense deixar rastre:
-
-- **Firefox**: obre una finestra privada (Ctrl+Shift+P) i usaDuckDuckGo com a buscador.
-- **Extensio uBlock Origin**: bloquegja trackers.
-- **Resist Fingerprinting**: a about:config posa `privacy.resistFingerprinting = true`.
-
-Comprova que cap cookie de serveis IA esta al navegador habitual:
-
-```bash
-# Neteja cookies de serveis IA coneguts
-# OpenAI, Anthropic, Google AI, etc.
-```
-
-## Pas 3: Comparar respostes local vs nuvol (10 min)
-
-Fes la mateixa pregunta al teu Ollama local i a un servei al nuvol (ChatGPT, Claude, etc.). Compara:
-
-1. **Privadesa**: la pregunta va a un servidor extern?
-2. **Velocitat**: quin es mes rapid?
-3. **Qualitat**: quin respon millor?
-4. **Cost**: quant costa cada consulta?
-
-Pregunta suggerida (generica, no personal):
-"Explica'm 3 avantatges de l'horticultura ecologica."
-
-Documenta les diferencies en un fitxer `proves_privadesa.md`:
+Crea un fitxer `inventari_dades.md` amb totes les dades que el teu sistema d'IA pot processar o veure:
 
 ```markdown
-# Proves de privadesa
+# Inventari de dades - BernatLab IA
 
-## Pregunta
-"Explica'm 3 avantatges de l'horticultura ecologica."
+## Dades personals
+- [ ] Logs del sistema (poden contenir IPs, noms)
+- [ ] Correus processats
+- [ ] Documents personals
+- [ ] Historial de navegacio
+- [ ] Configuracio del servidor
 
-## Ollama local (llama3.2)
-- Temps: Xs
-- Privadesa: total (no surt del PC)
-- Cost: 0 euros
-- Qualitat percebuda: ...
+## Dades de l'hort
+- [ ] Lectures de sensors (temperatura, humitat)
+- [ ] Imatges de les plantes
+- [ ] Calendari de sembra
+- [ ] Inventari d'eines
 
-## Nuvol (X)
-- Temps: Xs
-- Privadesa: baixa (dades enviades a l'empresa)
-- Cost: X euros/mes
-- Qualitat percebuda: ...
+## Dades de negoci
+- [ ] Correus de feina
+- [ ] Documents financers
+- [ ] Plans estrategics
+- [ ] Contractes
 
-## Conclusions
-...
+## Dades d'altres persones
+- [ ] Informacio sobre familia
+- [ ] Informacio sobre amics
+- [ ] Informacio sobre clients
+- [ ] Metadades de comunicacions
 ```
 
-## Pas 4: Configurar un `.gitignore` correcte (5 min)
+Marca totes les que apliquin. Aquestes son les dades que NO hauries d'enviar a un LLM al nuvol sense anonimitzar.
 
-Si tens un projecte amb scripts que usen Ollama o ChromaDB:
+## Pas 2: Auditar on s'envien dades (10 min)
 
 ```bash
-cat >> .gitignore << 'EOF'
-# Privadesa
-.env
-*.db
-chroma_db/
-chroma/
-*.chroma
-ollama_logs/
-logs/
-EOF
+# Comprovar si tens alguna crida a un LLM al nuvol
+grep -r "api.openai.com" ~/bernatlab/ 2>/dev/null
+grep -r "api.anthropic.com" ~/bernatlab/ 2>/dev/null
+grep -r "api.gemini" ~/bernatlab/ 2>/dev/null
+grep -r "api.mistral.ai" ~/bernatlab/ 2>/dev/null
 ```
 
-Comprova que cap fitxer sensible esta a punt de pujar-se al repositori:
+Si trobes alguna referencia, documenta on i per que.
+
+Ara comprova les connexions actives:
 
 ```bash
-git status
+ss -tnp | grep -E '(443|11434|8080)'
 ```
 
-Si veus `.env`, `.db` o altres fitxers sensibles, NO els pugis.
+Mira quines connexions TCP hi ha obertes. Si veus connexions a servidors externs, son intencionals?
+
+## Pas 3: Auditar Ollama (5 min)
+
+Verifica que Ollama nomes escolta a localhost:
+
+```bash
+ss -tlnp | grep 11434
+```
+
+Hauria de ser `127.0.0.1:11434` o `[::1]:11434`, NO `0.0.0.0:11434`.
+
+Si escolta a 0.0.0.0, corregeix:
+
+```bash
+# Sistema
+sudo systemctl edit ollama
+# Afegeix: [Service] Environment="OLLAMA_HOST=127.0.0.1:11434"
+
+# O simplement reinicia amb la variable
+OLLAMA_HOST=127.0.0.1:11434 ollama serve
+```
+
+## Pas 4: Configurar Tailscale per acces remot segur (5 min)
+
+Si vols accedir a Ollama des de fora de la xarxa local, usa Tailscale en lloc d'exposar el port:
+
+```bash
+# Instal·la Tailscale
+curl -fsSL https://tailscale.com/install.sh | sh
+
+# Autentica't
+sudo tailscale up
+
+# Obten la teva IP a Tailscale
+tailscale ip -4
+```
+
+Ara pots accedir a Ollama nomes desde dispositius autenticats a la teva xarxa Tailscale.
+
+## Pas 5: Anonimitzar dades abans d'enviar (10 min)
+
+Crea `anonimitzar.py` per netejar dades sensibles:
+
+```python
+import re
+
+def anonimitzar(text):
+    """Substitueix dades sensibles per placeholders."""
+    # Emails
+    text = re.sub(r'[\w\.-]+@[\w\.-]+\.\w+', '[EMAIL]', text)
+    # IPs
+    text = re.sub(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b', '[IP]', text)
+    # Telefons
+    text = re.sub(r'\+?\d{9,15}', '[TELEFON]', text)
+    # NIF/DNI
+    text = re.sub(r'\b\d{8}[A-Z]\b', '[NIF]', text)
+    # Noms propis comuns (basica, no perfecta)
+    text = re.sub(r'\b(Bernat|Maria|Joan|Laura)\b', '[NOM]', text)
+    return text
+
+# Prova
+text_original = "El meu email es bernat@example.com i el meu telefon es 666777888."
+text_netejat = anonimitzar(text_original)
+print(f"Original: {text_original}")
+print(f"Netejat:  {text_netejat}")
+```
+
+Integracio en un script RAG:
+
+```python
+from anonimitzar import anonimitzar
+import ollama
+
+pregunta_usuari = "Que em pots dir sobre bernat@example.com?"
+pregunta_netejada = anonimitzar(pregunta_usuari)
+
+# Ara podem enviar al LLM amb mes seguretat
+resposta = ollama.chat(model='llama3.2:3b', messages=[
+    {'role': 'user', 'content': pregunta_netejada}
+])
+```
+
+## Pas 6: Xifrar la base de dades ChromaDB (5 min)
+
+Si vols protegir la base de dades en cas de robatori del disc:
+
+```bash
+# Crear volum xifrat
+sudo cryptsetup luksFormat /dev/sda2
+sudo cryptsetup open /dev/sda2 bernatlab_data
+sudo mkfs.ext4 /dev/mapper/bernatlab_data
+sudo mount /dev/mapper/bernatlab_data /mnt/bernatlab
+```
+
+Ara mou ChromaDB a `/mnt/bernatlab/`:
+
+```bash
+mv ~/bernatlab-exercicis/M4/08-rag-complet/chroma_db /mnt/bernatlab/
+ln -s /mnt/bernatlab/chroma_db ~/bernatlab-exercicis/M4/08-rag-complet/chroma_db
+```
+
+## Pas 7: Documentar la politica de privadesa (5 min)
+
+Crea `politica_privadesa.md`:
+
+```markdown
+# Politica de privadesa - BernatLab IA
+
+## Dades que processem
+- Logs del sistema (anonimitzats)
+- Lectures de sensors de l'hort
+- Correus que l'usuari decideix processar
+- Documents de l'usuari
+
+## Com les processem
+- Tots els models s'executen LOCALMENT (Ollama).
+- Cap dada surt del servidor sense consentiment explicit.
+- Les dades xifrades al disc (LUKS).
+
+## Drets de l'usuari
+- Acces: veure totes les dades emmagatzemades.
+- Rectificacio: corregir dades incorrectes.
+- Supressio: esborrar totes les dades.
+- Portabilitat: exportar en format standard.
+
+## Contacte
+- Email: bernat@example.com
+- Servidor: 100.115.134.76 (Tailscale nomes)
+
+## Revisio
+- Aquesta politica es revisa cada 6 mesos.
+- Ultima revisio: [data actual].
+```
 
 ## Validacio
 
 Has acabat si:
-- [ ] Has fet un inventari local amb les comandes
-- [ ] Has configurat minim una mesura de privadesa al navegador
-- [ ] Has comparat una resposta local vs nuvol
-- [ ] Has documentat les conclusions a `proves_privadesa.md`
-- [ ] El teu `.gitignore` evita pujar fitxers sensibles
+
+- [ ] Has inventariat les dades sensibles del sistema.
+- [ ] Has auditat on s'envien dades (cap al nuvol sense voler).
+- [ ] Has verificat que Ollama nomes escolta a localhost.
+- [ ] Has configurat Tailscale (opcional pero recomanat).
+- [ ] Has implementat anonimitzacio basica.
+- [ ] Has xifrat la base de dades (opcional).
+- [ ] Has escrit una politica de privadesa.
 
 ## Per aprofundir
 
-- Investiga quines dades recullen els serveis al nuvol que usaves abans (llegeix els termes del servei).
-- Configura un tallafocs a la RPi per limitar acces extern a Ollama.
-- Xifra el directori `~/.ollama` si la teva RPi es accessible fisicament.
-- Considera un sistema mixt: local per defecte, nuvol nomes per a tasques que necessitin potencia.
+- Investiga "differential privacy": tecnica per entrenar models sense veure dades individuals.
+- Llegeix sobre "federated learning": entrenar models sense centralitzar dades.
+- Compara les politiques de privadesa de OpenAI, Anthropic i Google. Son mes o menys protectores?
+- Investiga "on-premise AI" vs "private cloud": opcions per a empreses.
+
+## Ves un pas mes enlla
+
+**Repte avançat**: Implementa un sistema de "data minimization" per al RAG:
+1. Abans d'enviar un text al LLM, comprova si conte informacio personal.
+2. Si en conte, aplica l'anonimitzacio adequada.
+3. Guarda un registre de quines dades s'han enviat i quan.
+4. Permet a l'usuari revisar i esborrar aquest registre.
+
+Aixo es la base d'un sistema compliant amb GDPR.

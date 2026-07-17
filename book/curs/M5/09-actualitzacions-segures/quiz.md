@@ -83,3 +83,17 @@ Quines actualitzacions sha de prioritzar?
 - Funcionals
 - Kernel
 - Aplicacio
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que sha de prioritzar les actualitzacions de seguretat sobre les funcionals
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es una finestra de manteniment i per que es bona practica tenir-la
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Si una actualitzacio sha de fer al teu hort IoT de nit, com la programaries
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

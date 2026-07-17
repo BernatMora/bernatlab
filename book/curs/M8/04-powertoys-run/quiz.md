@@ -82,3 +82,17 @@ Pistes:
 - Quan la fas servir
 - Com canvia el flux de treball
 - Casos practics
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que PowerToys Run sha convertit en essencial
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es un plugin a PowerToys Run i quins 3 sha dinstalar
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Com integraries PowerToys Run amb el teu dia a dia
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

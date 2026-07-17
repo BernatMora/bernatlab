@@ -1,128 +1,186 @@
-# Exercici practic - Capitol 1: Amenaces comunes
+# Exercici practic - Capitol 1: Amenaces comunes al servidor
 
-> 30-45 min · Real al teu sistema
+> 35-50 min · Real a la teva RPi o maquina Linux
 
 ## Objectiu
-
-Auditar l'estat actual de seguretat de la RPi del BernatLab: veure quins intents d'intrusio ha rebut, quins ports te oberts, i quin perfil d'amenaces tenim. Acabaras amb un document "baseline" que et servira com a referencia per mesurar millores.
+Auditar la superficie d'atac del teu BernatLab: quins serveis son accessibles, quins intents d'atac reps, i quines mesures ja tens. Acabaras amb un informe clar de la teva posicio de seguretat.
 
 ## Requisits
 
-- Acces SSH a la RPi amb permissos sudo
-- 30-45 minuts
-- Coneixement basic de la terminal (ja ho tens del M1)
+- Linux (RPi, servidor, o maquina virtual)
+- 35-50 minuts
+- Acces sudo
 
-## Pas 1: Inventari de serveis i ports (10 min)
-
-Connecta't a la RPi i fes un inventari del que esta escoltant a la xarxa:
+## Pas 1: Inventari de serveis exposats (10 min)
 
 ```bash
-# Tots els ports TCP oberts
-sudo ss -tlnp
+# Quins ports TCP escolten al sistema?
+ss -tlnp
 
-# Versio mes humana amb nom de servei
-sudo ss -tlnp | awk 'NR>1 {print $4, $6}'
-
-# Que esta escoltant nomes per IP, no per unix socket
-sudo lsof -i -P -n | grep LISTEN
+# Versio detallada
+sudo ss -tlnp4
 ```
 
-Crea un fitxer `inventari-seguretat.md` al teu repo d'Obsidian amb el que has trobat. Anota cada servei i el seu port.
+Anota cada servei: port, protocol, programa, estat (LISTEN).
 
-## Pas 2: Comptar els intents de login fallits (10 min)
+## Pas 2: Escaneja't a tu mateix (10 min)
 
-Mira quanta gent ha intentat entrar al teu servidor:
-
-```bash
-# Total d'intents fallits
-sudo journalctl -u ssh --no-pager | grep "Failed password" | wc -l
-
-# Ultims 50 intents
-sudo journalctl -u ssh --no-pager | grep "Failed password" | tail -50
-
-# Top 10 usuaris mes intentats
-sudo journalctl -u ssh --no-pager | grep "Failed password" | awk '{print $9}' | sort | uniq -c | sort -rn | head
-
-# Adreces IP dels atacants (top 20)
-sudo journalctl -u ssh --no-pager | grep "Failed password" | awk '{print $11}' | sort | uniq -c | sort -rn | head -20
-```
-
-Anota a l'inventari:
-- Total d'intents fallits en tota la historia
-- Total d'IPs uniques
-- Usuaris mes atacats
-
-## Pas 3: Escanejar la teva propia maquina (10 min)
-
-Des de la propia RPi, mira com es veu des de fora:
+Des de la RPi, comprova que nomes veus el que hauries:
 
 ```bash
 # Instal·la nmap
-sudo apt install -y nmap
+sudo apt install nmap
 
-# Escaneig basic dels 1000 ports mes comuns
+# Escaneig basic
 nmap localhost
 
-# Escaneig amb deteccio de versio
-nmap -sV localhost
-
-# Si tens Tailscale actiu, mira tambe la IP de Tailscale
-tailscale ip -4
-nmap $(tailscale ip -4)
+# Escaneig mes detallat (pot trigar)
+nmap -sV -p 1-10000 localhost
 ```
 
-Compara el resultat amb el que vas obtenir al Pas 1. Coincideix? Hi ha serveis que no sabies que estaven oberts?
+Hauries de veure:
+- Port 22 (SSH) nomes a 127.0.0.1 si Tailscale esta actiu.
+- Port 80/443 nomes si tens Nginx/Caddy exposat.
+- Altres ports de serveis locals nomes a 127.0.0.1.
 
-## Pas 4: Buscar patrons sospitosos (10 min)
-
-Mira si algu ha aconseguit entrar o si hi ha senyals d'activitat rara:
+## Pas 3: Comprova els intents d'atac a SSH (10 min)
 
 ```bash
-# Logins exitosos
-sudo last -20
+# Total d'intents fallits desde l'inici del sistema
+sudo journalctl -u ssh --no-pager | grep "Failed password" | wc -l
 
-# Logins fallits (inclou SSH, TTY, etc)
-sudo lastb -20
+# Ultims 50
+sudo journalctl -u ssh -n 50 | grep "Failed"
 
-# Autenticacions desde IPs extranyes
-sudo journalctl -u ssh | grep "Accepted"
+# Top 10 usuaris mes intentats
+sudo journalctl -u ssh --no-pager | grep "Failed password" \
+  | awk '{print $9}' | sort | uniq -c | sort -rn | head
 
-# Usuaris amb shell interactiva
-grep -v "nologin\|false" /etc/passwd
-
-# Processos actius sospitosos
-ps auxf | head -50
-
-# Connexions xarxa actives cap a fora (pot revelar malware)
-sudo ss -tnp | grep ESTAB
+# Top 10 IPs mes insistents
+sudo journalctl -u ssh --no-pager | grep "Failed password" \
+  | awk '{print $11}' | sort | unic -c | sort -rn | head
 ```
 
-Anota qualsevol cosa que no reconeguis. Si hi ha molta activitat, no t'espantis: pot ser el propi sistema fent actualitzacions, backups remots, etc.
+Documenta: quants intents, quins usuaris, quines IPs.
 
-## Pas 5: Redacta el baseline (5 min)
+## Pas 4: Comprova fail2ban (5 min)
 
-Al fitxer `inventari-seguretat.md`, escriu una seccio "Baseline" amb:
+```bash
+# Esta instal·lat?
+which fail2ban-client
 
-- Data i hora de l'auditoria
-- Versio del sistema (`cat /etc/os-release`)
-- Versio del kernel (`uname -r`)
-- Llista de serveis i ports
-- Total d'intents SSH fallits
-- Adreces IP atacants principals
-- Connexions actives actuals
-- Conclusions: quines son les prioritats (molt probablement: SSH hardening + firewall)
+# Esta actiu?
+sudo systemctl status fail2ban
+
+# Quantes IPs te bloquejades ara?
+sudo fail2ban-client status sshd
+```
+
+Si fail2ban no esta instal·lat, instal·la'l:
+
+```bash
+sudo apt install fail2ban
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+```
+
+## Pas 5: Verifica que SSH nomes escolta a Tailscale (5 min)
+
+```bash
+ss -tlnp | grep :22
+```
+
+Si diu `0.0.0.0:22` o `[::]:22`, SSH esta obert a tothom. Riscos.
+
+Per fer que nomes escolti a Tailscale:
+
+```bash
+sudo nano /etc/ssh/sshd_config.d/99-tailscale-only.conf
+```
+
+```sshconfig
+ListenAddress 100.64.0.1
+```
+
+(Canvia la IP per la teva IP de Tailscale). Despres:
+
+```bash
+sudo systemctl restart sshd
+```
+
+⚠️ **Atencio**: assegura't que tens una sessio SSH activa abans de reiniciar, per no perdre acces.
+
+## Pas 6: Escaneig des de fora (5 min)
+
+Si tens una IP publica o un VPS, pots comprovar des de fora:
+
+```bash
+nmap bernat.tuservidor.cat
+```
+
+Si nomes veus el port 22 a una IP de Tailscale (100.x), perfecte. Si veus mes, cal revisar.
+
+## Pas 7: Crea un informe d'auditoria (10 min)
+
+Crea `informe_seguretat.md`:
+
+```markdown
+# Informe d'auditoria de seguretat - BernatLab
+
+## Data
+[avui]
+
+## Serveis exposats
+| Port | Servei | Adreça | Estat |
+|------|--------|--------|-------|
+| 22 | SSH | 100.64.0.1 | OK (nomes Tailscale) |
+| 80 | HTTP | - | Tancat |
+| ... | ... | ... | ... |
+
+## Atacs detectats
+- Intents SSH fallits (24h): X
+- Usuaris mes atacats: pi (N), root (N), ...
+- IPs mes insistents: ...
+
+## Mesures de seguretat en marxa
+- [ ] Tailscale instal·lat i actiu
+- [ ] SSH nomes a Tailscale
+- [ ] ufw/firewall actiu
+- [ ] fail2ban actiu
+- [ ] Actualitzacions automatiques
+
+## Riscos identificats
+1. [Risc 1]
+2. [Risc 2]
+
+## Proximes accions
+1. [Accio 1]
+2. [Accio 2]
+```
 
 ## Validacio
 
-- [ ] Has fet un inventari complet de serveis i ports oberts.
-- [ ] Has comptabilitzat els intents de login fallits.
-- [ ] Has identificat els usuaris mes atacats.
-- [ ] Has fet un escaneig amb nmap i l'has comparat amb l'inventari.
-- [ ] Has creat el document `inventari-seguretat.md` amb el baseline.
+Has acabat si:
+
+- [ ] Has identificat tots els serveis que escolten.
+- [ ] Has fet un escaneig nmap del teu propi sistema.
+- [ ] Has revisat els logs de SSH.
+- [ ] Has verificat fail2ban.
+- [ ] Has confirmat que SSH nomes escolta a Tailscale.
+- [ ] Has escrit l'informe d'auditoria.
 
 ## Per aprofundir
 
-- Instal·la **Lynis** (`sudo apt install lynis && sudo lynis audit system`) per una auditoria automatica mes completa.
-- Mira les ultimes 100 IPs que t'han atacat a https://www.abuseipdb.com/ (la web te una API per automatitzar-ho).
-- Prova `whois IP_ATACANT` per veure d'on venen els atacs.
-- Si tens temps, configura un **honeypot** amb `cowrie` per veure que fan els atacants un cop dins (només en un entorn aillat, mai en produccio).
+- Investiga "Shodan" i "Censys": serveis que mostren quantes maquines amb ports oberts hi ha a Internet.
+- Compara el teu sistema amb un "antes" (amb port 22 obert) i un "despres" (amb Tailscale).
+- Llegeix sobre "honeypots": maquines trampa per estudiar atacs.
+- Investiga "OSSEC" o "Wazuh": sistemes de deteccio d'intrusions (HIDS).
+
+## Ves un pas mes enlla
+
+**Repte avançat**: Munta un sistema de monitoritzacio basic amb fail2ban + telegram:
+1. Configura fail2ban per enviar alertes a Telegram quan es bloquegi una IP.
+2. Configura un script que cada hora enviï un resum d'atacs.
+3. Dibuixa un graf de intents d'atac al llarg del temps (amb Grafana o un CSV simple).
+
+Aixo es la base d'un SOC (Security Operations Center) personal.

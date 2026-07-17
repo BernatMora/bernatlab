@@ -1,224 +1,251 @@
 # Exercici practic - Capitol 6: Embeddings
 
-> 30-45 min · Real al teu servidor
+> 35-50 min · Real amb Ollama
 
 ## Objectiu
-
-Practicar amb embeddings de veritat: generar-ne, comparar semblances, i entendre quan funcionen be i quan fallen. Acabaras veient com la "cerca per significat" es diferent de la "cerca per paraules".
+Calcular embeddings de diferents textos amb Ollama, comparar semblances, entendre les limitacions. Acabaras sabent quan un embedding es "bo" i quan falla.
 
 ## Requisits
 
-- Ollama instal·lat
-- 30-45 minuts
-- ~1 GB d'espai per al model d'embeddings
+- Ollama amb `nomic-embed-text` instal·lat
+- Python amb `requests` i `numpy`
+- 35-50 minuts
 
-## Pas 1: Instal·la un model d'embeddings (3 min)
+## Pas 1: Prepara l'entorn (3 min)
+
+```bash
+mkdir -p ~/bernatlab-exercicis/M4/06-embeddings
+cd ~/bernatlab-exercicis/M4/06-embeddings
+
+python3 -m venv venv
+source venv/bin/activate
+
+pip install requests numpy
+```
+
+Assegura't que tens el model:
 
 ```bash
 ollama pull nomic-embed-text
 ```
 
-Verifica que esta disponible:
+## Pas 2: Primer embedding (5 min)
 
-```bash
-ollama list
-```
-
-## Pas 2: Genera embeddings des de la terminal (5 min)
-
-Prova amb text simple:
-
-```bash
-curl -s http://localhost:11434/api/embeddings -d '{
-  "model": "nomic-embed-text",
-  "prompt": "El gat dorm al sofà"
-}' | python3 -c "import json,sys; d=json.load(sys.stdin); print('Dimensions:', len(d['embedding'])); print('Primers 5 valors:', d['embedding'][:5])"
-```
-
-Hauries de veure 768 dimensions i els primers 5 valors numerics.
-
-## Pas 3: Compara semblances manualment (10 min)
-
-Crea `proves.py`:
+Crea `primer_embedding.py`:
 
 ```python
-import ollama
+import requests
+import numpy as np
+
+def embedding(text, model='nomic-embed-text'):
+    r = requests.post(
+        'http://localhost:11434/api/embeddings',
+        json={'model': model, 'prompt': text}
+    )
+    return np.array(r.json()['embedding'])
+
+text = "El gat menja peix"
+emb = embedding(text)
+print(f"Text: {text}")
+print(f"Embedding shape: {emb.shape}")
+print(f"Primeres 10 dimensions: {emb[:10]}")
+print(f"Norma (longitud): {np.linalg.norm(emb):.4f}")
+```
+
+Observa: tens un vector de 768 dimensions. La norma sol ser propera a 1 (els models normalitzen).
+
+## Pas 3: Compara semblances entre frases (10 min)
+
+Crea `semblances.py`:
+
+```python
+import requests
 import numpy as np
 
 def embedding(text):
-    """Retorna l'embedding d'un text."""
-    return np.array(ollama.embeddings(model='nomic-embed-text', prompt=text)['embedding'])
+    r = requests.post(
+        'http://localhost:11434/api/embeddings',
+        json={'model': 'nomic-embed-text', 'prompt': text}
+    )
+    return np.array(r.json()['embedding'])
 
-def cosine_similarity(a, b):
-    """Calcula la semblança cosinus entre dos vectors."""
+def cos_sim(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-# Proves: textos amb diferent grau de semblança
-proves = [
-    ("El gat dorm al sofà", "El moix està estirat al moble"),  # Molt semblant
-    ("El gat dorm al sofà", "El gos juga al parc"),  # Poc semblant
-    ("Avui plou a Vic", "Està fent mal temps a Osona"),  # Semblant
-    ("Avui plou a Vic", "M'agrada el pernil"),  # Gens semblant
-    ("Activa el reg automatic", "Engega el sistema d'aigua"),  # Semblant
-    ("Activa el reg automatic", "Tanca la porta"),  # Gens semblant
+frases = [
+    "El gat menja peix",
+    "El moix menja peix",  # Sinonim (moix = gat en catala)
+    "El gos menja ossos",
+    "L'avio vola pel cel",
+    "M'agrada menjar sushi",
+    "Plou a bots i barrals",
 ]
 
-for t1, t2 in proves:
-    e1 = embedding(t1)
-    e2 = embedding(t2)
-    sim = cosine_similarity(e1, e2)
-    print(f"Semblança: {sim:.3f}")
-    print(f"  T1: {t1}")
-    print(f"  T2: {t2}")
-    print()
+# Calcular tots els embeddings
+embs = [embedding(f) for f in frases]
+
+# Matriu de semblances
+print("Matriu de semblances cosinus:\n")
+print("          ", "  ".join([f"{i+1:4d}" for i in range(len(frases))]))
+for i, f1 in enumerate(frases):
+    sims = [cos_sim(embs[i], embs[j]) for j in range(len(frases))]
+    print(f"Frase {i+1:2d}: " + "  ".join([f"{s:5.2f}" for s in sims]))
+
+print("\nDetalls per parelles interessants:")
+print(f"'Gat menja peix' vs 'Moix menja peix': {cos_sim(embs[0], embs[1]):.3f}")
+print(f"'Gat menja peix' vs 'Gos menja ossos': {cos_sim(embs[0], embs[2]):.3f}")
+print(f"'Gat menja peix' vs 'Plou a bots i barrals': {cos_sim(embs[0], embs[5]):.3f}")
 ```
 
-Executa:
+Que observes? Les frases sinonimes haurien de tenir semblança >0.8. Les no relacionades, <0.4.
 
-```bash
-python3 proves.py
-```
+## Pas 4: Cerca els mes semblants (10 min)
 
-Observa els valors. Coincideixen amb la teva intuicio?
-
-## Pas 4: Cerca per significat vs cerca per paraules (10 min)
-
-Crea `cerca_comparada.py`:
+Crea `cerca_topk.py`:
 
 ```python
-import ollama
+import requests
 import numpy as np
 
 def embedding(text):
-    return np.array(ollama.embeddings(model='nomic-embed-text', prompt=text)['embedding'])
+    r = requests.post('http://localhost:11434/api/embeddings',
+                     json={'model': 'nomic-embed-text', 'prompt': text})
+    return np.array(r.json()['embedding'])
 
-def cosine_similarity(a, b):
+def cos_sim(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-# Base de dades de l'Hort Osona
-documents = [
-    "El sensor DS18B20 mesura la temperatura del sol cada 5 minuts.",
-    "El sistema de reg s'activa automaticament a les 7 del mati.",
-    "La humitat relativa es manté entre el 60 i el 80 per cent.",
-    "Cal podar els tomàquets cada dues setmanes durant l'estiu.",
-    "El BME280 detecta canvis de pressio atmosferica.",
-    "Els enciams necessiten temperatures fresques.",
-    "El sensor DHT22 mesura temperatura i humitat ambiental.",
-    "El reg automatic utilitza una electrovalvula de 12V.",
-    "A la primavera es planten els primers tomàquets.",
-    "La raspberry pi 4 controla tots els sensors i el reg."
-]
+# Base de dades de documents
+documents = {
+    'doc1': 'Com plantar tomàquets a l\'hort: cal sol directe i reg moderat.',
+    'doc2': 'El reg automatic s\'activa quan la humitat baixa del 30%.',
+    'doc3': 'Els enciams es planten a la primavera i tardor.',
+    'doc4': 'Les plagues mes comunes son els pugons i l\'aranya roja.',
+    'doc5': 'Un sensor DS18B20 mesura la temperatura del sol.',
+    'doc6': 'La fotosintesi es el proces per el qual les plantes fan sucre.',
+    'doc7': 'Com fer compost: barreja restes de fruita i verdura.',
+    'doc8': 'L\'adob verd millora l\'estructura del sol.',
+}
 
-# Precomputem tots els embeddings
-print("Calculant embeddings de tots els documents...")
-doc_embeddings = [embedding(doc) for doc in documents]
-print(f"Fet. {len(doc_embeddings)} documents indexats.\n")
+# Pregunta de l'usuari
+pregunta = "Com regar les plantes?"
+emb_pregunta = embedding(pregunta)
 
-# Consultes de prova
-consultes = [
-    "Quin sensor fa servir per saber la calor?",
-    "Com es controla l'aigua de l'hort?",
-    "Quan he de plantar verdures?",
-    "Quin ordinador fa anar tot plegat?",
-]
+# Calcular semblances amb tots els documents
+sims = []
+for doc_id, doc_text in documents.items():
+    emb_doc = embedding(doc_text)
+    sim = cos_sim(emb_pregunta, emb_doc)
+    sims.append((doc_id, doc_text, sim))
 
-for consulta in consultes:
-    print(f"CONSULTA: {consulta}")
-    print("-" * 60)
-    q_emb = embedding(consulta)
+# Ordenar per semblança
+sims.sort(key=lambda x: x[2], reverse=True)
 
-    sims = [(cosine_similarity(q_emb, d_emb), i) for i, d_emb in enumerate(doc_embeddings)]
-    sims.sort(reverse=True)
-
-    for sim, idx in sims[:3]:
-        print(f"  Semblança {sim:.3f}: {documents[idx]}")
-    print()
+print(f"Pregunta: {pregunta}\n")
+print("Top 5 documents mes rellevants:\n")
+for i, (doc_id, doc_text, sim) in enumerate(sims[:5]):
+    print(f"{i+1}. {doc_id} (sim: {sim:.3f})")
+    print(f"   {doc_text}\n")
 ```
 
-Executa:
+## Pas 5: Compara dos models d'embeddings (10 min)
+
+Crea `compara_models.py`:
 
 ```bash
-python3 cerca_comparada.py
+ollama pull mxbai-embed-large
 ```
 
-Fixa't en com "Quin sensor fa servir per saber la calor?" troba documents que parlen de sensors de temperatura (DS18B20, DHT22) encara que la paraula "calor" no hi surti. Es la magia dels embeddings.
+```python
+import requests
+import numpy as np
 
-## Pas 5: Visualitza amb un heatmap simple (10 min)
+def embedding(text, model='nomic-embed-text'):
+    r = requests.post('http://localhost:11434/api/embeddings',
+                     json={'model': model, 'prompt': text})
+    return np.array(r.json()['embedding'])
 
-Crea `visualitza.py`:
+def cos_sim(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+text1 = "El gat menja peix"
+text2 = "El moix menja peix"
+
+# Test amb dos models
+for model in ['nomic-embed-text', 'mxbai-embed-large']:
+    e1 = embedding(text1, model)
+    e2 = embedding(text2, model)
+    sim = cos_sim(e1, e2)
+    print(f"{model}: shape={e1.shape}, sim={sim:.4f}")
+
+# Important: embeddings de models diferents NO es poden mesclar!
+e1_nomic = embedding(text1, 'nomic-embed-text')
+e1_mxbai = embedding(text1, 'mxbai-embed-large')
+print(f"\nMateix text, models diferents: sim={cos_sim(e1_nomic, e1_mxbai):.3f}")
+print("(Hauria de ser proper a 0 o aleatori, no ~0.9)")
+```
+
+## Pas 6: Embeddings sobre el BernatLab (10 min)
+
+Crea `bernatlab_test.py`:
 
 ```python
-import ollama
+import requests
 import numpy as np
 
 def embedding(text):
-    return np.array(ollama.embeddings(model='nomic-embed-text', prompt=text)['embedding'])
+    r = requests.post('http://localhost:11434/api/embeddings',
+                     json={'model': 'nomic-embed-text', 'prompt': text})
+    return np.array(r.json()['embedding'])
 
-def cosine_similarity(a, b):
+def cos_sim(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-# Textos curts per visualitzar be
-texts = [
-    "el gat dorm",
-    "el moix estirat",
-    "el perro vigilant",
-    "avui plou",
-    "fa sol",
-    "el sistema rega",
-    "l'aigua cau",
-    "el sensor mesura"
+# Fragments d'un runbook del BernatLab
+fragments = [
+    "Si el contenidor de Mosquitto no arranca, comprova els logs amb 'docker logs mqtt'",
+    "Per actualitzar InfluxDB: docker compose pull && docker compose up -d",
+    "L'API de l'hort escolta al port 8000 i retorna dades JSON",
+    "El backup es fa diariament a les 3 de la matinada amb borgbackup",
+    "Si Grafana mostra 'no data', comprova que InfluxDB te la base de dades 'hort'",
 ]
 
-print("Calculant matriu de semblances...\n")
-embeddings = [embedding(t) for t in texts]
-n = len(texts)
+# Pregunta
+pregunta = "Com reiniciar el servei de missatgeria?"
+emb_pregunta = embedding(pregunta)
 
-# Imprimim una matriu
-header = " " * 15 + "".join(f"{i:>6}" for i in range(n))
-print(header)
-print(" " * 15 + "-" * (6 * n))
-for i in range(n):
-    row = f"{i:>2} {texts[i][:12]:<12} |"
-    for j in range(n):
-        sim = cosine_similarity(embeddings[i], embeddings[j])
-        row += f"{sim:>6.2f}"
-    print(row)
+# Calcular semblances
+sims = [(cos_sim(emb_pregunta, embedding(f)), f) for f in fragments]
+sims.sort(reverse=True)
 
-print("\nInterpretacio:")
-print("- Diagonal = 1.00 (semblança amb si mateix).")
-print("- 0.7-0.9 = molt semblant.")
-print("- 0.4-0.7 = relacionat.")
-print("- 0.0-0.4 = diferent.")
+print(f"Pregunta: {pregunta}\n")
+for sim, frag in sims:
+    print(f"  {sim:.3f}: {frag}")
 ```
-
-Executa:
-
-```bash
-python3 visualitza.py
-```
-
-## Pas 6: Documenta conclusions (5 min)
-
-Crea `book/curs/M4/06-embeddings/observacions.md` amb:
-
-- Les semblances que has vist entre textos semblants i diferents.
-- Un cas on els embeddings han sorprès (millor del que esperaves).
-- Un cas on han fallat (pitjor del que esperaves).
-- Conclusions: quan serves mes que la cerca per paraules?
 
 ## Validacio
 
 Has acabat si:
-- [ ] Has descarregat `nomic-embed-text`.
-- [ ] Has generat embeddings des de la terminal.
-- [ ] Has comprovat semblances amb text manual.
-- [ ] Has fet una cerca per significat sobre una base de 10 documents.
-- [ ] Has generat i entès la matriu de semblances.
-- [ ] Has documentat les teves observacions.
+
+- [ ] Has calculat el teu primer embedding.
+- [ ] Has vist la matriu de semblances entre frases.
+- [ ] Has implementat cerca top-k sobre una base de dades.
+- [ ] Has comparat dos models d'embeddings.
+- [ ] Has provat amb contingut real del BernatLab.
 
 ## Per aprofundir
 
-- Prova amb `mxbai-embed-large` (1024 dimensions) i compara la qualitat.
-- Indexa tota la documentacio del BernatLab (el llibre complet) i fes una cerca.
-- Prova frases negatives: "M'encanta el sistema de reg" vs "Odio el sistema de reg". Semblants o diferents?
-- Investiga el concepte de "fine-tuning d'embeddings" per adaptar-los al teu domini.
+- Investiga la diferencia entre embeddings normalitzats i no normalitzats.
+- Prova "matryoshka embeddings": un model que pot donar embeddings de diferents mides.
+- Investiga "instruction-tuned embeddings": models que entenen instruccions a la query.
+- Compara la velocitat de calcul entre diferents models.
+
+## Ves un pas mes enlla
+
+**Repte avançat**: Construeix un petit "detector de temes" que:
+1. Calculi embeddings de tots els correus rebuts en un mes.
+2. Faci clustering (k-means) per agrupar correus similars.
+3. Per cada grup, calculi l'embedding promig (centroide).
+4. Et mostri els 5 temes mes frequents del mes.
+
+Aixo es la base d'un sistema d'analisi de correu automatic, molt util per a qualsevol negoci o homelab.

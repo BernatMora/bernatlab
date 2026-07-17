@@ -83,3 +83,17 @@ Pistes per respondre:
 - QoS: pots configurar QoS 1 i rebre alerta si el broker no pot entregar.
 - Subscriptors amb `clean_session=False` reben els missatges perduts quan tornen.
 - Compara el ultim timestamp vs. ara; si fa >30 min que no arriba, alerta.
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que MQTT sha adoptat tant a IoT. Pensa en alternatives com HTTP
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica la diferencia entre un topic, un payload i un client a MQTT
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Com organitzaries els topics MQTT per al teu hort amb 10 sensors diferents
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

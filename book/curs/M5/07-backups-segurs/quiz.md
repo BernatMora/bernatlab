@@ -84,3 +84,29 @@ Pistes per respondre:
 - Aplica la regla 3-2-1: el backup ha d'estar separat fisicament.
 - Proposa una solucio: núvol (Backblaze B2), NAS extern, altre servidor.
 - Parla de la importancia de provar la restauracio.
+
+
+## Pregunta 11
+Per que sha dencriptar el backup si nomes soc jo qui lactualmente? Pensa en el futur.
+
+**Pistes**: Pistes: Robatori, disc, cloud, dispositiu perdut, aqui 2 anys.
+
+## Pregunta 12
+Explica la diferencia entre un backup encriptat i un backup comprimit amb contrasenya.
+
+**Pistes**: Pistes: E2E, zero-knowledge, vulnerabilitat, atac.
+
+## Pregunta 13
+Com organiszaries el cicle de vida duna clau dencriptat al teu sistema?
+
+**Pistes**: Pistes: Crear, usar, emmagatzemar, rotar, destruir.
+
+
+## Pregunta 14 (oberta amb pistes)
+Per que sha dencriptar el backup si nomes soc jo qui lactualmente
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 15 (oberta amb pistes)
+Explica la diferencia entre un backup encriptat i un backup comprimit amb contrasenya
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

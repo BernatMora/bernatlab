@@ -1,85 +1,136 @@
-# Qüestionari - Capitol 1: Amenaces comunes
+# Qüestionari - Capitol 1: Amenaces comunes al servidor
 
-> 10 preguntes · ~15 min
+> 15 preguntes · ~20 min · 7 test + 8 obertes
 
 ## Pregunta 1
-Què és un atac de "bruteforce" contra SSH?
+Que es la "superficie d'atac"?
 
-- [ ] Un atac que aprofita un bug a OpenSSH per entrar sense contrasenya
-- [x] Un atac que prova milers de combinacions d'usuari i contrasenya automaticament
-- [ ] Un atac que desconfigura el servei SSH perque no funcioni
-- [ ] Un atac que nomes funciona amb claus SSH, no amb contrasenyes
+- [ ] La mida del servidor
+- [x] El conjunt de punts per on un atacant podria entrar al sistema
+- [ ] El numero d'atacs que rep el servidor
+- [ ] La versio del sistema operatiu
 
 ## Pregunta 2
-Quin es el port per defecte del servei SSH?
+Quin es el perill numero 1 al BernatLab?
 
-- [ ] 21
-- [ ] 80
-- [ ] 443
-- [x] 22
+- [ ] El correu brossa
+- [x] Els atacs de bruteforce a SSH
+- [ ] Els virus
+- [ ] El sobreescalfament
 
 ## Pregunta 3
-Què significa "superficie d'atac"?
+Que es un atac de "bruteforce"?
 
-- [ ] La quantitat de memoria RAM que pot fer servir un atacant
-- [x] El conjunt de punts per on un atacant podria entrar al sistema
-- [ ] El tamany fisic del servidor
-- [ ] La velocitat de la xarxa de l'atacant
+- [ ] Un atac amb forca bruta fisica al servidor
+- [x] Provar milers de combinacions d'usuari i contrasenya fins encertar
+- [ ] Un atac que sobrecarrega el servidor
+- [ ] Un atac amb virus
 
 ## Pregunta 4
-Quin usuari es el mes atacat per defecte en una RPi?
+Quin usuari es el mes atacat pels bots?
 
 - [ ] bernat
-- [ ] admin
-- [x] pi
-- [ ] user
+- [x] root, pi, admin (els noms per defecte)
+- [ ] guest
+- [ ] Els bots no miren l'usuari
 
 ## Pregunta 5
-Que vol dir "CVE"?
+Que fa un "port scan" (nmap)?
 
-- [ ] Central Vulnerability Endpoint
-- [x] Common Vulnerabilities and Exposures
-- [ ] Certified Virtual Environment
-- [ ] Common Virus Encyclopedia
+- [ ] Esborra tots els ports oberts
+- [x] Mira quins serveis escolten a quins ports
+- [ ] Tanca els ports no segurs
+- [ ] Activa el firewall
 
 ## Pregunta 6
-Quina ordre mostra els ultims intents de login fallits al sistema?
+Quin servei es el mes critic de protegir?
 
-- [ ] `sudo last`
-- [x] `sudo lastb`
-- [ ] `who`
-- [ ] `ps aux`
+- [ ] HTTP
+- [x] SSH (port 22) perque dona acces a la consola
+- [ ] DNS
+- [ ] MQTT
 
 ## Pregunta 7
-Per que es dolent exposar mes ports dels necessaris?
+Que es el "credential stuffing"?
 
-- [ ] Perque consumeix mes bateria
-- [x] Perque cada port obert es un posible vector d'entrada per un atacant
-- [ ] Perque el router es torna mes lent
-- [ ] No es dolent, nomes ocupa memoria
+- [ ] Omplir credencials en una base de dades
+- [x] Usar combinacions email+contrasenya que han fugit d'altres incidents
+- [ ] Guardar credencials en un fitxer
+- [ ] Comprimir credencials
 
-## Pregunta 8
-Quina eina fan servir els atacants per descobrir quins serveis te un servidor?
+## Pregunta 8 (oberta)
+Explica amb les teves paraules: que es la "superficie d'atac" i per que es important minimitzar-la? Posa exemples concrets del BernatLab.
 
-- [ ] ping
-- [x] nmap
-- [ ] curl
-- [ ] ssh
+Pistes per respondre:
+- Cada port obert es un possible punt d'entrada.
+- Cada servei exposat es un risc.
+- Minimitzar = tancar el que no es necessari.
+- Al BernatLab: SSH nomes a Tailscale, serveis interns sense exposar.
 
 ## Pregunta 9 (oberta)
-Descriu quines son les principals amenaces a la RPi del BernatLab. Quines son les mes probables i quines no t'amoïnen gaire? Justifica-ho breument.
+Per que creus que hi ha bots que escanegen totes les IPs d'Internet constantment? Que busquen i que fan quan troben una maquina vulnerable?
 
 Pistes per respondre:
-- Pensa en els serveis que exposures actualment.
-- Considera si la RPi esta a una xarxa privada o publica.
-- Recorda que el perfil d'atacant mes habitual es un bot automatic, no un hacker personalitzat.
-- Esmenta almenys 3 amenaces i classifica-les en risc alt/mitja/baix.
+- Busquen maquines amb serveis exposats i versions antigues amb vulnerabilitats conegudes.
+- Si troben SSH, proven contrasenyes febles.
+- Si troben una versio vulnerable, intenten explotar-la.
+- Alguns son "research" (Mesura de la Internet), d'altres son criminals.
 
 ## Pregunta 10 (oberta)
-Explica que vol dir "defensa en profunditat" (defense in depth). Per que no es suficient amb una sola mesura de seguretat, per bona que sigui?
+Imagina que la teva RPi te el port 22 obert a Internet amb contrasenya feble ("raspberry"). Segueix el flux complet d'un atac: des de que el bot troba la maquina fins que entra.
 
 Pistes per respondre:
-- Pensa en analogies de la vida real (una casa, un cotxe, una caixa forta).
-- Explica que cada capa te la seva funcio i la seva debilitat.
-- Dona un exemple concret aplicat al servidor: que passa si nomes tens firewall pero et roben la SD?
-- Esmenta almenys 3 capes diferents que combinarem al llarg del modul.
+- Pas 1: nmap troba port 22 obert.
+- Pas 2: bruteforce amb llistes de contrasenyes comunes.
+- Pas 3: troba la contrasenya "raspberry".
+- Pas 4: accedeix al sistema.
+- Pas 5: intenta escalar privilegis (sudo, su, etc.).
+- Pas 6: instal·la un backdoor o un miner de criptomonedes.
+
+## Pregunta 11 (oberta)
+Quina relacio hi ha entre tenir Tailscale i la seguretat del servidor? Tailscale ens fa inmunes a tots els atacs?
+
+Pistes per respondre:
+- Tailscale amaga el servidor a Internet: els bots no el veuen.
+- Pero si Tailscale falla o les ACLs son permissives, el risc continua.
+- Tailscale no substitueix bones contrasenyes, firewall, etc.
+- Es una capa mes, no la unica.
+
+## Pregunta 12 (oberta)
+Descriu 3 tipus d'atac comuns a un servidor exposat a Internet i quina es la millor defensa per a cadascun.
+
+Pistes per respondre:
+- Atac 1: SSH bruteforce -> defensa: claus + fail2ban.
+- Atac 2: port scan -> defensa: tancar ports no usats.
+- Atac 3: exploit de versio vulnerable -> defensa: actualitzar regularment.
+- Cadascun te una defensa especifica.
+
+## Pregunta 13 (oberta)
+Com detectaries que el teu servidor esta sent atacat? Quins senyals et posarien en alerta?
+
+Pistes per respondre:
+- Senyal 1: molts logins fallits a SSH (veure amb `journalctl`).
+- Senyal 2: CPU alta sense causa evident (possible miner de cripto).
+- Senyal 3: trafic de xarxa anormal.
+- Senyal 4: fitxers nous que no reconeixes.
+- Eines: fail2ban, portsentry, auditd.
+
+## Pregunta 14 (oberta)
+Quin impacte te un atac reeixit al BernatLab? Pensa en les consequencies mes enlla del servidor: dades personals, hort, reputacio.
+
+Pistes per respondre:
+- Impacte 1: perdua de dades personals.
+- Impacte 2: control remot de l'hort (modificar regs, etc.).
+- Impacte 3: el servidor pot fer atacs a tercers (botnet).
+- Impacte 4: pèrdua economica (si hi ha transaccions).
+- Impacte 5: perdua de reputacio si es fa public.
+
+## Pregunta 15 (oberta)
+Argumenta la teva estrategia: quines son les 3 mesures de seguretat que aplicaries PRIMER al BernatLab abans d'obrir-lo a Internet? Justifica l'ordre.
+
+Pistes per respondre:
+- Mesura 1: Tailscale (amaga el servidor).
+- Mesura 2: SSH amb claus (no contrasenyes).
+- Mesura 3: firewall (ufw, deny-by-default).
+- Aplica mesura per mesura, no totes de cop.
+- Verificar que cada mesura funciona.

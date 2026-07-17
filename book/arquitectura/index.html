@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BernatLab — Arquitectura</title>
+  <style>
+    :root {
+      --verd: #3a7d44;
+      --verd-fosc: #2a5d34;
+      --verd-clar: #eaf2ec;
+      --fons: #faf8f3;
+      --fons-alt: #f3efe5;
+      --text: #2a2a25;
+      --text-suau: #5a5a55;
+      --text-molt-suau: #7a7a75;
+      --vora: #c4bfae;
+      --accent-taronja: #c8702c;
+      --accent-blau: #3a6a8c;
+      --accent-lila: #7a4a8c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(180deg, var(--fons) 0%, var(--fons-alt) 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 48px 32px 32px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--verd-fosc);
+      letter-spacing: -0.02em;
+    }
+
+    header .subtitol {
+      font-size: 1.05rem;
+      color: var(--text-suau);
+      margin: 0 0 4px;
+    }
+
+    header .meta {
+      font-size: 0.9rem;
+      color: var(--text-molt-suau);
+      font-style: italic;
+    }
+
+    .hero {
+      max-width: 720px;
+      margin: 24px auto 0;
+      padding: 20px 24px;
+      background: #ffffff;
+      border: 1px solid var(--vora);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--text-suau);
+      font-size: 0.95rem;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 32px 80px;
+    }
+
+    .diagrama {
+      background: #ffffff;
+      border: 1px solid var(--vora);
+      border-radius: 16px;
+      padding: 24px 28px 28px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    }
+
+    .diagrama header-diag {
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .diagrama h2 {
+      margin: 0 0 4px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--verd-fosc);
+    }
+
+    .diagrama .etiquetes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .etiqueta {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: var(--verd-clar);
+      color: var(--verd-fosc);
+      border: 1px solid var(--verd);
+    }
+
+    .etiqueta.taronja { background: #fdf3e8; color: var(--accent-taronja); border-color: var(--accent-taronja); }
+    .etiqueta.blau   { background: #e8f0f5; color: var(--accent-blau);   border-color: var(--accent-blau);   }
+    .etiqueta.lila   { background: #f3ecf6; color: var(--accent-lila);   border-color: var(--accent-lila);   }
+
+    .diagrama .descripcio {
+      color: var(--text-suau);
+      font-size: 0.95rem;
+      margin: 0 0 16px;
+    }
+
+    .diagrama .svg-wrap {
+      background: var(--fons);
+      border: 1px solid var(--vora);
+      border-radius: 10px;
+      padding: 8px;
+      overflow: hidden;
+    }
+
+    .diagrama svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 80vh;
+    }
+
+    .accions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .accions a {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: 1px solid var(--verd);
+      color: var(--verd-fosc);
+      background: #ffffff;
+      transition: all 0.15s ease;
+    }
+
+    .accions a:hover {
+      background: var(--verd-clar);
+    }
+
+    .accions a.primary {
+      background: var(--verd);
+      color: #ffffff;
+    }
+
+    .accions a.primary:hover {
+      background: var(--verd-fosc);
+    }
+
+    footer {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 32px 48px;
+      text-align: center;
+      color: var(--text-molt-suau);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--vora);
+    }
+
+    footer a {
+      color: var(--verd-fosc);
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 700px) {
+      header { padding: 32px 16px 16px; }
+      main { padding: 16px; }
+      .diagrama { padding: 16px; }
+      header h1 { font-size: 1.6rem; }
+      .diagrama h2 { font-size: 1.15rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BernatLab — Arquitectura</h1>
+    <p class="subtitol">Mapa visual del projecte: xarxa, IoT de l'hort i estructura del curs</p>
+    <p class="meta">Raspberry Pi 4 · Debian 13 · Docker · Tailscale · LoRa 868 MHz · InfluxDB · Grafana</p>
+
+    <div class="hero">
+      <p>
+        Tres diagrames que expliquen com està muntat el BernatLab: la
+        infraestructura de xarxa i serveis, el flux de dades dels sensors
+        de l'hort, i l'arbre del curs amb els seus mòduls i artefactes.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <!-- DIAGRAMA 1 -->
+    <article class="diagrama" id="xarxa">
+      <header-diag>
+        <h2>1. Arquitectura de Xarxa i Sistema</h2>
+        <div class="etiquetes">
+          <span class="etiqueta">RPi 4</span>
+          <span class="etiqueta">Tailscale</span>
+          <span class="etiqueta">Docker</span>
+          <span class="etiqueta blau">MQTT</span>
+          <span class="etiqueta taronja">bind mounts</span>
+        </div>
+        <p class="descripcio">
+          Vista global del servidor: els clients (PC, mòbil) entren per la
+          xarxa privada de Tailscale, passen pel tallafoc del sistema i
+          arriben a la pila Docker organitzada per grups (Core, IoT, Data,
+          Monitoring, API). A sota, els volums persistents i el repo Git
+          actuen com a capa de dades i font de la veritat.
+        </p>
+      </header-diag>
+      <div class="svg-wrap">
+        <object data="xarxa-i-sistema.svg" type="image/svg+xml" aria-label="Diagrama de xarxa i sistema"></object>
+      </div>
+      <div class="accions">
+        <a href="xarxa-i-sistema.svg" target="_blank" class="primary">Obrir en pestanya nova</a>
+        <a href="xarxa-i-sistema.svg" download>Descarregar SVG</a>
+      </div>
+    </article>
+
+    <!-- DIAGRAMA 2 -->
+    <article class="diagrama" id="hort">
+      <header-diag>
+        <h2>2. Arquitectura de l'Hort (IoT)</h2>
+        <div class="etiquetes">
+          <span class="etiqueta taronja">Sensors</span>
+          <span class="etiqueta lila">LoRa 868 MHz</span>
+          <span class="etiqueta blau">MQTT</span>
+          <span class="etiqueta">InfluxDB</span>
+          <span class="etiqueta">Grafana</span>
+        </div>
+        <p class="descripcio">
+          El viatge d'una lectura des del test de tomàquets fins a la
+          gràfica de Grafana: el sensor MiFlora es comunica amb el mòdul
+          SX1262 per ràdio LoRa a 868 MHz, el gateway (RPi) el passa a
+          un broker MQTT, Telegraf el desa a InfluxDB, i Grafana +
+          Node-RED el visualitzen i l'envien a la web pública d'Hort Osona.
+        </p>
+      </header-diag>
+      <div class="svg-wrap">
+        <object data="hort-iot.svg" type="image/svg+xml" aria-label="Diagrama IoT de l'hort"></object>
+      </div>
+      <div class="accions">
+        <a href="hort-iot.svg" target="_blank" class="primary">Obrir en pestanya nova</a>
+        <a href="hort-iot.svg" download>Descarregar SVG</a>
+      </div>
+    </article>
+
+    <!-- DIAGRAMA 3 -->
+    <article class="diagrama" id="curs">
+      <header-diag>
+        <h2>3. Arquitectura del Curs i la Documentació</h2>
+        <div class="etiquetes">
+          <span class="etiqueta">8 mòduls</span>
+          <span class="etiqueta">69 capítols</span>
+          <span class="etiqueta blau">PDF · DOCX · HTML</span>
+          <span class="etiqueta taronja">303 comandes</span>
+        </div>
+        <p class="descripcio">
+          L'arbre jeràrquic del coneixement del BernatLab: des del llibre
+          font fins als vuit mòduls del curs (M1–M8) i els seus capítols.
+          Cada capítol té quatre fitxers (resum, quiz, exercici, respostes)
+          i una versió HTML. A la dreta, l'homelab, els scripts de bin/ i
+          el submodule hort-osona. A baix, els recursos transversals
+          compartits per tot el projecte.
+        </p>
+      </header-diag>
+      <div class="svg-wrap">
+        <object data="curs-documentacio.svg" type="image/svg+xml" aria-label="Diagrama del curs i la documentació"></object>
+      </div>
+      <div class="accions">
+        <a href="curs-documentacio.svg" target="_blank" class="primary">Obrir en pestanya nova</a>
+        <a href="curs-documentacio.svg" download>Descarregar SVG</a>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>
+      <strong>BernatLab</strong> — Sistema personal basat en una Raspberry Pi 4 ·
+      <a href="https://github.com/bernatmora/bernatlab" target="_blank" rel="noopener">github.com/bernatmora/bernatlab</a>
+    </p>
+    <p>
+      Diagrames generats com a part de la documentació del projecte ·
+      Llicència: document personal de Bernat Mora
+    </p>
+  </footer>
+</body>
+</html>

@@ -82,3 +82,17 @@ Pistes:
 - OneDrive
 - Sincronitzacio manual
 - Versionat
+
+
+## Pregunta 11 (oberta amb pistes)
+Per que es bona practica tenir scripts per a tasques repetitives
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 12 (oberta amb pistes)
+Explica que es un param block a PowerShell i per que sha dusar
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
+## Pregunta 13 (oberta amb pistes)
+Com escriuries un script que faci ssh bernat@hortosona en un sol clic
+
+**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
