@@ -29,13 +29,13 @@ PowerShell esta be per a comandes puntuals, pero per a **treball diari amb servi
 1. Click a **Session** (a dalt a l'esquerra).
 2. Click a **SSH**.
 3. Emplena:
-   - **Remote host**: `100.115.134.76` (o `hortosona` si tens MagicDNS).
+   - **Remote host**: `100.x.y.z` (o `hortosona` si tens MagicDNS).
    - **Username**: `bernat`.
    - **Port**: `22`.
    - **Specify username**: marcat.
 4. Click a **Advanced SSH settings**:
    - Marca **Use private key**.
-   - Busca el fitxer `C:\Users\iadmin\.ssh\id_ed25519`.
+   - Busca el fitxer `C:\Users\usuari\.ssh\id_ed25519`.
 5. Click a **OK**.
 
 Et sortira una pestanya nova amb la terminal SSH. A la **esquerra** veuras el navegador de fitxers SFTP.

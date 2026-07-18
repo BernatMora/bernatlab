@@ -86,7 +86,7 @@ Pistes per respondre:
 - Quin cost te?
 
 ## Pregunta 11 (oberta)
-Per que creus que Syncthing ha esdevingut una alternativa popular a Dropbox i Google Drive per als usuaris mes tecnics? Quins avantatges te al BernatLab (100.115.134.76) i quins inconvenients?
+Per que creus que Syncthing ha esdevingut una alternativa popular a Dropbox i Google Drive per als usuaris mes tecnics? Quins avantatges te al BernatLab (100.x.y.z) i quins inconvenients?
 
 Pistes per respondre:
 - Privacitat: les dades no passen per tercers.
@@ -96,7 +96,7 @@ Pistes per respondre:
 - Trade-off: privacitat vs conveniencia.
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre l'amplada de banda de la xarxa i la velocitat de sincronitzacio? Com afecta al BernatLab (100.115.134.76) si tens una conexio de 100 Mbps o de 10 Mbps? Calcula exemples.
+Quina relacio hi ha entre l'amplada de banda de la xarxa i la velocitat de sincronitzacio? Com afecta al BernatLab (100.x.y.z) si tens una conexio de 100 Mbps o de 10 Mbps? Calcula exemples.
 
 Pistes per respondre:
 - 1 GB a 100 Mbps = 80 segons.

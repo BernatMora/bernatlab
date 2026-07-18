@@ -30,7 +30,7 @@ Escriu:
 
 ```
 Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
     IdentitiesOnly yes
@@ -71,7 +71,7 @@ Afegeix al final del fitxer:
 
 ```
 Host pi
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
 ```

@@ -51,10 +51,10 @@ Configura els teus acces directe preferits:
 4. Pots afegir **plugins** o dreceres personalitzades.
 
 Exemples utils:
-- `hortosona` -> ssh bernat@100.115.134.76
-- `portainer` -> obre https://100.115.134.76:9443
-- `kuma` -> obre http://100.115.134.76:3001
-- `homepage` -> obre http://100.115.134.76:3000
+- `hortosona` -> ssh bernat@100.x.y.z
+- `portainer` -> obre https://100.x.y.z:9443
+- `kuma` -> obre http://100.x.y.z:3001
+- `homepage` -> obre http://100.x.y.z:3000
 
 Per a URL, pots crear dreceres personalitzades o simplement escriure-les.
 

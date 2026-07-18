@@ -104,8 +104,5 @@ Si nomes tens SSH i Portainer, quines serien les regles UFW mes adients? Escriu-
 ## Pregunta 14 (oberta amb pistes)
 Per que un firewall nomes amb la politica per defecte deny incoming ja dona molta seguretat
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 15 (oberta amb pistes)
 Quina relacio hi ha entre ports oberts i serveis exposats al teu hort IoT
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

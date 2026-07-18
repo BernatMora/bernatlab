@@ -35,21 +35,21 @@ New-Item -Path $PROFILE -ItemType File -Force
 
 ## Funcions utils per al BernatLab
 
-Crea un fitxer `C:\Users\iadmin\bin\bernatlab.ps1` amb el següent:
+Crea un fitxer `C:\Users\usuari\bin\bernatlab.ps1` amb el següent:
 
 ```powershell
 # Conexions SSH
-function ssh-bernatlab { ssh bernat@100.115.134.76 }
+function ssh-bernatlab { ssh bernat@100.x.y.z }
 Set-Alias sshbl ssh-bernatlab
 
 function ssh-macbook { ssh bernat@100.86.178.51 }
 Set-Alias sshmac ssh-macbook
 
 # Obrir serveis al navegador
-function bl-portainer { Start-Process "https://100.115.134.76:9443" }
-function bl-kuma { Start-Process "http://100.115.134.76:3001" }
-function bl-homepage { Start-Process "http://100.115.134.76:3000" }
-function bl-grafana { Start-Process "http://100.115.134.76:3002" }
+function bl-portainer { Start-Process "https://100.x.y.z:9443" }
+function bl-kuma { Start-Process "http://100.x.y.z:3001" }
+function bl-homepage { Start-Process "http://100.x.y.z:3000" }
+function bl-grafana { Start-Process "http://100.x.y.z:3002" }
 
 # Dreces curtes
 Set-Alias portainer bl-portainer
@@ -67,15 +67,15 @@ function hort {
 
 # Comandes utils
 function bl-status { 
-    ssh bernat@100.115.134.76 'docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+    ssh bernat@100.x.y.z 'docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
 }
 function bl-logs { 
     param([string]$name)
-    ssh bernat@100.115.134.76 "docker logs $name --tail 50"
+    ssh bernat@100.x.y.z "docker logs $name --tail 50"
 }
 function bl-restart { 
     param([string]$name)
-    ssh bernat@100.115.134.76 "docker restart $name"
+    ssh bernat@100.x.y.z "docker restart $name"
 }
 ```
 
@@ -84,7 +84,7 @@ function bl-restart {
 Per que es carregui automaticament, afegeix al `$PROFILE`:
 
 ```powershell
-. C:\Users\iadmin\bin\bernatlab.ps1
+. C:\Users\usuari\bin\bernatlab.ps1
 ```
 
 Aixo es un "dot-source" - carrega les funcions al perfil actual.

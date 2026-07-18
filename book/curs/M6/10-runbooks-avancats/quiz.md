@@ -21,10 +21,10 @@ Quina es la diferencia entre un runbook i un tutorial?
 ## Pregunta 3
 Quina informacio NO hauria de faltar en un runbook?
 
-- [ ] Requisits previs
-- [x] Passos numerats
-- [x] Verificacio
-- [x] Procediment de rollback
+- [ ] Nomes requisits previs
+- [ ] Nomes passos numerats
+- [ ] Nomes verificacio i rollback
+- [x] Requisits, passos numerats, verificacio i rollback
 
 ## Pregunta 4
 Quin es el millor moment per escriure un runbook?
@@ -45,7 +45,7 @@ Que es un postmortem?
 ## Pregunta 6
 Quina estructura ha de tenir un postmortem?
 
-- [ ] Resum, timeline, causa arrel, impacte, accions
+- [x] Resum, timeline, causa arrel, impacte, accions
 - [ ] Diagnostic, solucio
 - [ ] Resum, adreces
 - [ ] Causa, solucio, contactes
@@ -62,7 +62,7 @@ Per que son importants els runbooks?
 Quin es el tamany ideal d'un runbook?
 
 - [ ] 1 paragraf
-- [ ] 1-2 pagines
+- [x] 1-2 pagines
 - [ ] Un llibre sencer
 - [ ] Tant llarg com calgui
 
@@ -92,12 +92,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que sha de tenir runbooks escrits si jo soc lunic que sha daregar
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que ha de contenir un runbook per a una emergencia tipica
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com organitzaries una coleccio de runbooks per al teu BernatLab
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

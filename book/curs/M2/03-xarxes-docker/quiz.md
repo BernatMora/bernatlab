@@ -91,7 +91,7 @@ Pistes per respondre:
 - Les xarxes custom permeten aillar trafic per aplicacio.
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre la topologia de xarxes i la superficie d'atac? Al BernatLab (100.115.134.76) amb 5 serveis, quantes xarxes crearies i quins serveis anirien junts? Dibuixa mentalment el graf de connexions.
+Quina relacio hi ha entre la topologia de xarxes i la superficie d'atac? Al BernatLab (100.x.y.z) amb 5 serveis, quantes xarxes crearies i quins serveis anirien junts? Dibuixa mentalment el graf de connexions.
 
 Pistes per respondre:
 - Xarxa publica: nomes el que toca internet.

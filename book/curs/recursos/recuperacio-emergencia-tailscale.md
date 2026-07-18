@@ -8,14 +8,14 @@
 
 ## Per què ha passat
 
-La teva RPi (hostname `hortosona`, IP Tailscale `100.115.134.76`) s'ha
-desconnectat de Tailscale. Com que al Windows fas `ssh bernat@100.115.134.76`,
+La teva RPi (hostname `hortosona`, IP Tailscale `100.x.y.z`) s'ha
+desconnectat de Tailscale. Com que al Windows fas `ssh bernat@100.x.y.z`,
 i aquesta IP només funciona amb Tailscale, ara no pots entrar.
 
 Les comandes SSH habituals (que **ara NO funcionen**):
 
 ```bash
-ssh bernat@100.115.134.76      # IP Tailscale — NO funciona
+ssh bernat@100.x.y.z      # IP Tailscale — NO funciona
 ssh bernat@hortosona           # Nom amb MagicDNS — NO funciona
 ```
 
@@ -81,7 +81,7 @@ Si tens MagicDNS actiu, et confirmarà que ha tornat a la xarxa.
 Des de **PowerShell** al Windows:
 
 ```powershell
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 # o:
 ssh bernat@hortosona
 ```
@@ -131,7 +131,7 @@ Si Portainer funciona via `curl` des de la RPi però no al navegador, és un pro
 
 Prova:
 1. Obre una **finestra d'incògnit** (`Ctrl+Shift+N` a Chrome/Edge).
-2. Vés a https://100.115.134.76:9443
+2. Vés a https://100.x.y.z:9443
 3. Si funciona → neteja la caché del navegador normal.
 
 ### B. Tailscale fent coses rares amb HTTPS
@@ -139,7 +139,7 @@ Prova:
 Prova el port alternatiu **9000** (HTTP, no HTTPS):
 
 ```
-http://100.115.134.76:9000
+http://100.x.y.z:9000
 ```
 
 Si el 9000 funciona però el 9443 no, és un problema específic del port HTTPS.
@@ -168,7 +168,7 @@ ssh-keygen -t ed25519
 
 # Copiar-la a la RPi (entra amb password un cop)
 type $env:USERPROFILE\.ssh\id_ed25519.pub | `
-  ssh bernat@100.115.134.76 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+  ssh bernat@100.x.y.z "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
 ```
 
 A partir d'ara podràs entrar sense password.

@@ -106,7 +106,7 @@ Pistes per respondre:
 - Es pot verificar la integritat amb hashes i signatures.
 
 ## Pregunta 13 (oberta)
-Imagina que el teu company et diu: "el meu Nextcloud porta mes de 2 anys sense actualitzar i funciona perfectament". Argumenta per que aixo es una mala practica de seguretat, especialment si el servei esta exposat a internet al BernatLab (100.115.134.76).
+Imagina que el teu company et diu: "el meu Nextcloud porta mes de 2 anys sense actualitzar i funciona perfectament". Argumenta per que aixo es una mala practica de seguretat, especialment si el servei esta exposat a internet al BernatLab (100.x.y.z).
 
 Pistes per respondre:
 - Cada mes es troben noves vulnerabilitats a Nextcloud, PHP, llibreries.

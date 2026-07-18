@@ -104,8 +104,5 @@ Quines consequencies pot tenir una ACL massa permissiva al teu hort IoT? Pensa e
 ## Pregunta 14 (oberta amb pistes)
 Per que Tailscale utilitza ACLs en lloc de regles de firewall tradicionals
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 15 (oberta amb pistes)
 Explica la diferencia entre tag:server ssh i 192.168.1.10:22 a una ACL
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

@@ -16,7 +16,7 @@
 
 ## Pregunta 3: Com accedir a Portainer al BernatLab
 
-**Resposta correcta**: http://hortosona:9000 (o per IP Tailscale 100.115.134.76:9000)
+**Resposta correcta**: http://hortosona:9000 (o per IP Tailscale 100.x.y.z:9000)
 
 **Explicació**: Un cop exposat el port 9000 al compose, pots accedir des de qualsevol dispositiu de la xarxa Tailscale. MagicDNS resol `hortosona` a la IP correcta.
 

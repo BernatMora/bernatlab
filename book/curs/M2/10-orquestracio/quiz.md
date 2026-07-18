@@ -95,7 +95,7 @@ Pistes per respondre:
 - Trade-off: per a un homelab es overkill, pero per a una empresa es essencial.
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre el cost economic d'un cluster i la disponibilitat que aporta? Al BernatLab (100.115.134.76), val la pena comprar 2 RPi mes per tenir alta disponibilitat? Argumenta amb calcul de cost/benefici.
+Quina relacio hi ha entre el cost economic d'un cluster i la disponibilitat que aporta? Al BernatLab (100.x.y.z), val la pena comprar 2 RPi mes per tenir alta disponibilitat? Argumenta amb calcul de cost/benefici.
 
 Pistes per respondre:
 - 2 RPi mes = ~120 EUR + 2 fonts + 2 SD = ~200 EUR.

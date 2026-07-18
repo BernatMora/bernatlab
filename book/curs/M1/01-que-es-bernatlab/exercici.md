@@ -20,7 +20,7 @@ Des del teu PC, obre el terminal i comprova que pots accedir a la Raspberry:
 ```bash
 ssh bernat@hortosona
 # o per IP Tailscale:
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 
 Si no pots, comprova:
@@ -50,9 +50,9 @@ docker network ls
 
 Des del navegador, accedeix a cada servei i fes una captura de pantalla:
 
-- **Homepage**: http://100.115.134.76:3000
-- **Portainer**: https://100.115.134.76:9443
-- **Uptime Kuma**: http://100.115.134.76:3001
+- **Homepage**: http://100.x.y.z:3000
+- **Portainer**: https://100.x.y.z:9443
+- **Uptime Kuma**: http://100.x.y.z:3001
 
 Si algun no carrega, **apunta-ho** — serà un tema per als capítols posteriors.
 
@@ -121,7 +121,7 @@ Crea un fitxer `book/curs/M1/01-que-es-bernatlab/inventari.md` amb:
 
 ## Connexió
 - Tailscale: [sí/no]
-- IP: [100.115.134.76]
+- IP: [100.x.y.z]
 - Puc entrar per SSH: [sí/no]
 - Mètode (clau vs contrasenya): [què uso]
 

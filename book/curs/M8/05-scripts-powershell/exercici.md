@@ -15,7 +15,7 @@ Crear un fitxer de funcions PowerShell amb alies per accedir rapidament al Berna
 ## Pas 1: Crear el directori bin (2 min)
 
 ```powershell
-mkdir C:\Users\iadmin\bin -Force
+mkdir C:\Users\usuari\bin -Force
 ```
 
 Aquesta carpeta sera el teu "directori d'eines personals".
@@ -23,7 +23,7 @@ Aquesta carpeta sera el teu "directori d'eines personals".
 ## Pas 2: Crear el fitxer bernatlab.ps1 (10 min)
 
 ```powershell
-notepad C:\Users\iadmin\bin\bernatlab.ps1
+notepad C:\Users\usuari\bin\bernatlab.ps1
 ```
 
 Copia tot el contingut del resum i desa.
@@ -40,7 +40,7 @@ if (!(Test-Path $PROFILE)) {
 }
 
 # Afegir el dot-source
-Add-Content $PROFILE "`n. C:\Users\iadmin\bin\bernatlab.ps1"
+Add-Content $PROFILE "`n. C:\Users\usuari\bin\bernatlab.ps1"
 ```
 
 ## Pas 4: Recarregar el perfil (2 min)

@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Curs del BernatLab - 47 capítols, 470 preguntes, 5 mòduls. Aprèn al teu ritme.">
+    <meta name="description" content="Curs pràctic del BernatLab: 8 mòduls, 77 capítols i 1.087 preguntes amb exercicis i progrés local.">
     <title>Curs del BernatLab</title>
     <link rel="stylesheet" href="curs.css">
 </head>
 <body>
     <header>
         <h1>📚 Curs del BernatLab</h1>
-        <p class="subtitle">5 mòduls · 47 capítols · 470 preguntes · Aprèn al teu ritme</p>
+        <p class="subtitle" id="course-summary">8 mòduls · 77 capítols · 1.087 preguntes · Aprèn al teu ritme</p>
         <nav>
             <a href="#moduls">Mòduls</a>
             <a href="#metode">Mètode</a>
@@ -26,7 +26,7 @@
             <div class="stats-grid" id="stats-grid">
                 <div class="stat">
                     <div class="stat-value" id="stat-attempts">0</div>
-                    <div class="stat-label">Quizzos fets</div>
+                    <div class="stat-label">Qüestionaris fets</div>
                 </div>
                 <div class="stat">
                     <div class="stat-value" id="stat-correct">0</div>
@@ -40,15 +40,24 @@
                     <div class="stat-value" id="stat-streak">0</div>
                     <div class="stat-label">Dies seguits</div>
                 </div>
+                <div class="stat">
+                    <div class="stat-value" id="stat-completed">0/77</div>
+                    <div class="stat-label">Capítols completats</div>
+                </div>
             </div>
             <p class="hint">Les estadístiques es desen al <strong>localStorage</strong> del navegador. Si vols mantenir-les en canviar de dispositiu, fes el quiz per terminal amb <code>quiz.py --stats</code>.</p>
+        </section>
+
+        <section class="continue-course" id="continue-course" hidden>
+            <h2>▶ Continua on ho vas deixar</h2>
+            <p><a href="#"><strong></strong></a></p>
         </section>
 
         <section id="metode">
             <h2>🧠 Mètode d'aprenentatge</h2>
             <p>Aquest curs aplica el mètode de <strong>repàs espaiat</strong> (spaced repetition) — la ciència cognitiva diu que calen entre 3 i 5 repàs per retenir informació nova. Per cada capítol:</p>
             <ol>
-                <li><strong>Dia 0</strong> — Llegeix el resum (5-10 min) + fes el quiz per terminal (15-20 min) + fes l'exercici pràctic al teu servidor (20-60 min).</li>
+                <li><strong>Dia 0</strong> — Llegeix el resum (5-10 min) + fes el qüestionari al web o per terminal (15-20 min) + fes l'exercici pràctic al teu servidor (20-60 min).</li>
                 <li><strong>Dia 3</strong> — Repassa les preguntes que has fallat.</li>
                 <li><strong>Dia 15</strong> — Fes 3-5 preguntes aleatòries del capítol.</li>
                 <li><strong>Dia 45</strong> — Repassa 3-5 preguntes aleatòries més.</li>
@@ -75,7 +84,7 @@ source .venv/Scripts/activate</code></pre>
 python book/curs/quiz.py --list
 
 # Fer el quiz del M1, capítol 1
-python book/curs/quiz.py --m1 1
+python book/curs/quiz.py --module M1 --chapter 1
 
 # Veure estadístiques globals
 python book/curs/quiz.py --stats
@@ -87,12 +96,27 @@ python book/curs/quiz.py --review</code></pre>
 
         <section id="moduls">
             <h2>📖 Mòduls del curs</h2>
-            <p>El curs té 5 mòduls, 47 capítols, i 470 preguntes en total. Comencem pel <strong>M1 (Fonaments)</strong>.</p>
+            <p>El curs té <strong>8 mòduls, 77 capítols i 1.087 preguntes</strong>. Comença pel M1 o cerca directament el tema que necessites.</p>
+
+            <div class="course-tools" role="search">
+                <label>
+                    <span class="visually-hidden">Cerca capítols</span>
+                    <input id="course-search" type="search" placeholder="Cerca un capítol o tema…" autocomplete="off">
+                </label>
+                <label>
+                    <span class="visually-hidden">Filtra per estat</span>
+                    <select id="course-filter">
+                        <option value="all">Tots els capítols</option>
+                        <option value="pending">Pendents</option>
+                        <option value="complete">Completats</option>
+                    </select>
+                </label>
+            </div>
 
             <div class="modul" data-module="M1">
                 <div class="modul-header">
                     <h3>M1 · Fonaments</h3>
-                    <span class="badge badge-progress">Complet · 10/10</span>
+                    <span class="badge badge-progress">0/10 completats</span>
                 </div>
                 <p class="modul-desc">Què és un homelab, la Raspberry Pi 4, Linux bàsic, xarxa i SSH, contenidors, Portainer, Uptime Kuma, Homepage, Git, full de ruta.</p>
                 <ul class="capitol-list">
@@ -112,7 +136,7 @@ python book/curs/quiz.py --review</code></pre>
             <div class="modul" data-module="M2">
                 <div class="modul-header">
                     <h3>M2 · Contenidors</h3>
-                    <span class="badge badge-progress">Complet · 10/10</span>
+                    <span class="badge badge-progress">0/10 completats</span>
                 </div>
                 <p class="modul-desc">Docker avançat: imatges, volums, xarxes, compose, registres, seguretat, actualització, backup, monitorització, orquestració.</p>
                 <ul class="capitol-list">
@@ -132,7 +156,7 @@ python book/curs/quiz.py --review</code></pre>
             <div class="modul" data-module="M3">
                 <div class="modul-header">
                     <h3>M3 · Dades</h3>
-                    <span class="badge badge-progress">Complet · 10/10</span>
+                    <span class="badge badge-progress">0/10 completats</span>
                 </div>
                 <p class="modul-desc">Backups, volums Docker, bases de dades (SQLite, Postgres, InfluxDB), gestió de fitxers, sincronització, xifrat, visualització.</p>
                 <ul class="capitol-list">
@@ -152,7 +176,7 @@ python book/curs/quiz.py --review</code></pre>
             <div class="modul" data-module="M4">
                 <div class="modul-header">
                     <h3>M4 · Intel·ligència</h3>
-                    <span class="badge badge-progress">Complet · 10/10</span>
+                    <span class="badge badge-progress">0/10 completats</span>
                 </div>
                 <p class="modul-desc">LLMs, Ollama, models locals, prompt engineering, RAG, embeddings, vector databases, privadesa, aplicació a Hort Osona.</p>
                 <ul class="capitol-list">
@@ -172,7 +196,7 @@ python book/curs/quiz.py --review</code></pre>
 <div class="modul" data-module="M5">
                 <div class="modul-header">
                     <h3>M5 · Seguretat</h3>
-                    <span class="badge badge-progress">Complet · 10/10</span>
+                    <span class="badge badge-progress">0/10 completats</span>
                 </div>
                 <p class="modul-desc">Amenaces comunes, Tailscale ACLs, SSH hardening, firewall, TLS, secrets, backups segurs, monitoratge, actualitzacions, auditoria.</p>
                 <ul class="capitol-list">
@@ -192,7 +216,7 @@ python book/curs/quiz.py --review</code></pre>
 <div class="modul" data-module="M6">
                 <div class="modul-header">
                     <h3>M6 · Operativa 24/7</h3>
-                    <span class="badge badge-progress">Complet · 10/10</span>
+                    <span class="badge badge-progress">0/10 completats</span>
                 </div>
                 <p class="modul-desc">Arquitectura 24/7, Prometheus, Grafana, alertes Telegram, logs centralitzats, uptime, actualitzacions segures, manteniment, troubleshooting, runbooks avançats.</p>
                 <ul class="capitol-list">
@@ -212,7 +236,7 @@ python book/curs/quiz.py --review</code></pre>
 <div class="modul" data-module="M7">
                 <div class="modul-header">
                     <h3>M7 · Hort Osona en acció</h3>
-                    <span class="badge badge-progress">Complet · 10/10</span>
+                    <span class="badge badge-progress">0/10 completats</span>
                 </div>
                 <p class="modul-desc">Dades de l'hort, sensors MiFlora, protocol LoRa, arquitectura hort IoT, MQTT, InfluxDB, API, web pública, calendari de sembra, casos reals.</p>
                 <ul class="capitol-list">
@@ -232,7 +256,7 @@ python book/curs/quiz.py --review</code></pre>
             <div class="modul" data-module="M8">
                 <div class="modul-header">
                     <h3>M8 · Eines del dia a dia</h3>
-                    <span class="badge badge-progress">Complet · 7/7</span>
+                    <span class="badge badge-progress">0/7 completats</span>
                 </div>
                 <p class="modul-desc">SSH amb claus, MobaXterm, perfil SSH, PowerToys Run, scripts PowerShell, Obsidian + Git, runbooks.</p>
                 <ul class="capitol-list">

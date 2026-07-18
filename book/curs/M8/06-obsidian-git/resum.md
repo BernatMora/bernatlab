@@ -42,7 +42,7 @@ Per a un homelab on vols **privadesa i control**, Obsidian es la millor opcio.
 1. Descarrega de https://obsidian.md
 2. Instal·la (Windows, Mac, Linux).
 3. Obre per primera vegada.
-4. Crea un **vault** (carpeta de notes). Et recomano `C:\Users\iadmin\obsidian\bernatlab`.
+4. Crea un **vault** (carpeta de notes). Et recomano `C:\Users\usuari\obsidian\bernatlab`.
 
 ## Us basic
 
@@ -83,7 +83,7 @@ Per sincronitzar el vault entre PCs i tenir historial:
 1. Instal·la **Git** (ja l'hauries de tenir).
 2. Dins de la carpeta del vault, obre un terminal:
 ```bash
-cd C:\Users\iadmin\obsidian\bernatlab
+cd C:\Users\usuari\obsidian\bernatlab
 git init
 git add .
 git commit -m "Inici del vault del BernatLab"

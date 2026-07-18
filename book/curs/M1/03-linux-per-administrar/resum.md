@@ -2,7 +2,7 @@
 
 ## La idea clau
 
-Un cop tens la Raspberry Pi en marxa amb Debian 13 Lite, toca aprendre a **parlar amb ella**. Això vol dir dominar un grapat d'eines de terminal: moure't per carpetes, crear i editar fitxers, gestionar usuaris i permisos, instal·lar programari, mirar logs i controlar serveis. Són les ordres bàsiques que faràs servir cada dia al BernatLab (hostname `hortosona`, IP Tailscale `100.115.134.76`).
+Un cop tens la Raspberry Pi en marxa amb Debian 13 Lite, toca aprendre a **parlar amb ella**. Això vol dir dominar un grapat d'eines de terminal: moure't per carpetes, crear i editar fitxers, gestionar usuaris i permisos, instal·lar programari, mirar logs i controlar serveis. Són les ordres bàsiques que faràs servir cada dia al BernatLab (hostname `hortosona`, IP Tailscale `100.x.y.z`).
 
 Aquest capítol és la caixa d'eines. La resta del curs hi va construint a sobre.
 

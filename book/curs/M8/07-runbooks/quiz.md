@@ -88,12 +88,8 @@ Pistes:
 ## Pregunta 11 (oberta amb pistes)
 Per que sha de tenir un runbook per a TOT el que fas mes de 2 cops
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que ha de contenir un runbook de 1 pagina
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com organitzaries els teus runbooks a Obsidian
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

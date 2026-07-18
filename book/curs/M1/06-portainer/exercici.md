@@ -48,7 +48,7 @@ docker compose ps
 
 ## Pas 2: Primer accés (10 min)
 
-1. Obre el navegador a `http://hortosona:9000` (o `http://100.115.134.76:9000`).
+1. Obre el navegador a `http://hortosona:9000` (o `http://100.x.y.z:9000`).
 2. Crea l'usuari admin (contrasenya forta, ≥ 12 caràcters).
 3. Tria "Get Started" (entorn Local).
 4. Explora el Dashboard.

@@ -24,7 +24,7 @@
             <h2>📖 Resum del capítol</h2>
 
             <h3>La idea clau</h3>
-            <p><strong>Portainer</strong> és una interfície gràfica web per administrar Docker. Veure contenidors, logs, volums, imatges, xarxes i fer operacions amb clics. Al BernatLab s'hi accedeix via <code>http://hortosona:9000</code> (o <code>http://100.115.134.76:9000</code> des de fora amb Tailscale).</p>
+            <p><strong>Portainer</strong> és una interfície gràfica web per administrar Docker. Veure contenidors, logs, volums, imatges, xarxes i fer operacions amb clics. Al BernatLab s'hi accedeix via <code>http://hortosona:9000</code> (o <code>http://100.x.y.z:9000</code> des de fora amb Tailscale).</p>
 
             <h3>Què és exactament Portainer?</h3>
             <p>Un contenidor Docker que administra altres contenidors. Comunica amb el dimoni Docker a través del socket <code>/var/run/docker.sock</code>. Versió Community (gratuïta) i Business (de pagament).</p>
@@ -103,12 +103,12 @@ docker compose up -d portainer</code></pre>
 
         <section id="quiz">
             <h2>❓ Qüestionari (10 preguntes)</h2>
-            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+            <p>Pots fer el qüestionari directament al web o per terminal. Els resultats del web es desen en aquest navegador.</p>
 
             <div class="code-block">
                 <p>Per fer el quiz d'aquest capítol:</p>
-                <pre><code>cd C:\Users\iadmin\bernatlab
-.venv\Scripts\python.exe book/curs/quiz.py --m1 6</code></pre>
+                <pre><code>cd C:\Users\usuari\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --module M1 --chapter 6</code></pre>
             </div>
 
             <h3>Vista prèvia de les preguntes</h3>
@@ -192,5 +192,6 @@ docker compose up -d portainer</code></pre>
     <footer>
         <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
     </footer>
+    <script src="../curs.js"></script>
 </body>
 </html>

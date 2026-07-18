@@ -170,7 +170,7 @@ Per exemple:
 | 1 hora | 1 h | Alt (replicacio + scripts complexos) | Negoci |
 | 0 | 0 | Molt alt (cluster K8s, replicacio sincrona) | Empresa |
 
-**Exemple concret al BernatLab (100.115.134.76)**:
+**Exemple concret al BernatLab (100.x.y.z)**:
 
 Si tens un Nextcloud amb documents de feina:
 - RPO acceptable: 4-8 h (no vols perdre un dia de feina).

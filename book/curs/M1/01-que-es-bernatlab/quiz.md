@@ -77,7 +77,7 @@ Quina és la IP Tailscale fixa que té assignada la RPi al BernatLab?
 
 - [ ] 192.168.1.50
 - [ ] 10.0.0.76
-- [x] 100.115.134.76
+- [x] 100.x.y.z
 - [ ] 172.16.134.76
 
 ## Pregunta 11

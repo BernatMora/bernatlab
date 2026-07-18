@@ -26,7 +26,7 @@ sudo tailscale up
 
 # Comprova l'estat
 sudo tailscale status
-# Hauries de veure la teva RPi amb IP 100.X.Y.Z (anota-la, hauria de ser 100.115.134.76)
+# Hauries de veure la teva RPi amb IP 100.X.Y.Z (anota-la, hauria de ser 100.x.y.z)
 
 tailscale ip -4
 ```
@@ -55,12 +55,12 @@ Comprova que la xarxa funciona als dos nivells:
 
 ```bash
 # Per IP directa
-ping 100.115.134.76
+ping 100.x.y.z
 # prem Ctrl+C per parar
 
 # Per nom MagicDNS
 ping hortosona
-# Hauria de resoldre a 100.115.134.76
+# Hauria de resoldre a 100.x.y.z
 
 # Forca la resolucio
 nslookup hortosona
@@ -68,7 +68,7 @@ nslookup hortosona
 dig hortosona
 ```
 
-Si `ping hortosona` no funciona però `ping 100.115.134.76` sí, és un problema de MagicDNS. Activa'l a la consola de Tailscale.
+Si `ping hortosona` no funciona però `ping 100.x.y.z` sí, és un problema de MagicDNS. Activa'l a la consola de Tailscale.
 
 ## Pas 4: Genera una clau SSH al portàtil (5 min)
 
@@ -82,7 +82,7 @@ ssh-keygen -t ed25519 -C "bernat@portatil-2026"
 # Et preguntarà una passphrase (opcional però recomanable per seguretat extra).
 ```
 
-A Windows la clau queda a `C:\Users\iadmin\.ssh\id_ed25519`.
+A Windows la clau queda a `C:\Users\usuari\.ssh\id_ed25519`.
 
 Mira què has creat:
 
@@ -124,7 +124,7 @@ Crea/edita `~/.ssh/config` al portàtil:
 
 ```
 Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
     ServerAliveInterval 60

@@ -88,12 +88,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que es important seguir un metode en troubleshooting i no anar provant coses a latzar
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica el metode dels 5 perque aplicat a un cas del teu BernatLab
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Si la teva web no respon, quins 5 passos faries per trobar la causa
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

@@ -161,12 +161,12 @@ zcat backup-20250615.sql.gz | \
 
         <section id="quiz">
             <h2>❓ Qüestionari (10 preguntes)</h2>
-            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+            <p>Pots fer el qüestionari directament al web o per terminal. Els resultats del web es desen en aquest navegador.</p>
 
             <div class="code-block">
                 <p>Per fer el quiz d'aquest capítol:</p>
-                <pre><code>cd C:\Users\iadmin\bernatlab
-.venv\Scripts\python.exe book/curs/quiz.py --m3 5</code></pre>
+                <pre><code>cd C:\Users\usuari\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --module M3 --chapter 5</code></pre>
             </div>
 
             <h3>Vista prèvia de les preguntes</h3>
@@ -338,5 +338,6 @@ docker exec bernatlab-postgres psql -U bernatlab -d bernatlab -c "SELECT COUNT(*
     <footer>
         <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
     </footer>
+    <script src="../curs.js"></script>
 </body>
 </html>

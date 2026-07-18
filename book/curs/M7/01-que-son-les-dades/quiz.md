@@ -88,12 +88,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que les dades son tan importants per a l'agricultura moderna
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es la piramide de dades DIKW i com sha daplicar al teu hort
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Quines dades voldries recollir del teu hort amb una llista prioritzada
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

@@ -97,7 +97,7 @@ Pistes per respondre:
 - Solució: posar el backup en mode "set it and forget it".
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre la mida del backup, el temps de fer-lo i la finestra de perdua acceptable (RPO)? Com afecta al BernatLab (100.115.134.76) triar backups horaris vs diaris? Quant de temps de dades estaries disposat a perdre?
+Quina relacio hi ha entre la mida del backup, el temps de fer-lo i la finestra de perdua acceptable (RPO)? Com afecta al BernatLab (100.x.y.z) triar backups horaris vs diaris? Quant de temps de dades estaries disposat a perdre?
 
 Pistes per respondre:
 - RPO (Recovery Point Objective): quant de temps de dades puc perdre com a maxim.

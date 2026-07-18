@@ -7,7 +7,8 @@ fer qüestionaris amb autoavaluacio.
 Us:
     python quiz.py              # Mode interactiu
     python quiz.py --list       # Llista tots els capitols disponibles
-    python quiz.py --m1 1       # Capitols del M1
+    python quiz.py --module M4 --chapter 3
+    python quiz.py --m1 1       # Compatibilitat: capítol del M1
     python quiz.py --review     # Repas espaçat (preguntes fallades abans)
     python quiz.py --stats      # Estadistiques globals
 
@@ -60,6 +61,8 @@ def parse_quiz(content: str) -> list:
                 is_correct = line[3].lower() == 'x'
                 opt_text = line[5:].strip()
                 options.append((opt_text, is_correct))
+            elif line.startswith('**Pistes**'):
+                continue
             else:
                 q_text_lines.append(line)
         q_text = '\n'.join(q_text_lines).strip()
@@ -313,7 +316,9 @@ def cmd_stats(history: dict) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Quiz del BernatLab")
     parser.add_argument('--list', action='store_true', help='Llista capitols')
-    parser.add_argument('--m1', type=int, help='Capitol del M1 (1-10)')
+    parser.add_argument('--module', type=str.upper, choices=[f'M{i}' for i in range(1, 9)], help='Mòdul (M1-M8)')
+    parser.add_argument('--chapter', type=int, help='Número de capítol del mòdul')
+    parser.add_argument('--m1', type=int, help='Compatibilitat: capítol del M1 (1-10)')
     parser.add_argument('--review', action='store_true', help='Repas espaçat')
     parser.add_argument('--stats', action='store_true', help='Estadistiques')
     args = parser.parse_args()
@@ -328,12 +333,16 @@ def main() -> int:
     if args.stats:
         cmd_stats(history)
         return 0
-    if args.m1 is not None:
-        ch = f"0{args.m1}-" if args.m1 < 10 else f"{args.m1}-"
+    if (args.module is None) != (args.chapter is None):
+        parser.error('--module i --chapter s’han d’utilitzar junts')
+    selected_module = args.module or ('M1' if args.m1 is not None else None)
+    selected_chapter = args.chapter if args.module else args.m1
+    if selected_module is not None:
+        ch = f"{selected_chapter:02d}-"
         # Buscar coincidencia
-        matches = [k for k in quizzes if k.startswith(f"M1/{ch}")]
+        matches = [k for k in quizzes if k.startswith(f"{selected_module}/{ch}")]
         if not matches:
-            print(f"  No s'ha trobat el capítol M1/{ch}*")
+            print(f"  No s'ha trobat el capítol {selected_module}/{ch}*")
             print("  Usa --list per veure els disponibles.")
             return 1
         for m in matches:

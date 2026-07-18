@@ -263,7 +263,7 @@ La diferencia entre `-p 0.0.0.0:80:80` i `-p 127.0.0.1:80:80` es critica per a l
 
 **Amb `-p 0.0.0.0:80:80`**:
 - El port es accessible des de qualsevol interficie de xarxa de l'amfitrio.
-- Si la RPi te una IP publica (100.115.134.76), el port es accessible directament des d'internet.
+- Una IP `100.x.y.z` de Tailscale és privada dins del *tailnet*: no és una IP pública ni fa el servei accessible directament des d’Internet.
 - Si nomes te IP local (192.168.1.x), el port es accessible des de tots els dispositius de la xarxa local.
 - Atacants de fora (si la RPi es accesible) poden trobar el port amb un escaneig.
 
@@ -274,7 +274,7 @@ La diferencia entre `-p 0.0.0.0:80:80` i `-p 127.0.0.1:80:80` es critica per a l
 
 **Recomanacio al BernatLab**:
 
-Si el BernatLab esta darrere d'un router amb port forwarding cap a 100.115.134.76, llavors el port ja es accessible des d'internet. Per tant, fer `-p 0.0.0.0` nomes agrega una capa de conveniencia (no cal proxy). Pero el servei queda exposat directament.
+El *port forwarding* del router apunta a una IP privada de la xarxa local (`192.168.x.y`), no a la IP Tailscale `100.x.y.z`. Publicar amb `-p 0.0.0.0` exposa el port a totes les interfícies de la RPi, però només serà accessible des d’Internet si, a més, el router o un túnel públic n’encamina el trànsit. Amb Tailscale no cal obrir ports al router.
 
 Si el BernatLab nomes l'uses via VPN (WireGuard, Tailscale), aleshores:
 - Fes servir `-p 127.0.0.1` a tots els serveis.

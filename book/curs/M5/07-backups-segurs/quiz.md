@@ -105,8 +105,5 @@ Com organiszaries el cicle de vida duna clau dencriptat al teu sistema?
 ## Pregunta 14 (oberta amb pistes)
 Per que sha dencriptar el backup si nomes soc jo qui lactualmente
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 15 (oberta amb pistes)
 Explica la diferencia entre un backup encriptat i un backup comprimit amb contrasenya
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

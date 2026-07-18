@@ -4,7 +4,7 @@
 
 Ara cada vegada que vols connectar, escrius:
 ```bash
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 
 Si tens varies maquines, o si vols canviar la clau, o si vols usar un port diferent, has de recordar totes les opcions. Es tedios.
@@ -31,7 +31,7 @@ Es un fitxer de text pla on defines **configuracions per host**. El client SSH e
 Crea o edita el fitxer:
 ```
 Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
     IdentitiesOnly yes
@@ -40,7 +40,7 @@ Host hortosona
 Despres:
 ```powershell
 ssh hortosona
-# Equival a: ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76
+# Equival a: ssh -i ~/.ssh/id_ed25519 bernat@100.x.y.z
 ```
 
 ## Multiples hosts
@@ -48,7 +48,7 @@ ssh hortosona
 ```
 # RPi principal
 Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
     IdentitiesOnly yes
