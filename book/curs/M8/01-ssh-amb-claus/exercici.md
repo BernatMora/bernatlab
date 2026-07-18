@@ -53,7 +53,7 @@ Hauries de veure una linea que comenca per `ssh-ed25519 ...`. Es la teva clau pu
 
 ```powershell
 type $env:USERPROFILE\.ssh\id_ed25519.pub | `
-  ssh bernat@100.115.134.76 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+  ssh bernat@100.x.y.z "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
 Et demanara la **contrasenya** (l'ultim cop!). Accepta.
@@ -63,7 +63,7 @@ Et demanara la **contrasenya** (l'ultim cop!). Accepta.
 Tanca la sessio PowerShell i obre una de nova. Despres:
 
 ```powershell
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 
 Si tot va be, **no et demanara password** (o et demanara la passphrase de la clau un sol cop).
@@ -109,7 +109,7 @@ sudo systemctl restart ssh
 Tanca la sessio SSH i reconnecta:
 
 ```powershell
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 
 Si funciona, **felicitats**! Ara tens autenticacio per claus.
@@ -117,7 +117,7 @@ Si funciona, **felicitats**! Ara tens autenticacio per claus.
 Si vols provar que el password **NO funciona**, pots fer:
 
 ```powershell
-ssh -o PreferredAuthentications=password bernat@100.115.134.76
+ssh -o PreferredAuthentications=password bernat@100.x.y.z
 ```
 
 Hauria de donar error "Permission denied".

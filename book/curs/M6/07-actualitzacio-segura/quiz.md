@@ -89,12 +89,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que es important actualitzar tambe el kernel de la RPi i no nomes els paquets
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es un rolling update i per que sha daplicar al teu sistema
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com validaries que una actualitzacio sha funcionat correctament
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

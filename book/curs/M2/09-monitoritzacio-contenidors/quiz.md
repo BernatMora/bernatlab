@@ -95,7 +95,7 @@ Pistes per respondre:
 - Trade-off: el temps de configurar la monitoritzacio vs el temps perdut en fallades no detectades.
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre el volum de logs, la velocitat d'analisi i el cost d'emmagatzematge? Com afecta al BernatLab (100.115.134.76) tenir logs que creixen sense limit? Proposa una politica de retencio raonable.
+Quina relacio hi ha entre el volum de logs, la velocitat d'analisi i el cost d'emmagatzematge? Com afecta al BernatLab (100.x.y.z) tenir logs que creixen sense limit? Proposa una politica de retencio raonable.
 
 Pistes per respondre:
 - Els logs creixen de forma constant. Sense limit, omplen el disc.

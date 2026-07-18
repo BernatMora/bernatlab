@@ -99,12 +99,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que es important documentar els casos reals. Pensa en el teu futur
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica com un cas real sha convertit en una millora tecnica al teu hort
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Si poguessis tornar enrere, que canviaries del teu hort
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

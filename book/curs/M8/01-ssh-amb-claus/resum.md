@@ -9,7 +9,7 @@ Ara entres a la RPi amb **password** cada vegada. Te una mica d'inconvenient:
 
 Les **claus SSH** resolen tot això:
 - **Mes comode**: no cal teclejar res (un cop configurada).
-- **Mes segur**: la clau es de 4096 bits, matematicament impossible de trencar.
+- **Mes segur**: una clau Ed25519 ben protegida resisteix els atacs pràctics coneguts i evita contrasenyes reutilitzables.
 - **Automatitzable**: pots fer scripts que entrin sense intervencio humana.
 
 ## Que es una clau SSH
@@ -19,9 +19,9 @@ Es un parell de fitxers:
 - **Publica** (`id_ed25519.pub`): la copies al servidor. Es publica, pero nomes serveix per **verificar** que tens la privada.
 
 Com funciona (simplificat):
-1. El servidor envia un **repte** (un numero aleatori xifrat amb la teva clau publica).
-2. El teu PC el **desxifra** amb la teva clau privada i el retorna.
-3. El servidor verifica que es correcte.
+1. El servidor envia un **repte** vinculat a la sessio.
+2. El teu PC el **signa** amb la clau privada, que no surt mai de lequip.
+3. El servidor verifica la signatura amb la clau publica.
 4. Si ho es, entres sense password.
 
 **Analogia**: la clau publica es com un **candau obert** que pots deixar a qualsevol lloc. La clau privada es l'**unica clau** que pot obrir-lo.
@@ -37,13 +37,13 @@ ssh-keygen -t ed25519
 ```
 
 Et preguntara:
-- **Where to save**: deixa el per defecte (`C:\Users\iadmin\.ssh\id_ed25519`).
+- **Where to save**: deixa el per defecte (`C:\Users\usuari\.ssh\id_ed25519`).
 - **Passphrase**: posa'n una que recordis. Es la **contrasenya de la clau**, no pas la del servidor.
 
 Si tot va be, veuras:
 ```
-Your identification has been saved in C:\Users\iadmin\.ssh\id_ed25519
-Your public key has been saved in C:\Users\iadmin\.ssh\id_ed25519.pub
+Your identification has been saved in C:\Users\usuari\.ssh\id_ed25519
+Your public key has been saved in C:\Users\usuari\.ssh\id_ed25519.pub
 ```
 
 ### 2. Copiar la clau publica a la RPi
@@ -52,7 +52,7 @@ Un cop (entra amb password l'ultim cop):
 
 ```powershell
 type $env:USERPROFILE\.ssh\id_ed25519.pub | `
-  ssh bernat@100.115.134.76 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+  ssh bernat@100.x.y.z "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
 Aixo:
@@ -87,7 +87,7 @@ sudo systemctl restart ssh
 Des de PowerShell:
 
 ```powershell
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 
 Si tot va be, **no et demanara res** (o et demanara la passphrase de la clau un sol cop per sessio).

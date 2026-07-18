@@ -194,7 +194,7 @@ git branch                          # llista
 ssh bernat@hortosona
 ```
 ```
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 ```
 lscpu | head -20
@@ -413,13 +413,13 @@ tailscale status
 tailscale.exe status
 ```
 ```
-ping 100.115.134.76
+ping 100.x.y.z
 ```
 ```
 ping hortosona
 ```
 ```
-ping 100.115.134.76         # a ella mateixa
+ping 100.x.y.z         # a ella mateixa
 ```
 ```
 ping 8.8.8.8                # a Internet (DNS de Google)
@@ -452,7 +452,7 @@ echo "IP del contenidor: $(hostname -i 2>/dev/null || echo 'desconeguda')"
 curl http://hortosona:8080
 ```
 ```
-- IP Tailscale: 100.115.134.76
+- IP Tailscale: 100.x.y.z
 ```
 ```
 3. Instal·lar Tailscale
@@ -1052,7 +1052,7 @@ vcgencmd measure_temp
 killall yes
 ```
 ```
-- IP: [100.115.134.76]
+- IP: [100.x.y.z]
 ```
 ```
 - Puc entrar per SSH: [sí/no]

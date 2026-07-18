@@ -120,7 +120,7 @@ Pistes per respondre:
 - Caldria un JOIN amb una taula de categories?
 
 ## Pregunta 15 (oberta)
-Quines consequencies te per a la seguretat exposar PostgreSQL a internet vs tenir-lo nomes a la xarxa interna? Argumenta amb exemples del risc real al BernatLab (100.115.134.76).
+Quines consequencies te per a la seguretat exposar PostgreSQL a internet vs tenir-lo nomes a la xarxa interna? Argumenta amb exemples del risc real al BernatLab (100.x.y.z).
 
 Pistes per respondre:
 - PostgreSQL te autenticacio pero no xifrat per defecte.

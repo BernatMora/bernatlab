@@ -1,0 +1,30 @@
+name: Course quality
+
+on:
+  push:
+    paths:
+      - "book/curs/**"
+      - "index.html"
+      - ".github/workflows/course-quality.yml"
+  pull_request:
+    paths:
+      - "book/curs/**"
+      - "index.html"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate course structure, manifest and links
+        run: python book/curs/build_course.py --check
+      - name: Validate quiz catalogue
+        run: python book/curs/quiz.py --list > /dev/null
+      - name: Validate browser JavaScript
+        run: node --check book/curs/curs.js

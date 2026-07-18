@@ -86,12 +86,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que sha de monitoritzar la disponibilitat des de fora i des de dins
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es un SLA i com sha de triar per a un homelab
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Quines serien les pagines o serveis mes importants a monitorar al teu BernatLab
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

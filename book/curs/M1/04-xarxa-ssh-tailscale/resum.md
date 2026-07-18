@@ -6,7 +6,7 @@ Un homelab sense accés remot és un trasto inútil. Al BernatLab necessitem pod
 
 ## Conceptes de xarxa que necessites
 
-**Adreça IP**: identificador numèric de cada dispositiu a la xarxa. La RPi té una IP local (típicament `192.168.1.X`) i una IP Tailscale (`100.115.134.76`).
+**Adreça IP**: identificador numèric de cada dispositiu a la xarxa. La RPi té una IP local (típicament `192.168.1.X`) i una IP Tailscale (`100.x.y.z`).
 
 **Port**: número associat a un servei. És com l'extensió telefònica:
 - `22` — SSH
@@ -30,7 +30,7 @@ Connexió bàsica (amb contrasenya):
 ```bash
 ssh bernat@hortosona
 # o per IP
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ssh bernat@192.168.1.50
 ```
 
@@ -49,7 +49,7 @@ Generar-les al teu portàtil (Windows amb PowerShell o WSL):
 
 ```bash
 ssh-keygen -t ed25519 -C "bernat@portatil"
-# Desa a C:\Users\iadmin\.ssh\id_ed25519 (Windows)
+# Desa a C:\Users\usuari\.ssh\id_ed25519 (Windows)
 # o ~/.ssh/id_ed25519 (Linux/Mac)
 ```
 
@@ -71,7 +71,7 @@ Per no haver de recordar IPs, crea/edita `~/.ssh/config` (al teu portàtil):
 
 ```
 Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
 
@@ -95,7 +95,7 @@ sudo tailscale up
 sudo tailscale status   # veure l'estat i les IPs assignades
 ```
 
-La IP Tailscale de la teva RPi és `100.115.134.76`. Pots accedir-hi des de qualsevol dels teus dispositius Tailscale, siguis on siguis al món.
+La IP Tailscale de la teva RPi és `100.x.y.z`. Pots accedir-hi des de qualsevol dels teus dispositius Tailscale, siguis on siguis al món.
 
 Avantatges:
 - **Sense port forwarding**: no cal tocar el router.
@@ -105,7 +105,7 @@ Avantatges:
 
 ## MagicDNS
 
-Un cop tens Tailscale actiu, pots fer `ssh bernat@hortosona` en lloc de `ssh bernat@100.115.134.76`. Tailscale resol automàticament el nom a la IP correcta.
+Un cop tens Tailscale actiu, pots fer `ssh bernat@hortosona` en lloc de `ssh bernat@100.x.y.z`. Tailscale resol automàticament el nom a la IP correcta.
 
 Si vols noms personalitzats (`rpi`, `nas`, `nasbernat`...), configura "MagicDNS names" al panell de Tailscale o simplement funciona amb els hostnames dels dispositius.
 
@@ -129,7 +129,7 @@ tailscale status
 sudo tailscale serve 3000    # comparteix Portainer temporalment
 
 # Test de xarxa des de la RPi
-ping 100.115.134.76         # a ella mateixa
+ping 100.x.y.z         # a ella mateixa
 ping 8.8.8.8                # a Internet (DNS de Google)
 curl -I https://google.com  # test HTTPS
 ```

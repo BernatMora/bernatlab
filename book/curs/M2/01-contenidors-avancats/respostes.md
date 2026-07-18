@@ -136,7 +136,7 @@ La mida de la imatge afecta el desplegament en tres punts:
 
 4. **RAM en execucio**: la capa escribible i les pagines de memoria carregades es relacionen amb la mida. Una imatge amb milers de fitxers petits (cas Alpine vs Debian) consumeix mes RAM per la gestio de inodes.
 
-Al BernatLab (100.115.134.76), on el temps de resposta des de que decideixo actualitzar fins que esta disponible es important, tenir imatges de 100-200 MB en lloc de 1 GB marca la diferencia. Per això els multi-stage builds son la primera optimitzacio que cal fer.
+Al BernatLab (100.x.y.z), on el temps de resposta des de que decideixo actualitzar fins que esta disponible es important, tenir imatges de 100-200 MB en lloc de 1 GB marca la diferencia. Per això els multi-stage builds son la primera optimitzacio que cal fer.
 
 ---
 

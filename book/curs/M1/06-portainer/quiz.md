@@ -22,7 +22,7 @@ A quin port per defecte escolta Portainer?
 Com accedeixes a Portainer al BernatLab des del navegador?
 
 - [ ] només per IP pública
-- [x] http://hortosona:9000 (o per IP Tailscale 100.115.134.76:9000)
+- [x] http://hortosona:9000 (o per IP Tailscale 100.x.y.z:9000)
 - [ ] només per SSH
 - [ ] No té interfície web
 

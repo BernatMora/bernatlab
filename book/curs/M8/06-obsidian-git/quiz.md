@@ -87,12 +87,8 @@ Pistes:
 ## Pregunta 11 (oberta amb pistes)
 Per que Obsidian + Git sha triomfat per a notes tecniques
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es un vault a Obsidian i com sha dorganitzar
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com integraries Obsidian amb el teu BernatLab
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

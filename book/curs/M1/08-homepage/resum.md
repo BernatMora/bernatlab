@@ -2,7 +2,7 @@
 
 ## La idea clau
 
-Un cop tens 5-10 serveis corrent (Portainer, Uptime Kuma, Whoami, etc.), el problema és: "com recordo l'adreça de cadascun?". **Homepage** és un dashboard modern que centralitza tots els serveis del BernatLab en una sola pàgina web bonica. És la "porta d'entrada" al teu homelab, accessible via `http://hortosona:3010` (o `http://100.115.134.76:3010` des de fora).
+Un cop tens 5-10 serveis corrent (Portainer, Uptime Kuma, Whoami, etc.), el problema és: "com recordo l'adreça de cadascun?". **Homepage** és un dashboard modern que centralitza tots els serveis del BernatLab en una sola pàgina web bonica. És la "porta d'entrada" al teu homelab, accessible via `http://hortosona:3010` (o `http://100.x.y.z:3010` des de fora).
 
 ## Què és exactament Homepage?
 

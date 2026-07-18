@@ -84,12 +84,8 @@ Pistes:
 ## Pregunta 11 (oberta amb pistes)
 Per que les claus SSH son mes segures que les contrasenyes
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es un ssh-agent i com et pot ajudar al dia a dia
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com organiszaries les teves claus SSH si tens 3 servidors diferents
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

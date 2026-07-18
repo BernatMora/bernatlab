@@ -2,7 +2,7 @@
 
 ## La idea clau
 
-Un cop tens 5-10 serveis corrent a la Raspberry Pi, fer-los anar tot per SSH i línia de comandes es fa feixuc. **Portainer** és una interfície gràfica (web) per administrar Docker: veure contenidors, logs, volums, imatges, xarxes, i fer operacions amb un parell de clics. Al BernatLab hi accedeixes via `http://hortosona:9000` (o `http://100.115.134.76:9000` des de fora amb Tailscale).
+Un cop tens 5-10 serveis corrent a la Raspberry Pi, fer-los anar tot per SSH i línia de comandes es fa feixuc. **Portainer** és una interfície gràfica (web) per administrar Docker: veure contenidors, logs, volums, imatges, xarxes, i fer operacions amb un parell de clics. Al BernatLab hi accedeixes via `http://hortosona:9000` (o `http://100.x.y.z:9000` des de fora amb Tailscale).
 
 ## Què és exactament Portainer?
 
@@ -49,7 +49,7 @@ docker compose up -d portainer
 
 ## Primer accés
 
-1. Obre el navegador a `http://hortosona:9000` o `http://100.115.134.76:9000`.
+1. Obre el navegador a `http://hortosona:9000` o `http://100.x.y.z:9000`.
 2. La primera vegada et demana crear un usuari administrador (només triga 5 segons, no és un procés llarg).
 3. Tria "Local" per administrar el Docker de la mateixa RPi.
 4. Ja ets al tauler principal: un llistat dels teus contenidors amb estats i mètriques.

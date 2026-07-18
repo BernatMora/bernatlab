@@ -116,7 +116,7 @@ Pistes per respondre:
 - Què passaria si hi ha un pic sobtat (campanya, Black Friday)?
 
 ## Pregunta 15 (oberta)
-La teva RPi s'ha mort i tens una de recanvi. Explica quins 3 passos faries primer per posar-la en marxa amb la teva configuració actual del BernatLab (hostname `hortosona`, Debian 13, IP Tailscale 100.115.134.76).
+La teva RPi s'ha mort i tens una de recanvi. Explica quins 3 passos faries primer per posar-la en marxa amb la teva configuració actual del BernatLab (hostname `hortosona`, Debian 13, IP Tailscale 100.x.y.z).
 
 Pistes per respondre:
 - Què fas amb el sistema operatiu (quina eina, quin sistema)?

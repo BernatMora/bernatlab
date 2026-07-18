@@ -24,7 +24,7 @@
 
 **Resposta correcta**: 100.64.0.0/10
 
-**Explicació**: Tailscale assigna IPs del rang 100.64.0.0/10, que és part del rang CGNAT (Carrier-Grade NAT) reservat per a xarxes intermèdies. Per això la teva RPi té 100.115.134.76.
+**Explicació**: Tailscale assigna IPs del rang 100.64.0.0/10, que és part del rang CGNAT (Carrier-Grade NAT) reservat per a xarxes intermèdies. Per això la teva RPi té 100.x.y.z.
 
 ## Pregunta 5: Generar claus SSH
 
@@ -36,7 +36,7 @@
 
 **Resposta correcta**: La funcionalitat de Tailscale que resol noms de màquina a IP automàticament.
 
-**Explicació**: MagicDNS fa que puguis fer `ssh bernat@hortosona` i Tailscale tradueixi "hortosona" a 100.115.134.76 sense configurar res. També permet `hortosona.tailnet.ts.net` o noms personalitzats.
+**Explicació**: MagicDNS fa que puguis fer `ssh bernat@hortosona` i Tailscale tradueixi "hortosona" a 100.x.y.z sense configurar res. També permet `hortosona.tailnet.ts.net` o noms personalitzats.
 
 ## Pregunta 7: Avantatge de Tailscale
 
@@ -81,7 +81,7 @@ Les claus SSH són superiors a les contrassenyes per diversos motius tècnics:
    - Instal·lar Tailscale (https://tailscale.com/download) i autenticar-me amb el MATEIX compte.
    - Generar una clau SSH: `ssh-keygen -t ed25519 -C "bernat@portatil-2026"`.
    - Copiar la clau pública a la RPi amb `ssh-copy-id bernat@hortosona` (o manualment).
-   - Configurar `~/.ssh/config` amb l'àlies `hortosona` apuntant a `100.115.134.76`.
+   - Configurar `~/.ssh/config` amb l'àlies `hortosona` apuntant a `100.x.y.z`.
 
 3. **A la RPi (opcional però recomanable)**:
    - Desactivar autenticació per contrasenya: editar `/etc/ssh/sshd_config` posant `PasswordAuthentication no` i reiniciar SSH.
@@ -90,7 +90,7 @@ Les claus SSH són superiors a les contrassenyes per diversos motius tècnics:
 
 1. **Connectar-me a la WiFi de la cafeteria** (obert o amb WPA2).
 2. **Activar Tailscale al portàtil**: si no està en background, obrir l'app de Tailscale o fer `sudo tailscale up` (Linux).
-3. **Verificar la connexió Tailscale**: `tailscale status` (hauria de veure la RPi amb la IP `100.115.134.76`).
+3. **Verificar la connexió Tailscale**: `tailscale status` (hauria de veure la RPi amb la IP `100.x.y.z`).
 4. **Connectar per SSH**:
    ```bash
    ssh bernat@hortosona
@@ -98,7 +98,7 @@ Les claus SSH són superiors a les contrassenyes per diversos motius tècnics:
    Si he posat passphrase a la clau, l'introdueixo. Si no, entro directament. MagicDNS tradueix `hortosona` a la IP Tailscale.
 5. **Ja soc dins**: puc fer el que necessiti (mirar logs, reiniciar serveis, etc.) amb el mateix rendiment i seguretat que si fos a casa.
 
-**Diferència clau**: sense Tailscale, l'IP `192.168.1.50` no és accessible des de la cafeteria perquè és una IP privada local. Tailscale em dóna una IP `100.115.134.76` que SÍ és accessible des de qualsevol lloc amb túnel xifrat.
+**Diferència clau**: sense Tailscale, l'IP `192.168.1.50` no és accessible des de la cafeteria perquè és una IP privada local. Tailscale em dóna una IP `100.x.y.z` que SÍ és accessible des de qualsevol lloc amb túnel xifrat.
 
 ## Què fer si has fallat moltes preguntes
 

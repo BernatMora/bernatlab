@@ -243,7 +243,7 @@ Si vols dir "estic segur perquè actualitzo cada setmana", la teva finestra de r
 
 Per tant, una finestra de 7 dies es **insuficient** per a serveis exposats a internet. Caldria actualitzar en hores.
 
-**Cas del BernatLab (100.115.134.76)**:
+**Cas del BernatLab (100.x.y.z)**:
 
 Si tens serveis exposats:
 - Watchtower amb interval de 24h: finestra maxima de 24h. Acceptable.

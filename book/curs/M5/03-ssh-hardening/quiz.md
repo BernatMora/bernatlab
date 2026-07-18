@@ -106,8 +106,5 @@ Si un company te demana accedir al teu servidor, quina seria la millor manera? P
 ## Pregunta 14 (oberta amb pistes)
 Per que es mes segur utilitzar claus SSH que contrasenyes
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 15 (oberta amb pistes)
 Quina relacio hi ha entre PermitRootLogin no i la seguretat del teu servidor
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

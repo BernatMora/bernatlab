@@ -77,7 +77,7 @@ Al BernatLab actual, els serveis que monitoraria i el tipus de monitor serien:
 - Per què: test genèric de "tenim Internet?". Si falla, el problema és la xarxa, no els teus serveis. Ajudarà a discernir on és la fallada.
 
 **6. Tailscale (HTTP)**
-- Tipus: **HTTP(s)** a `http://100.115.134.76:9000` (Portainer via Tailscale).
+- Tipus: **HTTP(s)** a `http://100.x.y.z:9000` (Portainer via Tailscale).
 - Per què: si l'accés remot via Tailscale falla, estàs aïllat. Un test periòdic et permet saber-ho.
 
 **7. (Quan el tinguis) Homepage (HTTP 3010)**

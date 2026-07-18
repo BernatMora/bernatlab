@@ -88,12 +88,8 @@ Com podries automatitzar lauditoria?
 ## Pregunta 11 (oberta amb pistes)
 Per que sha de fer una auditoria encara que tot funcioni be
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es GDPR i com sha daplicar a un hort amb dades de sensors
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Quin paper juga la documentacio en una auditoria de seguretat
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

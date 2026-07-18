@@ -21,7 +21,7 @@ Instal·lar MobaXterm i configurar una sessio SSH a la RPi amb claus.
 
 ## Pas 2: Descomprimir (1 min)
 
-1. Crea la carpeta `C:\Users\iadmin\bin\MobaXterm\`
+1. Crea la carpeta `C:\Users\usuari\bin\MobaXterm\`
 2. Descomprimeix el .zip a dins
 3. Hauries de veure `MobaXterm.exe`
 
@@ -31,7 +31,7 @@ Instal·lar MobaXterm i configurar una sessio SSH a la RPi amb claus.
 2. Opcionalment, obre **Propietats** i:
    - Canvia el nom a "MobaXterm"
    - A **Icona**, tria una que t'agradi
-   - A **Inici a**, posa `C:\Users\iadmin\bin\MobaXterm`
+   - A **Inici a**, posa `C:\Users\usuari\bin\MobaXterm`
 
 ## Pas 4: Obrir MobaXterm i crear sessio (5 min)
 
@@ -39,12 +39,12 @@ Instal·lar MobaXterm i configurar una sessio SSH a la RPi amb claus.
 2. A la pantalla d'inici, click a **Session** (a dalt a l'esquerra)
 3. Click a **SSH**
 4. Emplena:
-   - **Remote host**: `100.115.134.76`
+   - **Remote host**: `100.x.y.z`
    - **Username**: `bernat`
    - **Port**: `22`
 5. A la pestanya **Advanced SSH settings**:
    - Marca **Use private key**
-   - Browse: `C:\Users\iadmin\.ssh\id_ed25519`
+   - Browse: `C:\Users\usuari\.ssh\id_ed25519`
 6. Click a **OK**
 
 ## Pas 5: Verificar la connexio (2 min)
@@ -72,7 +72,7 @@ Exemple: accedir a Uptime Kuma (port 3001 de la RPi) des del Windows.
      - Local port: `3001`
      - Forwarded host: `localhost`
      - Forwarded port: `3001`
-   - **SSH server**: `bernat@100.115.134.76:22`
+   - **SSH server**: `bernat@100.x.y.z:22`
 4. Click a **Save**
 5. Torna a la pestanya principal i obre el navegador a `http://localhost:3001`
 6. Hauries de veure Uptime Kuma

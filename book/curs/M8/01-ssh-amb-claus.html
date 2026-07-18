@@ -33,7 +33,7 @@
             <p>Les <strong>claus SSH</strong> resolen tot això:</p>
             <ul>
                 <li><strong>Més còmode</strong>: no cal teclejar res (un cop configurada).</li>
-                <li><strong>Més segur</strong>: la clau és de 4096 bits, matemàticament impossible de trencar.</li>
+                <li><strong>Més segur</strong>: una clau Ed25519 ben protegida resisteix els atacs pràctics coneguts i evita contrasenyes reutilitzables.</li>
                 <li><strong>Automatitzable</strong>: pots fer scripts que entrin sense intervenció humana.</li>
             </ul>
 
@@ -45,9 +45,9 @@
             </ul>
             <p>Com funciona (simplificat):</p>
             <ol>
-                <li>El servidor envia un <strong>repte</strong> (un número aleatori xifrat amb la teva clau pública).</li>
-                <li>El teu PC el <strong>desxifra</strong> amb la teva clau privada i el retorna.</li>
-                <li>El servidor verifica que és correcte.</li>
+                <li>El servidor envia un <strong>repte</strong> vinculat a la sessió.</li>
+                <li>El teu PC el <strong>signa</strong> amb la clau privada, que no surt mai de l’equip.</li>
+                <li>El servidor verifica la signatura amb la clau pública.</li>
                 <li>Si ho és, entres sense password.</li>
             </ol>
             <p><strong>Analogia</strong>: la clau pública és com un <strong>candau obert</strong> que pots deixar a qualsevol lloc. La clau privada és l'<strong>única clau</strong> que pot obrir-lo.</p>
@@ -59,17 +59,17 @@
             <pre><code>ssh-keygen -t ed25519</code></pre>
             <p>Et preguntarà:</p>
             <ul>
-                <li><strong>Where to save</strong>: deixa el per defecte (<code>C:\Users\iadmin\.ssh\id_ed25519</code>).</li>
+                <li><strong>Where to save</strong>: deixa el per defecte (<code>C:\Users\usuari\.ssh\id_ed25519</code>).</li>
                 <li><strong>Passphrase</strong>: posa'n una que recordis. És la <strong>contrasenya de la clau</strong>, no pas la del servidor.</li>
             </ul>
             <p>Si tot va bé, veuràs:</p>
-            <pre><code>Your identification has been saved in C:\Users\iadmin\.ssh\id_ed25519
-Your public key has been saved in C:\Users\iadmin\.ssh\id_ed25519.pub</code></pre>
+            <pre><code>Your identification has been saved in C:\Users\usuari\.ssh\id_ed25519
+Your public key has been saved in C:\Users\usuari\.ssh\id_ed25519.pub</code></pre>
 
             <h4>2. Copiar la clau pública a la RPi</h4>
             <p>Un cop (entra amb password l'últim cop):</p>
             <pre><code>type $env:USERPROFILE\.ssh\id_ed25519.pub | `
-  ssh bernat@100.115.134.76 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"</code></pre>
+  ssh bernat@100.x.y.z "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"</code></pre>
 
             <h4>3. Desactivar l'accés per password (a la RPi)</h4>
             <pre><code>sudo nano /etc/ssh/sshd_config</code></pre>
@@ -80,7 +80,7 @@ PubkeyAuthentication yes</code></pre>
             <pre><code>sudo systemctl restart ssh</code></pre>
 
             <h4>4. Provar</h4>
-            <pre><code>ssh bernat@100.115.134.76</code></pre>
+            <pre><code>ssh bernat@100.x.y.z</code></pre>
             <p>Si tot va bé, <strong>no et demanarà res</strong> (o et demanarà la passphrase de la clau un sol cop per sessió).</p>
 
             <h3>Connexions amb altres capítols</h3>
@@ -93,12 +93,12 @@ PubkeyAuthentication yes</code></pre>
 
         <section id="quiz">
             <h2>❓ Qüestionari (10 preguntes)</h2>
-            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+            <p>Pots fer el qüestionari directament al web o per terminal. Els resultats del web es desen en aquest navegador.</p>
 
             <div class="code-block">
                 <p>Per fer el quiz d'aquest capítol:</p>
-                <pre><code>cd C:\Users\iadmin\bernatlab
-.venv\Scripts\python.exe book/curs/quiz.py --m8 1</code></pre>
+                <pre><code>cd C:\Users\usuari\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --module M8 --chapter 1</code></pre>
             </div>
 
             <h3>Vista prèvia de les preguntes</h3>
@@ -132,10 +132,10 @@ PubkeyAuthentication yes</code></pre>
 
             <h3>Pas 4: Copiar la clau pública a la RPi (2 min)</h3>
             <pre><code>type $env:USERPROFILE\.ssh\id_ed25519.pub | `
-  ssh bernat@100.115.134.76 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"</code></pre>
+  ssh bernat@100.x.y.z "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"</code></pre>
 
             <h3>Pas 5: Verificar que funciona (1 min)</h3>
-            <pre><code>ssh bernat@100.115.134.76</code></pre>
+            <pre><code>ssh bernat@100.x.y.z</code></pre>
 
             <h3>Pas 6: Deixar una porta oberta (2 min)</h3>
             <p>Abans de desactivar el password, verifica que la clau funciona.</p>
@@ -146,7 +146,7 @@ PubkeyAuthentication yes</code></pre>
 sudo systemctl restart ssh</code></pre>
 
             <h3>Pas 8: Test final (2 min)</h3>
-            <pre><code>ssh bernat@100.115.134.76</code></pre>
+            <pre><code>ssh bernat@100.x.y.z</code></pre>
 
             <h3>Validació</h3>
             <ul>
@@ -177,5 +177,6 @@ sudo systemctl restart ssh</code></pre>
     <footer>
         <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
     </footer>
+    <script src="../curs.js"></script>
 </body>
 </html>

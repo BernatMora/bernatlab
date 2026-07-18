@@ -89,12 +89,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que es millor tenir un calendari de manteniment que fer coses quan es recorda
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es una finestra de manteniment i com es planifica
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Quines tasques setmanals, mensuals i anuals tindria el teu BernatLab
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
