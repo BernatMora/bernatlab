@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Curs pràctic del BernatLab: 8 mòduls, 77 capítols i 1.087 preguntes amb exercicis i progrés local.">
+    <link rel="canonical" href="https://bernatmora.github.io/bernatlab/book/curs/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ca_ES">
+    <meta property="og:title" content="Curs pràctic del BernatLab">
+    <meta property="og:description" content="8 mòduls, 77 capítols i 1.087 preguntes amb progrés local.">
+    <meta property="og:url" content="https://bernatmora.github.io/bernatlab/book/curs/">
+    <meta name="twitter:card" content="summary">
     <title>Curs del BernatLab</title>
     <link rel="stylesheet" href="curs.css">
 </head>
@@ -45,7 +52,12 @@
                     <div class="stat-label">Capítols completats</div>
                 </div>
             </div>
-            <p class="hint">Les estadístiques es desen al <strong>localStorage</strong> del navegador. Si vols mantenir-les en canviar de dispositiu, fes el quiz per terminal amb <code>quiz.py --stats</code>.</p>
+            <p class="hint">Les estadístiques es desen en aquest navegador. Pots exportar-les per portar-les a un altre dispositiu o fer servir <code>quiz.py --stats</code> per terminal.</p>
+            <div class="progress-transfer">
+                <button type="button" id="export-progress">Exporta el progrés</button>
+                <label class="import-progress">Importa el progrés<input id="import-progress" type="file" accept="application/json,.json"></label>
+                <span id="transfer-status" role="status" aria-live="polite"></span>
+            </div>
         </section>
 
         <section class="continue-course" id="continue-course" hidden>

@@ -141,6 +141,42 @@
         }
         if (search) search.addEventListener('input', applyFilters);
         if (filter) filter.addEventListener('change', applyFilters);
+        setupProgressTransfer(manifest);
+    }
+
+    function setupProgressTransfer(manifest) {
+        const exportButton = document.getElementById('export-progress');
+        const importInput = document.getElementById('import-progress');
+        const status = document.getElementById('transfer-status');
+        if (exportButton) exportButton.addEventListener('click', () => {
+            const payload = {schemaVersion: 2, exportedAt: new Date().toISOString(), progress: loadProgress(), lastChapter: localStorage.getItem('bernatlab_last_chapter')};
+            const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `bernatlab-progres-${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            if (status) status.textContent = 'Progrés exportat.';
+        });
+        if (importInput) importInput.addEventListener('change', async () => {
+            try {
+                const file = importInput.files && importInput.files[0];
+                if (!file) return;
+                const payload = JSON.parse(await file.text());
+                const progress = payload && payload.progress;
+                if (!progress || typeof progress !== 'object' || Array.isArray(progress)) throw new Error('format');
+                const validKeys = new Set(manifest.chapters.map(chapter => chapter.key));
+                const clean = Object.fromEntries(Object.entries(progress).filter(([key]) => validKeys.has(key)));
+                saveProgress(clean);
+                if (payload.lastChapter && validKeys.has(payload.lastChapter)) localStorage.setItem('bernatlab_last_chapter', payload.lastChapter);
+                if (status) status.textContent = `${Object.keys(clean).length} capítols importats. Recarregant…`;
+                location.reload();
+            } catch (_) {
+                if (status) status.textContent = 'No s’ha pogut importar: fitxer no vàlid.';
+            } finally {
+                importInput.value = '';
+            }
+        });
     }
 
     function parseQuiz(markdown) {

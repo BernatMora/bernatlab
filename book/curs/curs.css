@@ -403,6 +403,12 @@ section code {
 .quiz-feedback.incorrect { color: #842029; }
 .quiz-result { margin-top: 1rem; }
 
+.progress-transfer { display: flex; align-items: center; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
+.progress-transfer button, .import-progress { display: inline-block; padding: 0.65rem 0.9rem; border: 1px solid var(--c-accent); border-radius: 6px; background: white; color: var(--c-accent); font: inherit; font-weight: 600; cursor: pointer; }
+.progress-transfer button:hover, .import-progress:hover { background: var(--c-accent-light); }
+.import-progress input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+#transfer-status { color: var(--c-ink-2); font-size: 0.9rem; }
+
 /* FOOTER */
 footer {
     text-align: center;
