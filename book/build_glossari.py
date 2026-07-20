@@ -27,18 +27,18 @@ def slugify(text: str) -> str:
 
 
 def build_toc(md_text: str) -> tuple[str, list[tuple[str, str, str]]]:
-    """Retorna (md amb ancoratges, llista de (nivell, text, slug))."""
+    """Retorna (md net, llista de (nivell, text, slug)).
+
+    No modifiquem el text de la capcalera: afegirem l'id al HTML final.
+    """
     toc: list[tuple[str, str, str]] = []
     lines = md_text.splitlines()
-    out: list[str] = []
     in_code = False
     for line in lines:
         if line.startswith("```"):
             in_code = not in_code
-            out.append(line)
             continue
         if in_code:
-            out.append(line)
             continue
         m = re.match(r"^(#{1,6})\s+(.*)$", line)
         if m:
@@ -47,10 +47,7 @@ def build_toc(md_text: str) -> tuple[str, list[tuple[str, str, str]]]:
             if level in (2, 3):
                 slug = slugify(text)
                 toc.append((str(level), text, slug))
-                out.append(f"{hashes} {text} {{ #{slug} }}")
-                continue
-        out.append(line)
-    return "\n".join(out), toc
+    return md_text, toc
 
 
 def render_toc_html(toc: list[tuple[str, str, str]]) -> str:
@@ -74,47 +71,68 @@ def main() -> None:
 
     body_html = markdown.markdown(
         md_with_ids,
-        extensions=["fenced_code", "tables", "sane_lists"],
+        extensions=["fenced_code", "tables"],
         output_format="html5",
     )
 
-    # Forcem que els termes (H3) tinguin classe per a la cerca
-    # i netegem qualsevol { #slug } que hagi quedat dins del text.
-    def _clean_h3(m: "re.Match[str]") -> str:
-        attrs = m.group(1)
-        inner = m.group(2)
-        inner = re.sub(r"\s*\{\s*#[^}]+\}\s*", "", inner)
-        return f'<h3 class="term"{attrs}>{inner}</h3>'
+    # Assignem id als headers segons el toc, i apliquem la classe .term als h3.
+    h2_slugs = iter([s for lvl, _, s in toc if lvl == "2"])
+    h3_slugs = iter([s for lvl, _, s in toc if lvl == "3"])
+
+    def _h2(m: "re.Match[str]") -> str:
+        try:
+            slug = next(h2_slugs)
+        except StopIteration:
+            slug = ""
+        return f'<h2 id="{slug}">{m.group(1)}</h2>'
+
+    def _h3(m: "re.Match[str]") -> str:
+        try:
+            slug = next(h3_slugs)
+        except StopIteration:
+            slug = ""
+        return f'<h3 class="term" id="{slug}">{m.group(1)}</h3>'
+
+    body_html = re.sub(r"<h2>(.*?)</h2>", _h2, body_html, flags=re.DOTALL)
+    body_html = re.sub(r"<h3>(.*?)</h3>", _h3, body_html, flags=re.DOTALL)
+    # Marquem els paragrafs que contenen un exemple del BernatLab.
+    # Dividim la definicio (text abans de "Al BernatLab:") i l'exemple.
+    def _split_exemple(m: "re.Match[str]") -> str:
+        body = m.group(1)
+        parts = re.split(r"\s*<strong>Al BernatLab:</strong>\s*", body, maxsplit=1)
+        if len(parts) != 2:
+            return m.group(0)
+        definicio, exemple = parts
+        return (
+            f'<p>{definicio}</p>'
+            f'<p class="exemple"><strong>Al BernatLab:</strong> {exemple}</p>'
+        )
 
     body_html = re.sub(
-        r"<h3([^>]*)>(.*?)</h3>",
-        _clean_h3,
+        r"<p>([^<]*?<strong>Al BernatLab:</strong>.*?)</p>",
+        _split_exemple,
         body_html,
         flags=re.DOTALL,
     )
-    # Igual per H2.
-    def _clean_h2(m: "re.Match[str]") -> str:
-        attrs = m.group(1)
-        inner = m.group(2)
-        inner = re.sub(r"\s*\{\s*#[^}]+\}\s*", "", inner)
-        return f'<h2{attrs}>{inner}</h2>'
+    # Marquem tambe els "Veure:" que no son <strong> perque venen en
+    # un salt de linia dins del paragraf d'exemple. Dividim el paragraf.
+    def _split_veure(m: "re.Match[str]") -> str:
+        body = m.group(1)
+        # Separem a la primera ocurrencia de "Veure:" seguida de text.
+        parts = re.split(r"\s*Veure:\s*", body, maxsplit=1)
+        if len(parts) != 2:
+            return m.group(0)
+        exemple, ref = parts
+        return (
+            f'<p class="exemple">{exemple}</p>'
+            f'<p class="veure"><strong>Veure:</strong> {ref}</p>'
+        )
 
     body_html = re.sub(
-        r"<h2([^>]*)>(.*?)</h2>",
-        _clean_h2,
+        r'<p class="exemple">(.*?)</p>',
+        _split_veure,
         body_html,
         flags=re.DOTALL,
-    )
-    # Els exemples que comencen amb **Al BernatLab:** els marquem.
-    body_html = re.sub(
-        r'<p>\*\*Al BernatLab:\*\*',
-        r'<p class="exemple"><strong>Al BernatLab:</strong>',
-        body_html,
-    )
-    body_html = re.sub(
-        r'<p><strong>Veure:</strong>',
-        r'<p class="veure"><strong>Veure:</strong>',
-        body_html,
     )
 
     toc_html = render_toc_html(toc)
