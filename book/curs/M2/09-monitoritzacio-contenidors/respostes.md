@@ -278,7 +278,7 @@ Fins i tot sent lunic usuari, pateixes tu. Una caiguda de 6 hores d'un Nextcloud
 **5. "Ja mirarem `docker ps` un cop al dia"**:
 Aixo es com tenir un cotxe i mirar la pressio dels neumàtics un cop al dia. Serveix per a algunes coses pero no per a incidents que pasen en minuts.
 
-**Cas concret al BernatLab (100.115.134.76)**:
+**Cas concret al BernatLab (100.x.y.z)**:
 
 Si tens serveis exposats a internet i un atacant intenta entrar:
 - Sense monitoritzacio: pot estar dies intentant fins que ho aconsegueix.

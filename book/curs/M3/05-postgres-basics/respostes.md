@@ -391,7 +391,7 @@ GROUP BY cerca ORDER BY count DESC LIMIT 10;
 
 **Resposta model**:
 
-Exposar PostgreSQL directament a internet al BernatLab (100.115.134.76) es una de les decisions mes perilloses que pots prendre. Analitzem els riscos i les alternatives:
+Exposar PostgreSQL directament a internet al BernatLab (100.x.y.z) es una de les decisions mes perilloses que pots prendre. Analitzem els riscos i les alternatives:
 
 **Riscs dexposar PostgreSQL a internet**:
 

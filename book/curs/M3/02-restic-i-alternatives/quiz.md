@@ -93,7 +93,7 @@ Pistes per respondre:
 - Al BernatLab, quantes vegades has oblidat activar el xifratge manualment?
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre la frequencia de backups i el temps de pujada al núvol? Com afecta al BernatLab (100.115.134.76) tenir una conexio lenta vs rapida? Calcula exemples amb nombres reals.
+Quina relacio hi ha entre la frequencia de backups i el temps de pujada al núvol? Com afecta al BernatLab (100.x.y.z) tenir una conexio lenta vs rapida? Calcula exemples amb nombres reals.
 
 Pistes per respondre:
 - 1 GB de dades noves al dia.

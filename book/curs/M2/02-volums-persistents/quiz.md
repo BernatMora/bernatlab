@@ -92,7 +92,7 @@ Pistes per respondre:
 - Portabilitat del docker-compose entre maquines.
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre l'eleccio de volum i l'estrategia de backup? Si nomes tens una hora per configurar el BernatLab (100.115.134.76), quina estrategia de volums triaries per facilitar-te la vida mes endavant?
+Quina relacio hi ha entre l'eleccio de volum i l'estrategia de backup? Si nomes tens una hora per configurar el BernatLab (100.x.y.z), quina estrategia de volums triaries per facilitar-te la vida mes endavant?
 
 Pistes per respondre:
 - Volums nomenats vs bind mounts: com es fa cadascun de backup?

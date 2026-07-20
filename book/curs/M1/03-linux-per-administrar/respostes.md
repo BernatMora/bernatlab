@@ -69,7 +69,7 @@ Treballar sempre com a root és perillós perquè:
 
 Quan un contenidor Docker cau al BernatLab, els passos serien:
 
-1. **Connectar-se per SSH**: `ssh bernat@hortosona` (o directament per IP Tailscale `ssh bernat@100.115.134.76`).
+1. **Connectar-se per SSH**: `ssh bernat@hortosona` (o directament per IP Tailscale `ssh bernat@100.x.y.z`).
 
 2. **Veure l'estat del servei Docker**:
    ```bash

@@ -97,12 +97,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que sha de planificar la sembra amb antelacio
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es un calendari de sembra lunar i si sha de seguir
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com planificaries el teu calendari per a una familia de 4 amb 50 m2 dhort
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

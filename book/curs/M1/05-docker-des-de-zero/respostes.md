@@ -130,7 +130,7 @@ docker compose logs -f minecraft
 # Veure com arrenca el servidor
 ```
 
-**6. Accedir des d'un client Minecraft**: afegir servidor `hortosona:25565` o `100.115.134.76:25565` des del client.
+**6. Accedir des d'un client Minecraft**: afegir servidor `hortosona:25565` o `100.x.y.z:25565` des del client.
 
 **7. Si cal actualitzar**:
 

@@ -56,7 +56,7 @@ Pensa en aquest cas: tens 3 servidors.
 
 **Sense perfil**:
 ```bash
-ssh -i ~/.ssh/bernat_key -p 22 bernat@100.115.134.76
+ssh -i ~/.ssh/bernat_key -p 22 bernat@100.x.y.z
 ssh -i ~/.ssh/work_key -p 2222 admin@192.168.1.50
 ssh -i ~/.ssh/cloud_key ubuntu@server.com
 ```
@@ -111,7 +111,7 @@ Organitzaria el config aixi:
 ```
 # === Servidors personals ===
 Host rpi
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
 

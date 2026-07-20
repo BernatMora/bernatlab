@@ -159,7 +159,7 @@ Restic ho fa tot automaticament. Aquest es el valor de les bones decisions per d
 
 **Resposta model**:
 
-La freqUencia de backups esta directament llegada a lample de banda de pujada al núvol. Al BernatLab (100.115.134.76), aixo es un factor critic:
+La freqUencia de backups esta directament llegada a lample de banda de pujada al núvol. Al BernatLab (100.x.y.z), aixo es un factor critic:
 
 **Calculs basics**:
 

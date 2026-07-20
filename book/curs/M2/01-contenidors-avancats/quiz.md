@@ -92,7 +92,7 @@ Pistes per respondre:
 - Aixo aplica al cas del BernatLab amb una app que iteres cada setmana?
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre la mida d'una imatge i la velocitat de desplegament? Si tens el BernatLab amb una RPi a 100.115.134.76 i vols actualitzar serveis rapidament, per que importa tenir imatges petites?
+Quina relacio hi ha entre la mida d'una imatge i la velocitat de desplegament? Si tens el BernatLab amb una RPi a 100.x.y.z i vols actualitzar serveis rapidament, per que importa tenir imatges petites?
 
 Pistes per respondre:
 - Temps de descarrega de la imatge nova.

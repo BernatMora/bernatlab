@@ -95,7 +95,7 @@ Pistes per respondre:
 - Trade-off: comoditat vs estabilitat.
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre la frequencia d'actualitzacio i la finestra de risc? Com afecta al BernatLab (100.115.134.76) tenir els serveis desactualitzats durant setmanes vs dies? Calcula mentalment el risc.
+Quina relacio hi ha entre la frequencia d'actualitzacio i la finestra de risc? Com afecta al BernatLab (100.x.y.z) tenir els serveis desactualitzats durant setmanes vs dies? Calcula mentalment el risc.
 
 Pistes per respondre:
 - Finestra de risc: temps entre que es publica una vulnerabilitat i l'aplicacio del pegat.

@@ -88,12 +88,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que Prometheus emmagatzema dades en series temporals en lloc de base de dades
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es un exporter i quina relacio te amb el teu hort IoT
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com dissenyaries un dashboard de Prometheus per a la teva RPi
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

@@ -84,12 +84,8 @@ Pistes:
 ## Pregunta 11 (oberta amb pistes)
 Per que sha de configurar el fitxer SSH config
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es un ProxyJump i quan sha dusar
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com configuraries el teu ssh config per tenir 3 servidors
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

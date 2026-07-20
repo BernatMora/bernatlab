@@ -88,12 +88,8 @@ Pistes per respondre:
 ## Pregunta 11 (oberta amb pistes)
 Per que sha de centralitzar els logs en lloc de tenir-los locals
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 12 (oberta amb pistes)
 Explica que es structured logging i quins avantatges te vs text pla
 
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).
 ## Pregunta 13 (oberta amb pistes)
 Com faries una cerca de logs per trobar quan sha produit un error especific
-
-**Pistes**: pensa en com aplicaries aquest concepte al teu hort IoT amb la teva RPi (hortosona, 100.115.134.76).

@@ -24,11 +24,11 @@
             <h2>📖 Resum del capítol</h2>
 
             <h3>La idea clau</h3>
-            <p>SSH (terminal remot) + Tailscale (VPN) = accés segur al BernatLab des de qualsevol lloc. La RPi (<code>hortosona</code>) té IP Tailscale <code>100.115.134.76</code>.</p>
+            <p>SSH (terminal remot) + Tailscale (VPN) = accés segur al BernatLab des de qualsevol lloc. La RPi (<code>hortosona</code>) té IP Tailscale <code>100.x.y.z</code>.</p>
 
             <h3>Conceptes de xarxa</h3>
             <ul>
-                <li><strong>IP</strong>: identificador del dispositiu (p. ex. <code>100.115.134.76</code>).</li>
+                <li><strong>IP</strong>: identificador del dispositiu (p. ex. <code>100.x.y.z</code>).</li>
                 <li><strong>Port</strong>: número de servei (22=SSH, 80=HTTP, 443=HTTPS, 9000=Portainer, 3001=Uptime Kuma).</li>
                 <li><strong>DNS</strong>: tradueix noms a IPs.</li>
                 <li><strong>NAT / port forwarding</strong>: el que caldria tocar al router si no tinguéssim Tailscale.</li>
@@ -37,7 +37,7 @@
             <h3>SSH: la porta d'entrada</h3>
             <pre><code>ssh bernat@hortosona
 # o per IP
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ssh bernat@192.168.1.50</code></pre>
             <p>Primera vegada: confirma la fingerprint del servidor. Després: contrasenya. Sortir: <code>exit</code> o <code>Ctrl+D</code>.</p>
 
@@ -55,7 +55,7 @@ type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh bernat@hortosona "mkdir -p ~/.ss
             <h3>Configuració SSH al portàtil</h3>
             <p>Edita <code>~/.ssh/config</code>:</p>
             <pre><code>Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
     ServerAliveInterval 60
@@ -96,12 +96,12 @@ curl -I https://google.com         # test HTTPS</code></pre>
 
         <section id="quiz">
             <h2>❓ Qüestionari (10 preguntes)</h2>
-            <p>El qüestionari es fa per terminal. Totes les respostes queden registrades per al repàs espaiat.</p>
+            <p>Pots fer el qüestionari directament al web o per terminal. Els resultats del web es desen en aquest navegador.</p>
 
             <div class="code-block">
                 <p>Per fer el quiz d'aquest capítol:</p>
-                <pre><code>cd C:\Users\iadmin\bernatlab
-.venv\Scripts\python.exe book/curs/quiz.py --m1 4</code></pre>
+                <pre><code>cd C:\Users\usuari\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --module M1 --chapter 4</code></pre>
             </div>
 
             <h3>Vista prèvia de les preguntes</h3>
@@ -152,7 +152,7 @@ type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh bernat@hortosona "mkdir -p ~/.ss
             <h3>Pas 5: Configura ~/.ssh/config (5 min)</h3>
             <div class="code-block">
                 <pre><code>Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
     ServerAliveInterval 60
@@ -189,7 +189,7 @@ Host rpi
                 <li><strong>SSH</strong> = port 22.</li>
                 <li><strong>Format</strong> = <code>usuari@màquina</code>.</li>
                 <li><strong>Tailscale</strong> = VPN basada en WireGuard.</li>
-                <li><strong>Rang</strong> = 100.64.0.0/10 (la teva RPi té <code>100.115.134.76</code>).</li>
+                <li><strong>Rang</strong> = 100.64.0.0/10 (la teva RPi té <code>100.x.y.z</code>).</li>
                 <li><strong>Generar claus</strong> = <code>ssh-keygen -t ed25519</code>.</li>
                 <li><strong>MagicDNS</strong> = resol noms a IPs Tailscale automàticament.</li>
                 <li><strong>Avantatge</strong> = sense tocar el router (NAT/port forwarding).</li>
@@ -201,5 +201,6 @@ Host rpi
     <footer>
         <p><a href="../index.html">← Tornar a l'índex del curs</a></p>
     </footer>
+    <script src="../curs.js"></script>
 </body>
 </html>

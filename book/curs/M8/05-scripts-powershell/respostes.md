@@ -73,7 +73,7 @@ Exemple:
 ```powershell
 function bl-logs { 
     param([string]$name)
-    ssh bernat@100.115.134.76 "docker logs $name --tail 50"
+    ssh bernat@100.x.y.z "docker logs $name --tail 50"
 }
 ```
 
@@ -97,7 +97,7 @@ Set-Alias kuma bl-kuma
 
 ---
 
-## Pregunta 9 (oberta): Per que `C:\Users\iadmin\bin\`?
+## Pregunta 9 (oberta): Per que `C:\Users\usuari\bin\`?
 
 **Resposta model**:
 

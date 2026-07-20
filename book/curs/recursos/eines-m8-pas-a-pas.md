@@ -26,7 +26,7 @@ Assegura't que tens la RPi accessible i pots fer-hi coses.
 
 ```bash
 # Des del teu Windows (PowerShell)
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 # o per hostname MagicDNS
 ssh bernat@hortosona
 ```
@@ -61,7 +61,7 @@ ssh-keygen -t ed25519
 ```
 
 Et preguntara:
-- **On desar la clau?** Deixa-ho per defecte: `C:\Users\iadmin\.ssh\id_ed25519`
+- **On desar la clau?** Deixa-ho per defecte: `C:\Users\usuari\.ssh\id_ed25519`
 - **Passphrase?** Tria una bona. No la deixis buida.
 
 Hauries de veure:
@@ -73,7 +73,7 @@ Hauries de veure:
 **Opcio A** (la mes facil):
 
 ```powershell
-type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh bernat@100.115.134.76 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh bernat@100.x.y.z "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
 **Opcio B** (manual):
@@ -103,9 +103,9 @@ Hauries d'entrar **només amb la passphrase** (no pas el password de la RPi). Si
 
 ## 3. Perfil SSH al Windows (10 min)
 
-Volem poder fer `ssh hortosona` en comptes de `ssh bernat@100.115.134.76`.
+Volem poder fer `ssh hortosona` en comptes de `ssh bernat@100.x.y.z`.
 
-Crea el fitxer `C:\Users\iadmin\.ssh\config`:
+Crea el fitxer `C:\Users\usuari\.ssh\config`:
 
 ```powershell
 notepad $env:USERPROFILE\.ssh\config
@@ -115,7 +115,7 @@ Escriu:
 
 ```
 Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/id_ed25519
     IdentitiesOnly yes
@@ -151,10 +151,10 @@ Ves a https://mobaxterm.mobatek.net/ i descarrega la versio **Home Edition** (gr
 2. Click a **Session** (a dalt a l'esquerra)
 3. Click a **SSH**
 4. Configura:
-   - **Remote host**: 100.115.134.76
+   - **Remote host**: 100.x.y.z
    - **Specify username**: bernat
    - **Port**: 22
-   - **Use private key**: navega a `C:\Users\iadmin\.ssh\id_ed25519`
+   - **Use private key**: navega a `C:\Users\usuari\.ssh\id_ed25519`
 5. Click **OK**
 6. Et demanara la passphrase de la clau. Marca **Remember passphrase** si vols que no te la torni a demanar.
 
@@ -190,7 +190,7 @@ Opcio B (manual):
    - `chrome` obre Chrome
    - `code` obre VS Code
    - `5*9` calcula 45
-   - `100.115.134.76` obre el Portainer
+   - `100.x.y.z` obre el Portainer
    - `> ssh hortosona` executa una comanda
 
 ---
@@ -202,31 +202,31 @@ Volem tenir ordres curts per accedir al BernatLab.
 ### 6.1. Crear el directori bin
 
 ```powershell
-mkdir C:\Users\iadmin\bin -Force
+mkdir C:\Users\usuari\bin -Force
 ```
 
 ### 6.2. Crear el fitxer bernatlab.ps1
 
 ```powershell
-notepad C:\Users\iadmin\bin\bernatlab.ps1
+notepad C:\Users\usuari\bin\bernatlab.ps1
 ```
 
 Enganxa aquest contingut (adapta les IPs si cal):
 
 ```powershell
 # BernatLab - acces rapid
-function sshbl { ssh bernat@100.115.134.76 }
-function bl-portainer { Start-Process "https://100.115.134.76:9443" }
-function bl-kuma { Start-Process "http://100.115.134.76:3001" }
-function bl-homepage { Start-Process "http://100.115.134.76:3000" }
+function sshbl { ssh bernat@100.x.y.z }
+function bl-portainer { Start-Process "https://100.x.y.z:9443" }
+function bl-kuma { Start-Process "http://100.x.y.z:3001" }
+function bl-homepage { Start-Process "http://100.x.y.z:3000" }
 
 Set-Alias blport bl-portainer
 Set-Alias blkuma bl-kuma
 Set-Alias blhome bl-homepage
 Set-Alias blbl sshbl
 
-function bl-status { ssh bernat@100.115.134.76 'docker ps --format "table {{.Names}}\t{{.Status}}"' }
-function bl-logs { param([string]$name) ssh bernat@100.115.134.76 "docker logs $name --tail 50" }
+function bl-status { ssh bernat@100.x.y.z 'docker ps --format "table {{.Names}}\t{{.Status}}"' }
+function bl-logs { param([string]$name) ssh bernat@100.x.y.z "docker logs $name --tail 50" }
 ```
 
 Desa.
@@ -246,7 +246,7 @@ New-Item -Path $PROFILE -ItemType File -Force
 Despres, afegeix el dot-source al perfil:
 
 ```powershell
-Add-Content $PROFILE '. C:\Users\iadmin\bin\bernatlab.ps1'
+Add-Content $PROFILE '. C:\Users\usuari\bin\bernatlab.ps1'
 ```
 
 ### 6.4. Si tens errors de politica
@@ -281,7 +281,7 @@ Ves a https://obsidian.md/ i descarrega la versio per a Windows.
 1. Obre Obsidian
 2. Click a **Create new vault**
 3. Nom: `BernatLab`
-4. Ubicacio: `C:\Users\iadmin\obsidian\bernatlab\`
+4. Ubicacio: `C:\Users\usuari\obsidian\bernatlab\`
 5. Click **Create**
 
 ### 7.3. Configurar-lo
@@ -320,7 +320,7 @@ Benvingut al vault del projecte BernatLab.
 - RPi 4 (4 GB) amb Debian 13
 - Docker amb 3-5 serveis
 - Tailscale per a acces remot
-- IP Tailscale: 100.115.134.76
+- IP Tailscale: 100.x.y.z
 - Veure [[runbooks]]
 ```
 
@@ -329,7 +329,7 @@ Benvingut al vault del projecte BernatLab.
 Obre PowerShell:
 
 ```powershell
-cd C:\Users\iadmin\obsidian\bernatlab
+cd C:\Users\usuari\obsidian\bernatlab
 git init
 git add .
 git commit -m "Inici del vault BernatLab"
@@ -424,7 +424,7 @@ Get-Content $PROFILE
 
 3. Si tens errors, executa directament:
 ```powershell
-. C:\Users\iadmin\bin\bernatlab.ps1
+. C:\Users\usuari\bin\bernatlab.ps1
 ```
 
 ### MobaXterm no troba la clau

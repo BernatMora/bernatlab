@@ -20,7 +20,7 @@ Fes una llista del que ja tens corrent al BernatLab. Crea `book/curs/M1/10-full-
 
 ## Hardware
 - Raspberry Pi 4 (4 GB RAM, hostname hortosona)
-- IP Tailscale: 100.115.134.76
+- IP Tailscale: 100.x.y.z
 - microSD 64 GB
 
 ## Serveis actius
@@ -46,7 +46,7 @@ Fes una llista del que ja tens corrent al BernatLab. Crea `book/curs/M1/10-full-
 Crea `book/curs/M1/10-full-de-ruta/visio-6-mesos.md`. Pensa i escriu:
 
 - Quins 5-10 serveis t'agradaria tenir?
-- Quin dels 5 mòduls (M2-M5) t'interessa més?
+- Quin dels mòduls següents (M2-M8) t'interessa més?
 - Quin problema t'agrada resoldre? (productivitat, automatització, dades, IoT, ...)
 - Tens algun projecte concret en ment? (hort, domòtica, còpies de seguretat, ...)
 

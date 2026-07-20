@@ -95,7 +95,7 @@ El meu homelab personal, allotjat en una Raspberry Pi 4 (4 GB) amb Debian 13.
 - microSD 64 GB classe A2
 - Ethernet Gigabit
 - hostname: hortosona
-- IP Tailscale: 100.115.134.76
+- IP Tailscale: 100.x.y.z
 
 ## Serveis principals
 - Homepage (port 3010): http://hortosona:3010

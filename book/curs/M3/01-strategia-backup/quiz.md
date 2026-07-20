@@ -91,7 +91,7 @@ Pistes per respondre:
 - Cas concret: perdre 5 anys de lectures de l'hort.
 
 ## Pregunta 12 (oberta)
-Quina relacio hi ha entre el RPO (Recovery Point Objective) i el RTO (Recovery Time Objective)? Com es relacionen amb el cost del backup al BernatLab (100.115.134.76)? Calcula exemples concrets.
+Quina relacio hi ha entre el RPO (Recovery Point Objective) i el RTO (Recovery Time Objective)? Com es relacionen amb el cost del backup al BernatLab (100.x.y.z)? Calcula exemples concrets.
 
 Pistes per respondre:
 - RPO: quant de dades puc perdre.

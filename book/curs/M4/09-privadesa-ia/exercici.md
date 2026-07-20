@@ -192,7 +192,7 @@ Crea `politica_privadesa.md`:
 
 ## Contacte
 - Email: bernat@example.com
-- Servidor: 100.115.134.76 (Tailscale nomes)
+- Servidor: 100.x.y.z (Tailscale nomes)
 
 ## Revisio
 - Aquesta politica es revisa cada 6 mesos.

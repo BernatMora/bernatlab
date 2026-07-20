@@ -23,7 +23,7 @@ Crear un vault d'Obsidian per al BernatLab, amb alguens notes inicials, i versio
 1. Obre Obsidian per primera vegada
 2. Click a **Create new vault**
 3. Nom: `BernatLab`
-4. Ubicacio: `C:\Users\iadmin\obsidian\bernatlab\`
+4. Ubicacio: `C:\Users\usuari\obsidian\bernatlab\`
 5. Click a **Create**
 
 ## Pas 3: Configurar (5 min)
@@ -66,7 +66,7 @@ Benvingut al vault del projecte BernatLab.
 - RPi 4 (4 GB) amb Debian 13
 - Docker amb 3-5 serveis
 - Tailscale per a acces remot
-- IP Tailscale: 100.115.134.76
+- IP Tailscale: 100.x.y.z
 - Veure [[runbook-tailscale-down]]
 ```
 
@@ -86,7 +86,7 @@ En cas d'urgencia, segueix aquests procediments:
 Obre un terminal a la carpeta del vault:
 
 ```powershell
-cd C:\Users\iadmin\obsidian\bernatlab
+cd C:\Users\usuari\obsidian\bernatlab
 git init
 git add .
 git commit -m "Inici del vault BernatLab"
@@ -99,7 +99,7 @@ Pots afegir el vault com a part del repo del BernatLab, o crear un repo separat.
 Opcio A (recomanada): com a subcarpeta del repo BernatLab.
 
 ```powershell
-cd C:\Users\iadmin\bernatlab
+cd C:\Users\usuari\bernatlab
 # Mou les notes a dins del repo
 mkdir -p notes
 # Copia (o mou) els fitxers d'obsidian
@@ -112,7 +112,7 @@ git push
 Opcio B: repo separat.
 
 ```powershell
-cd C:\Users\iadmin\obsidian\bernatlab
+cd C:\Users\usuari\obsidian\bernatlab
 git remote add origin https://github.com/BernatMora/bernatlab-notes.git
 git push -u origin main
 ```
@@ -121,7 +121,7 @@ git push -u origin main
 
 Has acabat si:
 - [ ] Obsidian instal·lat
-- [ ] Vault creat a `C:\Users\iadmin\obsidian\bernatlab\`
+- [ ] Vault creat a `C:\Users\usuari\obsidian\bernatlab\`
 - [ ] Almenys 3 notes creades
 - [ ] Enllaços entre notes funcionen
 - [ ] Git inicialitzat
