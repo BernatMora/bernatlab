@@ -2,13 +2,13 @@
 # BernatLab - Acces rapid als recursos (versio amb icones)
 # ==========================================================
 # Menu visual amb icones Unicode/emoji per una experiencia
-# mes intuïtiva. Inclou 6 URLs + opcio obrir tot.
+# mes intuïtiva. Inclou 10 URLs + opcio obrir tot.
 # ==========================================================
 
 # Configurar colors i ample de la consola
 $Host.UI.RawUI.WindowTitle = "BernatLab - Menu de recursos"
 
-# URLs amb icones
+# URLs amb icones (10 URLs + opcio obrir tot)
 $URLs = [ordered]@{
     "1" = @{
         Icona   = "[📚]"
@@ -52,11 +52,39 @@ $URLs = [ordered]@{
         Desc    = "El codi font d'Hort Osona"
         Color   = "DarkGreen"
     }
+    "7" = @{
+        Icona   = "[📊]"
+        Nom     = "PROJECT_STATE"
+        URL     = "https://github.com/BernatMora/bernatlab/blob/main/PROJECT_STATE.md"
+        Desc    = "Estat actual del projecte"
+        Color   = "Gray"
+    }
+    "8" = @{
+        Icona   = "[📋]"
+        Nom     = "Handoff sessio 2026-07-17"
+        URL     = "https://github.com/BernatMora/bernatlab/blob/main/book/handoff-sessio-2026-07-17.md"
+        Desc    = "Handoff per continuar des del Mac"
+        Color   = "DarkMagenta"
+    }
+    "9" = @{
+        Icona   = "[📖]"
+        Nom     = "Glossari"
+        URL     = "https://bernatmora.github.io/bernatlab/book/glossari.html"
+        Desc    = "Tots els termes tecnics del projecte"
+        Color   = "DarkYellow"
+    }
+    "10" = @{
+        Icona   = "[🚀]"
+        Nom     = "Guia primer dia RPi"
+        URL     = "https://bernatmora.github.io/bernatlab/book/primer-dia-rpi.html"
+        Desc    = "Com començar amb la Raspberry Pi"
+        Color   = "DarkCyan"
+    }
     "0" = @{
         Icona   = "[⚡]"
         Nom     = "OBRIR TOTES LES URLs"
         URL     = "ALL"
-        Desc    = "Obre les 6 finestres alhora"
+        Desc    = "Obre les 10 finestres alhora"
         Color   = "Red"
     }
 }
@@ -163,23 +191,25 @@ while (-not $sortir) {
         $item = $URLs[$opcio]
 
         if ($item.URL -eq "ALL") {
-            Animar-Obrint "TOTES les URLs (6 finestres)"
+            $total = ($URLs.Keys | Where-Object { $_ -ne "0" }).Count
+            Animar-Obrint "TOTES les URLs ($total finestres)"
             Write-Host ""
             Write-Host "  ╔══════════════════════════════════════════╗" -ForegroundColor Yellow
-            Write-Host "  ║  Obrint les 6 finestres...               ║" -ForegroundColor Yellow
+            Write-Host "  ║  Obrint les $total finestres...               ║" -ForegroundColor Yellow
             Write-Host "  ╚══════════════════════════════════════════╝" -ForegroundColor Yellow
             Write-Host ""
             $i = 1
+            $totalCount = ($URLs.Keys | Where-Object { $_ -ne "0" }).Count
             foreach ($key in ($URLs.Keys | Where-Object { $_ -ne "0" })) {
                 $u = $URLs[$key]
-                Write-Host "  [$i/6] " -NoNewline -ForegroundColor Cyan
+                Write-Host "  [$i/$totalCount] " -NoNewline -ForegroundColor Cyan
                 Obrir-URL $u.URL $u.Nom
                 Start-Sleep -Seconds 1
                 $i++
             }
             Write-Host ""
             Write-Host "  ╔══════════════════════════════════════════╗" -ForegroundColor Green
-            Write-Host "  ║  [✓] Les 6 finestres s'han obert!        ║" -ForegroundColor Green
+            Write-Host "  ║  [✓] Les $total finestres s'han obert!      ║" -ForegroundColor Green
             Write-Host "  ╚══════════════════════════════════════════╝" -ForegroundColor Green
         }
         else {
