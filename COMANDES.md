@@ -71,7 +71,7 @@ Quan la RPi estigui disponible i tingui claus SSH configurades:
 
 ```bash
 # Des del PC: enviar canvis
-ssh bernat@100.115.134.76 'cd /home/bernat/bernatlab && git pull'
+ssh bernat@100.x.y.z 'cd /home/bernat/bernatlab && git pull'
 ```
 
 O configurar un `post-receive` hook al servidor perquè el pull sigui automàtic.
