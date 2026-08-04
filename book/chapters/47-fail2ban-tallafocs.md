@@ -94,7 +94,7 @@ ExecStart=/usr/sbin/sshd -D -i -e -f /etc/ssh/sshd_config
 I a `/etc/ssh/sshd_config`:
 
 ```
-ListenAddress 100.115.134.76
+ListenAddress 100.x.y.z
 ```
 
 ### HTTP (nginx)
@@ -273,7 +273,7 @@ sudo ufw status verbose
 
 ```bash
 # Només tu pots accedir a SSH
-sudo ufw allow from 100.115.134.76 to any port 22
+sudo ufw allow from 100.x.y.z to any port 22
 ```
 
 ## 47.10 Tallafocs al Mac
