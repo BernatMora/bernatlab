@@ -42,7 +42,7 @@ Crea un fitxer `C:\Users\usuari\bin\bernatlab.ps1` amb el següent:
 function ssh-bernatlab { ssh bernat@100.x.y.z }
 Set-Alias sshbl ssh-bernatlab
 
-function ssh-macbook { ssh bernat@100.86.178.51 }
+function ssh-macbook { ssh bernat@100.x.y.z }
 Set-Alias sshmac ssh-macbook
 
 # Obrir serveis al navegador
