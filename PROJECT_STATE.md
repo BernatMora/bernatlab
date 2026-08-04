@@ -3,7 +3,9 @@
 > Estat actual del projecte BernatLab (RPi 4 + Docker + Tailscale + IA + LoRa + Hort Osona)
 > Document de referència per continuar treballant des de qualsevol dispositiu o sessió.
 >
-> **Última revisió documental:** 2026-08-04\n>\n> **Tall de dades operatives:** 2026-07-17. Cal verificar l'estat real dels serveis abans d'executar canvis.
+> **Última revisió documental:** 2026-08-04
+>
+> **Tall de dades operatives:** 2026-07-17. Cal verificar l'estat real dels serveis abans d'executar canvis.
 
 ---
 
@@ -205,7 +207,8 @@ Si estàs a casa (Mac):
 
 | Data | Canvis |
 |---|---|
-| 2026-08-04 | Revisió: anonimització de xarxa, separació entre estat documental i operatiu, i desplegament IoT segur amb Compose. |\n| 2026-07-17 | Creació del PROJECT_STATE per primera vegada. Inclou: llibre + curs (77 cap., 1087 preguntes) + Hort Osona (8 plans mensuals) + glossari + guia + arquitectura + router 4G pendent + ESP32 pendent. |
+| 2026-08-04 | Revisió: anonimització de xarxa, separació entre estat documental i operatiu, i desplegament IoT segur amb Compose. |
+| 2026-07-17 | Creació del PROJECT_STATE per primera vegada. Inclou: llibre + curs (77 cap., 1087 preguntes) + Hort Osona (8 plans mensuals) + glossari + guia + arquitectura + router 4G pendent + ESP32 pendent. |
 
 ---
 
