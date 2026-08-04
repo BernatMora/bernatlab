@@ -19,7 +19,7 @@ Aquest capítol explica els conceptes bàsics i, sobretot, com fer que tot això
 
 ### Adreces IP
 
-Una adreça **IP** (Internet Protocol) és un número que identifica un dispositiu en una xarxa. En la versió 4 (IPv4), és un número de 32 bits que s'escriu com quatre grups de fins a tres xifres separats per punts, p. ex. `192.168.1.42` o `100.115.134.76`.
+Una adreça **IP** (Internet Protocol) és un número que identifica un dispositiu en una xarxa. En la versió 4 (IPv4), és un número de 32 bits que s'escriu com quatre grups de fins a tres xifres separats per punts, p. ex. `192.168.1.42` o `100.x.y.z`.
 
 A la nostra Raspberry podem veure les adreces assignades amb:
 
@@ -50,7 +50,7 @@ Un **port** és un número de 16 bits (de 0 a 65535) que identifica una aplicaci
 - **5432**: PostgreSQL
 - **1883**: MQTT
 
-Quan accedim a `100.115.134.76:9443`, estem dient: "vull connectar a la IP `100.115.134.76`, port `9443`". El port és part essencial de l'adreça.
+Quan accedim a `100.x.y.z:9443`, estem dient: "vull connectar a la IP `100.x.y.z`, port `9443`". El port és part essencial de l'adreça.
 
 Per veure quins ports té oberts la nostra màquina:
 
@@ -122,10 +122,10 @@ Quan un client SSH es connecta a un servidor, passa el següent:
 ### Connexió bàsica
 
 ```bash
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 
-Això connecta a la IP `100.115.134.76` (la Tailscale), com a usuari `bernat`. Ens demanarà la contrasenya (o la clau, si està configurada) i, un cop autenticats, estarem dins de la consola del servidor.
+Això connecta a la IP `100.x.y.z` (la Tailscale), com a usuari `bernat`. Ens demanarà la contrasenya (o la clau, si està configurada) i, un cop autenticats, estarem dins de la consola del servidor.
 
 ### Claus SSH: autenticació sense contrasenya
 
@@ -151,7 +151,7 @@ Ens demanarà una passphrase (recomanable) i guardarà les claus a `~/.ssh/id_ed
 Per pujar la clau pública al servidor:
 
 ```bash
-ssh-copy-id bernat@100.115.134.76
+ssh-copy-id bernat@100.x.y.z
 ```
 
 A partir d'ara, podem entrar sense contrasenya (o amb la passphrase de la clau). El servidor confia en nosaltres perquè tenim la clau privada que correspon a la clau pública que ha acceptat.
@@ -201,7 +201,7 @@ Tailscale es basa en **WireGuard**, un protocol de VPN modern, ràpid i segur. L
 
 Al BernatLab tenim:
 
-- La Raspberry Pi (hostname `hortosona`) → IP Tailscale `100.115.134.76`
+- La Raspberry Pi (hostname `hortosona`) → IP Tailscale `100.x.y.z`
 - El PC amb Windows on treballem (BernatMora) → una altra IP `100.x.y.z`
 - El mòbil Android, si hi instal·lem Tailscale → una altra IP `100.x.y.z`
 - Potser un servidor a casa dels pares, una màquina virtual, etc.
@@ -242,10 +242,10 @@ ssh bernat@hortosona
 en lloc de:
 
 ```bash
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 
-Això funciona perquè Tailscale munta un servidor DNS local (`100.100.100.100`) que resol els noms dels nostres dispositius. Si al nostre PC client tenim Tailscale instal·lat i actiu, podem accedir a `http://hortosona:3000` en lloc de `http://100.115.134.76:3000`. Més net, més fàcil de recordar.
+Això funciona perquè Tailscale munta un servidor DNS local (`100.100.100.100`) que resol els noms dels nostres dispositius. Si al nostre PC client tenim Tailscale instal·lat i actiu, podem accedir a `http://hortosona:3000` en lloc de `http://100.x.y.z:3000`. Més net, més fàcil de recordar.
 
 ### Per què és tan important
 
@@ -293,7 +293,7 @@ graph TB
     end
 
     subgraph Tailscale["Xarxa Tailscale (100.x)"]
-        TS_RPI["RPi → 100.115.134.76"]
+        TS_RPI["RPi → 100.x.y.z"]
         TS_PC["PC Bernat → 100.x.y.z"]
         TS_MOB["Mòbil → 100.x.y.z"]
     end
@@ -337,7 +337,7 @@ netstat -tulpn     # alternativa antiga
 
 # SSH
 ssh bernat@hortosona
-ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76
+ssh -i ~/.ssh/id_ed25519 bernat@100.x.y.z
 scp fitxer.txt bernat@hortosona:~/
 
 # Tailscale
@@ -383,10 +383,10 @@ Si la línia mostra `Accepted ... from 100.x.x.x`, **estàs passant per Tailscal
 Exemple real del BernatLab:
 
 ```
-Jul 15 09:29:52 hortosona sshd-session[552348]: Accepted password for bernat from 100.82.142.113 port 52077 ssh2
+Jul 15 09:29:52 hortosona sshd-session[552348]: Accepted password for bernat from 100.x.y.z port 52077 ssh2
 ```
 
-`100.82.142.113` és una IP del rang Tailscale (`100.64.0.0/10`): confirmat.
+`100.x.y.z` és una IP del rang Tailscale (`100.64.0.0/10`): confirmat.
 
 **Prova 2: connexions TCP actives**
 
@@ -399,7 +399,7 @@ ss -tnp | grep ":22"
 Veuràs una línia tipus:
 
 ```
-ESTAB  0  0  100.115.134.76:22  100.82.142.113:52077
+ESTAB  0  0  100.x.y.z:22  100.x.y.z:52077
 ```
 
 Les dues IPs són del rang `100.x`: la connexió passa per Tailscale.
@@ -411,7 +411,7 @@ Les dues IPs són del rang `100.x`: la connexió passa per Tailscale.
 ip addr show tailscale0
 
 # Mira per on surten els paquets cap a la IP del client
-ip route get 100.82.142.113
+ip route get 100.x.y.z
 ```
 
 Si el route passa per `tailscale0`, perfecte. Si passa per `eth0` o `wlan0`, no estàs passant per Tailscale.
