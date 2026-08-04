@@ -65,7 +65,7 @@ Aquet document et serveix per continuar des del Mac de casa amb tot el context.
 Des del teu Mac, per SSH (si la RPi encara esta connectada a casa per Ethernet):
 
 ```bash
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 # O per IP local si tens Ethernet:
 ssh bernat@192.168.1.100
 
