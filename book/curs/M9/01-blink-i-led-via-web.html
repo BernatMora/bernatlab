@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap 1. Blink i LED via web - Curs del BernatLab</title>
+    <link rel="stylesheet" href="../curs.css">
+</head>
+<body>
+    <header>
+        <h1>Cap 1. Blink i LED via web (Bernat Maker Lab)</h1>
+        <p class="subtitle">Modul M9 - Bernat Maker Lab - Introduccio als microcontroladors</p>
+        <nav>
+            <a href="../index.html">Tornar a l'index</a>
+            <a href="#resum">Resum</a>
+            <a href="#quiz">Questionari</a>
+            <a href="#exercici">Exercici practic</a>
+            <a href="#respostes">Respostes</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="resum">
+            <h2>Resum del capitol</h2>
+
+            <h3>La idea clau</h3>
+            <p>Un <strong>microcontrolador</strong> es un xip que executa un programa i pot posar tensions de 0 V o 3,3 V a qualsevol dels seus pins (els <strong>GPIO</strong>). L'ESP32 n'es un dels mes populars perque duu Wi-Fi i Bluetooth integrats, i es pot programar des de qualsevol PC amb un cable USB.</p>
+
+            <h3>Per que comencem per aqui</h3>
+            <p>Perque es el projecte mes petit possible que tanca el cicle basic:</p>
+            <ul>
+                <li>Sabrem flashejar un firmware a l'ESP32.</li>
+                <li>Sabrem fer servir un pin GPIO de sortida.</li>
+                <li>Sabrem connectar l'ESP32 a la xarxa Wi-Fi de casa.</li>
+                <li>Sabrem aixecar un petit servidor web dins del propi xip.</li>
+                <li>Sabrem rebre una ordre HTTP i reaccionar-hi canviant l'estat d'un pin.</li>
+            </ul>
+
+            <h3>Que es un microcontrolador (en 30 segons)</h3>
+            <p>Un microcontrolador es un ordinador molt petit, en un sol xip, que te:</p>
+            <ul>
+                <li>Un <strong>processador</strong> (cervell que executa instruccions).</li>
+                <li>Una <strong>memoria</strong> per al programa i les dades.</li>
+                <li>Uns <strong>pins d'entrada/sortida</strong> (GPIO) que podem posar a 0 V o 3,3 V.</li>
+                <li>Algunes <strong>interficies</strong> de comunicacio: UART, I2C, SPI, i a vegades Wi-Fi, Bluetooth, USB.</li>
+            </ul>
+
+            <h3>Que necessitem</h3>
+            <ul>
+                <li>ESP32 DevKit v1 (xip ESP32-WROOM-32) - 1 unitat</li>
+                <li>LED 5 mm - 1 unitat</li>
+                <li>Resistencia 220 ohm (o 330 ohm) - 1 unitat</li>
+                <li>Cable USB micro-B - 1 unitat</li>
+                <li>Protoboard i cables Dupont - 1 + 3</li>
+                <li>PC amb Arduino IDE o PlatformIO</li>
+            </ul>
+
+            <h3>Connexions</h3>
+            <pre><code>ESP32                    Protoboard
++-----------+
+|           |      LED + R 220 ohm
+|       GND +------+[ 220 ohm ]--+
+|           |                    |
+|     GPIO 2+--------------------+ (costat llarg del LED, anode)
+|           |                    (costat curt del LED, catode, al GND)
++-----------+</code></pre>
+
+            <h3>Per que GPIO2 i no un altre?</h3>
+            <p>Per defecte, moltes DevKit v1 ja duen un LED soldat a GPIO2. Es una eleccio segura perque esta documentat, es pot fer servir el LED de la placa sense soldar res, i esta lluny dels pins de la memoria flash.</p>
+            <p><strong>Important:</strong> mai connectis res als pins GPIO6, GPIO7, GPIO8, GPIO9, GPIO10, GPIO11. Estan lligats a la memoria flash interna de l'ESP32.</p>
+
+            <h3>Codi minim (tot el projecte)</h3>
+            <pre><code>#include &lt;WiFi.h&gt;
+#include &lt;WebServer.h&gt;
+
+const char* ssid     = "EL_TEU_WIFI";
+const char* password = "LA_TEUA_CONTRASENYA";
+
+const int LED_PIN = 2;
+WebServer servidor(80);
+
+void handle_root() {
+  String html = R"(
+    &lt;!doctype html&gt;
+    &lt;html&gt;&lt;head&gt;&lt;meta charset='utf-8'&gt;
+    &lt;title&gt;Bernat Maker Lab - P0&lt;/title&gt;
+    &lt;style&gt;
+      body { font-family: system-ui; max-width: 480px; margin: 40px auto; text-align: center; }
+      a.btn { display: inline-block; padding: 12px 24px; margin: 8px;
+              background: #0a84ff; color: white; text-decoration: none; border-radius: 8px; }
+      a.off { background: #555; }
+    &lt;/style&gt;&lt;/head&gt;&lt;body&gt;
+      &lt;h1&gt;Bernat Maker Lab&lt;/h1&gt;
+      &lt;h2&gt;Projecte P0 - LED via web&lt;/h2&gt;
+      &lt;p&gt;&lt;a class='btn' href='/on'&gt;ON&lt;/a&gt;
+         &lt;a class='btn off' href='/off'&gt;OFF&lt;/a&gt;&lt;/p&gt;
+    &lt;/body&gt;&lt;/html&gt;
+  )";
+  servidor.send(200, "text/html", html);
+}
+
+void handle_on()  { digitalWrite(LED_PIN, HIGH); handle_root(); }
+void handle_off() { digitalWrite(LED_PIN, LOW);  handle_root(); }
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  WiFi.begin(ssid, password);
+  Serial.print("Connectant a Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+  Serial.print("ESP32 connectat. Obre: http://");
+  Serial.println(WiFi.localIP());
+
+  servidor.on("/",  handle_root);
+  servidor.on("/on",  handle_on);
+  servidor.on("/off", handle_off);
+  servidor.begin();
+}
+
+void loop() {
+  servidor.handleClient();
+}</code></pre>
+
+            <h3>Connexions amb altres capitols</h3>
+            <ul>
+                <li>Cap 70 del llibre (Bernat Maker Lab) - visio general del projecte.</li>
+                <li>M1 del llibre, Cap 9 (Git i documentacio) - com versionar el firmware.</li>
+                <li>M2 del llibre, Cap 12 (MQTT des de zero) - alternativa millor a HTTP per a sensors.</li>
+                <li>M2 del llibre, Cap 20 (API publica) - com fer un panell web de veritat.</li>
+            </ul>
+        </section>
+
+        <section id="quiz">
+            <h2>Questionari (15 preguntes)</h2>
+            <p>Pots fer el qüestionari directament al web o per terminal. Els resultats del web es desen en aquest navegador.</p>
+
+            <div class="code-block">
+                <p>Per fer el quiz d'aquest capitol:</p>
+                <pre><code>cd C:\Users\usuari\bernatlab
+.venv\Scripts\python.exe book/curs/quiz.py --module M9 --chapter 1</code></pre>
+            </div>
+
+            <h3>Vista previa de les preguntes</h3>
+            <ol>
+                <li>Que es un microcontrolador?</li>
+                <li>Que significa GPIO?</li>
+                <li>A quina tensio treballen els GPIO de l'ESP32?</li>
+                <li>Per que posem una resistencia en serie amb el LED?</li>
+                <li>Quin pin NO hem de tocar mai a l'ESP32?</li>
+                <li>Que fa la funcio WiFi.begin(ssid, password)?</li>
+                <li>Que retorna WiFi.localIP() un cop connectats?</li>
+                <li>Quin es el port per defecte d'un servidor HTTP?</li>
+                <li>Veritable o fals: en aquest projecte, l'ESP32 actua com a servidor web.</li>
+                <li>Que passa si visites http://IP-ESP32/on al navegador?</li>
+                <li>Per que la IP de l'ESP32 pot canviar entre reinicis?</li>
+                <li>Que es millor per a sensors: HTTP com en aquest projecte, o MQTT?</li>
+                <li>Quina eina de programacio recomanem per començar?</li>
+                <li>Que passa si obres el Serial Monitor a una velocitat incorrecta?</li>
+                <li>Quin cost aproximat te una ESP32 DevKit v1?</li>
+            </ol>
+
+            <p><strong>Temps estimat:</strong> 15-20 minuts.</p>
+        </section>
+
+        <section id="exercici">
+            <h2>Exercici practic (60-90 min)</h2>
+            <p>Muntar, programar i fer funcionar el <strong>projecte P0 del Bernat Maker Lab</strong>: una ESP32 que encen i apaga un LED des d'una pagina web oberta al navegador. Verificar que tota la cadena funciona (Wi-Fi -> ESP32 -> LED) abans de passar a P1.</p>
+
+            <h3>Pas 1: Instal·la Arduino IDE (10 min)</h3>
+            <ol>
+                <li>Descarrega Arduino IDE 2.x des de la web oficial.</li>
+                <li>Instal·la'l amb les opcions per defecte.</li>
+                <li>Obre'l. Ves a File -> Preferences.</li>
+                <li>Al quadre "Additional boards manager URLs", enganxa la URL del paquet esp32 d'Espressif.</li>
+                <li>Ves a Tools -> Board -> Boards Manager i instal·la el paquet esp32.</li>
+            </ol>
+
+            <h3>Pas 2: Connecta l'ESP32 i instal·la el driver (5 min)</h3>
+            <p>Connecta l'ESP32 al PC amb el cable USB. A Windows, obre el Device Manager. Si no apareix cap port COM, instal·la el driver CH340 (si la teva placa en duu).</p>
+
+            <h3>Pas 3: Munta el circuit (5 min)</h3>
+            <p>Seguint l'esquema del resum, munta el LED i la resistencia a la protoboard. Desconnecta sempre l'ESP32 del PC abans de fer canvis al circuit.</p>
+
+            <h3>Pas 4: Escriu i puja el codi (10 min)</h3>
+            <p>Enganxa el codi del resum, canvia les credencials Wi-Fi, selecciona "ESP32 Dev Module" a Tools, selecciona el port COM correcte, i puja'l.</p>
+
+            <h3>Pas 5: Verifica que tot funciona (5 min)</h3>
+            <p>Obre el Serial Monitor a 115200 baud, apunta't la IP, obre-la al navegador, prem els botons. El LED s'ha d'encendre i apagar.</p>
+
+            <h3>Validacio</h3>
+            <p>Has acabat si:</p>
+            <ul>
+                <li>Has vist "ESP32 connectat" al Serial Monitor.</li>
+                <li>Has pogut obrir la pagina web a la IP de l'ESP32.</li>
+                <li>El LED sencen i sapaga en premar els botons.</li>
+                <li>Has provat el Blink classic per separat i funciona.</li>
+                <li>Has fet una captura de pantalla de la pagina web funcionant.</li>
+            </ul>
+        </section>
+
+        <section id="respostes">
+            <h2>Respostes</h2>
+            <p>Les respostes completes amb explicacions estan al fitxer <a href="https://github.com/BernatMora/bernatlab/blob/main/book/curs/M9/01-blink-i-led-via-web/respostes.md" target="_blank" rel="noopener">respostes.md</a> del repositori.</p>
+
+            <h3>Resum rapid</h3>
+            <ol>
+                <li><strong>Microcontrolador</strong> = xip amb processador, memoria i GPIO, que executa un sol programa.</li>
+                <li><strong>GPIO</strong> = pin configurable com a entrada o sortida digital.</li>
+                <li><strong>3,3 V</strong> = la tensio dels GPIO de l'ESP32 (mai 5 V!).</li>
+                <li><strong>Limitar el corrent</strong> = per no cremar el LED ni forcar el pin.</li>
+                <li><strong>GPIO6-11</strong> = prohibits, lligats a la memoria flash.</li>
+                <li><strong>Iniciar la connexio</strong> = a la xarxa Wi-Fi indicada.</li>
+                <li><strong>L'adreca IP</strong> = assignada pel router via DHCP.</li>
+                <li><strong>80</strong> = port per defecte d'HTTP.</li>
+                <li><strong>Verdader</strong> = l'ESP32 es el servidor web.</li>
+                <li><strong>S'encen el LED</strong> = la ruta /on posa el pin a HIGH.</li>
+                <li><strong>DHCP</strong> = assigna IPs dinamiques que poden canviar.</li>
+                <li><strong>MQTT</strong> = millor per sensors (menys energia, mes flexible).</li>
+                <li><strong>Arduino IDE</strong> = la millor eina per començar.</li>
+                <li><strong>Caracters estranys</strong> = velocitat del monitor mal posada.</li>
+                <li><strong>5-7 EUR</strong> = cost aproximat d'una ESP32 DevKit v1.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">Tornar a l'index del curs</a></p>
+    </footer>
+    <script src="../curs.js"></script>
+</body>
+</html>

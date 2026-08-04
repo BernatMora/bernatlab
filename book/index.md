@@ -38,10 +38,17 @@ Capítols 11 a 22. Cobreix la cadena IoT completa: MQTT, Mosquitto, sensors, Inf
 21. [Integració amb Hort Osona](capitol/21-integracio-hort-osona.md)
 22. [Operativa: còpies, alertes, escalat](capitol/22-operativa.md)
 
+## Mòdul 8 — Bernat Maker Lab
+
+Capítols 23 a 32 (LoRa) i 33 a 42 (IA local) i 43 a 50 (Seguretat) i 51 a 57 (Operativa 24/7) i 58 a 69 (Hort Osona en acció) i 70 (Bernat Maker Lab: afegir nova maquinaria al laboratori). Aquest mòdul introdueix el laboratori maker personal: ESP32, sensors, electrònica, projectes amb microcontroladors.
+
+70. [Bernat Maker Lab: afegir nova maquinaria al laboratori](capitol/70-bernat-maker-lab.md)
+
 ## Annexos
 
 - `make_book.py` — generador de PDF i DOCX (M1 i M2).
 - `capitol/` — fitxers font Markdown.
 - `BernatLab_Manual_Modul_1.pdf` / `.docx` — versió del Mòdul 1.
 - `BernatLab_Manual_Modul_2.pdf` / `.docx` — versió del Mòdul 2.
+- `BernatLab_Manual_Modul_8.pdf` / `.docx` — versió del Mòdul 8 (Bernat Maker Lab).
 - `README.md` i `README_M2.md` — informació general.

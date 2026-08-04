@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "moduleCount": 8,
-  "chapterCount": 77,
-  "questionCount": 1087,
+  "moduleCount": 9,
+  "chapterCount": 78,
+  "questionCount": 1102,
   "modules": [
     {
       "id": "M1",
@@ -51,6 +51,12 @@
       "name": "Eines del dia a dia",
       "chapterCount": 7,
       "questionCount": 91
+    },
+    {
+      "id": "M9",
+      "name": "Bernat Maker Lab",
+      "chapterCount": 1,
+      "questionCount": 15
     }
   ],
   "chapters": [
@@ -977,6 +983,18 @@
       "quizUrl": "M8/07-runbooks/quiz.md",
       "answersUrl": "M8/07-runbooks/respostes.md",
       "questionCount": 13
+    },
+    {
+      "key": "M9/01-blink-i-led-via-web",
+      "module": "M9",
+      "moduleName": "Bernat Maker Lab",
+      "chapter": 1,
+      "slug": "01-blink-i-led-via-web",
+      "title": "Blink i LED via web (Bernat Maker Lab)",
+      "href": "M9/01-blink-i-led-via-web.html",
+      "quizUrl": "M9/01-blink-i-led-via-web/quiz.md",
+      "answersUrl": "M9/01-blink-i-led-via-web/respostes.md",
+      "questionCount": 15
     }
   ]
 }

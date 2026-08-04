@@ -28,6 +28,7 @@ MODULE_NAMES = {
     "M6": "Operativa 24/7",
     "M7": "Hort Osona en acció",
     "M8": "Eines del dia a dia",
+    "M9": "Bernat Maker Lab",
 }
 FORBIDDEN_CONTENT = {
     "100.115.134.76": "adreça Tailscale personal",

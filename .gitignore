@@ -52,6 +52,11 @@ logs/
 homelab/logs/
 
 # ---------------------------------------------------------------------------
+# Backups locals (fitxers .bak)
+# ---------------------------------------------------------------------------
+backups/
+
+# ---------------------------------------------------------------------------
 # Editors i OS
 # ---------------------------------------------------------------------------
 .vscode/
@@ -74,3 +79,6 @@ build/
 # Submodules
 # ---------------------------------------------------------------------------
 # No ignorar projects/hort-osona/ — el .gitmodules l'ha de gestionar
+
+# Projecte independent (repo BernatMora/cyberlab-ai) — es gestiona sol
+bernatlab-cyberlab/

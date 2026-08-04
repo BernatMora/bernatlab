@@ -144,6 +144,10 @@ CHAPTERS_M7 = [
     ("69-drp-test.md", "Capitol 69 — DRP: el dia que es crema tot"),
 ]
 
+CHAPTERS_M8 = [
+    ("70-bernat-maker-lab.md", "Capitol 70 — Bernat Maker Lab: afegir nova maquinaria al laboratori"),
+]
+
 # Mòdul actiu per defecte. Es pot canviar amb --module {1|2|both}
 DEFAULT_MODULE = "both"
 
@@ -1037,8 +1041,8 @@ def main():
     module = DEFAULT_MODULE
     if len(sys.argv) > 1:
         module = sys.argv[1]
-        if module not in ("1", "2", "3", "4", "5", "6", "7", "both", "all"):
-                print(f"ERROR: --module ha de ser 1, 2, 3, 4, both o all (rebut: {module})")
+        if module not in ("1", "2", "3", "4", "5", "6", "7", "8", "both", "all"):
+                print(f"ERROR: --module ha de ser 1, 2, 3, 4, 5, 6, 7, 8, both o all (rebut: {module})")
                 sys.exit(1)
 
     if module in ("1", "both", "all"):
@@ -1082,6 +1086,12 @@ def main():
         out_docx = ROOT / "output" / "BernatLab_Manual_Modul_7.docx"
         build_pdf(PROLEG + CHAPTERS_M7, out_pdf, "Mòdul 7", "Hort Osona en acció: implementar el BernatLab pas a pas")
         build_docx(PROLEG + CHAPTERS_M7, out_docx, "Mòdul 7", "Hort Osona en acció: implementar el BernatLab pas a pas")
+
+    if module in ("8", "all"):
+        out_pdf = ROOT / "output" / "BernatLab_Manual_Modul_8.pdf"
+        out_docx = ROOT / "output" / "BernatLab_Manual_Modul_8.docx"
+        build_pdf(PROLEG + CHAPTERS_M8, out_pdf, "Mòdul 8", "Bernat Maker Lab: afegir nova maquinaria al laboratori")
+        build_docx(PROLEG + CHAPTERS_M8, out_docx, "Mòdul 8", "Bernat Maker Lab: afegir nova maquinaria al laboratori")
 
     print("[fet] Generació completada.")
 
