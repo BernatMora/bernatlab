@@ -49,7 +49,7 @@ A grans trets, el BernatLab té tres capes:
 ┌───────────────────────────────────────────────────────────────┐
 │                          EXTERIOR                             │
 │                                                               │
-│  Internet ── Tailscale ── 100.115.134.76 ── hortosona        │
+│  Internet ── Tailscale ── 100.x.y.z ── hortosona        │
 │                                                               │
 └───────────────────────────────────────────────────────────────┘
                                │
@@ -78,7 +78,7 @@ Aquesta divisió en tres capes és pedagògica i pràctica alhora. Entenent-les 
 
 ### La capa exterior
 
-És el que es veu des de fora. La Raspberry Pi té una IP a la teva xarxa local (normalment `192.168.x.y`), una IP pública dinàmica que el teu operador assigna al router, i una IP Tailscale (`100.115.134.76` en el nostre cas) que és fixa mentre duri la teva subscripció i que ens permet accedir-hi des de qualsevol lloc del món sense tocar el router.
+És el que es veu des de fora. La Raspberry Pi té una IP a la teva xarxa local (normalment `192.168.x.y`), una IP pública dinàmica que el teu operador assigna al router, i una IP Tailscale (`100.x.y.z` en el nostre cas) que és fixa mentre duri la teva subscripció i que ens permet accedir-hi des de qualsevol lloc del món sense tocar el router.
 
 La idea clau és aquesta: **mai no exposem directament la Raspberry a Internet**. Tots els accessos remots passen per Tailscale, que crea una xarxa privada virtual entre els teus dispositius. El router de casa no sap que existeix la Raspberry com a servidor — sap que és un dispositiu més de la xarxa local.
 
@@ -98,13 +98,13 @@ La capa de contenidors es gestiona amb **Docker Compose**, que és un fitxer `ya
 
 A dia d'avui, el BernatLab té tres serveis principals desplegats amb Docker Compose:
 
-### Portainer (`https://100.115.134.76:9443`)
+### Portainer (`https://100.x.y.z:9443`)
 
 Portainer és una interfície web que ens permet veure i gestionar tots els contenidors Docker de la Raspberry sense haver de tocar la línia d'ordres. És com un panell de control per al Docker. Porta un any, dos, sent l'eina estàndard per a homelabs i petites empreses.
 
 Hi accedim per HTTPS, tot i que el certificat és autosignat (ens saltarà l'avís del navegador la primera vegada, cosa perfectament normal en un entorn personal). Un cop dins, podem veure contenidors actius, aturar-los, reiniciar-los, veure els logs en directe, explorar volums, veure imatges, gestionar xarxes. També permet crear piles (stacks) de Docker Compose directament des del navegador, cosa que pot ser útil però que, per a aquest manual, farem sempre des de la línia d'ordres per entendre què passa.
 
-### Uptime Kuma (`http://100.115.134.76:3001`)
+### Uptime Kuma (`http://100.x.y.z:3001`)
 
 Uptime Kuma és una eina de monitorització. La seva feina és senzilla: comprovar periòdicament que els nostres serveis estan vius i avisar-nos quan no ho estan. Pot fer pings a màquines, peticions HTTP a webs, comprovacions de ports TCP, comprovacions de certificats SSL, i un llarg etcètera.
 
@@ -117,9 +117,9 @@ En el BernatLab, Uptime Kuma vigila, com a mínim:
 
 Quan algun d'aquests serveis falla, Uptime Kuma pot enviar una alerta per correu, Telegram, Discord, Slack, webhook, o qualsevol combinació imaginable. En aquest manual veurem com configurar-lo per avisar-nos per Telegram.
 
-### Homepage (`http://100.115.134.76:3000`)
+### Homepage (`http://100.x.y.z:3000`)
 
-Homepage és el **panell d'entrada** al BernatLab. Una pàgina web molt neta, feta per un projecte de codi obert, que ens mostra una graella de targetes: cadascuna és un enllaç directe als nostres serveis. L'objectiu és que quan obrim el navegador i posem `100.115.134.76:3000`, veiem d'un cop d'ull tot el que tenim, si està funcionant, i hi puguem entrar amb un sol clic.
+Homepage és el **panell d'entrada** al BernatLab. Una pàgina web molt neta, feta per un projecte de codi obert, que ens mostra una graella de targetes: cadascuna és un enllaç directe als nostres serveis. L'objectiu és que quan obrim el navegador i posem `100.x.y.z:3000`, veiem d'un cop d'ull tot el que tenim, si està funcionant, i hi puguem entrar amb un sol clic.
 
 Homepage és personalitzable: podem posar un fons, podem agrupar serveis per categories (Monitorització, Gestió, Dades, Experimentals, etc.), podem afegir widgets que mostren estadístiques en directe (ús de CPU, RAM, temperatura, etc.). És la porta d'entrada i la targeta de presentació del BernatLab.
 
@@ -164,14 +164,14 @@ En aquest primer capítol hem après què és un homelab, per què val la pena t
 
 ## 1.9 Exercicis pràctics
 
-1. **Obre el panell d'Homepage** (`http://100.115.134.76:3000`) i mira què hi ha. Anota tres serveis que vulguis afegir.
-2. **Obre Portainer** (`https://100.115.134.76:9443`) i compta quants contenidors estan `running`. Apunta'ls tots en un paper.
-3. **Obre Uptime Kuma** (`http://100.115.134.76:3001`) i mira l'estat dels monitors. N'hi ha cap de caigut? Si sí, investiga per què.
+1. **Obre el panell d'Homepage** (`http://100.x.y.z:3000`) i mira què hi ha. Anota tres serveis que vulguis afegir.
+2. **Obre Portainer** (`https://100.x.y.z:9443`) i compta quants contenidors estan `running`. Apunta'ls tots en un paper.
+3. **Obre Uptime Kuma** (`http://100.x.y.z:3001`) i mira l'estat dels monitors. N'hi ha cap de caigut? Si sí, investiga per què.
 4. **Connecta't per SSH** a la Raspberry i executa `hostname`, `uptime` i `whoami`. Apunta el resultat. Això ja és administració de veritat.
 
 Comandes útils d'aquest capítol:
 ```bash
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 hostname
 uptime
 whoami
