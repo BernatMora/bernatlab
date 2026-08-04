@@ -187,7 +187,7 @@ ssh bernat@hortosona
 # Hauria de funcionar
 
 # Des d'un IoT (com un ESP32)
-curl http://100.115.134.76:8080
+curl http://100.x.y.z:8080
 # Hauria de fallar (denegat)
 ```
 
