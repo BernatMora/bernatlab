@@ -36,7 +36,7 @@ homelab/
 Quan la Raspberry Pi 4 estigui disponible:
 
 ```bash
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 cd /home/bernat
 git clone https://github.com/bernatmora/bernatlab.git
 cd bernatlab/homelab

@@ -56,7 +56,7 @@ Cal un volum persistent per desar els fluxos i la configuració. El port 1880 é
 
 ### Primer accés
 
-Un cop en marxa, podem accedir a la interfície web a `http://100.115.134.76:1880`. Veurem una graella buida amb una paleta de nodes a l'esquerra i informació a la dreta.
+Un cop en marxa, podem accedir a la interfície web a `http://100.x.y.z:1880`. Veurem una graella buida amb una paleta de nodes a l'esquerra i informació a la dreta.
 
 La interfície té tres zones principals:
 
@@ -130,7 +130,7 @@ Configuració típica de `mqtt in`:
 
 ```json
 {
-  "broker": "100.115.134.76:1883",
+  "broker": "100.x.y.z:1883",
   "clientid": "nodered-bernatlab",
   "topic": "hort/+/+",
   "qos": "0",

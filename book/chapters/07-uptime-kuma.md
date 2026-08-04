@@ -25,7 +25,7 @@ Uptime Kuma ens permet:
 
 ## 7.3 Instal·lació al BernatLab
 
-Uptime Kuma ja està instal·lat a `http://100.115.134.76:3001`. Vegem com està configurat.
+Uptime Kuma ja està instal·lat a `http://100.x.y.z:3001`. Vegem com està configurat.
 
 ### Definició al docker-compose.yml
 
@@ -49,7 +49,7 @@ Aspectes a notar:
 
 ### Primer accés
 
-Quan entrem per primera vegada a `http://100.115.134.76:3001`, Uptime Kuma ens demana crear un compte d'administrador. Triarem una contrasenya forta. A partir d'aquí, totes les dades (usuaris, monitors, configuracions) es guarden a la base de dades interna del contenidor, que està al bind mount que hem definit.
+Quan entrem per primera vegada a `http://100.x.y.z:3001`, Uptime Kuma ens demana crear un compte d'administrador. Triarem una contrasenya forta. A partir d'aquí, totes les dades (usuaris, monitors, configuracions) es guarden a la base de dades interna del contenidor, que està al bind mount que hem definit.
 
 ## 7.4 Tipus de monitors
 
@@ -98,7 +98,7 @@ Vegem quins monitors hauríem de tenir configurats al BernatLab i quins valors p
 
 - **Tipus**: Ping
 - **Nom**: "Raspberry Pi (hortosona)"
-- **Host**: `hortosona` (MagicDNS de Tailscale) o `100.115.134.76`
+- **Host**: `hortosona` (MagicDNS de Tailscale) o `100.x.y.z`
 - **Interval**: 60 segons
 - **Timeout**: 5 segons
 - **Retries**: 3 (abans d'alertar)
@@ -109,7 +109,7 @@ Aquest monitor ens avisa si la Raspberry deixa de respondre a pings. Compte: si 
 
 - **Tipus**: HTTP(s)
 - **Nom**: "Portainer"
-- **URL**: `https://100.115.134.76:9443`
+- **URL**: `https://100.x.y.z:9443`
 - **Interval**: 60 segons
 - **Acceptar codis 2xx** (per defecte)
 
@@ -119,7 +119,7 @@ Això fa una petició HTTPS a Portainer. Compte: Uptime Kuma potser no validarà
 
 - **Tipus**: HTTP(s)
 - **Nom**: "Uptime Kuma (self)"
-- **URL**: `http://100.115.134.76:3001`
+- **URL**: `http://100.x.y.z:3001`
 - **Interval**: 60 segons
 
 Meta-monitorització. Útil per confirmar que el sistema de monitorització funciona.
@@ -128,7 +128,7 @@ Meta-monitorització. Útil per confirmar que el sistema de monitorització func
 
 - **Tipus**: HTTP(s)
 - **Nom**: "Homepage"
-- **URL**: `http://100.115.134.76:3000`
+- **URL**: `http://100.x.y.z:3000`
 - **Interval**: 60 segons
 
 ### 5. Hort Osona (HTTP, web pública)
@@ -145,7 +145,7 @@ Aquest monitor ens avisa si la web pública deixa de funcionar.
 
 - **Tipus**: Ping
 - **Nom**: "Tailscale connectivity"
-- **Host**: `100.115.134.76` o un nom de Tailscale
+- **Host**: `100.x.y.z` o un nom de Tailscale
 - **Interval**: 300 segons
 
 Comprova que la xarxa Tailscale continua activa.
@@ -295,7 +295,7 @@ Uptime Kuma és el cor de la monitorització del BernatLab. Ens permet veure en 
 
 ## 7.14 Exercicis pràctics
 
-1. Entra a `http://100.115.134.76:3001` i revisa la configuració dels monitors.
+1. Entra a `http://100.x.y.z:3001` i revisa la configuració dels monitors.
 2. Comprova quin és l'uptime de cada monitor.
 3. Crea un nou monitor de tipus Ping per a una adreça IP externa, com `1.1.1.1`.
 4. Configura una alerta per Telegram (si no la tens configurada).

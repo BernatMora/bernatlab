@@ -76,7 +76,7 @@ Com veiem, **el payload decodificat ja ve en JSON** (gràcies al payload formatt
 Per veure els missatges en directe, ens podem subscriure al broker:
 
 ```bash
-mosquitto_sub -h 100.115.134.76 -t "v3/#" -v -u bernat -P CONTRASENYA
+mosquitto_sub -h 100.x.y.z -t "v3/#" -v -u bernat -P CONTRASENYA
 ```
 
 Això ensenya tots els missatges que arriben. Si veiem alguna cosa, vol dir que TTN s'està connectant correctament al nostre broker.

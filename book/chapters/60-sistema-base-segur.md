@@ -123,7 +123,7 @@ Si tens Tailscale configurat (pas següent), pots canviar el `HostName` per la I
 
 ```
 Host hortosona
-    HostName 100.115.134.76
+    HostName 100.x.y.z
     User bernat
     IdentityFile ~/.ssh/bernatlab
     IdentitiesOnly yes
@@ -160,7 +160,7 @@ Hauries de veure la RPi amb una IP del tipus `100.x.x.x`. Aquesta és la IP Tail
 Ara, **des del teu ordinador** (o des del mòbil!), intenta accedir per la IP Tailscale:
 
 ```bash
-ssh bernat@100.115.134.76
+ssh bernat@100.x.y.z
 ```
 
 (Canvia la IP per la que t'hagi tocat.)

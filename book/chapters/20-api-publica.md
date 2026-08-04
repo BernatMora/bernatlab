@@ -427,9 +427,9 @@ services:
 
 FastAPI genera automàticament la documentació OpenAPI. Un cop en marxa, podem accedir a:
 
-- `http://100.115.134.76:8000/docs`: interfície Swagger UI.
-- `http://100.115.134.76:8000/redoc`: interfície ReDoc.
-- `http://100.115.134.76:8000/openapi.json`: especificació OpenAPI en JSON.
+- `http://100.x.y.z:8000/docs`: interfície Swagger UI.
+- `http://100.x.y.z:8000/redoc`: interfície ReDoc.
+- `http://100.x.y.z:8000/openapi.json`: especificació OpenAPI en JSON.
 
 Aquesta documentació és navegable, podem provar les crides directament, i s'actualitza automàticament quan afegim nous endpoints.
 
@@ -527,7 +527,7 @@ Els tests els podem executar automàticament en cada desplegament.
 
 L'API s'ha de poder monitorar amb Uptime Kuma. Un monitor de tipus **HTTP(s)** que comprovi l'endpoint `/health` cada minut:
 
-- URL: `http://100.115.134.76:8000/health`
+- URL: `http://100.x.y.z:8000/health`
 - Interval: 60 segons
 - Condició: codi 2xx
 
@@ -631,7 +631,7 @@ Hem après què és una API REST, per què serveix, com construir-la amb FastAPI
 ## 20.17 Exercicis pràctics
 
 1. Desplega l'API al BernatLab amb la configuració que hem vist.
-2. Accedeix a `http://100.115.134.76:8000/docs` i explora la documentació.
+2. Accedeix a `http://100.x.y.z:8000/docs` i explora la documentació.
 3. Fes una crida amb `curl` a `/zones/zona-tomateres/latest`.
 4. Genera una API key forta i afegeix-la al `.env`.
 5. Prova de fer una crida sense API key. Hauries de rebre un 401.
@@ -645,8 +645,8 @@ Comandes útils:
 python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 
 # Cridar l'API
-curl -H "X-API-Key: CLAU" http://100.115.134.76:8000/zones
-curl -H "X-API-Key: CLAU" http://100.115.134.76:8000/zones/zona-tomateres/latest
+curl -H "X-API-Key: CLAU" http://100.x.y.z:8000/zones
+curl -H "X-API-Key: CLAU" http://100.x.y.z:8000/zones/zona-tomateres/latest
 
 # Veure els logs
 docker compose logs -f api

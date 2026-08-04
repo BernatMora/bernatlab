@@ -188,7 +188,7 @@ A TTN, a la secció "Integrations":
 
 1. **Triem "MQTT"**.
 2. **Configurem el broker**:
-   - **Broker Address**: `mqtt://100.115.134.76:1883` (la Tailscale IP del BernatLab).
+   - **Broker Address**: `mqtt://100.x.y.z:1883` (la Tailscale IP del BernatLab).
    - **Username**: `ttn-bridge` (o el que hàgim creat a Mosquitto).
    - **Password**: la contrasenya.
 3. **Triem el topic prefix** (per defecte, `v3/{application_id}@{tenant_id}/devices/{device_id}/`).
@@ -337,7 +337,7 @@ topic read v3/+/@/devices/+/down
 
 - Clic a "MQTT".
 - Clic a "Add integration".
-- A la URL del broker: `mqtt://100.115.134.76:1883`.
+- A la URL del broker: `mqtt://100.x.y.z:1883`.
 - Username: `ttn-bridge`.
 - Password: la contrasenya.
 - Desar.
@@ -375,7 +375,7 @@ Comandes útils:
 docker exec mosquitto mosquitto_passwd -c /mosquitto/config/passwordfile ttn-bridge
 
 # Provar la connexió
-mosquitto_sub -h 100.115.134.76 -t "v3/#" -v -u bernat -P CONTRASENYA
+mosquitto_sub -h 100.x.y.z -t "v3/#" -v -u bernat -P CONTRASENYA
 ```
 
 Paraules clau: **TTN, The Things Network, The Things Stack, TTS, consola, aplicació, dispositiu, DevEUI, AppEUI, AppKey, NwkSKey, AppSKey, DevAddr, OTAA, ABP, join, join request, join accept, device profile, payload, CayenneLPP, JSON, binari, decoder, encoder, formatter, MQTT, integració, broker, topic, uplink, downlink, classe A, classe B, classe C, RX1, RX2, duty cycle, dev nonce, app nonce, fcnt, fport, EUI-64, EUI-48, IEEE 802.15.4g, xarxa, network server, application server, MQTT broker, Mosquitto, ACL, usuari, contrasenya, keepalive, packet forwarder, concentratord, xifrat, AES-128, integritat, autenticació, anti-replay, FCntUp, FCntDown, session keys, session context, NwkSKey, AppSKey, derivació, seguretat LoRaWAN, EU868, 868 MHz, EU868, channels, data rates, DR0-DR5, ADR, datr, payload size, maximum payload size, dwell time, ETSI, ISM, sub-banda, normativa**.

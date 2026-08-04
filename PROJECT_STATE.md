@@ -3,7 +3,9 @@
 > Estat actual del projecte BernatLab (RPi 4 + Docker + Tailscale + IA + LoRa + Hort Osona)
 > Document de referència per continuar treballant des de qualsevol dispositiu o sessió.
 >
-> **Última actualització:** 2026-07-17 (després de la sessió del matí)
+> **Última revisió documental:** 2026-08-04
+>
+> **Tall de dades operatives:** 2026-07-17. Cal verificar l'estat real dels serveis abans d'executar canvis.
 
 ---
 
@@ -19,7 +21,7 @@
 | SO | Debian GNU/Linux 13 Trixie Lite (arm64) |
 | Hostname | hortosona |
 | Usuari | bernat |
-| IP Tailscale | 100.115.134.76 (canviarà quan es connecti al router 4G) |
+| IP Tailscale | `[VALOR_LOCAL]` — consultar Tailscale o `_local/`; no publicar adreces reals |
 | Contenidors actius | Portainer (9443), Uptime Kuma (3001), Homepage (3000), Ollama |
 | SIM de dades | 150 GB/mes al router 4G de l'hort |
 | ESP32 | 1 unitat a 15 metres de la RPi |
@@ -205,6 +207,7 @@ Si estàs a casa (Mac):
 
 | Data | Canvis |
 |---|---|
+| 2026-08-04 | Revisió: anonimització de xarxa, separació entre estat documental i operatiu, i desplegament IoT segur amb Compose. |
 | 2026-07-17 | Creació del PROJECT_STATE per primera vegada. Inclou: llibre + curs (77 cap., 1087 preguntes) + Hort Osona (8 plans mensuals) + glossari + guia + arquitectura + router 4G pendent + ESP32 pendent. |
 
 ---

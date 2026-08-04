@@ -148,7 +148,7 @@ Aquesta configuració aprofita la inicialització automàtica de la imatge Docke
 
 ### Primer accés
 
-Un cop en marxa, podem accedir a la interfície web a `http://100.115.134.76:8086`. Ens demanarà l'usuari (`bernat`) i la contrasenya que hem definit.
+Un cop en marxa, podem accedir a la interfície web a `http://100.x.y.z:8086`. Ens demanarà l'usuari (`bernat`) i la contrasenya que hem definit.
 
 La interfície web d'InfluxDB 2.x és molt completa:
 
@@ -213,7 +213,7 @@ InfluxDB ofereix diverses maneres d'escriure dades:
 Exemple d'escriptura amb curl:
 
 ```bash
-curl -i -XPOST "http://100.115.134.76:8086/api/v2/write?org=bernatlab&bucket=hort-osona" \
+curl -i -XPOST "http://100.x.y.z:8086/api/v2/write?org=bernatlab&bucket=hort-osona" \
   --header "Authorization: Token ELMEUTOKEN" \
   --data-raw "temperatura, zona=zona-tomateres valor=23.5"
 ```
@@ -225,7 +225,7 @@ from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 client = InfluxDBClient(
-    url="http://100.115.134.76:8086",
+    url="http://100.x.y.z:8086",
     token="ELMEUTOKEN",
     org="bernatlab"
 )
@@ -536,7 +536,7 @@ influx write --bucket hort-osona --org bernatlab --token TOKEN "mesura,tag=valor
 # Python
 python3 -c "
 from influxdb_client import InfluxDBClient
-c = InfluxDBClient(url='http://100.115.134.76:8086', token='TOKEN', org='bernatlab')
+c = InfluxDBClient(url='http://100.x.y.z:8086', token='TOKEN', org='bernatlab')
 print('Buckets:', c.buckets_api().find_buckets().buckets)
 "
 

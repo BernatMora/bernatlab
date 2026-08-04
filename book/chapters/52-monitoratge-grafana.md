@@ -173,8 +173,8 @@ docker compose -f monitoring.yml up -d
 
 ## 52.5 Com accedir-hi
 
-- **Prometheus**: http://100.115.134.76:9090
-- **Grafana**: http://100.115.134.76:3000
+- **Prometheus**: http://100.x.y.z:9090
+- **Grafana**: http://100.x.y.z:3000
 
 A Grafana, el primer accés et demanarà contrasenya. L'has definit al compose.
 

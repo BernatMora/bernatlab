@@ -190,7 +190,7 @@ Exemples bons:
 ```
 Afegeix monitorització de Tailscale a Uptime Kuma
 
-Afegeix un monitor de tipus ping a 100.115.134.76 amb
+Afegeix un monitor de tipus ping a 100.x.y.z amb
 interval de 5 minuts. Si Tailscale deixa de funcionar,
 rebrarem una alerta per Telegram.
 ```

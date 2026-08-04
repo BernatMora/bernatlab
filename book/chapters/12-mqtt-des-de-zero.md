@@ -251,10 +251,10 @@ Exemple:
 
 ```bash
 # Publicar
-mosquitto_pub -h 100.115.134.76 -t test -m "hola"
+mosquitto_pub -h 100.x.y.z -t test -m "hola"
 
 # Subscriure
-mosquitto_sub -h 100.115.134.76 -t "sensors/#" -v
+mosquitto_sub -h 100.x.y.z -t "sensors/#" -v
 ```
 
 ### paho-mqtt (Python)
@@ -265,7 +265,7 @@ Llibreria Python de referència per a MQTT. Suporta Python 3.6+ i té versions s
 import paho.mqtt.client as mqtt
 
 client = mqtt.Client()
-client.connect("100.115.134.76", 1883, 60)
+client.connect("100.x.y.z", 1883, 60)
 client.publish("test", "hola des de Python")
 client.loop_start()
 ```
@@ -292,7 +292,7 @@ import random
 import time
 import paho.mqtt.client as mqtt
 
-BROKER = "100.115.134.76"
+BROKER = "100.x.y.z"
 PORT = 1883
 USERNAME = "sensor-temp-zona1"
 PASSWORD = "elmeupassword"

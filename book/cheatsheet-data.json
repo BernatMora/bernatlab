@@ -836,12 +836,12 @@
       "topic": "Dades operatives"
     },
     {
-      "cmd": "mosquitto_pub -h 100.115.134.76 -t test -m \"hola\"",
+      "cmd": "mosquitto_pub -h 100.x.y.z -t test -m \"hola\"",
       "cap": 12,
       "topic": "Dades operatives"
     },
     {
-      "cmd": "mosquitto_sub -h 100.115.134.76 -t \"sensors/#\" -v",
+      "cmd": "mosquitto_sub -h 100.x.y.z -t \"sensors/#\" -v",
       "cap": 12,
       "topic": "Dades operatives"
     },
@@ -1119,7 +1119,7 @@
   ],
   "SSH i accés remot": [
     {
-      "cmd": "ssh bernat@100.115.134.76",
+      "cmd": "ssh bernat@100.x.y.z",
       "cap": 1,
       "topic": "Fonaments"
     },
@@ -1129,7 +1129,7 @@
       "topic": "Fonaments"
     },
     {
-      "cmd": "ssh-copy-id bernat@100.115.134.76",
+      "cmd": "ssh-copy-id bernat@100.x.y.z",
       "cap": 4,
       "topic": "Fonaments"
     },
@@ -1139,7 +1139,7 @@
       "topic": "Fonaments"
     },
     {
-      "cmd": "ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76",
+      "cmd": "ssh -i ~/.ssh/id_ed25519 bernat@100.x.y.z",
       "cap": 4,
       "topic": "Fonaments"
     },
@@ -1317,17 +1317,17 @@
       "topic": "Fonaments"
     },
     {
-      "cmd": "curl -i -XPOST \"http://100.115.134.76:8086/api/v2/write?org=bernatlab&bucket=hort-osona\" \\",
+      "cmd": "curl -i -XPOST \"http://100.x.y.z:8086/api/v2/write?org=bernatlab&bucket=hort-osona\" \\",
       "cap": 15,
       "topic": "Dades operatives"
     },
     {
-      "cmd": "curl -H \"X-API-Key: CLAU\" http://100.115.134.76:8000/zones",
+      "cmd": "curl -H \"X-API-Key: CLAU\" http://100.x.y.z:8000/zones",
       "cap": 20,
       "topic": "Dades operatives"
     },
     {
-      "cmd": "curl -H \"X-API-Key: CLAU\" http://100.115.134.76:8000/zones/zona-tomateres/latest",
+      "cmd": "curl -H \"X-API-Key: CLAU\" http://100.x.y.z:8000/zones/zona-tomateres/latest",
       "cap": 20,
       "topic": "Dades operatives"
     },
@@ -1342,7 +1342,7 @@
       "topic": "Dades operatives"
     },
     {
-      "cmd": "curl -s http://100.115.134.76:3001/ | grep -q \"concentratord\" && echo \"Gateway OK\" || echo \"Gateway FALL\"",
+      "cmd": "curl -s http://100.x.y.z:3001/ | grep -q \"concentratord\" && echo \"Gateway OK\" || echo \"Gateway FALL\"",
       "cap": 32,
       "topic": "LoRa"
     },
@@ -1397,7 +1397,7 @@
       "topic": "IA local"
     },
     {
-      "cmd": "curl http://100.115.134.76:8080",
+      "cmd": "curl http://100.x.y.z:8080",
       "cap": 44,
       "topic": "Seguretat"
     },

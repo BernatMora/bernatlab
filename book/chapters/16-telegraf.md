@@ -73,7 +73,7 @@ El fitxer `telegraf.conf` és un TOML (una variant de INI). Té tres seccions pr
 
 ```toml
 [[inputs.mqtt_consumer]]
-  servers = ["tcp://100.115.134.76:1883"]
+  servers = ["tcp://100.x.y.z:1883"]
   username = "telegraf"
   password = "${MQTT_PASSWORD}"
   client_id = "telegraf-bernatlab"
@@ -90,7 +90,7 @@ El fitxer `telegraf.conf` és un TOML (una variant de INI). Té tres seccions pr
   tagexclude = ["host", "topic"]
 ```
 
-- **`servers`**: el broker MQTT. Al BernatLab és `tcp://100.115.134.76:1883`.
+- **`servers`**: el broker MQTT. Al BernatLab és `tcp://100.x.y.z:1883`.
 - **`username` i `password`**: les credencials del compte `telegraf`.
 - **`topics`**: els patrons de topics a subscriure. Aquí volem tot `hort/+/+/+` (zona + tipus + identificador) i els topics d'estat.
 - **`data_format = "json"`**: Telegraf parsejarà cada missatge com a JSON.

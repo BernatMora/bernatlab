@@ -48,7 +48,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_INSTALL_PLUGINS=
-      - GF_SERVER_ROOT_URL=http://100.115.134.76:3000
+      - GF_SERVER_ROOT_URL=http://100.x.y.z:3000
       - GF_ANALYTICS_REPORTING_ENABLED=false
 ```
 
@@ -56,7 +56,7 @@ Cal un volum persistent per desar dashboards, fonts de dades, alertes i configur
 
 ### Primer accés
 
-Un cop en marxa, accedim a `http://100.115.134.76:3000`. Ens demanarà usuari (`bernat`) i contrasenya. El primer cop, Grafana ens portarà a la pantalla de benvinguda.
+Un cop en marxa, accedim a `http://100.x.y.z:3000`. Ens demanarà usuari (`bernat`) i contrasenya. El primer cop, Grafana ens portarà a la pantalla de benvinguda.
 
 ## 19.4 Configurar la font de dades: InfluxDB
 
@@ -235,7 +235,7 @@ Si volem, podem fer un dashboard accessible sense autenticació, compartint-lo a
 3. Triem un nom d'enllaç (per exemple, `hort-osona-public`).
 4. Configurem quin temps es pot consultar (per defecte, 30 dies).
 
-Ara qualsevol pot accedir al dashboard a `http://100.115.134.76:3000/public-dashboards/hort-osona-public`.
+Ara qualsevol pot accedir al dashboard a `http://100.x.y.z:3000/public-dashboards/hort-osona-public`.
 
 Això és útil si volem ensenyar les dades a algú sense donar-li accés a tota la interfície de Grafana.
 

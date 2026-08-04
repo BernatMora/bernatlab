@@ -169,7 +169,7 @@ Per validar el sistema de forma regular, podem fer tests automatitzats:
 
 ```bash
 # Test 1: el gateway està connectat?
-curl -s http://100.115.134.76:3001/ | grep -q "concentratord" && echo "Gateway OK" || echo "Gateway FALL"
+curl -s http://100.x.y.z:3001/ | grep -q "concentratord" && echo "Gateway OK" || echo "Gateway FALL"
 
 # Test 2: les últimes dades del node
 influx query '

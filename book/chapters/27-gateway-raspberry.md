@@ -263,7 +263,7 @@ Com monitorem el gateway?
 Afegim un monitor al port 3001 (el port per defecte de la interfície de debug de Concentratord):
 
 - **Tipus**: HTTP(s).
-- **URL**: `http://100.115.134.76:3001/`.
+- **URL**: `http://100.x.y.z:3001/`.
 - **Interval**: 60 segons.
 
 Alternativament, podem monitorar si el procés està viu:

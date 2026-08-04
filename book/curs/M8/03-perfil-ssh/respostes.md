@@ -116,7 +116,7 @@ Host rpi
     IdentityFile ~/.ssh/id_ed25519
 
 Host macbook
-    HostName 100.86.178.51
+    HostName 100.x.y.z
     User bernatmora
     IdentityFile ~/.ssh/id_ed25519
 

@@ -2,7 +2,17 @@
 
 > Sistema integral personal basat en una Raspberry Pi 4 amb Docker, Tailscale i serveis autoallotjats per a Hort Osona, sensors LoRa, meteorologia, IA, música, automatitzacions i desenvolupament web.
 
-Aquest repositori és la **font de la veritat** de tot el projecte. Conté:
+Aquest repositori és la **font de la veritat documental i de configuració versionada** del projecte. L'estat operatiu real s'ha de verificar als equips abans de desplegar o canviar serveis.
+
+## Estat i seguretat
+
+- Estat de referència: [`PROJECT_STATE.md`](PROJECT_STATE.md).
+- Les dades reals de xarxa, credencials i configuracions locals no es publiquen.
+- Els exemples versionats han d'usar placeholders i fitxers `.env.example`.
+- Els canvis de serveis s'han de validar amb `docker compose config` abans del desplegament.
+- La documentació i el curs tenen comprovacions automàtiques a GitHub Actions.
+
+Conté:
 
 ```
 bernatlab/
@@ -70,7 +80,7 @@ Aquest repositori segueix un workflow de **publicació viva**:
 
 1. S'escriu o corregeix un capítol a `book/chapters/`.
 2. Es regenera el PDF/DOCX amb `make_book.py`.
-3. Es fa `git add . && git commit -m "..." && git push`.
+3. Es revisen explícitament els fitxers amb `git status` i `git diff --staged`; després es fa commit i push.
 4. La còpia es descarrega a la Raspberry Pi 4 via `rsync` o `git pull`.
 
 Per automatitzar, hi ha un script a `homelab/scripts/publish.sh`.

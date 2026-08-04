@@ -176,7 +176,7 @@ consulta_hort.py — Script per fer consultes a Ollama des de la Raspberry.
 import requests
 import sys
 
-OLLAMA_URL = "http://100.115.134.76:11434"  # Mac Tailscale IP
+OLLAMA_URL = "http://100.x.y.z:11434"  # Mac Tailscale IP
 MODEL = "gemma3:12b"
 
 
@@ -290,7 +290,7 @@ import httpx
 
 router = APIRouter()
 
-OLLAMA_URL = "http://100.115.134.76:11434"  # Mac Tailscale
+OLLAMA_URL = "http://100.x.y.z:11434"  # Mac Tailscale
 
 @router.get("/hort/preguntar")
 async def hort_preguntar(q: str):
@@ -453,4 +453,4 @@ Hem après a fer accessible l'API d'Ollama des de la xarxa, a integrar-la amb la
 7. Configura Uptime Kuma per monitorar l'API.
 8. Fes un backup programat d'Ollama i la base vectorial.
 
-Paraules clau: **API, HTTP, REST, Ollama, localhost, 11434, Tailscale, 100.115.134.76, OpenAI compatibility, /v1, /api/generate, /api/chat, /api/embeddings, /api/tags, streaming, JSON, pydantic, FastAPI, uvicorn, async, httpx, timeout, cua, queue, rate limit, autenticació, basicauth, Caddy, Nginx, seguretat, tallafocs, firewall, monitoratge, Uptime Kuma, alerting, backup, recuperació, restore, snapshot, launchd, servei, dimoni, plist, RunAtLoad, KeepAlive, integració, Node-RED, Telegram, Python, script, CLI, command-line, asyncio, future, deque, prometheus, grafana, observabilitat, mètriques, logs, latència, throughput, peticions per segon, RPS, error rate, time series, panell, alert, contact point**.
+Paraules clau: **API, HTTP, REST, Ollama, localhost, 11434, Tailscale, 100.x.y.z, OpenAI compatibility, /v1, /api/generate, /api/chat, /api/embeddings, /api/tags, streaming, JSON, pydantic, FastAPI, uvicorn, async, httpx, timeout, cua, queue, rate limit, autenticació, basicauth, Caddy, Nginx, seguretat, tallafocs, firewall, monitoratge, Uptime Kuma, alerting, backup, recuperació, restore, snapshot, launchd, servei, dimoni, plist, RunAtLoad, KeepAlive, integració, Node-RED, Telegram, Python, script, CLI, command-line, asyncio, future, deque, prometheus, grafana, observabilitat, mètriques, logs, latència, throughput, peticions per segon, RPS, error rate, time series, panell, alert, contact point**.

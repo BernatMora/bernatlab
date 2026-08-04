@@ -1,0 +1,49 @@
+name: Repository quality
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Reject committed secrets and private keys
+        shell: bash
+        run: |
+          set -euo pipefail
+          matches="$(git grep -nEI -- '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|tskey-[A-Za-z0-9_-]{10,})' -- . ':!book/output/*' || true)"
+          suspicious="$(printf '%s\n' "$matches" | grep -Evi '(xxxxx|example|placeholder|<[^>]+>)' || true)"
+          if [[ -n "$suspicious" ]]; then
+            printf '%s\n' "$suspicious"
+            echo "Possible secret detected. Replace it with a documented placeholder."
+            exit 1
+          fi
+      - name: Reject real Tailscale addresses in tracked text
+        shell: bash
+        run: |
+          set -euo pipefail
+          matches="$(git grep -nE -- '100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}\.[0-9]{1,3}' -- '*.md' '*.yml' '*.yaml' '*.json' '*.env*' || true)"
+          suspicious="$(printf '%s\n' "$matches" | grep -Ev '(100\.64\.0\.|100\.100\.100\.100|100\.x\.y\.z)' || true)"
+          if [[ -n "$suspicious" ]]; then
+            printf '%s\n' "$suspicious"
+            echo "Use 100.x.y.z or a documented training address."
+            exit 1
+          fi
+      - name: Validate Docker Compose files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find homelab -type f \( -name 'docker-compose.yml' -o -name 'docker-compose.yaml' -o -name 'compose.yml' -o -name 'compose.yaml' \) 2>/dev/null)
+          for file in "${files[@]}"; do
+            docker compose -f "$file" config --quiet
+          done

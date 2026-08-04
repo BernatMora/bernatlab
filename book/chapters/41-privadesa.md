@@ -75,7 +75,7 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /Applications/Oll
 Si vols ser estricte, fes que Ollama escolti només a `100.64.0.0/10` (la xarxa Tailscale):
 
 ```bash
-OLLAMA_HOST=100.115.134.76:11434 ollama serve
+OLLAMA_HOST=100.x.y.z:11434 ollama serve
 ```
 
 ### 3. Autentica l'accés
