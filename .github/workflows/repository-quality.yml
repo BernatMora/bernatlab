@@ -31,8 +31,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -nE -- '100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}\.[0-9]{1,3}' -- '*.md' '*.yml' '*.yaml' '*.json' '*.env*'; then
-            echo "Use 100.x.y.z or a local placeholder instead of a real Tailscale address."
+          matches="$(git grep -nE -- '100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}\.[0-9]{1,3}' -- '*.md' '*.yml' '*.yaml' '*.json' '*.env*' || true)"
+          suspicious="$(printf '%s\n' "$matches" | grep -Ev '(100\.64\.0\.|100\.100\.100\.100|100\.x\.y\.z)' || true)"
+          if [[ -n "$suspicious" ]]; then
+            printf '%s\n' "$suspicious"
+            echo "Use 100.x.y.z or a documented training address."
             exit 1
           fi
       - name: Validate Docker Compose files
