@@ -153,7 +153,7 @@ Desglossant:
 - `-p 8080:80`: mapegem el port 80 del contenidor al port 8080 de la Raspberry.
 - `nginx`: la imatge.
 
-Ara podem obrir un navegador i anar a `http://100.115.134.76:8080`. Veurem la pàgina de benvinguda de Nginx.
+Ara podem obrir un navegador i anar a `http://100.x.y.z:8080`. Veurem la pàgina de benvinguda de Nginx.
 
 Quan volguem netejar:
 
