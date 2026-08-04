@@ -465,7 +465,7 @@ Comandes útils:
 python3 ~/homelab/scripts/lora_p2p/receptor_lora_p2p.py
 
 # Subscriure's a MQTT per veure les dades
-mosquitto_sub -h 100.115.134.76 -t "lora/hort/#" -v -u bernat -P CONTRASENYA
+mosquitto_sub -h 100.x.y.z -t "lora/hort/#" -v -u bernat -P CONTRASENYA
 ```
 
 Paraules clau: **LoRa P2P, point-to-point, RadioLib, SX1262, Python, receptor, ESP32, node, CayenneLPP, payload, xifrat, AES, ACK, retransmissió, adreçament, mesh, Meshtastic, RSSI, SNR, packet loss, time on air, EU868, SF7-SF12, BW125, Antena, ad-hoc, privat, xarxa privada, TTN alternatiu, ChirpStack**.
