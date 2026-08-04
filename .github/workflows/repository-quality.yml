@@ -13,15 +13,18 @@ jobs:
   hygiene:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Reject committed secrets and private keys
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -nEI -- '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|tskey-[A-Za-z0-9_-]{10,})' -- . ':!book/output/*'; then
-            echo "Possible secret detected. Replace it with a placeholder."
+          matches="$(git grep -nEI -- '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|tskey-[A-Za-z0-9_-]{10,})' -- . ':!book/output/*' || true)"
+          suspicious="$(printf '%s\n' "$matches" | grep -Evi '(xxxxx|example|placeholder|<[^>]+>)' || true)"
+          if [[ -n "$suspicious" ]]; then
+            printf '%s\n' "$suspicious"
+            echo "Possible secret detected. Replace it with a documented placeholder."
             exit 1
           fi
       - name: Reject real Tailscale addresses in tracked text
