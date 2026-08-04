@@ -25,30 +25,31 @@ jobs:
             -not -path './bernatlab-cyberlab/*' -not -path './projects/*' 2>/dev/null)
           err=0
           for f in "${files[@]}"; do
-            # Els exercicis pràctics del curs referencien runbooks que l'alumne
-            # ha de crear ("Pendants de crear") => no s'han de validar.
-            [[ "$f" == */curs/M*/NN-*/exercici.md || "$f" == */curs/M*/*/exercici.md ]] && continue
-            dir="$(dirname "$f")"
-            # Troba links interns relatius: ](ruta#secció?opcions)
-            while IFS= read -r target; do
-              # Neteja fragment d'àncora i opcions
-              clean="${target%%#*}"
-              clean="${clean%%\?*}"
-              # Salt a dins del mateix fitxer (#section) => sempre OK
-              [[ -z "$clean" ]] && continue
-              # Expandeix ./ i ../ no
-              if [[ "$clean" == ./* ]]; then clean="${clean:2}"; fi
-              # Absoluts (http, mailto, /) o de GitHub/plantilles => salta
-              case "$clean" in
-                http://*|https://*|mailto:*|/*) continue ;;
-              esac
-              # Resol relatiu al directori del fitxer
-              resolved="$(realpath -m "$dir/$clean")"
-              if [[ ! -e "$resolved" ]]; then
-                echo "TRENCAT: $f -> '$target' (no existeix $clean)"
-                err=1
-              fi
-            done < <(grep -oE '\]\([^)]*\)' "$f" | sed -E 's/^\]\(//; s/\)$//' | grep -E '^(\./|\.\./|[A-Za-z0-9_./-]+\.(md|html))')
+              # Els exercicis pràctics del curs referencien runbooks que l'alumne
+              # ha de crear ("Pendants de crear") => no s'han de validar.
+              [[ "$f" == */curs/M*/NN-*/exercici.md || "$f" == */curs/M*/*/exercici.md ]] && continue
+              dir="$(dirname "$f")"
+              # Només mira links fora de blocs de codi (```...```) perquè els
+              # exemples dins de blocs de codi NO són links de navegació reals.
+              body="$(awk '/^```/{skip=!skip; next} !skip{print}' "$f")"
+              while IFS= read -r target; do
+                # Neteja fragment d'àncora i opcions
+                clean="${target%%#*}"; clean="${clean%%\?*}"
+                # Salt a dins del mateix fitxer (#section) => sempre OK
+                [[ -z "$clean" ]] && continue
+                # Expandeix ./ i ../ no
+                if [[ "$clean" == ./* ]]; then clean="${clean:2}"; fi
+                # Absoluts (http, mailto, /) o de GitHub/plantilles => salta
+                case "$clean" in
+                  http://*|https://*|mailto:*|/*) continue ;;
+                esac
+                # Resol relatiu al directori del fitxer
+                resolved="$(realpath -m "$dir/$clean")"
+                if [[ ! -e "$resolved" ]]; then
+                  echo "TRENCAT: $f -> '$target' (no existeix $clean)"
+                  err=1
+                fi
+              done < <(printf '%s' "$body" | grep -oE '\]\([^)]*\)' | sed -E 's/^\]\(//; s/\)$//' | grep -E '^(\./|\.\./|[A-Za-z0-9_./-]+\.(md|html))')
           done
           if [[ $err -ne 0 ]]; then
             echo "Hi ha links interns trencats. Arregla'ls abans de fusionar."
