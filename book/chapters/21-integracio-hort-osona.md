@@ -30,7 +30,7 @@ Tres opcions:
 
 ### Opció 1: exposar l'API a través de Tailscale
 
-Si els visitants de la web tenen Tailscale instal·lat i estan autenticats a la nostra xarxa, poden accedir directament a `http://100.115.134.76:8000`. Però això és molt limitat: la majoria de visitants no tindran Tailscale.
+Si els visitants de la web tenen Tailscale instal·lat i estan autenticats a la nostra xarxa, poden accedir directament a `http://100.x.y.z:8000`. Però això és molt limitat: la majoria de visitants no tindran Tailscale.
 
 ### Opció 2: fer l'API accessible des d'Internet
 
