@@ -519,10 +519,10 @@ _Fonaments · Cap 6_
 ```mosquitto_pub -h broker.local -t sensors/zona1/temperatura \```
 _Dades operatives · Cap 12_
 
-```mosquitto_pub -h 100.115.134.76 -t test -m "hola"```
+```mosquitto_pub -h 100.x.y.z -t test -m "hola"```
 _Dades operatives · Cap 12_
 
-```mosquitto_sub -h 100.115.134.76 -t "sensors/#" -v```
+```mosquitto_sub -h 100.x.y.z -t "sensors/#" -v```
 _Dades operatives · Cap 12_
 
 ```mosquitto_pub -h BROKER -t TOPIC -m MISSATGE```
@@ -692,19 +692,19 @@ _Seguretat · Cap 46_
 
 ## SSH i accés remot (20 comandes)
 
-```ssh bernat@100.115.134.76```
+```ssh bernat@100.x.y.z```
 _Fonaments · Cap 1_
 
 ```ssh-keygen -t ed25519 -C "bernat@bernatlab"```
 _Fonaments · Cap 4_
 
-```ssh-copy-id bernat@100.115.134.76```
+```ssh-copy-id bernat@100.x.y.z```
 _Fonaments · Cap 4_
 
 ```ssh bernat@hortosona```
 _Fonaments · Cap 4_
 
-```ssh -i ~/.ssh/id_ed25519 bernat@100.115.134.76```
+```ssh -i ~/.ssh/id_ed25519 bernat@100.x.y.z```
 _Fonaments · Cap 4_
 
 ```ssh-keygen -t ed25519```
@@ -814,13 +814,13 @@ _Fonaments · Cap 4_
 ```curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg```
 _Fonaments · Cap 5_
 
-```curl -i -XPOST "http://100.115.134.76:8086/api/v2/write?org=bernatlab&bucket=hort-osona" \```
+```curl -i -XPOST "http://100.x.y.z:8086/api/v2/write?org=bernatlab&bucket=hort-osona" \```
 _Dades operatives · Cap 15_
 
-```curl -H "X-API-Key: CLAU" http://100.115.134.76:8000/zones```
+```curl -H "X-API-Key: CLAU" http://100.x.y.z:8000/zones```
 _Dades operatives · Cap 20_
 
-```curl -H "X-API-Key: CLAU" http://100.115.134.76:8000/zones/zona-tomateres/latest```
+```curl -H "X-API-Key: CLAU" http://100.x.y.z:8000/zones/zona-tomateres/latest```
 _Dades operatives · Cap 20_
 
 ```curl -H "X-API-Key: CLAU" https://api.bernatlab.cat/zones```
@@ -829,7 +829,7 @@ _Dades operatives · Cap 21_
 ```curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \```
 _Dades operatives · Cap 22_
 
-```curl -s http://100.115.134.76:3001/ | grep -q "concentratord" && echo "Gateway OK" || echo "Gateway FALL"```
+```curl -s http://100.x.y.z:3001/ | grep -q "concentratord" && echo "Gateway OK" || echo "Gateway FALL"```
 _LoRa · Cap 32_
 
 ```curl -fsSL https://ollama.com/install.sh | sh```
@@ -862,7 +862,7 @@ _IA local · Cap 40_
 ```wget https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/voice.onnx```
 _IA local · Cap 40_
 
-```curl http://100.115.134.76:8080```
+```curl http://100.x.y.z:8080```
 _Seguretat · Cap 44_
 
 ```curl -X POST "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" \```
