@@ -14,15 +14,15 @@ La gràcia de Homepage és la seva **configuració totalment basada en fitxers Y
 
 Al BernatLab tenim, avui, tres serveis principals: Portainer, Uptime Kuma i Homepage mateix. Més endavant, tindrem Grafana, InfluxDB, Node-RED, File Browser, una base de dades, l'API de sensors, etc. Si entrem al servidor per la IP Tailscale, què trobem?
 
-Sense Homepage, hauríem de recordar totes les adreces i ports: `https://100.115.134.76:9443` per a Portainer, `http://100.115.134.76:3001` per a Uptime Kuma, etc. Un malson.
+Sense Homepage, hauríem de recordar totes les adreces i ports: `https://100.x.y.z:9443` per a Portainer, `http://100.x.y.z:3001` per a Uptime Kuma, etc. Un malson.
 
-Amb Homepage, posem `http://100.115.134.76:3000` i veiem una pàgina maca amb totes les targetes organitzades. Un clic, i entrem al servei. A més, podem veure d'un cop d'ull quin servei està caigut, quina temperatura té la CPU, quanta RAM queda.
+Amb Homepage, posem `http://100.x.y.z:3000` i veiem una pàgina maca amb totes les targetes organitzades. Un clic, i entrem al servei. A més, podem veure d'un cop d'ull quin servei està caigut, quina temperatura té la CPU, quanta RAM queda.
 
 Homepage és, per tant, la **porta d'entrada visual** al BernatLab. També és un bon lloc per mostrar el sistema a visites (o a un mateix, per fer-se'n una foto mental).
 
 ## 8.3 Instal·lació al BernatLab
 
-Homepage ja està instal·lat a `http://100.115.134.76:3000`. Vegem com està configurat.
+Homepage ja està instal·lat a `http://100.x.y.z:3000`. Vegem com està configurat.
 
 ### Definició al docker-compose.yml
 
@@ -76,20 +76,20 @@ Al BernatLab, hem configurat:
 HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000
 ```
 
-Això vol dir que si entrem a Homepage amb l'URL `http://gethomepage.local:3000`, funcionarà. Si entrem amb una altra URL, com `http://100.115.134.76:3000`, rebré un error 400 de Next.js: "Invalid host header".
+Això vol dir que si entrem a Homepage amb l'URL `http://gethomepage.local:3000`, funcionarà. Si entrem amb una altra URL, com `http://100.x.y.z:3000`, rebré un error 400 de Next.js: "Invalid host header".
 
 Hi ha dues solucions possibles:
 
 1. **Configurar DNS perquè `gethomepage.local` apunti a la IP de la Raspberry**. Això es pot fer afegint una entrada al DNS local, o simplement al fitxer `hosts` de la nostra màquina client.
 2. **Modificar HOMEPAGE_ALLOWED_HOSTS per permetre múltiples hosts**. Per exemple:
    ```
-   HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000,100.115.134.76:3000,hortosona:3000
+   HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000,100.x.y.z:3000,hortosona:3000
    ```
 
 Al BernatLab, segon la documentació oficial, la manera correcta és:
 
 ```
-HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000,100.115.134.76:3000
+HOMEPAGE_ALLOWED_HOSTS=gethomepage.local:3000,100.x.y.z:3000
 ```
 
 Així podem accedir tant per la IP Tailscale com pel nom `gethomepage.local` (si tenim el DNS configurat).
@@ -144,23 +144,23 @@ Aquest fitxer controla el títol de la pàgina, el fons (podem posar una imatge,
 ---
 - Gestió:
     - Portainer:
-        href: https://100.115.134.76:9443
+        href: https://100.x.y.z:9443
         description: Gestió Docker
         icon: portainer
-        siteMonitor: http://100.115.134.76:9443
+        siteMonitor: http://100.x.y.z:9443
 
     - Homepage:
-        href: http://100.115.134.76:3000
+        href: http://100.x.y.z:3000
         description: Aquesta pàgina
         icon: homepage
-        siteMonitor: http://100.115.134.76:3000
+        siteMonitor: http://100.x.y.z:3000
 
 - Monitorització:
     - Uptime Kuma:
-        href: http://100.115.134.76:3001
+        href: http://100.x.y.z:3001
         description: Monitoratge de serveis
         icon: uptimekuma
-        siteMonitor: http://100.115.134.76:3001
+        siteMonitor: http://100.x.y.z:3001
 
     - Hort Osona:
         href: https://bernatmora.github.io/hort-osona/
@@ -266,7 +266,7 @@ Problemes habituals:
 ```mermaid
 graph TB
     subgraph Navegador["Navegador de l'usuari"]
-        USR["Usuari obre http://100.115.134.76:3000"]
+        USR["Usuari obre http://100.x.y.z:3000"]
     end
 
     subgraph HomeContainer["Contenidor Homepage"]
@@ -314,7 +314,7 @@ Homepage és la porta d'entrada visual al BernatLab. Ens permet organitzar tots 
 
 ## 8.15 Exercicis pràctics
 
-1. Entra a `http://100.115.134.76:3000` i observa la configuració actual.
+1. Entra a `http://100.x.y.z:3000` i observa la configuració actual.
 2. Mira el fitxer `services.yaml` dins de `/home/bernat/homelab/data/homepage/`. Quants grups té? Quants serveis?
 3. Comprova la variable `HOMEPAGE_ALLOWED_HOSTS` amb `docker inspect homepage | grep -A 5 Env`. Què hi ha?
 4. Afegeix un servei nou a `services.yaml` (per exemple, un enllaç a la documentació de Docker). Refresca la pàgina. Hauries de veure la nova targeta.
