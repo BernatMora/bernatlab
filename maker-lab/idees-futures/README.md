@@ -11,7 +11,7 @@
 - [Seguretat](seguretat.md) - alarmes locals, cameras, notificacions.
 - [Meteorologia](meteorologia.md) - estacio meteorologica, sensors ambientals.
 - [Energia](energia.md) - monitoratge de consum, solar, batteries.
-- [Cameres i visio](cameres-visio.md) - ESP32-CAM, deteccio de moviment, timelapses.
+- [Cameres i visio](cameras-visio.md) - ESP32-CAM, deteccio de moviment, timelapses.
 - [IA local](ia-local.md) - veu, visio, assistants, integracio amb Ollama.
 - [Creatius i experimentals](creatius-experimentals.md) - joguines, art electronic, gadgets.
 

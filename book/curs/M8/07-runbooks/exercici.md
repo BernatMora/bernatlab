@@ -46,7 +46,7 @@ Aquests son els runbooks disponibles per a situacions d'emergencia.
 
 ## Disponibles
 
-- [recuperacio-emergencia-tailscale.md](recuperacio-emergencia-tailscale.md) - Si Tailscale falla i no pots accedir a la RPi.
+- [recuperacio-emergencia-tailscale.md](../../recursos/recuperacio-emergencia-tailscale.md) - Si Tailscale falla i no pots accedir a la RPi.
 
 ## Pendants de crear
 

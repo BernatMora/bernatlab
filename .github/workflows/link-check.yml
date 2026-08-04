@@ -1,0 +1,57 @@
+name: Internal link check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify internal markdown links resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Llista tots els .md i .html rellevants (excepte output generat i node_modules)
+          mapfile -t files < <(find . -type f \( -name '*.md' -o -name '*.html' \) \
+            -not -path './book/output/*' -not -path './node_modules/*' \
+            -not -path './.git/*' -not -path './backups/*' \
+            -not -path './bernatlab-cyberlab/*' -not -path './projects/*' 2>/dev/null)
+          err=0
+          for f in "${files[@]}"; do
+            # Els exercicis pràctics del curs referencien runbooks que l'alumne
+            # ha de crear ("Pendants de crear") => no s'han de validar.
+            [[ "$f" == */curs/M*/NN-*/exercici.md || "$f" == */curs/M*/*/exercici.md ]] && continue
+            dir="$(dirname "$f")"
+            # Troba links interns relatius: ](ruta#secció?opcions)
+            while IFS= read -r target; do
+              # Neteja fragment d'àncora i opcions
+              clean="${target%%#*}"
+              clean="${clean%%\?*}"
+              # Salt a dins del mateix fitxer (#section) => sempre OK
+              [[ -z "$clean" ]] && continue
+              # Expandeix ./ i ../ no
+              if [[ "$clean" == ./* ]]; then clean="${clean:2}"; fi
+              # Absoluts (http, mailto, /) o de GitHub/plantilles => salta
+              case "$clean" in
+                http://*|https://*|mailto:*|/*) continue ;;
+              esac
+              # Resol relatiu al directori del fitxer
+              resolved="$(realpath -m "$dir/$clean")"
+              if [[ ! -e "$resolved" ]]; then
+                echo "TRENCAT: $f -> '$target' (no existeix $clean)"
+                err=1
+              fi
+            done < <(grep -oE '\]\([^)]*\)' "$f" | sed -E 's/^\]\(//; s/\)$//' | grep -E '^(\./|\.\./|[A-Za-z0-9_./-]+\.(md|html))')
+          done
+          if [[ $err -ne 0 ]]; then
+            echo "Hi ha links interns trencats. Arregla'ls abans de fusionar."
+            exit 1
+          fi
+          echo "OK: tots els links interns resolts."

@@ -70,7 +70,7 @@ Tot el que s'explica assumeix:
 
 ## Com es genera
 
-Aquest mòdul s'ha escrit en **Markdown** i es converteix a **PDF** i **DOCX** amb `make_book.py`, el mateix generador del Mòdul 1 (ampliat). Tots els fitxers font són a la carpeta `capitol/`. El procés és reproduïble.
+Aquest mòdul s'ha escrit en **Markdown** i es converteix a **PDF** i **DOCX** amb `make_book.py`, el mateix generador del Mòdul 1 (ampliat). Tots els fitxers font són a la carpeta `chapters/`. El procés és reproduïble.
 
 ## Llicència
 
