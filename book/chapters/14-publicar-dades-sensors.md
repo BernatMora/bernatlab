@@ -145,7 +145,7 @@ import random
 import time
 import paho.mqtt.client as mqtt
 
-BROKER = "100.115.134.76"
+BROKER = "100.x.y.z"
 PORT = 1883
 USERNAME = "sensor-bme-zona1"
 PASSWORD = "elmeupassword"
@@ -229,7 +229,7 @@ from umqtt.simple import MQTTClient
 WIFI_SSID = "elmeuSSID"
 WIFI_PASSWORD = "elmeupassword"
 
-BROKER = "100.115.134.76"
+BROKER = "100.x.y.z"
 PORT = 1883
 CLIENT_ID = "esp32-dht-zona1"
 USERNAME = "sensor-dht-zona1"
@@ -303,7 +303,7 @@ Configuració típica:
 ```yaml
 # /etc/miflora-mqtt-daemon/config.yaml
 mqtt:
-  host: 100.115.134.76
+  host: 100.x.y.z
   port: 1883
   username: miflora
   password: elmeupassword
@@ -470,14 +470,14 @@ Per fer aquestes proves, podem fer servir:
 
 ```bash
 # Subscriure's a tot el que publica el node
-mosquitto_sub -h 100.115.134.76 \
+mosquitto_sub -h 100.x.y.z \
   -t "hort/zona1/#" -v \
   -u bernat -P CONTRASENYA
 
 # En una altra terminal, executar el sensor
 
 # En una tercera, comprovar $SYS
-mosquitto_sub -h 100.115.134.76 \
+mosquitto_sub -h 100.x.y.z \
   -t '$SYS/broker/clients/#' -v \
   -u bernat -P CONTRASENYA
 ```
@@ -518,7 +518,7 @@ import soil_sensor
 import paho.mqtt.client as mqtt
 
 client = mqtt.Client()
-client.connect("100.115.134.76", 1883, 60)
+client.connect("100.x.y.z", 1883, 60)
 client.will_set("hort/zona1/estat", "offline", qos=1, retain=True)
 client.loop_start()
 
@@ -620,7 +620,7 @@ Hem après com es connecten els sensors al broker MQTT, quin esquema de topics i
 Comandes útils:
 ```bash
 # Subscriure's a tots els topics d'una zona
-mosquitto_sub -h 100.115.134.76 -t "hort/zona1/#" -v -u bernat -P CONTRASENYA
+mosquitto_sub -h 100.x.y.z -t "hort/zona1/#" -v -u bernat -P CONTRASENYA
 
 # Publicar amb LWT
 python3 -c "
@@ -628,7 +628,7 @@ import paho.mqtt.client as mqtt
 c = mqtt.Client()
 c.username_pw_set('bernat', 'CONTRASENYA')
 c.will_set('hort/zona1/estat', 'offline', qos=1, retain=True)
-c.connect('100.115.134.76', 1883, 60)
+c.connect('100.x.y.z', 1883, 60)
 c.publish('hort/zona1/estat', 'online', qos=1, retain=True)
 c.publish('hort/zona1/temperatura/aire', '{\"valor\": 23.5}', retain=True)
 c.loop_forever()
