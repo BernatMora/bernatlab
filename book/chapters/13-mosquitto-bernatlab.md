@@ -229,7 +229,7 @@ Un cop en marxa, podem provar-lo des de qualsevol màquina de la xarxa Tailscale
 En una terminal, ens subscriurem a tot:
 
 ```bash
-mosquitto_sub -h 100.115.134.76 -t "#" -v \
+mosquitto_sub -h 100.x.y.z -t "#" -v \
   -u bernat -P LACONTRASENYA
 ```
 
@@ -240,7 +240,7 @@ Hem de veure els missatges que es publiquin, amb el format `topic payload`.
 En una altra terminal, publiquem un missatge de prova:
 
 ```bash
-mosquitto_pub -h 100.115.134.76 \
+mosquitto_pub -h 100.x.y.z \
   -t "test/bernatlab" \
   -m "Hola des del BernatLab" \
   -u bernat -P LACONTRASENYA \
@@ -258,7 +258,7 @@ test/bernatlab Hola des del BernatLab
 Com que hem marcat el missatge amb `-r` (retained), si ens connectem ara sense publicar res, rebré el missatge de seguida:
 
 ```bash
-mosquitto_sub -h 100.115.134.76 -t "test/bernatlab" -v \
+mosquitto_sub -h 100.x.y.z -t "test/bernatlab" -v \
   -u bernat -P LACONTRASENYA
 ```
 
@@ -270,13 +270,13 @@ Iniciem sessió amb l'usuari del sensor i intentem accedir a un topic no permès
 
 ```bash
 # Això hauria de funcionar (el sensor pot publicar a la seva zona)
-mosquitto_pub -h 100.115.134.76 \
+mosquitto_pub -h 100.x.y.z \
   -t "hort/zona1/temperatura/aire" \
   -m "23.5" \
   -u sensor-temp-zona1 -P LACONTRASENYADELSENSOR
 
 # Això hauria de FALLAR (el sensor no pot accedir a una altra zona)
-mosquitto_pub -h 100.115.134.76 \
+mosquitto_pub -h 100.x.y.z \
   -t "hort/zona2/temperatura/aire" \
   -m "20.0" \
   -u sensor-temp-zona1 -P LACONTRASENYADELSENSOR
@@ -293,7 +293,7 @@ A més, podem afegir un monitor més avançat amb un script que enviï un missat
 Pel que fa a mètriques internes, Mosquitto ofereix un sistema de `$SYS` topics que contenen estadístiques del broker en temps real. Per accedir-hi:
 
 ```bash
-mosquitto_sub -h 100.115.134.76 -t '$SYS/#' -v -u bernat -P LACONTRASENYA
+mosquitto_sub -h 100.x.y.z -t '$SYS/#' -v -u bernat -P LACONTRASENYA
 ```
 
 Veurem coses com:
@@ -493,11 +493,11 @@ mosquitto_passwd -c passwordfile bernat
 mosquitto_passwd -b passwordfile sensor-test password
 
 # Provar
-mosquitto_sub -h 100.115.134.76 -t "#" -v -u bernat -P CONTRASENYA
-mosquitto_pub -h 100.115.134.76 -t test/bernatlab -m "hola" -u bernat -P CONTRASENYA -r
+mosquitto_sub -h 100.x.y.z -t "#" -v -u bernat -P CONTRASENYA
+mosquitto_pub -h 100.x.y.z -t test/bernatlab -m "hola" -u bernat -P CONTRASENYA -r
 
 # Estadístiques
-mosquitto_sub -h 100.115.134.76 -t '$SYS/#' -v -u bernat -P CONTRASENYA
+mosquitto_sub -h 100.x.y.z -t '$SYS/#' -v -u bernat -P CONTRASENYA
 
 # Logs
 docker compose logs mosquitto
