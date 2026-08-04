@@ -23,7 +23,7 @@ Això no vol dir que abandonem la consola. Al contrari: Portainer ens servirà p
 
 ## 6.3 Instal·lació al BernatLab
 
-Portainer ja està instal·lat a `https://100.115.134.76:9443`. Vegem com s'ha fet i què hi ha configurat.
+Portainer ja està instal·lat a `https://100.x.y.z:9443`. Vegem com s'ha fet i què hi ha configurat.
 
 ### Definició al docker-compose.yml
 
@@ -48,7 +48,7 @@ Tres aspectes a notar:
 
 ### Primer accés
 
-La primera vegada que entrem a `https://100.115.134.76:9443`, el navegador ens mostrarà un avís de certificat no vàlid — és normal, perquè Portainer genera un certificat autosignat en instal·lar-se. Cal acceptar l'avís (a Chrome, "Configuració avançada → Continua").
+La primera vegada que entrem a `https://100.x.y.z:9443`, el navegador ens mostrarà un avís de certificat no vàlid — és normal, perquè Portainer genera un certificat autosignat en instal·lar-se. Cal acceptar l'avís (a Chrome, "Configuració avançada → Continua").
 
 A continuació, ens demanarà crear un usuari administrador. Triarem una contrasenya forta, perquè Portainer té el control absolut del Docker de la màquina.
 
@@ -248,7 +248,7 @@ Portainer ens dóna una interfície visual per gestionar tot el sistema Docker d
 
 ## 6.15 Exercicis pràctics
 
-1. Entra a `https://100.115.134.76:9443` i explora el dashboard.
+1. Entra a `https://100.x.y.z:9443` i explora el dashboard.
 2. Compta quants contenidors hi ha actius. Compara'l amb la sortida de `docker ps`.
 3. Mira els logs en directe d'Homepage durant 30 segons.
 4. Entra dins del contenidor de Uptime Kuma amb la consola de Portainer i executa `ls /app`. Què hi ha?
