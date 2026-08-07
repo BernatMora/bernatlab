@@ -13,6 +13,8 @@
 
 **BernatLab** és un servidor personal basat en una Raspberry Pi 4 amb Debian 13 Lite, Docker, Docker Compose, Tailscale, Portainer, Uptime Kuma i Homepage. L'objectiu és convertir-lo en el centre dels projectes de l'usuari: Hort Osona, sensors LoRa, meteorologia, IA, música, automatitzacions i desenvolupament web.
 
+> **Nota:** Aquest PROJECT_STATE cobreix **només el BernatLab**. Per a una vista global de tots els projectes de l'usuari, veure `PROJECT_STATE-GLOBAL.md` (properament).
+
 **Hardware/programari/recursos principals:**
 
 | Concepte | Valor |
@@ -203,12 +205,41 @@ Si estàs a casa (Mac):
 
 ---
 
+## 11. Projectes relacionats
+
+L'usuari té **altres projectes** que conviuen amb el BernatLab. Tots estan publicats a GitHub i es poden accedir des de qualsevol node del tailnet.
+
+### Bernat CyberLab AI (laboratori de ciberseguretat)
+
+- **Repositori:** https://github.com/BernatMora/cyberlab-ai
+- **Web:** https://bernatmora.github.io/cyberlab-ai/
+- **Descripció:** Llibre viu sobre ciberseguretat amb laboratori pràctic muntat al Kali. Documenta com construir i usar un laboratori personal modular de ciberseguretat.
+- **Estat:** En curs actiu (laboratori real muntat, 38+ capítols preparats).
+- **Contingut:**
+  - Llibre estructurat amb codis permanents (`CAP-XX-YY`, `EX-XX-YY`, `LAB-XX-YY`, `ADR-XXX`, `TRB-XX-YY`, `CHK-XX-YY`, `ANN-XX`).
+  - Plantilles per a cada tipus de document.
+  - 3 contenidors vulnerables (DVWA, Juice Shop, Metasploitable) a la xarxa interna aïllada `10.10.30.x`.
+  - Tallafoc automatitzat (`isolate-lab.sh` + `isolate-lab.service`).
+  - HP Z1 G9 planificat per a màquines virtuals natives.
+- **Llicència:** CC BY-SA 4.0 (text) + MIT (codi).
+- **Diferència respecte al BernatLab:**
+  - CyberLab = ciberseguretat (atac i defensa en entorn aïllat).
+  - BernatLab = servidor en producció (RPi + serveis reals).
+- **Relació:** No comparteixen infraestructura (estan aïllats per seguretat), però comparteixen metodologia (PROJECT_STATE, commits petits, documentació pedagògica en català).
+
+### Altres projectes (mencionats a sessions anteriors)
+
+- **Hort Osona** — PWA amb plans mensuals de l'hort (ja cobert a la secció 4 d'aquest PROJECT_STATE).
+
+---
+
 ## Versió
 
 | Data | Canvis |
 |---|---|
 | 2026-08-04 | Revisió: anonimització de xarxa, separació entre estat documental i operatiu, i desplegament IoT segur amb Compose. |
 | 2026-07-17 | Creació del PROJECT_STATE per primera vegada. Inclou: llibre + curs (77 cap., 1087 preguntes) + Hort Osona (8 plans mensuals) + glossari + guia + arquitectura + router 4G pendent + ESP32 pendent. |
+| 2026-08-07 | Afegida secció "Projectes relacionats" amb el CyberLab AI com a projecte germà. |
 
 ---
 
