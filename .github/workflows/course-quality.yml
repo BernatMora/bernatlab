@@ -1,15 +1,15 @@
 name: Course quality
 
+# Nomes s'executa en pull requests i manualment.
+# No s'executa en cada push, per evitar notificacions constants.
+
 on:
-  push:
-    paths:
-      - "book/curs/**"
-      - "index.html"
-      - ".github/workflows/course-quality.yml"
   pull_request:
     paths:
       - "book/curs/**"
       - "index.html"
+      - ".github/workflows/course-quality.yml"
+  workflow_dispatch:  # Permet executar-lo manualment des de la web de GitHub
 
 jobs:
   validate:
