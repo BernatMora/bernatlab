@@ -225,6 +225,31 @@ sudo systemctl enable --now apt-daily.timer apt-daily-upgrade.timer
 - bernat (100.82.142.113) <-> hortosona i bernat-pc: directe quan possible, DERP com a fallback
 - hort, iphone, macbook: offline temporalment
 
+### SPI a la RPi (HAT SX1262)
+
+**Activat** (canvis 17 agost 2026):
+- `/boot/firmware/config.txt`: `dtparam=spi=on`, `#dtoverlay=nospi10`
+- `/dev/spidev0.0` i `/dev/spidev0.1` funcionals
+- Llibreries: spidev, RPi.GPIO, lgpio
+
+**Problema detectat**: El SX1262 no respon (BUSY sempre a 1).
+- Possibles causes: jumper d'alimentacio, CS pin diferent, manca de 5V
+- Veure troubleshooting a `HAT_TROUBLESHOOTING.md` (temporal)
+
+### Flower Care (BLE -> InfluxDB)
+
+**Preparat** per quan arribi el sensor:
+- BLE actiu a la RPi (BD Address: `88:A2:9E:91:FB:8D`)
+- Llibreries: miflora 0.7.2, btlewrap 1.3.0, gatttool
+- Script: `flower_care_reader.py` (llegeix cada 15 min)
+- Servei: `flower-care-reader.service` (preparat, no activat)
+
+**Per posar-ho en marxa** (quan arribi el sensor):
+1. Obtenir token InfluxDB via UI web (http://100.115.134.76:8086)
+2. Trobar MAC amb `sudo hcitool lescan`
+3. Afegir MAC + token al `.env` a la RPi
+4. Activar servei: `sudo systemctl enable --now flower-care-reader.service`
+
 ---
 
 ## 8. Pendents immediats (proxims passos)
