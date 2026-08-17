@@ -12,11 +12,20 @@ Combina:
 """
 
 import json
+import os
 import re
 import urllib.request
 import urllib.error
 from pathlib import Path
 from typing import List, Dict, Tuple
+
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass
 
 
 class HortRAG:
@@ -40,13 +49,16 @@ class HortRAG:
         "hort-osona-iot/PEDIDO-AMAZON.md", "hort-osona-iot/LLISTA-CURTA.md",
     }
 
-    def __init__(self, docs_dir: str = None, model: str = "hermes3:latest"):
+    def __init__(self, docs_dir: str = None, model: str = None, ollama_host: str = None, timeout: int = None):
         if docs_dir is None:
             # Per defecte, el directori arrel del projecte
             root = Path(__file__).resolve().parent.parent.parent
             docs_dir = root
         self.docs_dir = Path(docs_dir)
-        self.model = model
+        # Llegir del .env amb fallbacks
+        self.model = model or os.environ.get('OLLAMA_MODEL', 'gemma3:1b')
+        self.ollama_host = ollama_host or os.environ.get('OLLAMA_HOST', 'http://localhost:11434')
+        self.timeout = timeout or int(os.environ.get('OLLAMA_TIMEOUT', '180'))
         self.docs: List[Dict] = []
         self._load_docs()
 
@@ -70,7 +82,7 @@ class HortRAG:
                 self.docs.append({
                     "path": rel,
                     "title": title,
-                    "content": content[:2000],
+                    "content": content[:800],  # Reduit per a velocitat
                     "full_content": content,
                 })
             except Exception as e:
@@ -147,21 +159,24 @@ class HortRAG:
             parts.append(f"[Font {i}: {doc['title']}]\n{doc['content']}\n")
         return "\n---\n".join(parts)
 
-    def ask_ollama(self, prompt: str, system: str = None, timeout: int = 120) -> str:
+    def ask_ollama(self, prompt: str, system: str = None, timeout: int = None) -> str:
         """Envia un prompt a Ollama i retorna la resposta."""
+        if timeout is None:
+            timeout = self.timeout
         payload = {
             "model": self.model,
             "prompt": prompt,
             "stream": False,
             "options": {
                 "temperature": 0.4,
-                "num_predict": 600,
+                "num_predict": 100,  # Reduit per a velocitat en models petits
             }
         }
         if system:
             payload["system"] = system
+        url = f"{self.ollama_host.rstrip('/')}/api/generate"
         req = urllib.request.Request(
-            "http://localhost:11434/api/generate",
+            url,
             data=json.dumps(payload).encode("utf-8"),
             headers={"Content-Type": "application/json"},
         )
@@ -169,13 +184,39 @@ class HortRAG:
             r = urllib.request.urlopen(req, timeout=timeout)
             data = json.loads(r.read())
             return data.get("response", "").strip()
-        except (urllib.error.URLError, OSError) as e:
-            return f"[Error: No es pot connectar amb Ollama. Assegura't que estigui actiu: ollama serve]"
+        except urllib.error.URLError as e:
+            return f"[Error: No es pot connectar amb Ollama a {url}. Assegura't que estigui actiu. Detalls: {e}]"
+        except OSError as e:
+            return f"[Error de xarxa: {e}]"
+        except Exception as e:
+            return f"[Error inesperat: {type(e).__name__}: {e}]"
+
+    def warmup(self) -> bool:
+        """Pre-escalfa el model a Ollama per evitar el retard de la primera carrega.
+        Retorna True si OK, False si falla."""
+        try:
+            payload = {
+                "model": self.model,
+                "prompt": ".",
+                "stream": False,
+                "options": {"num_predict": 1}
+            }
+            url = f"{self.ollama_host.rstrip('/')}/api/generate"
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+            )
+            r = urllib.request.urlopen(req, timeout=self.timeout)
+            return True
+        except Exception as e:
+            print(f"[RAG] No s'ha pogut pre-escalfar el model: {e}")
+            return False
 
     def ask(self, question: str) -> Dict:
         """Pregunta al sistema RAG. Retorna dict amb answer, sources, etc."""
-        # 1) Cerca
-        results = self.search(question, top_k=4)
+        # 1) Cerca - reduit a 2 fonts per maximitzar velocitat
+        results = self.search(question, top_k=2)
         if not results:
             return {
                 "answer": "No he trobat cap fitxa rellevant. Prova reformular la pregunta o ampliar el vocabulari.",

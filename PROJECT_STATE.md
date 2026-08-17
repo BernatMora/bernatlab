@@ -190,7 +190,44 @@ Tots aquests fitxers son **fonts de veritat** del sistema IoT:
 
 ---
 
-## 7. Pendents immediats (proxims passos)
+## 7. Notes operatives (importants)
+
+### Estalvi de dades (eSIM)
+
+El sistema s'ha optimitzat per minimitzar el consum de dades de la eSIM:
+
+**Desactivat actualment** (estalvi garantit):
+- `hort-osona-telegram.service` al bernat-pc (aturat)
+- `apt-daily.timer` i `apt-daily-upgrade.timer` a RPi i bernat-pc
+
+**Tailscale** (RPi): `--accept-dns=false --accept-routes=false --netfilter-mode=off`
+
+**Per tornar a activar el bot:**
+```bash
+ssh bernat-pc
+sudo systemctl enable --now hort-osona-telegram.service
+```
+
+**Per tornar a activar actualitzacions:**
+```bash
+sudo systemctl enable --now apt-daily.timer apt-daily-upgrade.timer
+```
+
+### Distribucio de responsabilitats
+
+- **RPi (hortosona)**: gateway IoT, MQTT, InfluxDB, Grafana, Nextcloud, MariaDB. Reb dades dels sensors.
+- **bernat-pc**: serveis d'IA (Ollama), bot Telegram (quan esta actiu), scripts de desenvolupament.
+- **PC feina (bernat)**: client de desenvolupament, conecta als altres dos via Tailscale.
+
+### Connexions Tailscale actives
+
+- hortosona (100.115.134.76) <-> bernat-pc (100.121.249.107): directe (192.168.1.x)
+- bernat (100.82.142.113) <-> hortosona i bernat-pc: directe quan possible, DERP com a fallback
+- hort, iphone, macbook: offline temporalment
+
+---
+
+## 8. Pendents immediats (proxims passos)
 
 ### A. Auditar l'estat real de la RPi via SSH (30 min)
 1. `ssh bernat@<IP_TAILSCALE>` desde el PC de la feina
@@ -231,7 +268,7 @@ Tots aquests fitxers son **fonts de veritat** del sistema IoT:
 
 ---
 
-## 8. Restriccions i regles del projecte
+## 9. Restriccions i regles del projecte
 
 - **No usar apostrofs tipografics ni cometes intelligents** als fitxers — usar ASCII (`'`, `"`, `-`).
 - **Cap credencial ni token** al repo ni al context — tot `[REDACTED]`.
@@ -248,7 +285,7 @@ Tots aquests fitxers son **fonts de veritat** del sistema IoT:
 
 ---
 
-## 9. Glossari
+## 10. Glossari
 
 - **BernatLab:** El projecte global (servidor + llibre + curs + hort).
 - **Hort Osona:** El projecte especific de l'hort (PWA + plans mensuals).
@@ -269,7 +306,7 @@ Tots aquests fitxers son **fonts de veritat** del sistema IoT:
 
 ---
 
-## 10. Preferencies de l'usuari
+## 11. Preferencies de l'usuari
 
 - **Llengua:** Catala per defecte (barreja castella amb naturalitat).
 - **Estil de treball:** Lots petits validats, tests via terminal amb .venv, no reportar "fet" sense proves.
@@ -282,7 +319,7 @@ Tots aquests fitxers son **fonts de veritat** del sistema IoT:
 
 ---
 
-## 11. Com reprendre aquesta sessio
+## 12. Com reprendre aquesta sessio
 
 Si vols continuar des d'un altre dispositiu o sessio:
 
@@ -302,7 +339,7 @@ Si estas a casa (Mac):
 
 ---
 
-## 12. Projectes relacionats
+## 13. Projectes relacionats
 
 L'usuari te **altres projectes** que conviuen amb el BernatLab. Tots estan publicats a GitHub i es poden accedir des de qualsevol node del tailnet.
 

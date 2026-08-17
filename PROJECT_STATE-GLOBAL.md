@@ -279,7 +279,36 @@ scp fitxer.txt bernat@hortosona:/tmp/
 
 ---
 
-## 11. Glossari global
+## 11. Notes operatives globals
+
+### Estalvi de dades (eSIM)
+
+**Desactivat actualment** per estalviar dades:
+- Bot Telegram al bernat-pc (`hort-osona-telegram.service`)
+- Actualitzacions automatiques (`apt-daily.timer`, `apt-daily-upgrade.timer`) a RPi i bernat-pc
+
+**Tailscale** optimitzat a la RPi: `--accept-dns=false --accept-routes=false --netfilter-mode=off`
+
+**Per tornar a activar el bot:**
+```bash
+ssh bernat-pc
+sudo systemctl enable --now hort-osona-telegram.service
+```
+
+**Per tornar a activar actualitzacions:**
+```bash
+sudo systemctl enable --now apt-daily.timer apt-daily-upgrade.timer
+```
+
+### Distribucio de responsabilitats
+
+- **RPi (hortosona)**: gateway IoT, MQTT, InfluxDB, Grafana, Nextcloud, MariaDB.
+- **bernat-pc**: serveis d'IA (Ollama), bot Telegram, scripts de desenvolupament.
+- **PC feina (bernat)**: client de desenvolupament, conecta via Tailscale.
+
+---
+
+## 12. Glossari global
 
 - **BernatLab:** El marc general del projecte (servidor + llibre + curs + hort + IoT).
 - **Hort Osona:** PWA + plans mensuals de l'hort.
@@ -307,7 +336,7 @@ scp fitxer.txt bernat@hortosona:/tmp/
 
 ---
 
-## 12. Com reprendre una sessio (qualsevol projecte)
+## 13. Com reprendre una sessio (qualsevol projecte)
 
 Si vols continuar treballant en qualsevol dels 3 projectes des d'un altre dispositiu:
 
