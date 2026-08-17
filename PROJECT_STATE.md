@@ -1,19 +1,19 @@
 # PROJECT STATE - BernatLab
 
-> Estat actual del projecte BernatLab (RPi 4 + Docker + Tailscale + IA + LoRa + Hort Osona)
+> Estat actual del projecte BernatLab (RPi 4 + Docker + Tailscale + IA + LoRa + Hort Osona).
 > Document de referència per continuar treballant des de qualsevol dispositiu o sessió.
 >
-> **Última revisió documental:** 2026-08-04
+> **Ultima revisio documental:** 2026-XX-XX (revisio post-sessio DeepSeek)
 >
-> **Tall de dades operatives:** 2026-07-17. Cal verificar l'estat real dels serveis abans d'executar canvis.
+> **Tall de dades operatives:** Cal verificar l'estat real dels serveis a la RPi abans d'executar canvis.
 
 ---
 
-## 1. Què és el projecte
+## 1. Que es el projecte
 
-**BernatLab** és un servidor personal basat en una Raspberry Pi 4 amb Debian 13 Lite, Docker, Docker Compose, Tailscale, Portainer, Uptime Kuma i Homepage. L'objectiu és convertir-lo en el centre dels projectes de l'usuari: Hort Osona, sensors LoRa, meteorologia, IA, música, automatitzacions i desenvolupament web.
+**BernatLab** es un servidor personal basat en una Raspberry Pi 4 amb Debian 13 Lite, Docker, Docker Compose, Tailscale, Portainer, Uptime Kuma i Homepage. Es el centre dels projectes de l'usuari: Hort Osona (PWA + IoT), sensors LoRa, meteorologia, IA local, automatitzacions i desenvolupament web.
 
-> **Nota:** Aquest PROJECT_STATE cobreix **només el BernatLab**. Per a una vista global de tots els projectes de l'usuari, veure `PROJECT_STATE-GLOBAL.md` (properament).
+> **Nota:** Aquest PROJECT_STATE cobreix **nomes el BernatLab**. Per a una vista global de tots els projectes de l'usuari, veure `PROJECT_STATE-GLOBAL.md`.
 
 **Hardware/programari/recursos principals:**
 
@@ -24,9 +24,9 @@
 | Hostname | hortosona |
 | Usuari | bernat |
 | IP Tailscale | `[VALOR_LOCAL]` — consultar Tailscale o `_local/`; no publicar adreces reals |
-| Contenidors actius | Portainer (9443), Uptime Kuma (3001), Homepage (3000), Ollama |
+| Contenidors actius (esperats) | Portainer (9443), Uptime Kuma (3001), Homepage (3000), Ollama |
 | SIM de dades | 150 GB/mes al router 4G de l'hort |
-| ESP32 | 1 unitat a 15 metres de la RPi |
+| ESP32 + LoRa | 1 unitat TTGO LoRa32 + BME280 + sensor sol (a l'hort) |
 
 ---
 
@@ -34,214 +34,304 @@
 
 | # | Nom | Estat | Cost | Notes |
 |---|---|---|---|---|
-| 1 | **Llibre del BernatLab** | En curs | 0 EUR | 7 mòduls, 70 capítols, 584 pàgines (PDF + DOCX) |
-| 2 | **Curs pràctic** | En curs | 0 EUR | 77 capítols, 1.087 preguntes |
+| 1 | **Llibre del BernatLab** | En curs | 0 EUR | 7 moduls, 70 capitols, 584 pagines (PDF + DOCX) |
+| 2 | **Curs practic** | En curs | 0 EUR | 77 capitols, 1.087 preguntes |
 | 3 | **Hort Osona (PWA)** | En curs | 0 EUR | 8 plans mensuals publicats, web PWA |
 | 4 | **Glossari complet** | Decidit | 0 EUR | 321 termes, ~70 KB |
 | 5 | **Guia "El meu primer dia"** | Decidit | 0 EUR | Pas a pas, 12 KB |
 | 6 | **Arquitectura visual (3 SVGs)** | Decidit | 0 EUR | Xarxa, IoT, curs |
-| 7 | **Router 4G hort** | Pendent | ~50-100 EUR | Per muntar a l'hort amb SIM |
-| 8 | **ESP32 + sensors** | Pendent | ~30-40 EUR | 1 placa, sensors DHT22, etc. |
-| 9 | **MQTT (Mosquitto)** | Pendent | 0 EUR | Per rebre dades de l'ESP32 |
-| 10 | **InfluxDB + Grafana** | Pendent | 0 EUR | Guardar i visualitzar dades |
-| 11 | **Scripts `bin/`** | Decidit | 0 EUR | 7 scripts (PowerShell, bash, accés directe) |
-| 12 | **Publicacions externes** | Pendent | 0 EUR | Infojardín, Ruralcat, L'agrobotiga, YouTube |
+| 7 | **Hort Osona IoT (LoRa + Supabase)** | En curs / diagnosi | ~105 EUR | Software complet, hardware comprat, no funciona encara |
+| 8 | **Alexa skill Hort Osona** | En curs | 0 EUR | Skill definida, backend Python |
+| 9 | **Bot Telegram + RAG** | En curs | 0 EUR | telegram_bot.py + Ollama RAG |
+| 10 | **MyCloudHome storage** | En curs | 0 EUR | NAS local per portal Hort Osona |
+| 11 | **Tailscale setup complet** | Decidit | 0 EUR | Guies Mac + scripts setup |
+| 12 | **Scripts `bin/`** | Decidit | 0 EUR | 7 scripts (PowerShell, bash, acces directe) |
+| 13 | **Publicacions externes** | Pendent | 0 EUR | Infojardin, Ruralcat, L'agrobotiga, YouTube |
 
 Estats possibles: **Decidit, Planificat, En curs, Pendent, Descartat**
 
 ---
 
-## 3. Integracions amb altres eines/serveis
+## 3. Integracions amb eines i serveis
 
-- **GitHub** — Repos BernatLab i Hort Osona (públics)
-- **GitHub Pages** — Publicació de BernatLab i Hort Osona
+- **GitHub** — Repos BernatLab, Hort Osona i CyberLab AI (publics)
+- **GitHub Pages** — Publicacio de BernatLab i Hort Osona
 - **Tailscale** — VPN mesh per accedir a la RPi des de qualsevol lloc
 - **Telegram** — Bot de Hort Osona (amb RAG + Ollama)
 - **Ollama** — IA local amb models `gemma3:1b` i `phi3:mini`
-- **Portainer** — Gestió de contenidors
-- **Uptime Kuma** — Monitorització de serveis
+- **Portainer** — Gestio de contenidors
+- **Uptime Kuma** — Monitoritzacio de serveis
 - **Homepage** — Panell d'inici personalitzat
-- **ESP32** — Sensors IoT (WiFi, previst MQTT)
+- **Supabase** — Base de dades Realtime per a lectures de sensors
+- **LoRa 868 MHz** — Comunicacio entre node hort i receptor RPi (TTGO LoRa32 + HAT SX1262)
+- **Alexa Skill** — Comandaments de veu per consultar l'hort
+- **MyCloudHome** — NAS local (192.168.x.x) per allotjar portal public
 - **Router 4G** — Internet propi a l'hort (pròximament)
 
 ---
 
-## 4. Documentació generada
+## 4. Documentacio generada
 
 - **book/** (carpeta principal)
-  - **book/llibre/** — 7 mòduls del llibre (PDF + DOCX)
-  - **book/curs/** — 77 capítols del curs
+  - **book/llibre/** — 7 moduls del llibre (PDF + DOCX)
+  - **book/curs/** — 77 capitols del curs
   - **book/glossari.md** (68 KB) — Glossari amb 321 termes
   - **book/primer-dia-rpi.md** (12 KB) — Guia pas a pas
-  - **book/arquitectura/** — 3 SVGs + índex
-  - **book/handoff-sessio-2026-07-17.md** (6 KB) — Handoff d'aquesta sessió
+  - **book/arquitectura/** — 3 SVGs + index
+  - **book/handoff-sessio-2026-07-17.md** (6 KB) — Handoff d'aquesta sessio
   - **book/wiki/** — Wiki del llibre
   - **book/cheatsheet.html** — Chuleta de comandes
-- **projects/hort-osona/** — Web PWA
+- **projects/hort-osona/** — Web PWA Hort Osona (submodule)
   - **plans-mensuals/** — 8 plans mensuals (juny-desembre 2026)
   - **docs/plans-mensuals/** — Versions HTML dels plans
+- **projects/hort-osona-iot/** — Sistema IoT complet (afegit 2026-XX-XX)
+  - **node-emissor/** — ESP32 + BME280 + LoRa (firmware PlatformIO)
+  - **backend/** — Receptor LoRa + Supabase + Ollama (Python)
+  - **alexa-skill/** — Skill Alexa Hort Osona
+  - **bridge/** — Gateway entre sistemes
+  - **web/** — Vista Hort Live amb dades realtime
+  - **systemd/** — Serveis systemd (telegram, etc.)
+  - **scripts/** — Scripts de setup i manteniment
+  - **docs/** — Documentacio especifica del IoT
 - **posts/** — Esborranys de publicacions externes
-- **bin/** — 7 scripts (PowerShell, bash, accés directe a l'escriptori)
+- **bin/** — 7 scripts (PowerShell, bash, acces directe a l'escriptori)
 
 ---
 
 ## 5. Decisions preses (amb raonament)
 
-- **Tailscale per accedir a la RPi des de fora**: No cal obrir ports al router, és més segur.
-- **WiFi (no LoRa) per ESP32 a 15 m**: L'ESP32 ja el té integrat, LoRa seria innecessari a aquesta distància.
-- **RPi al WiFi del router 4G (no a xarxa de casa)**: Té internet propi a l'hort, no depèn de la cobertura de casa.
-- **Català com a llengua per defecte**: L'usuari és català, tota la documentació està en català.
-- **Markdown + Git per versionar**: Permet fer canvis amb ordre i tornar enrere si cal.
-- **GitHub Pages per publicar**: Gratuït, fàcil d'actualitzar amb `git push`.
-- **Patró de capítols estàndard**: resum + quiz + exercici + respostes + HTML per consistència.
-- **Scripts a `bin/`**: Eines útils per accedir ràpidament al projecte des de qualsevol PC.
-- **150 GB SIM de dades**: Suficient per a sensors i pujada de dades, però cal vigilar el consum.
+- **Tailscale per accedir a la RPi des de fora**: No cal obrir ports al router, es mes segur.
+- **LoRa 868 MHz entre hort i RPi (no WiFi direct)**: Distancia ~400m i RPi a casa (no a l'hort). El node LoRa a l'hort envia per radio al receptor LoRa a la RPi (HAT SX1262).
+- **Supabase per a dades de sensors**: Base de dades Realtime al núvol + esquema SQL propi (2 taules: `mesures` i `consells_ia`).
+- **Ollama per a IA local**: Consells cada 6h generats amb el model local, sense enviar dades al núvol.
+- **RPi al WiFi del router 4G (no a xarxa de casa)**: Te internet propi a l'hort, no depen de la cobertura de casa.
+- **Catala com a llengua per defecte**: L'usuari es catala, tota la documentacio esta en catala.
+- **Markdown + Git per versionar**: Permet fer canvis amb ordre i tornar enrera si cal.
+- **GitHub Pages per publicar**: Gratuit, facil d'actualitzar amb `git push`.
+- **Patro de capitols estandard**: resum + quiz + exercici + respostes + HTML per consistencia.
+- **Scripts a `bin/`**: Eines utils per accedir rapidament al projecte des de qualsevol PC.
+- **150 GB SIM de dades**: Suficient per a sensors i pujada de dades, pero cal vigilar el consum.
 
 ---
 
-## 6. Pendents immediats (pròxims passos)
+## 6. Sistema IoT Hort Osona — estat real
 
-### A. Muntar el router 4G a l'hort (1-2 h)
-1. Posar el router a prop de la RPi amb bona cobertura
-2. Inserir la SIM
-3. Encendre'l
-4. Configurar nom de WiFi i contrasenya
-5. Anotar-los per connectar la RPi
+> **Aquest apartat es la part mes activa del projecte.** La resta del BernatLab es estable, pero el IoT encara esta en fase de validacio hardware.
 
-### B. Connectar la RPi al WiFi del router 4G (30 min)
-1. Des del Mac de casa per SSH (si tens Ethernet temporal)
-2. O amb monitor + teclat a la RPi
-3. `sudo nmcli device wifi connect "NOM" password "CONTRASENYA"`
-4. Verificar: `ping 8.8.8.8` i `tailscale status`
+### 6.1 Arquitectura implementada
 
-### C. Instal·lar MQTT, InfluxDB i Grafana a la RPi (2 h)
-1. `docker run -d --name mosquitto -p 1883:1883 eclipse-mosquitto`
-2. Instal·lar InfluxDB amb Docker Compose
-3. Instal·lar Grafana amb Docker Compose
-4. Configurar Telegraf per recollir dades
+```
+HORT (~400 m)                                 CASA (RPi 4 + HAT SX1262)
+===========================                   ==========================
+- TTGO LoRa32 868 MHz                         - HAT Waveshare SX1262
+- BME280 (T, H, P)                           - lora_receiver.py
+- 2 sensors sol capacitius                   - INSERT a Supabase
+- 2 bateries 18650 + panell solar            - Ollama (consells cada 6h)
+- Caixa IP65
+- Payload CSV: "T:18.5,H:62.3,P:1013.2,S:45,BAT:3.92"
+```
 
-### D. Programar l'ESP32 amb sensor DHT22 (1-2 h)
-1. Instal·lar Arduino IDE o PlatformIO al Mac
-2. Escriure codi per llegir DHT22 i enviar via MQTT
-3. Pujar el codi a l'ESP32
-4. Connectar l'ESP32 al WiFi del router 4G
-5. Verificar que envia dades
+### 6.2 Software complet (NO cal re-escriure)
 
-### E. Documentar tot en un runbook (1 h)
-1. Runbook del router 4G
-2. Runbook de l'ESP32
-3. Runbook de MQTT/InfluxDB/Grafana
+- `node-emissor/src/main.cpp` — Cicle deep sleep + lectura sensors + LoRa TX
+- `node-emissor/platformio.ini` — Build config PlatformIO
+- `node-emissor/specs/bom.json` — Llista de materials
+- `node-emissor/docs/steps.json` — Guia de muntatge pas a pas
+- `backend/lora_receiver.py` — Rep LoRa -> Supabase -> Ollama
+- `backend/supabase_schema.sql` — 2 taules (`mesures`, `consells_ia`) + Realtime
+- `web/hort-live.html` — Vista amb grafic 24h + subscripcio Realtime
+- `telegram_bot.py` + `systemd/hort-osona-telegram.service` — Bot Telegram
+- `alexa-skill/interaction-model.json` + `alexa_backend.py` — Skill Alexa
+- `setup-pi.sh` — Script d'instal·lacio a la RPi
+- `telegram_bot.py`, `rag.py`, `mycloud_storage.py` — Moduls de negoci
 
-### F. Pujar els canvis del cap de setmana (30 min)
-1. Al Mac: `git status` per veure què tens
-2. Si tens canvis, fer commit i push
-3. Si tens canvis sense commit, integrar-los
+### 6.3 Hardware comprat (NO funciona encara)
+
+- [x] Hardware especificat (Bricogeek + Amazon ES)
+- [x] **Hardware comprat** (2026 aprox.)
+- [ ] **Muntar el node** — pas critic, validacio hardware pendent
+- [ ] **Muntar el receptor** — HAT SX1262 a la RPi, cal verificar pins GPIO
+- [ ] **Crear compte Supabase** i executar `supabase_schema.sql`
+- [ ] **Provar el flux complet** — primeres dades reals
+
+**Cost total:** ~105 EUR (veure `node-emissor/specs/bom.json`)
+
+### 6.4 Problemes coneguts (a diagnosticar en proxima sessio)
+
+- **"Comprat pero no funciona"** — estat declarat per l'usuari. Cal:
+  1. Verificar que el hardware esta correctament cablejat
+  2. Confirmar que el firmware del node puja (`pio run --target upload`)
+  3. Comprovar la conectivitat LoRa (antenes, distancia, orientacio)
+  4. Validar el receptor Python a la RPi amb el HAT SX1262
+  5. Crear el compte Supabase i configurar les claus
+- **Possibles causes** (a investigar):
+  - Pins del HAT SX1262 no coincideixen amb els del README
+  - Abast LoRa insuficient (pot caldre antena externa o repeater)
+  - Configuracio de frequencia (868 MHz vs 915 MHz)
+  - Permis GPIO/spidev a la RPi
+
+### 6.5 Documentacio especifica del IoT
+
+Tots aquests fitxers son **fonts de veritat** del sistema IoT:
+
+- `README.md` — Visio general + arquitectura ASCII
+- `INICI-RAPID.md` — Quickstart
+- `LLISTA-CURTA.md` — Llista curta de passos
+- `PAS-SEGUENT.md` — Proxim pas a fer
+- `GUIA-MUNTATGE-NODE.md` — Guia completa de muntatge del node
+- `ALEXA-ACTIVAR.md` + `ALEXA-GUIA.md` + `COM-TROBAR-SKILL.md` — Skill Alexa
+- `TELEGRAM-SETUP.md` — Configurar bot Telegram
+- `RAG-README.md` — RAG amb Ollama
+- `MYCLOUDHOME-GUIA.md` — NAS local
+- `PEDIDO-AMAZON.md` + `PEDIDO-AMAZON.pdf` — Llista de compra
+- `RPi-PROJECTES.md` — Altres projectes a la RPi
+- `CHAT-SETUP.md` — Xat amb IA
+- `GUIA-TAILSCALE-MAC.pdf` — Tailscale al Mac
 
 ---
 
-## 7. Restriccions i regles del projecte
+## 7. Pendents immediats (proxims passos)
 
-- **No usar apòstrofs tipogràfics ni cometes intel·ligents** als fitxers — usar ASCII (`'`, `"`, `-`).
+### A. Auditar l'estat real de la RPi via SSH (30 min)
+1. `ssh bernat@<IP_TAILSCALE>` desde el PC de la feina
+2. Verificar contenidors: `docker ps`
+3. Verificar serveis: `systemctl status` per als serveis hort-osona-*
+4. Comprovar disc: `df -h` i `du -sh /home/bernat/homelab/data/`
+5. Verificar Tailscale: `tailscale status`
+
+### B. Diagnosticar perque el IoT no funciona (1-2 h)
+1. Inventariar el hardware comprat i fer fotos
+2. Verificar el cablejat del node TTGO LoRa32 amb el BME280
+3. Verificar el HAT SX1262 a la RPi (pins, soldadura si cal)
+4. Mirar logs: `journalctl -u hort-osona-*` (si els serveis existeixen)
+5. Si cal, refer el muntatge seguint `GUIA-MUNTATGE-NODE.md`
+
+### C. Crear el compte Supabase (15 min)
+1. Anar a https://supabase.com i crear compte
+2. Crear nou projecte "hort-osona"
+3. Executar `backend/supabase_schema.sql` al SQL Editor
+4. Copiar URL i anon key -> `.env` a la RPi (MAI al repo)
+
+### D. Provar el flux complet (1-2 h)
+1. Pujar firmware al node: `pio run --target upload`
+2. Encendre el node a l'hort amb bateria carregada
+3. Verificar que el receptor Python veu el payload LoRa
+4. Comprovar que les dades apareixen a Supabase
+5. Veure el grafic a `web/hort-live.html`
+
+### E. Documentar el primer runbook reeixit (30 min)
+1. Escriure `book/handoff-sessio-IoT-YYYY-MM-DD.md` amb el que ha funcionat
+2. Actualitzar aquest PROJECT_STATE amb l'estat verificat
+3. Fer commit i push amb els canvis
+
+### F. Pujar els canvis d'aquesta sessio al repo (30 min)
+1. Commit del projecte IoT anonimitzat: `projects/hort-osona-iot/`
+2. Commit d'aquest PROJECT_STATE refrescat
+3. Push a `origin/main`
+
+---
+
+## 8. Restriccions i regles del projecte
+
+- **No usar apostrofs tipografics ni cometes intelligents** als fitxers — usar ASCII (`'`, `"`, `-`).
 - **Cap credencial ni token** al repo ni al context — tot `[REDACTED]`.
 - **Llengua catalana** per defecte.
-- **Validar amb execució real**, no promeses teòriques.
-- **Cap "Paraules clau" al final** dels capítols.
-- **Tots els fitxers UTF-8 vàlids**.
+- **Validar amb execucio real**, no promeses teoriques.
+- **Cap "Paraules clau" al final** dels capitols.
+- **Tots els fitxers UTF-8 valids**.
 - **Fer servir fitxers petits, nets, editables** (KISS).
-- **Sempre provar abans de reportar "fet"** — el que compta és el resultat.
+- **Sempre provar abans de reportar "fet"** — el que compta es el resultat.
 - **No usar `cd` per canviar de directori** — usar `project_switch`.
 - **Scripts llargs via `write_file`**, no pas `execute_code` (que pot bloquejar-se).
+- **Mai practicar ciberseguretat des de l'equip de la feina** (risc laboral).
+- **Anonimitzar IPs (192.168.x.x i 100.x.x.x) abans de fer commit** — ja fet en aquesta sessio.
 
 ---
 
-## 8. Glossari
+## 9. Glossari
 
 - **BernatLab:** El projecte global (servidor + llibre + curs + hort).
-- **Hort Osona:** El projecte específic de l'hort (PWA + plans mensuals).
-- **hortosona:** Hostname de la RPi 4 a l'hort.
+- **Hort Osona:** El projecte especific de l'hort (PWA + plans mensuals).
+- **Hort Osona IoT:** Sistema de sensors amb LoRa + Supabase + Ollama (a `projects/hort-osona-iot/`).
+- **hortosona:** Hostname de la RPi 4 a l'hort (o a casa segons configuracio).
 - **Tailscale:** VPN mesh que permet accedir a la RPi sense obrir ports.
-- **ESP32:** Microcontrolador amb WiFi integrat, ideal per IoT.
-- **MQTT:** Protocol lleuger per a missatgeria IoT.
-- **DHT22:** Sensor de temperatura i humitat d'aire.
+- **TTGO LoRa32:** Placa ESP32 amb LoRa 868 MHz integrat, ideal per nodes IoT.
+- **BME280:** Sensor combinat de temperatura, humitat i pressio.
+- **HAT SX1262:** Hat per a RPi amb modem LoRa SX1262 (Waveshare).
+- **Supabase:** Backend amb Postgres + Realtime + Auth (alternativa open source a Firebase).
 - **Ollama:** Eina per executar LLMs localment.
-- **RAG:** Retrieval Augmented Generation (cerca + generació).
-- **4G:** Xarxa mòbil de quarta generació (LTE).
-- **SIM:** Targeta d'identitat de subscriptor (mòbil).
-- **IP Tailscale:** Adreça única per accedir a la RPi via Tailscale.
+- **RAG:** Retrieval Augmented Generation (cerca + generacio).
+- **4G:** Xarxa mobil de quarta generacio (LTE).
+- **SIM:** Targeta d'identitat de subscriptor (mobil).
+- **IP Tailscale:** Adreca unica per accedir a la RPi via Tailscale (100.x.x.x).
+- **Payload LoRa:** Paquet de dades enviat per radio LoRa (CSV compacte).
+- **Realtime:** Subscripcio push a Supabase per rebre actualitzacions en temps real.
 
 ---
 
-## 9. Preferències de l'usuari
+## 10. Preferencies de l'usuari
 
-- **Llengua:** Català per defecte (barreja castellà amb naturalitat).
+- **Llengua:** Catala per defecte (barreja castella amb naturalitat).
 - **Estil de treball:** Lots petits validats, tests via terminal amb .venv, no reportar "fet" sense proves.
-- **Prioritat:** Màquines útils, no decoratives.
-- **Estil de comunicació:** Directe, sense elogis buits.
-- **Senyals de tancament:** "anem per un altre tema", "ja està" → wrap-up deliverables.
-- **Patrons:** Iterar sobre artefactes, validar amb execució real, recordar errors.
+- **Prioritat:** Maquines utils, no decoratives.
+- **Estil de comunicacio:** Directe, sense elogis buits.
+- **Senyals de tancament:** "anem per un altre tema", "ja esta" -> wrap-up deliverables.
+- **Patrons:** Iterar sobre artefactes, validar amb execucio real, recordar errors.
 - **Interessos:** RPi, Docker, Tailscale, IA local, LoRa, horticultura, IoT.
 - **No:** Mai demanar/acceptar credencials. Mai inventar dades.
 
 ---
 
-## 10. Com reprendre aquesta sessió
+## 11. Com reprendre aquesta sessio
 
-Si vols continuar des d'un altre dispositiu o sessió:
+Si vols continuar des d'un altre dispositiu o sessio:
 
-1. **Llegeix `book/handoff-sessio-2026-07-17.md`** — té tot el context de la sessió del 2026-07-17.
-2. **Llegeix `PROJECT_STATE.md`** (aquest fitxer) — té l'estat actual.
-3. **Mira els últims commits** a GitHub: `git log --oneline -10`
-4. **Comprova el working tree** per veure canvis pendents: `git status`
-5. **Continua des de la secció 6 (Pendents immediats)** d'aquest document.
+1. **Llegeix `PROJECT_STATE.md`** (aquest fitxer) — te l'estat actual.
+2. **Mira els ultims commits** a GitHub: `git log --oneline -10`
+3. **Comprova el working tree** per veure canvis pendents: `git status`
+4. **Continua des de la seccio 7 (Pendents immediats)** d'aquest document.
 
-Si estàs a la feina (Windows):
-- Obre Hermes i enganxa el contingut de `handoff-sessio-2026-07-17.md` com a context.
-- Recorda que a la feina no pots accedir a la RPi directament.
+Si estas a la feina (Windows):
+- Obre el terminal i connecta't per SSH a la RPi via Tailscale.
+- Si no tens Tailscale actiu, treballa nomes amb documentacio.
 
-Si estàs a casa (Mac):
+Si estas a casa (Mac):
 - Obre el Terminal del Mac.
-- Vés al directori del repo: `cd ~/bernatlab` (o on sigui que el tinguis).
+- Ves al directori del repo: `cd ~/bernatlab` (o on sigui que el tinguis).
 - Continua treballant directament amb `git` i SSH a la RPi.
 
 ---
 
-## 11. Projectes relacionats
+## 12. Projectes relacionats
 
-L'usuari té **altres projectes** que conviuen amb el BernatLab. Tots estan publicats a GitHub i es poden accedir des de qualsevol node del tailnet.
+L'usuari te **altres projectes** que conviuen amb el BernatLab. Tots estan publicats a GitHub i es poden accedir des de qualsevol node del tailnet.
 
 ### Bernat CyberLab AI (laboratori de ciberseguretat)
 
 - **Repositori:** https://github.com/BernatMora/cyberlab-ai
 - **Web:** https://bernatmora.github.io/cyberlab-ai/
-- **Descripció:** Llibre viu sobre ciberseguretat amb laboratori pràctic muntat al Kali. Documenta com construir i usar un laboratori personal modular de ciberseguretat.
-- **Estat:** En curs actiu (laboratori real muntat, 38+ capítols preparats).
-- **Contingut:**
-  - Llibre estructurat amb codis permanents (`CAP-XX-YY`, `EX-XX-YY`, `LAB-XX-YY`, `ADR-XXX`, `TRB-XX-YY`, `CHK-XX-YY`, `ANN-XX`).
-  - Plantilles per a cada tipus de document.
-  - 3 contenidors vulnerables (DVWA, Juice Shop, Metasploitable) a la xarxa interna aïllada `10.10.30.x`.
-  - Tallafoc automatitzat (`isolate-lab.sh` + `isolate-lab.service`).
-  - HP Z1 G9 planificat per a màquines virtuals natives.
-- **Llicència:** CC BY-SA 4.0 (text) + MIT (codi).
-- **Diferència respecte al BernatLab:**
-  - CyberLab = ciberseguretat (atac i defensa en entorn aïllat).
-  - BernatLab = servidor en producció (RPi + serveis reals).
-- **Relació:** No comparteixen infraestructura (estan aïllats per seguretat), però comparteixen metodologia (PROJECT_STATE, commits petits, documentació pedagògica en català).
+- **Descripcio:** Llibre viu sobre ciberseguretat amb laboratori practic muntat al Kali. Documenta com construir i usar un laboratori personal modular de ciberseguretat.
+- **Estat actual (2026):** **En pausa** — el hardware no esta preparat encara.
+- **Diferencia respecte al BernatLab:**
+  - CyberLab = ciberseguretat (atac i defensa en entorn aillat).
+  - BernatLab = servidor en produccio (RPi + serveis reals).
+- **Relacio:** No comparteixen infraestructura (estan aillats per seguretat), pero comparteixen metodologia (PROJECT_STATE, commits petits, documentacio pedagogica en catala).
 
 ### Altres projectes (mencionats a sessions anteriors)
 
-- **Hort Osona** — PWA amb plans mensuals de l'hort (ja cobert a la secció 4 d'aquest PROJECT_STATE).
+- **Hort Osona** — PWA amb plans mensuals de l'hort (ja cobert a la seccio 4 d'aquest PROJECT_STATE).
 
 ---
 
-## Versió
+## Versio
 
 | Data | Canvis |
 |---|---|
-| 2026-08-04 | Revisió: anonimització de xarxa, separació entre estat documental i operatiu, i desplegament IoT segur amb Compose. |
-| 2026-07-17 | Creació del PROJECT_STATE per primera vegada. Inclou: llibre + curs (77 cap., 1087 preguntes) + Hort Osona (8 plans mensuals) + glossari + guia + arquitectura + router 4G pendent + ESP32 pendent. |
-| 2026-08-07 | Afegida secció "Projectes relacionats" amb el CyberLab AI com a projecte germà. |
+| 2026-08-07 | Afegida seccio "Projectes relacionats" amb el CyberLab AI. |
+| 2026-08-04 | Revisio: anonimitzacio de xarxa, separacio entre estat documental i operatiu, i desplegament IoT segur amb Compose. |
+| 2026-07-17 | Creacio del PROJECT_STATE per primera vegada. Inclou: llibre + curs (77 cap., 1087 preguntes) + Hort Osona (8 plans mensuals) + glossari + guia + arquitectura + router 4G pendent + ESP32 pendent. |
+| 2026-XX-XX | **Refresc post-sessio DeepSeek**: afegit el projecte `hort-osona-iot/` real (LoRa + Supabase + Alexa + Telegram + RAG + MyCloudHome), reconegut l'estat "comprat pero no funciona", nova seccio 6 dedicada al IoT, noves decisions i glossari ampliat. |
 
 ---
 
 **Plantilla original:** `book/PROJECT-STATE-TEMPLATE.md`
-**Aquest PROJECT_STATE:** `PROJECT_STATE.md`
