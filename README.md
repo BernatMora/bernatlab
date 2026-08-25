@@ -98,6 +98,6 @@ Quan es cloni a la Raspberry:
 
 ## Llicència
 
-Document personal. Si algú altre el llegeix, que en tregui profit. Si hi troba errors, que els reporti.
+Document personal compartit públicament. Consulta [US-I-AUTORIA.md](US-I-AUTORIA.md). Si hi trobes errors, reporta’ls al repositori.
 
 — Bernat
