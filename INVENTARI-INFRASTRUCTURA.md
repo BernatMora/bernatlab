@@ -58,7 +58,14 @@ Fora de casa: mateixa comanda pero amb la IP Tailscale 100.115.134.76.
 - Time Machine: NO configurat (pendent, cal disc extern local)
 - Neteja 29-08-26: 32GB -> 68GB lliures
 
+## repos Git (agost 2026)
+- github.com/BernatMora/bernatlab (aques document dins)
+- github.com/BernatMora/kettlebell-trainer (privat, snapshot 29-08-26)
+- github.com/BernatMora/entrenaments-app (privat, snapshot 29-08-26)
+- Acces RPi: deploy keys (nomes escrit, per repo) a ~/.ssh/gh_deploy_*
+  + alies a ~/.ssh/config: github-bernatlab / github-kettlebell / github-entrenaments
+- Per clonar des del PC feina: gh repo clone BernatMora/<repo> (gh auth login primer)
+
 ## pendents
-1. Push kettlebell-trainer i entrenaments-app a GitHub
-2. Time Machine al Mac amb disc extern
-3. Reactivar Mosquitto + Mi Flora quan toqueu (scripts a ~/hort-osona-iot)
+1. Time Machine al Mac amb disc extern
+2. Reactivar Mosquitto + Mi Flora quan toqui (scripts a ~/hort-osona-iot)
