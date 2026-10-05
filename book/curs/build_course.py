@@ -18,6 +18,7 @@ from urllib.parse import unquote
 
 COURSE_DIR = Path(__file__).resolve().parent
 MANIFEST_PATH = COURSE_DIR / "course-manifest.json"
+SITEMAP_PATH = COURSE_DIR.parent.parent / "sitemap.xml"
 REQUIRED_FILES = ("resum.md", "quiz.md", "exercici.md", "respostes.md")
 MODULE_NAMES = {
     "M1": "Fonaments",
@@ -144,6 +145,14 @@ def validate_content() -> list[str]:
     return errors
 
 
+def sitemap_content(manifest: dict) -> str:
+    base = "https://bernatmora.github.io/bernatlab/"
+    urls = [base, base + "book/wiki/", base + "book/curs/"]
+    urls.extend(base + "book/curs/" + chapter["href"] for chapter in manifest["chapters"])
+    body = "\n".join(f"  <url><loc>{url}</loc></url>" for url in urls)
+    return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "\n</urlset>\n"
+
+
 def build(write: bool) -> tuple[dict, list[str]]:
     chapters = []
     errors: list[str] = []
@@ -212,8 +221,11 @@ def build(write: bool) -> tuple[dict, list[str]]:
         )
         print(f"Manifest generat: {MANIFEST_PATH.relative_to(COURSE_DIR.parent.parent)}")
         print(f"Scripts afegits a {injected} capítols")
+        SITEMAP_PATH.write_text(sitemap_content(manifest), encoding="utf-8")
     elif not MANIFEST_PATH.exists() or json.loads(MANIFEST_PATH.read_text(encoding="utf-8")) != manifest:
         errors.append("course-manifest.json està desactualitzat; executa build_course.py")
+    elif not SITEMAP_PATH.exists() or SITEMAP_PATH.read_text(encoding="utf-8") != sitemap_content(manifest):
+        errors.append("sitemap.xml està desactualitzat; executa build_course.py")
 
     errors.extend(validate_links())
     errors.extend(validate_content())
