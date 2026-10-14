@@ -82,3 +82,5 @@ build/
 
 # Projecte independent (repo BernatMora/cyberlab-ai) — es gestiona sol
 bernatlab-cyberlab/
+*.bak-*
+*.tmp
