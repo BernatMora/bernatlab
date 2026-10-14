@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N=1 · Calibratge personal</title>
+<style>
+:root{
+  --bg:#0d1014; --card:#161b22; --card2:#1c232c; --line:#28313d;
+  --fg:#e6edf3; --mut:#8b98a8; --acc:#4ea1ff; --acc2:#7ee787;
+  --warn:#f0b429; --bad:#ff6b6b; --ok:#7ee787;
+  --font:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.55;
+     -webkit-font-smoothing:antialiased;padding:0 0 60px}
+.wrap{max-width:800px;margin:0 auto;padding:0 18px}
+header{padding:26px 0 16px;border-bottom:1px solid var(--line);margin-bottom:22px}
+h1{font-size:26px;letter-spacing:-.4px}
+h1 span{color:var(--acc)}
+.sub{color:var(--mut);font-size:13.5px;margin-top:5px}
+h2{font-size:19px;margin:0 0 4px}
+h3{font-size:15px;margin:20px 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+p{color:#c3ccd8;font-size:14.5px;margin:9px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 20px;margin:14px 0}
+.card.mini{padding:14px 16px}
+.hidden{display:none !important}
+button{font-family:inherit;font-size:15px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card2);color:var(--fg);padding:11px 18px;cursor:pointer;transition:.14s}
+button:hover{border-color:var(--acc);background:#202a36}
+button.prim{background:var(--acc);border-color:var(--acc);color:#06121f;font-weight:700}
+button.prim:hover{background:#6fb4ff;border-color:#6fb4ff}
+button.ghost{background:transparent}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+label.f{display:block;margin:13px 0}
+label.f>span{display:block;font-size:13px;color:var(--mut);margin-bottom:5px}
+select,input[type=number]{font-family:inherit;font-size:15px;background:var(--card2);color:var(--fg);
+  border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+.pill{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
+  color:var(--mut);background:var(--card2)}
+.pill.a{border-color:#2d5f8f;color:#8fc4ff}
+.pill.b{border-color:#5f4a2d;color:#e8c58a}
+.big{font-size:15px;padding:14px 20px}
+.center{text-align:center}
+.note{font-size:12.5px;color:var(--mut);border-left:2px solid var(--line);padding-left:11px;margin:12px 0}
+.warnbox{font-size:13px;color:#ffd9a0;background:rgba(240,180,41,.09);border:1px solid rgba(240,180,41,.28);
+  border-radius:9px;padding:11px 13px;margin:12px 0}
+.okbox{font-size:13px;color:#b5f0c0;background:rgba(126,231,135,.08);border:1px solid rgba(126,231,135,.25);
+  border-radius:9px;padding:11px 13px;margin:12px 0}
+/* --- test --- */
+#stage{position:relative;height:340px;background:#0a0d11;border:1px solid var(--line);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;user-select:none}
+#stage.tap{border-color:var(--acc)}
+#dot{width:78px;height:78px;border-radius:50%;background:var(--bad);opacity:0;transition:opacity .05s}
+#dot.on{opacity:1}
+#stageTxt{position:absolute;bottom:14px;width:100%;text-align:center;color:var(--mut);font-size:13px}
+#rt{position:absolute;top:40%;font-size:56px;font-weight:800;opacity:0;letter-spacing:-1px}
+#rt.flash{opacity:1;transition:opacity .25s}
+.hud{display:flex;gap:8px;justify-content:space-between;margin-top:12px;font-size:13px;color:var(--mut);flex-wrap:wrap}
+.timer{font-variant-numeric:tabular-nums;font-size:40px;font-weight:800;letter-spacing:-1px;text-align:center;margin:10px 0}
+.bar{height:9px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:12px}
+.bar>i{display:block;height:100%;background:var(--acc);width:0%;transition:width 1s linear}
+/* --- stats --- */
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+td.n{font-variant-numeric:tabular-nums}
+.kpi{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+.kpi>div{flex:1 1 150px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi b{display:block;font-size:24px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.kpi small{color:var(--mut);font-size:12px}
+.compare{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.arm{flex:1 1 210px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:14px}
+.arm h4{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.arm .v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.arm .u{font-size:12px;color:var(--mut)}
+.spark{display:flex;align-items:flex-end;gap:3px;height:70px;margin-top:14px;border-bottom:1px solid var(--line);padding-bottom:2px}
+.spark i{flex:0 0 12px;background:var(--acc);border-radius:2px 2px 0 0;min-height:2px}
+.spark i.b{background:#e8c58a}
+.legend{font-size:12px;color:var(--mut);margin-top:6px}
+footer{color:var(--mut);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>N=1 <span>· calibratge personal</span></h1>
+  <div class="sub">Mesura objectiva i experiment cec. Esbrina què et funciona <b>a tu</b>, no a la mitjana.</div>
+</header>
+
+<!-- ============ INICI ============ -->
+<section id="s-inici">
+  <div class="card">
+    <h2>Com funciona</h2>
+    <p>Tres passos, uns 12 minuts. L'aplicació et assigna una de les dues versions <b>a l'atzar</b> i no et diu
+       quina és. Les dues sonen pràcticament igual: una porta el batec, l'altra no. Tu valores i mesures a cegues.</p>
+    <p>Al final veuràs el <b>temps de reacció en mil·lisegons</b>, els <b>lapsus</b> i la comparació entre les dues
+       versions. Quan hi hagi prou sessions, et dirà si la diferència és real o pot ser casualitat.</p>
+    <div class="note">
+      <b>Per què a cegues:</b> si saps que avui toca "el bo", el teu cap esbiaixa la valoració sense que te n'adonis.
+      Amagant-ho, el resultat és teu de veritat.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Sessió d'avui</h2>
+    <label class="f"><span>Com has dormit? (1 = fatal · 5 = molt bé)</span>
+      <select id="preSleep">
+        <option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+      </select></label>
+    <label class="f"><span>Com estàs d'energia ara? (1 = fos · 5 = fresc)</span>
+      <select id="preEnergy">
+        <option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+      </select></label>
+    <label class="f"><span>Claredat mental ABANS (1-10)</span>
+      <select id="preClarity">
+        <option value="">—</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+        <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+      </select></label>
+    <label class="f"><span>Durada d'escolta (minuts)</span>
+      <select id="cfgMins">
+        <option>5</option><option>8</option><option selected>10</option><option>15</option><option>20</option>
+      </select></label>
+    <label class="f"><span>Durada del test (segons)</span>
+      <select id="cfgTest">
+        <option value="60">60 s</option>
+        <option value="120" selected>120 s</option>
+        <option value="180">180 s</option>
+      </select></label>
+    <label class="f"><span>Portadora (Hz)</span>
+      <select id="cfgCarrier">
+        <option value="200" selected>200 Hz (la del NeuroWave)</option>
+        <option value="400">400 Hz</option>
+        <option value="320">320 Hz</option>
+      </select></label>
+    <div id="assignBox" class="hidden"></div>
+    <div class="row end" style="margin-top:16px">
+      <button id="btnStart" class="prim big">Comença la sessió</button>
+    </div>
+  </div>
+
+  <div class="card mini">
+    <div class="row">
+      <button id="btnStats" class="ghost">Veure estadístiques</button>
+      <button id="btnExport" class="ghost">Exporta CSV</button>
+      <button id="btnDump" class="ghost">Còpia de seguretat (JSON)</button>
+      <button id="btnLoad" class="ghost">Restaura</button>
+      <input type="file" id="fileIn" accept=".json" class="hidden">
+    </div>
+  </div>
+</section>
+
+<!-- ============ ESCOLTA ============ -->
+<section id="s-escolta" class="hidden">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <span class="pill" id="armPill">Versió ?</span>
+      <span class="pill" id="armPillCode">codi ?</span>
+    </div>
+    <h2 style="margin-top:14px">Escolta</h2>
+    <p id="listenTxt">Posa't auriculars. Deixa que soni i no facis res que et distregui gaire.</p>
+    <div class="timer" id="listenTimer">10:00</div>
+    <div class="bar"><i id="listenBar"></i></div>
+    <div class="warnbox" id="audioWarn" style="display:none"></div>
+    <div class="row end" style="margin-top:18px">
+      <button id="btnAbort" class="ghost">Cancel·la</button>
+      <button id="btnToTest" class="prim big" disabled>Passa al test</button>
+    </div>
+    <div class="note">Fes clic un cop a la pàgina si no sents res: els navegadors bloquegen l'àudio fins que hi interactues.</div>
+  </div>
+</section>
+
+<!-- ============ TEST ============ -->
+<section id="s-test" class="hidden">
+  <div class="card">
+    <h2>Test de vigilància</h2>
+    <p>Quan surti <b>el cercle vermell</b>, clica tan de pressa com puguis. <b>No cliquis abans que surti.</b>
+       Fes servir la barra espaiadora o el ratolí, el que et vagi més bé.</p>
+    <div id="stage">
+      <div id="dot"></div>
+      <div id="rt"></div>
+      <div id="stageTxt">Espera el cercle…</div>
+    </div>
+    <div class="hud">
+      <span>Restant: <b id="tLeft">–</b></span>
+      <span>Estímuls: <b id="tN">0</b></span>
+      <span>Lapsus: <b id="tLaps">0</b></span>
+      <span>Sortides falses: <b id="tFalse">0</b></span>
+    </div>
+    <div class="row end" style="margin-top:16px">
+      <button id="btnAbortTest" class="ghost">Cancel·la el test</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESULTAT ============ -->
+<section id="s-resultat" class="hidden">
+  <div class="card">
+    <h2>Resultat de la sessió</h2>
+    <div class="kpi" id="resKpi"></div>
+    <label class="f"><span>Claredat mental DESPRÉS (1-10) — opcional</span>
+      <select id="postClarity">
+        <option value="">—</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+        <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+      </select></label>
+    <div id="revealBox" class="hidden"></div>
+    <div class="row end" style="margin-top:16px">
+      <button id="btnSave" class="prim big">Desa la sessió</button>
+      <button id="btnDiscard" class="ghost">Descarta</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ESTADISTIQUES ============ -->
+<section id="s-stats" class="hidden">
+  <div class="card">
+    <h2>Què hem après</h2>
+    <div id="verdict"><p class="note">Encara no hi ha sessions.</p></div>
+  </div>
+  <div class="card">
+    <h2>Comparació</h2>
+    <div class="compare" id="cmp"></div>
+    <div class="spark" id="spark"></div>
+    <div class="legend"><span style="color:#4ea1ff">■</span> Versió 1 &nbsp; <span style="color:#e8c58a">■</span> Versió 2 &nbsp;·&nbsp; barra més curta = resposta més ràpida = millor</div>
+  </div>
+  <div class="card">
+    <h2>Sessions</h2>
+    <div id="tbl"></div>
+  </div>
+  <div class="card mini">
+    <div class="row">
+      <button id="btnBack" class="ghost">← Torna</button>
+      <button id="btnWipe" class="ghost" style="margin-left:auto;color:#ff8f8f">Esborra-ho tot</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Límits d'aquest mètode (llegeix-ho)</h3>
+    <p><b>Mesura relativa, no absoluta.</b> El navegador té una latència pròpia (uns 10-70 ms segons el sistema).
+       El número absolut no és comparable amb cap aparell de laboratori. El que val és la <b>diferència entre les
+       dues versions en el teu mateix ordinador</b>.</p>
+    <p><b>Efectes petits volen moltes sessions.</b> Si l'efecte real és de 5-10 ms, amb 6 sessions per versió no el
+       veuràs. Calen setmanes. Això és normal, no vol dir que no funcioni.</p>
+    <p><b>No és cap eina mèdica.</b> No diagnostica res ni substitueix ningú. És un experiment sobre tu, per a tu.</p>
+    <p><b>Ordre i hora importen.</b> L'hora del dia i haver dinat afecten el temps de reacció més que moltes coses.
+       Per això l'app ho desa: al final et diu si t'estaven esbiaixant el resultat.</p>
+  </div>
+</section>
+
+<footer class="wrap">
+  N=1 · calibratge personal — fet per tenir una regla, no una impressió. Dades teves, al teu navegador.
+</footer>
+</div>
+
+<script>
+"use strict";
+// ============================================================
+//  N=1 · CALIBRATGE PERSONAL
+//  Mesura objectiva (PVT) + experiment cec sobre un sol subjecte.
+//  Àudio cec: generat aquí, portadora idèntica, batec opcional.
+// ============================================================
+
+const K_LOG = 'cal_n1_v1';
+const ARMS = {
+  A: { name: 'Versió 1', beat: 7.0 },
+  B: { name: 'Versió 2', beat: 0.0 }
+};
+const LAPSE_MS = 355;
+
+let S = { sessions: [] };
+let cur = null;          // sessió en curs
+let ac = null, nodes = [], rafId = null;
+
+const $ = id => document.getElementById(id);
+const show = id => {
+  ['s-inici','s-escolta','s-test','s-resultat','s-stats'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+  window.scrollTo({top:0});
+};
+const med = a => { if(!a.length) return null; const s=[...a].sort((x,y)=>x-y); const m=s.length>>1;
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2; };
+const mean = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+const sd = a => { if(a.length<2) return null; const m=mean(a);
+  return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/(a.length-1)); };
+const fmt = (v,d=1) => v==null ? '–' : v.toFixed(d);
+
+// ---------- persistència ----------
+function load(){ try{ const d=JSON.parse(localStorage.getItem(K_LOG)||'null'); if(d&&Array.isArray(d.sessions)) S=d; }catch(e){} }
+function save(){ try{ localStorage.setItem(K_LOG, JSON.stringify(S)); }catch(e){} }
+
+// ---------- aleatorització per blocs (equilibrada) ----------
+// Repartiment equilibrat: es tria sempre el braç que va per darrere; quan van
+// empatats, s'escull a l'atzar quin va primer. Així queda 1 de cada a cada
+// parell de sessions i, a més, el resultat és correcte encara que una sessió
+// es descarti a mig camí (no depèn de cap estat que es pugui perdre).
+function nextArm(){
+  let a = 0, b = 0;
+  S.sessions.forEach(s => { if(s.arm === 'A') a++; else if(s.arm === 'B') b++; });
+  if(a === b) return Math.random() < 0.5 ? 'A' : 'B';
+  return a < b ? 'A' : 'B';
+}
+// El codi de sessió no revela l'ordre intern (evita endevinar pel patró).
+function sessionCode(){
+  const s = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  return s + '-' + String(S.sessions.length + 1).padStart(3,'0');
+}
+
+// ---------- àudio cec ----------
+function stopAudio(){
+  nodes.forEach(n => { try{ n.stop && n.stop(); }catch(e){} try{ n.disconnect(); }catch(e){} });
+  nodes = [];
+  if(ac){ try{ ac.close(); }catch(e){} ac = null; }
+}
+function startAudio(carrier, beat){
+  stopAudio();
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC){ $('audioWarn').style.display='block';
+           $('audioWarn').textContent='Aquest navegador no permet generar àudio. La sessió es farà en silenci: no passa res, però el test deixa de ser cec.'; return; }
+  ac = new AC();
+  const merger = ac.createChannelMerger(2);
+  const master = ac.createGain();
+  master.gain.value = 0.0;
+  merger.connect(master); master.connect(ac.destination);
+  [0,1].forEach(ch => {
+    const o = ac.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = ch === 1 ? carrier + beat : carrier;  // batec = diferència entre orelles
+    const g = ac.createGain(); g.gain.value = 0.22;
+    o.connect(g); g.connect(merger, 0, ch);
+    o.start(ac.currentTime + 0.05);
+    nodes.push(o, g);
+  });
+  // entrada suau (sense clic)
+  master.gain.setValueAtTime(0, ac.currentTime);
+  master.gain.linearRampToValueAtTime(1, ac.currentTime + 1.2);
+  nodes.push(merger, master);
+}
+
+// ---------- TEST PVT ----------
+let test = null;
+// Si l'usuari canvia de pestanya o minimitza, el navegador congela els
+// temporitzadors (1 cop/segon) i atura del tot el requestAnimationFrame.
+// Un test fet aixi no val res: el cancel·lem i ho diem clar, en comptes de
+// desar una mesura falsa.
+function vigilaVisibilitat(){
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden && test && !test.done){
+      test.invalid = true;
+      test.done = true;
+      clearTimeout(test.to); clearTimeout(test.offTo); clearTimeout(test.endTo);
+      clearTimeout(test.rafFallback);
+      document.onkeydown = null;
+      $('dot').classList.remove('on');
+      $('stage').classList.remove('tap');
+      test = null;
+      stopAudio();
+      alert('Has canviat de pestanya o has minimitzat la finestra.\n\n' +
+            'Mentre no mires la pagina, el navegador alenteix els temporitzadors i el test deixa ' +
+            'de ser valid. La sessio s\'ha cancel·lat per no desar cap mesura falsa.\n\n' +
+            'Torna-ho a provar i no canviïs de pestanya fins que acabi el test.');
+      cur = null;
+      show('s-inici');
+    }
+  });
+}
+vigilaVisibilitat();
+function startTest(seconds){
+  const stage = $('stage'), dot = $('dot');
+  test = { dur: seconds, t0: performance.now(), rts: [], lapses: 0, falseStarts: 0,
+           waiting: false, stimAt: 0, showing: false, done: false, to: null, endTo: null };
+  stage.classList.add('tap');
+  const left = () => Math.max(0, seconds - (performance.now() - test.t0)/1000);
+  const tick = () => { if(!test||test.done) return;
+    const l = left(); $('tLeft').textContent = l.toFixed(0)+' s';
+    if(l<=0) return finishTest();
+    test.endTo = setTimeout(tick, 250); };
+  tick();
+
+  const nextStim = () => {
+    if(!test || test.done) return;
+    if((performance.now()-test.t0)/1000 >= seconds) return finishTest();
+    const isi = 1200 + Math.random()*3800;           // 1,2 - 5,0 s, impredictible
+    test.waiting = true;
+    test.to = setTimeout(() => {
+      if(!test || test.done) return;
+      // Mesurem quan el cercle ja s'ha pintat de veritat. Amb doble rAF el
+      // temps coincideix amb el que l'usuari veu. Pero si la pestanya no esta
+      // visible, rAF no es dispara mai: posem una xarxa de seguretat perque
+      // el test no es quedi penjat (a la feina es canvia de pestanya).
+      let fet = false;
+      const mostra = () => {
+        if(fet || !test || test.done) return;
+        fet = true;
+        clearTimeout(test.rafFallback);
+        test.waiting = false; test.showing = true;
+        test.stimAt = performance.now();
+        dot.classList.add('on');
+        $('stageTxt').textContent = 'Ara!';
+        test.offTo = setTimeout(() => { if(test&&!test.done) hideStim(); }, 2000);
+      };
+      requestAnimationFrame(() => requestAnimationFrame(mostra));
+      test.rafFallback = setTimeout(mostra, 250);
+    }, isi);
+  };
+  const hideStim = () => {
+    dot.classList.remove('on'); $('stageTxt').textContent = 'Espera el cercle…';
+    test.showing = false;
+    if(test && !test.done) nextStim();
+  };
+
+  const press = () => {
+    if(!test || test.done) return;
+    if(test.waiting){                       // ha clicat massa aviat
+      test.falseStarts++; $('tFalse').textContent = test.falseStarts;
+      $('stageTxt').textContent = 'Massa aviat! Espera el cercle…';
+      return;
+    }
+    if(test.showing){
+      const rt = performance.now() - test.stimAt;
+      clearTimeout(test.offTo);
+      test.rts.push(rt);
+      if(rt > LAPSE_MS) test.lapses++;
+      $('tN').textContent = test.rts.length;
+      $('tLaps').textContent = test.lapses;
+      const e = $('rt'); e.textContent = Math.round(rt)+' ms';
+      e.classList.add('flash'); setTimeout(()=>e.classList.remove('flash'), 320);
+      hideStim();
+    }
+  };
+  test.press = press;
+  stage.onclick = press;
+  document.onkeydown = ev => { if(ev.code==='Space'){ ev.preventDefault(); press(); } };
+  nextStim();
+}
+function finishTest(){
+  if(!test) return;
+  test.done = true;
+  clearTimeout(test.to); clearTimeout(test.offTo); clearTimeout(test.endTo);
+  $('dot').classList.remove('on');
+  $('stage').classList.remove('tap');
+  document.onkeydown = null;
+  stopAudio();               // la sessió d'escolta s'ha acabat
+  const rts = test.rts;
+  if(rts.length < 5){ alert('El test ha estat massa curt ('+rts.length+' estímuls). No es desa.'); show('s-inici'); test=null; return; }
+  const sorted = [...rts].sort((a,b)=>a-b);
+  const fastest10 = mean(sorted.slice(0, Math.max(1, Math.round(sorted.length*0.1))));
+  cur.test = { rts, n: rts.length, median: med(rts), mean: mean(rts), fastest10,
+               sd: sd(rts), lapses: test.lapses, falseStarts: test.falseStarts,
+               dur: Math.round((performance.now()-test.t0)/1000) };
+  test = null;
+  renderResult();
+  show('s-resultat');
+}
+
+// ---------- RESULTAT ----------
+function renderResult(){
+  const t = cur.test, a = cur.arm;
+  $('resKpi').innerHTML =
+    kpi(Math.round(t.median), 'ms mediana de reacció') +
+    kpi(Math.round(t.fastest10), 'ms el teu 10% més ràpid') +
+    kpi(t.lapses, 'lapsus (>'+LAPSE_MS+' ms)') +
+    kpi(t.falseStarts, 'sortides falses');
+  $('revealBox').classList.remove('hidden');
+  $('revealBox').innerHTML =
+    '<div class="okbox"><b>Avui has fet la '+ARMS[a].name+'.</b><br>'+
+    (ARMS[a].beat > 0
+      ? 'Aquesta versió porta el batec (' + ARMS[a].beat + ' Hz de diferència entre orelles).'
+      : 'Aquesta versió NO porta batec: és la mateixa portadora, sense diferència entre orelles. És la referència.') +
+    '</div>' +
+    '<div class="note">No has sabut quina era fins ara. Això és el que fa que la mesura serveixi.</div>';
+}
+function kpi(v,l){ return '<div><b>'+v+'</b><small>'+l+'</small></div>'; }
+
+// ---------- ESTADÍSTICA ----------
+// Prova de permutació sobre la diferència de medianes. Exacta si hi ha poques
+// dades; si n'hi ha moltes, es mostreja. No assumeix normalitat.
+function permTest(a, b, iters){
+  const nA=a.length, nB=b.length;
+  if(nA<2 || nB<2) return null;
+  const diff = () => med(a) - med(b);
+  const real = diff();
+  const all = a.concat(b);
+  const total = nA + nB;
+  const nCr = (n,k)=>{ let r=1; for(let i=0;i<k;i++) r = r*(n-i)/(i+1); return Math.round(r); };
+  const exact = nCr(total, nA) <= 200000;
+  let hits = 0, runs = 0;
+  if(exact){
+    const idx = new Array(nA).fill(0).map((_,i)=>i);
+    const comb = (start, chosen) => {
+      if(chosen.length === nA){
+        const sel = new Set(chosen);
+        const A2=[], B2=[];
+        all.forEach((v,i) => (sel.has(i)?A2:B2).push(v));
+        if(Math.abs(med(A2)-med(B2)) >= Math.abs(real) - 1e-9) hits++;
+        runs++; return;
+      }
+      for(let i=start;i<total;i++){ chosen.push(i); comb(i+1, chosen); chosen.pop(); }
+    };
+    comb(0, []);
+  } else {
+    runs = iters || 20000;
+    for(let r=0;r<runs;r++){
+      const sh = all.slice();
+      for(let i=sh.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [sh[i],sh[j]]=[sh[j],sh[i]]; }
+      const A2 = sh.slice(0,nA), B2 = sh.slice(nA);
+      if(Math.abs(med(A2)-med(B2)) >= Math.abs(real) - 1e-9) hits++;
+    }
+  }
+  return { diff: real, p: runs ? hits/runs : null, exact, runs };
+}
+function sessionsByArm(){
+  const A=[], B=[];
+  S.sessions.forEach(s => {
+    if(!s.test) return;
+    (s.arm === 'A' ? A : B).push(s.test.median);
+  });
+  return {A,B};
+}
+function renderStats(){
+  const {A,B} = sessionsByArm();
+  const n = S.sessions.length;
+  if(!n){ $('verdict').innerHTML = '<p class="note">Encara no hi ha sessions. Fes-ne una i torna aquí.</p>';
+          $('cmp').innerHTML=''; $('spark').innerHTML=''; $('tbl').innerHTML=''; return; }
+
+  const pt = permTest(A, B, 20000);
+  let html = '';
+  if(!pt){
+    html = '<p>Hi ha <b>'+n+'</b> sessions ('+A.length+' de la '+ARMS.A.name+', '+B.length+' de la '+ARMS.B.name+').</p>'+
+      '<div class="warnbox">Encara no hi ha prou dades per comparar: cal <b>almenys 2 sessions de cada versió</b>. '+
+      'Segueix fent-ne i torna aquí.</div>';
+  } else {
+    const faster = pt.diff > 0 ? ARMS.B.name : ARMS.A.name;
+    const ms = Math.abs(pt.diff);
+    const p = pt.p;
+    const sig = p < 0.05;
+    html = '<p>Amb <b>'+A.length+'</b> sessions de la '+ARMS.A.name+' i <b>'+B.length+'</b> de la '+ARMS.B.name+
+           ', la diferència de mediana és de <b>'+ms.toFixed(1)+' ms</b>'+
+           (ms < 1 ? ' (pràcticament cap)' : ' a favor de la <b>'+faster+'</b>')+'.</p>';
+    if(n < 8){
+      html += '<div class="warnbox"><b>Encara és massa aviat.</b> Amb '+n+' sessions, qualsevol diferència pot ser '+
+        'casualitat pura. Aquí no hi ha cap conclusió. Calen setmanes (20-40 sessions) perquè el senyal superi el soroll.</div>';
+    } else if(sig){
+      html += '<div class="okbox"><b>Senyal detectat.</b> Si les condicions no han canviat gaire, la probabilitat que '+
+        'aquesta diferència sigui pura casualitat és del <b>'+(p*100).toFixed(1)+'%</b>. És consistent amb un efecte real '+
+        'per a tu. No ho és per a ningú més: és el TEU resultat.</div>';
+    } else {
+      html += '<div class="warnbox"><b>Cap diferència clara.</b> La probabilitat que el que veus sigui casualitat és del '+
+        '<b>'+(p*100).toFixed(1)+'%</b>, massa alta per afirmar res. Potser no hi ha efecte, o potser calen més sessions '+
+        'perquè un efecte petit surti del soroll.</div>';
+    }
+    html += '<div class="note">Prova de permutació ('+(pt.exact?'exacta':'mostrejada')+', '+pt.runs+
+      ' reparticions). No assumeix que les dades segueixin cap distribució concreta: pregunta directament '+
+      '"si no hi hagués cap efecte, quantes vegades veuríem una diferència com aquesta?".</div>';
+  }
+  $('verdict').innerHTML = html;
+
+  const cmpArm = (list, key, cls) => {
+    if(!list.length) return '';
+    return '<div class="arm"><h4>'+ARMS[key].name+(ARMS[key].beat>0?' · amb batec':' · sense batec')+'</h4>'+
+      '<div class="v">'+ (med(list)!=null?Math.round(med(list)):'–') +'<span class="u"> ms</span></div>'+
+      '<div class="u">'+list.length+' sessions · millor '+Math.round(Math.min(...list))+' ms</div></div>';
+  };
+  $('cmp').innerHTML = cmpArm(A,'A','a') + cmpArm(B,'B','b');
+
+  // gràfic: cada sessió en ordre, alçada proporcional a la mediana (invertit = millor)
+  const all = S.sessions.filter(s=>s.test).map(s=>({arm:s.arm, v:s.test.median, ts:s.ts}));
+  const vals = all.map(x=>x.v); const mx = Math.max(...vals), mn = Math.min(...vals);
+  const h = v => 10 + Math.round((1 - (v-mn)/((mx-mn)||1)) * 55);
+  $('spark').innerHTML = all.map(x => '<i class="'+(x.arm==='B'?'b':'')+'" style="height:'+h(x.v)+'px" '+
+    'title="'+new Date(x.ts).toLocaleDateString()+' · '+ARMS[x.arm].name+' · '+Math.round(x.v)+' ms"></i>').join('');
+
+  const rows = S.sessions.slice().reverse().map(s => {
+    const d = new Date(s.ts).toLocaleString();
+    return '<tr><td>'+d+'</td><td>'+(s.arm==='A'?'V1':'V2')+'</td><td class="n">'+
+      (s.test?Math.round(s.test.median):'–')+'</td><td class="n">'+(s.test?Math.round(s.test.fastest10):'–')+
+      '</td><td class="n">'+(s.test?s.test.lapses:'–')+'</td><td class="n">'+(s.test?s.test.falseStarts:'–')+
+      '</td><td class="n">'+(s.mins||'–')+'</td><td class="n">'+(s.pre.clarity??'–')+'</td><td class="n">'+
+      (s.post.clarity??'–')+'</td></tr>';
+  }).join('');
+  $('tbl').innerHTML = '<table><thead><tr><th>Data</th><th>Versió</th><th>Mediana ms</th><th>Millor 10%</th>'+
+    '<th>Lapsus</th><th>Falses</th><th>Min</th><th>Claredat abans</th><th>Després</th></tr></thead><tbody>'+
+    rows+'</tbody></table>';
+}
+
+// ---------- FLUX ----------
+function beginSession(){
+  stopAudio();
+  cur = {
+    id: sessionCode(), ts: new Date().toISOString(),
+    pre: { sleep: $('preSleep').value || null, energy: $('preEnergy').value || null,
+           clarity: $('preClarity').value ? +$('preClarity').value : null },
+    mins: +$('cfgMins').value, testSecs: +$('cfgTest').value,
+    carrier: +$('cfgCarrier').value, post: { clarity: null }, test: null
+  };
+  cur.arm = nextArm();
+  $('armPill').textContent = ARMS[cur.arm].name;
+  $('armPillCode').textContent = 'codi ' + cur.id;
+  startAudio(cur.carrier, ARMS[cur.arm].beat);
+
+  let total = cur.mins * 60;
+  const t0 = performance.now();
+  const pinta = () => {
+    const fet = (performance.now() - t0) / 1000;
+    const left = Math.max(0, total - fet);
+    $('listenTimer').textContent = Math.floor(left/60)+':'+String(Math.floor(left%60)).padStart(2,'0');
+    $('listenBar').style.width = Math.min(100, fet/total*100)+'%';
+    return left;
+  };
+  pinta();
+  $('btnToTest').disabled = true;
+  const iv = setInterval(() => {
+    // El temps es calcula pel rellotge, no restant 1: aixi no es descompta
+    // si el navegador alenteix els temporitzadors en segon pla.
+    if(pinta() <= 0){
+      clearInterval(iv);
+      $('listenTimer').textContent = '0:00';
+      $('listenBar').style.width = '100%';
+      $('btnToTest').disabled = false;
+      $('btnToTest').classList.add('prim');
+      $('listenTxt').textContent = 'Fet. Ara fes el test. No canviïs de pestanya mentre dura.';
+    }
+  }, 250);
+  cur.iv = iv;
+  show('s-escolta');
+}
+
+function saveSession(){
+  cur.post.clarity = $('postClarity').value ? +$('postClarity').value : null;
+  cur.testSecs = cur.test ? cur.test.dur : cur.testSecs;
+  S.sessions.push(cur);
+  save();
+  cur = null; test = null;
+  renderStats();
+  show('s-stats');
+}
+
+// ---------- EXPORTACIONS ----------
+function exportCSV(){
+  const rows = [['data','versio','batec_hz','mediana_ms','millor10_ms','desviacio_ms','lapsus','sortides_falses',
+                 'minuts','portadora','claredat_abans','claredat_despres','son','energia']];
+  S.sessions.forEach(s => {
+    rows.push([ new Date(s.ts).toISOString(), s.arm, ARMS[s.arm].beat,
+      s.test?Math.round(s.test.median):'', s.test?Math.round(s.test.fastest10):'',
+      s.test?Math.round(s.test.sd||0):'', s.test?s.test.lapses:'', s.test?s.test.falseStarts:'',
+      s.mins, s.carrier, s.pre.clarity??'', s.post.clarity??'', s.pre.sleep??'', s.pre.energy??'' ]);
+  });
+  const csv = rows.map(r => r.join(';')).join('\n');
+  dl('n1-calibratge.csv', csv, 'text/csv');
+}
+function dl(name, content, mime){
+  const b = new Blob([content], {type:mime+';charset=utf-8'});
+  const u = URL.createObjectURL(b);
+  const a = document.createElement('a'); a.href=u; a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(u), 1500);
+}
+
+// ---------- ESDEVENIMENTS ----------
+$('btnStart').onclick = beginSession;
+$('btnAbort').onclick = () => { clearInterval(cur && cur.iv); stopAudio(); cur=null; show('s-inici'); };
+$('btnToTest').onclick = () => {
+  if(!cur) return;
+  if(cur.iv){ clearInterval(cur.iv); cur.iv = null; }
+  // L'àudio segueix sonant durant el test: és com ho fan els estudis i
+  // allarga l'exposició de manera uniforme. S'atura en acabar el test.
+  show('s-test');
+  startTest(cur.testSecs);
+};
+$('btnAbortTest').onclick = () => {
+  if(test){ test.done = true; clearTimeout(test.to); clearTimeout(test.offTo); clearTimeout(test.endTo);
+            document.onkeydown = null; test = null; }
+  $('dot').classList.remove('on'); $('stage').classList.remove('tap');
+  cur = null; show('s-inici');
+};
+$('btnSave').onclick = saveSession;
+$('btnDiscard').onclick = () => { cur=null; show('s-inici'); };
+$('btnStats').onclick = () => { renderStats(); show('s-stats'); };
+$('btnBack').onclick = () => show('s-inici');
+$('btnExport').onclick = exportCSV;
+$('btnDump').onclick = () => dl('n1-calibratge-backup.json', JSON.stringify(S,null,2), 'application/json');
+$('btnLoad').onclick = () => $('fileIn').click();
+$('fileIn').onchange = ev => {
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { try{
+      const d = JSON.parse(r.result);
+      if(d && Array.isArray(d.sessions)){
+        // fusiona sense duplicar per id
+        const seen = new Set(S.sessions.map(s=>s.id));
+        d.sessions.forEach(s => { if(!seen.has(s.id)) S.sessions.push(s); });
+        S.sessions.sort((a,b)=> new Date(a.ts)-new Date(b.ts));
+        save(); renderStats(); show('s-stats');
+        alert('Restaurades. Total de sessions: '+S.sessions.length);
+      } else alert('El fitxer no té el format esperat.');
+    }catch(e){ alert('No s\'ha pogut llegir: '+e.message); } };
+  r.readAsText(f);
+};
+$('btnWipe').onclick = () => {
+  if(confirm('Segur que vols esborrar totes les sessions? No es pot desfer.')){
+    S = {sessions:[]}; save(); renderStats(); show('s-inici');
+  }
+};
+
+load();
+show('s-inici');
+</script>
+</body>
+</html>
