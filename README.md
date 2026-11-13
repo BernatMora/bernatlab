@@ -19,6 +19,8 @@ bernatlab/
 ├── book/               Llibre/manual tècnic (Mòdul 1 + Mòdul 2, 206 pàgines)
 ├── homelab/            Configuració del servidor (Docker Compose, scripts, docs)
 ├── projects/           Subprojectes (hort-osona com a submodule)
+├── bici/               CycleConnect Web (entrenaments amb la bici Bkool)
+├── english/            English Step (vocabulari anglès diari)
 ├── backups/            Còpies de seguretat manuals
 └── README.md           Aquest fitxer
 ```
