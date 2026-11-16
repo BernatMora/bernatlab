@@ -913,6 +913,38 @@ function takePending() {
   } catch (e) { log(`No s'ha pogut carregar l'entrenament rebut: ${e.message}`); }
 }
 
+/* Entrenament rebut per l'adreça, perquè una altra web (la Cycle Library de la RPi, la web d'intervals)
+   pugui obrir el reproductor amb un entrenament encara que no comparteixin origen:
+     …/bici/#ictx=<base64url d'un fitxer .ictx>   ·   #zwo=…   ·   #w=<base64url de JSON>
+   El JSON és { name, ftp?, intervals: [...] } (format de la web d'intervals) o { name, ftp?, steps: [...] }. */
+function b64urlText(v) {
+  const bin = atob(v.replace(/-/g, '+').replace(/_/g, '/'));
+  return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
+}
+function takeFromHash() {
+  const m = location.hash.match(/^#(w|ictx|zwo)=([A-Za-z0-9_\-+\/=]+)$/);
+  if (!m) return;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+  try {
+    const text = b64urlText(m[2]);
+    let w, ftpIn = null;
+    if (m[1] === 'w') {
+      const p = JSON.parse(text);
+      ftpIn = +p.ftp;
+      if (Array.isArray(p.steps)) {
+        const num = (v) => Math.max(0, +v || 0);
+        const steps = p.steps.map(x => ({ dur: Math.round(num(x.dur)), p0: num(x.p0), p1: num(x.p1 ?? x.p0),
+          cad: +x.cad > 0 ? +x.cad : undefined, cue: typeof x.cue === 'string' ? x.cue.slice(0, 200) : undefined,
+          label: typeof x.label === 'string' ? x.label.slice(0, 60) : 'Tram' })).filter(x => x.dur > 0 && x.p0 <= 5 && x.p1 <= 5);
+        if (!steps.length) throw new Error('entrenament buit');
+        w = { name: String(p.name || 'Entrenament').slice(0, 80), steps };
+      } else w = fromBuilder(p);
+    } else w = parseWorkoutFile('enllac.' + m[1], text, player.ftp);
+    if (ftpIn >= 50 && ftpIn <= 500) { player.ftp = Math.round(ftpIn); $('ftp').value = player.ftp; try { localStorage.setItem('cc.ftp', player.ftp); } catch {} }
+    addWorkout(w, 'Rebut per enllaç');
+  } catch (e) { log(`No s'ha pogut llegir l'entrenament de l'enllaç: ${e.message}`); }
+}
+
 /* ---------- simulador ---------- */
 function makeSim() {
   const s = { target: target.power, p: 0, cad: 85, hr: 95,
@@ -974,6 +1006,8 @@ function init() {
   workouts.push(...loadLibrary());
   fillWorkoutSelect(0); loadWorkout(workouts[0]);
   takePending();
+  takeFromHash();
+  window.addEventListener('hashchange', takeFromHash);
   // La web d'intervals pregunta si ja hi ha un reproductor obert abans d'obrir-ne un altre.
   try { const bc = new BroadcastChannel('cc-player'); bc.onmessage = (e) => { if (e.data === 'ping') bc.postMessage('pong'); }; } catch {}
   window.addEventListener('storage', (e) => { if (e.key === 'cc.pendingWorkout' && e.newValue) takePending(); });
