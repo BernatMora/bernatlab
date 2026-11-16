@@ -79,6 +79,14 @@
   .cue small { color: var(--muted); }
   .int { margin-left: auto; color: var(--muted); font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
   .int b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .laps { overflow-x: auto; margin-top: 14px; }
+  .laps table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .laps th, .laps td { padding: 5px 8px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
+  .laps th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; border-top: 0; }
+  .laps th:first-child, .laps td:first-child { text-align: left; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+  .laps td.ok { color: var(--ok); } .laps td.lo { color: var(--cad); } .laps td.hi { color: var(--bad); }
+  .laps tr.now td { background: var(--panel2); }
+  .metric .unit b { color: var(--text); font-weight: 600; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
 </style>
 </head>
@@ -156,9 +164,9 @@
       <section>
         <h2>En directe</h2>
         <div class="metrics">
-          <div class="metric m-pow"><div class="lbl">Potència</div><div class="val" id="vPow">–</div><div class="unit">W</div></div>
-          <div class="metric m-cad"><div class="lbl">Cadència</div><div class="val" id="vCad">–</div><div class="unit">rpm</div></div>
-          <div class="metric m-hr"><div class="lbl">Pols</div><div class="val" id="vHr">–</div><div class="unit">ppm</div></div>
+          <div class="metric m-pow"><div class="lbl">Potència</div><div class="val" id="vPow">–</div><div class="unit" id="uPow">W</div></div>
+          <div class="metric m-cad"><div class="lbl">Cadència</div><div class="val" id="vCad">–</div><div class="unit" id="uCad">rpm</div></div>
+          <div class="metric m-hr"><div class="lbl">Pols</div><div class="val" id="vHr">–</div><div class="unit" id="uHr">ppm</div></div>
           <div class="metric m-spd"><div class="lbl">Velocitat</div><div class="val" id="vSpd">–</div><div class="unit" id="uSpd">km/h</div></div>
         </div>
         <canvas id="chart" width="1200" height="320"></canvas>
@@ -183,9 +191,10 @@
           <button id="wImport">Importa fitxer…</button>
           <input type="file" id="wFile" accept=".zwo,.ictx,.mrc,.erg,.xml" hidden>
           <label class="ftp">FTP <input id="ftp" type="number" min="50" max="500" step="5" value="200"> W</label>
+          <label class="ftp">FC màx <input id="hrmax" type="number" min="100" max="230" step="1" value="165"> ppm</label>
         </div>
         <canvas id="wChart" width="1200" height="480"></canvas>
-        <div class="legend"><span><i class="blk"></i>Potència objectiu</span><span><i style="border-color:#fff"></i>La teva potència</span><span><i class="dash" style="border-color:#4da3ff"></i>Cadència objectiu</span><span><i style="border-color:#4da3ff"></i>La teva cadència</span></div>
+        <div class="legend"><span><i class="blk"></i>Potència objectiu</span><span><i style="border-color:#fff"></i>La teva potència</span><span><i class="dash" style="border-color:#4da3ff"></i>Cadència objectiu</span><span><i style="border-color:#4da3ff"></i>La teva cadència</span><span><i class="dash" style="border-color:#ff4d6d"></i>Pols objectiu</span><span><i style="border-color:#ff4d6d"></i>El teu pols</span></div>
         <div class="wnow">
           <div><div class="lbl">Tram</div><div class="v" id="wStep">–</div></div>
           <div><div class="lbl">Objectiu</div><div class="v" id="wTarget">–</div><div class="u" id="wCad"></div></div>
@@ -197,8 +206,15 @@
           <button class="primary" id="wPlay">Comença</button>
           <button id="wSkip">Salta el tram</button>
           <button id="wStop">Atura</button>
-          <span class="int">Intensitat <button id="wLess">−5</button><b><span id="wInt">100</span> %</b><button id="wMore">+5</button></span>
+          <span class="int">Aquest tram <button id="wStepLess">−10 W</button><button id="wStepMore">+10 W</button> · Tot <button id="wLess">−5</button><b><span id="wInt">100</span> %</b><button id="wMore">+5</button></span>
         </div>
+        <div class="laps" id="wLaps" hidden>
+          <table>
+            <thead><tr><th>Tram</th><th>Fet</th><th>W obj. / real</th><th>Dif.</th><th>rpm obj. / real</th><th>ppm obj. / real</th></tr></thead>
+            <tbody id="wLapsBody"></tbody>
+          </table>
+        </div>
+        <p class="hint">El pols objectiu és orientatiu (percentatge de la FC màxima de cada tram); la bici només obeeix la potència.</p>
         <p class="hint">Els entrenaments enviats des de la web d'intervals i els fitxers importats (.zwo, .ictx, .mrc, .erg) es queden desats en aquesta llista. L'entrenament posa la bici en mode ERG i canvia la potència a cada tram.</p>
       </section>
 
@@ -639,6 +655,11 @@ function tick() {
   $('vHr').textContent = hr ?? '–';
   $('vSpd').textContent = spd === null ? '–' : spd.toFixed(1);
   $('uSpd').textContent = est ? 'km/h (estimada)' : 'km/h';
+  const pl = player.playing ? locate(player.t) : null;
+  const unit = (id, u, obj) => { const el = $(id); el.textContent = u; if (obj !== null) { el.append(' · obj. '); const b = document.createElement('b'); b.textContent = obj; el.append(b); } };
+  unit('uPow', 'W', pl ? curWatts(pl) : null);
+  unit('uCad', 'rpm', pl && pl.s.cad ? Math.round(pl.s.cad) : null);
+  unit('uHr', 'ppm', pl ? stepHr(pl.s) : null);
   hist.push({ p: power, h: hr }); if (hist.length > 300) hist.shift();
   if (session.running) {
     for (let i = 0; i < n; i++) {
@@ -730,7 +751,8 @@ function parseICTX(text, fallbackName) {
       const [m, s] = txt(leg, 'duration').split(':').map(Number);
       const lr = parseFloat(txt(leg, 'levelRatio')), ratio = isFinite(lr) ? lr : 60, rpm = parseInt(txt(leg, 'rpm')) || undefined;
       const standing = txt(leg, 'position') === 'standing';
-      return S((m || 0) * 60 + (s || 0), ratio / 100, { cad: rpm, cue: txt(leg, 'comment') || undefined, label: (sname || 'Tram') + (standing ? ' · dret' : '') });
+      const bp = parseFloat(txt(leg, 'bpm'));
+      return S((m || 0) * 60 + (s || 0), ratio / 100, { hr: bp >= 30 && bp <= 100 ? bp : undefined, cad: rpm, cue: txt(leg, 'comment') || undefined, label: (sname || 'Tram') + (standing ? ' · dret' : '') });
     });
     for (let i = 0; i < loops; i++) steps.push(...legs.map(l => Object.assign({}, l)));
   }
@@ -767,7 +789,7 @@ function parseWorkoutFile(name, text, ftpWatts) {
   return w;
 }
 
-const player = { w: null, t: 0, playing: false, intensity: 1, idx: -1, total: 0, ftp: 200, trace: [] };
+const player = { w: null, t: 0, playing: false, intensity: 1, idx: -1, total: 0, ftp: 200, hrmax: 165, bias: 0, trace: [] };
 let audio = null;
 function beep(freq, ms) {
   try { if (!audio) return; const o = audio.createOscillator(), g = audio.createGain();
@@ -781,8 +803,13 @@ function locate(t) {
   return null;
 }
 const stepWatts = (s, into) => Math.round(player.ftp * player.intensity * (s.p0 + (s.p1 - s.p0) * (s.dur ? into / s.dur : 0)));
+/* Pols objectiu del tram, en ppm. Si el fitxer el porta (.ictx: % de la FC màxima) es fa servir;
+   si no, s'estima amb la mateixa fórmula que fa servir l'exportador a .ictx: 45 + 0,35 × %FTP, entre 50 i 95 %. */
+const stepHrPct = (s) => s.hr || Math.max(50, Math.min(95, Math.round(45 + Math.max(40, Math.min(140, (s.p0 + s.p1) * 50)) * 0.35)));
+const stepHr = (s) => Math.round(player.hrmax * stepHrPct(s) / 100);
+const curWatts = (loc) => Math.max(0, stepWatts(loc.s, loc.into) + (loc.i === player.idx ? player.bias : 0));
 function loadWorkout(w) {
-  player.w = w; player.t = 0; player.playing = false; player.idx = -1; player.trace = [];
+  player.w = w; player.t = 0; player.playing = false; player.idx = -1; player.bias = 0; player.trace = [];
   player.total = w.steps.reduce((a, s) => a + s.dur, 0);
   $('wPlay').textContent = 'Comença';
   renderPlayer();
@@ -797,13 +824,15 @@ function renderPlayer() {
   const k = player.ftp * player.intensity;
   const maxW = Math.max(k * 1.3, ...w.steps.map(s => Math.max(s.p0, s.p1) * k), player.trace.reduce((m, r) => Math.max(m, (r && r.p) || 0), 0)) * 1.08;
   const X = (t) => L + t / player.total * PW, YW = (v) => T + PH - Math.min(v, maxW) / maxW * PH;
-  const C0 = 40, C1 = 130, YC = (v) => T + PH - (Math.max(C0, Math.min(C1, v)) - C0) / (C1 - C0) * PH;
+  const C0 = 40, C1 = 200, YC = (v) => T + PH - (Math.max(C0, Math.min(C1, v)) - C0) / (C1 - C0) * PH;
   g.font = '20px system-ui'; g.lineWidth = 1;
   const stepW = maxW > 450 ? 100 : 50;
   for (let v = stepW; v < maxW; v += stepW) { g.strokeStyle = '#2b3441'; g.beginPath(); g.moveTo(L, YW(v)); g.lineTo(L + PW, YW(v)); g.stroke();
     g.fillStyle = '#8b98a8'; g.textAlign = 'right'; g.fillText(v + ' W', L - 8, YW(v) + 7); }
   g.fillStyle = '#4da3ff'; g.textAlign = 'left';
-  for (const v of [60, 80, 100, 120]) g.fillText(v + ' rpm', L + PW + 8, YC(v) + 7);
+  g.fillStyle = '#8b98a8';
+  for (const v of [60, 90, 120, 150, 180]) g.fillText(String(v), L + PW + 8, YC(v) + 7);
+  g.textAlign = 'right'; g.fillText('rpm · ppm', W - 6, T + 16); g.textAlign = 'left';
   let acc = 0;
   for (const s of w.steps) {
     const x0 = X(acc), x1 = X(acc + s.dur), done = acc + s.dur <= player.t;
@@ -815,6 +844,8 @@ function renderPlayer() {
   g.fillStyle = '#ffffff88'; g.textAlign = 'left'; g.fillText('FTP', L + 6, YW(player.ftp) - 6);
   g.strokeStyle = '#4da3ff'; g.lineWidth = 3; g.setLineDash([10, 8]); acc = 0;          // cadència objectiu
   for (const s of w.steps) { if (s.cad) { g.beginPath(); g.moveTo(X(acc), YC(s.cad)); g.lineTo(X(acc + s.dur), YC(s.cad)); g.stroke(); } acc += s.dur; }
+  g.strokeStyle = '#ff4d6d'; acc = 0;                                                     // pols objectiu
+  for (const s of w.steps) { g.beginPath(); g.moveTo(X(acc), YC(stepHr(s))); g.lineTo(X(acc + s.dur), YC(stepHr(s))); g.stroke(); acc += s.dur; }
   g.setLineDash([]);
   const trace = (key, Y, color, width) => {
     g.strokeStyle = color; g.lineWidth = width; g.lineJoin = 'round'; g.beginPath(); let pen = false;
@@ -824,17 +855,19 @@ function renderPlayer() {
     g.stroke();
   };
   trace('c', YC, '#4da3ff', 3);
+  trace('h', YC, '#ff4d6d', 3);
   trace('p', YW, '#0e1116', 7); trace('p', YW, '#ffffff', 3.5);
   g.textAlign = 'center'; g.fillStyle = '#8b98a8';
   const tickMin = player.total > 5400 ? 20 : player.total > 2400 ? 10 : player.total > 900 ? 5 : 1;
   for (let m = 0; m * 60 <= player.total; m += tickMin) g.fillText(m + "'", X(m * 60), H - 8);
   if (player.t > 0) { g.fillStyle = '#ff7a1a'; g.fillRect(X(player.t) - 2, T, 4, PH); }
+  renderLaps();
   const loc = locate(Math.min(player.t, player.total - 1));
   if (!loc) return;
   const { i, s, into } = loc, next = w.steps[i + 1];
   $('wStep').textContent = `${i + 1}/${w.steps.length} · ${s.label || 'Tram'}`;
-  $('wTarget').textContent = stepWatts(s, into) + ' W';
-  $('wCad').textContent = s.cad ? `a ${Math.round(s.cad)} rpm` : '';
+  $('wTarget').textContent = curWatts(loc) + ' W';
+  $('wCad').textContent = [s.cad ? `a ${Math.round(s.cad)} rpm` : '', i === player.idx && player.bias ? `ajust ${player.bias > 0 ? '+' : ''}${player.bias} W` : ''].filter(Boolean).join(' · ');
   $('wLeft').textContent = fmtTime(Math.max(0, s.dur - Math.floor(into)));
   $('wTotal').textContent = fmtTime(Math.max(0, player.total - player.t));
   $('wCue').innerHTML = '';
@@ -844,13 +877,42 @@ function renderPlayer() {
   $('wCue').append(parts.join(' · '));
   if (next) { const sm = document.createElement('small'); sm.textContent = `${parts.length ? '  —  ' : ''}Després: ${next.label || 'tram'} a ${stepWatts(next, 0)} W, ${fmtTime(next.dur)}`; $('wCue').append(sm); }
 }
+/* Taula per trams, com la de voltes d'icTrainer: objectiu i mitjana real de potència, cadència i pols. */
+function renderLaps() {
+  const body = $('wLapsBody'), w = player.w;
+  body.textContent = '';
+  let acc = 0, rows = 0;
+  const cur = player.playing || player.t > 0 ? locate(Math.min(player.t, player.total - 1)) : null;
+  w.steps.forEach((s, i) => {
+    const a = acc; acc += s.dur;
+    let n = 0, sp = 0, np = 0, sc = 0, nc = 0, sh = 0, nh = 0;
+    for (let t = a; t < a + s.dur && t < player.trace.length; t++) { const r = player.trace[t]; if (!r) continue; n++;
+      if (r.p !== null) { sp += r.p; np++; } if (r.c !== null) { sc += r.c; nc++; } if (r.h !== null) { sh += r.h; nh++; } }
+    if (!n) return;
+    rows++;
+    const objW = Math.round(player.ftp * player.intensity * (s.p0 + s.p1) / 2), realW = np ? Math.round(sp / np) : null;
+    const dif = realW !== null && objW > 0 ? Math.round((realW - objW) / objW * 100) : null;
+    const cells = [`${i + 1} · ${s.label || 'Tram'}`, n >= s.dur ? fmtTime(s.dur) : `${fmtTime(n)} de ${fmtTime(s.dur)}`, `${objW} / ${realW ?? '–'}`,
+      dif === null ? '–' : (dif > 0 ? '+' : '') + dif + ' %', `${s.cad ? Math.round(s.cad) : '–'} / ${nc ? Math.round(sc / nc) : '–'}`, `${stepHr(s)} / ${nh ? Math.round(sh / nh) : '–'}`];
+    const tr = document.createElement('tr');
+    if (cur && cur.i === i) tr.className = 'now';
+    cells.forEach((c, k) => { const td = document.createElement('td'); td.textContent = c;
+      if (k === 3 && dif !== null) td.className = Math.abs(dif) <= 5 ? 'ok' : dif < 0 ? 'lo' : 'hi';
+      tr.append(td); });
+    body.append(tr);
+  });
+  $('wLaps').hidden = rows === 0;
+}
 function applyPlayer() {
   const loc = locate(player.t); if (!loc) return;
   if (target.mode !== 'erg') setMode('erg');
-  const watts = stepWatts(loc.s, loc.into);
+  if (loc.i !== player.idx) player.bias = 0;          // l'ajust de ±10 W només val per al tram on es fa
+  const stepNow = loc.i !== player.idx;
+  if (stepNow) player.idx = loc.i;
+  const watts = curWatts(loc);
   if (watts !== target.power) setTP(watts);
-  if (loc.i !== player.idx) {
-    player.idx = loc.i; beep(880, 250);
+  if (stepNow) {
+    beep(880, 250);
     log(`Entrenament: tram ${loc.i + 1}/${player.w.steps.length} "${loc.s.label || ''}" → ${watts} W durant ${fmtTime(loc.s.dur)}`);
   } else if (loc.s.dur - loc.into <= 3 && loc.s.dur > 10) beep(660, 90);
 }
@@ -858,7 +920,8 @@ function playerTick() {
   if (!player.playing) return;
   const tn = now();
   player.trace[player.t] = { p: live.power !== null && tn - live.tPower < 4000 ? live.power : null,
-                             c: live.cadence !== null && tn - live.tCad < 3500 ? live.cadence : null };
+                             c: live.cadence !== null && tn - live.tCad < 3500 ? live.cadence : null,
+                             h: live.hr !== null && tn - live.tHr < 6000 ? live.hr : null };
   player.t++;
   if (player.t >= player.total) { stopWorkout(true); return; }
   applyPlayer(); renderPlayer();
@@ -1032,6 +1095,13 @@ function init() {
   const setInt = (d) => { player.intensity = Math.max(0.5, Math.min(1.5, Math.round((player.intensity + d) * 100) / 100));
     $('wInt').textContent = Math.round(player.intensity * 100); if (player.playing) applyPlayer(); renderPlayer(); };
   $('wLess').onclick = () => setInt(-0.05); $('wMore').onclick = () => setInt(0.05);
+  const setBias = (d) => { if (!player.playing) return; player.bias = Math.max(-150, Math.min(150, player.bias + d)); applyPlayer(); renderPlayer(); };
+  $('wStepLess').onclick = () => setBias(-10); $('wStepMore').onclick = () => setBias(10);
+  try { const h = +localStorage.getItem('cc.hrmax'); if (h >= 100 && h <= 230) player.hrmax = h; } catch {}
+  $('hrmax').value = player.hrmax;
+  renderPlayer();
+  $('hrmax').onchange = (e) => { const h = Math.max(100, Math.min(230, Math.round(+e.target.value) || 165)); player.hrmax = h; e.target.value = h;
+    try { localStorage.setItem('cc.hrmax', h); } catch {} renderPlayer(); };
   setInterval(tick, 1000); draw();
 }
 init();
