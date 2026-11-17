@@ -1,6 +1,6 @@
 // English Step: funciona sense connexió després de la primera visita.
 // Primer prova la xarxa (per rebre paraules noves) i, si no n'hi ha, fa servir la còpia desada.
-const CACHE = 'english-step-v2';
+const CACHE = 'english-step-v3';
 const SHELL = ['./', 'index.html', 'style.css', 'content.js', 'app.js', 'icon.svg', 'icon-180.png', 'icon-192.png', 'manifest.webmanifest'];
 
 self.addEventListener('install', e => {
