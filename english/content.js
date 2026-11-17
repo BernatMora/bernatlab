@@ -201,4 +201,67 @@ C2: [
 ["disruptive","disruptiu","causing major change to an industry","Generative AI has been highly disruptive for translators.","AI"]
 ]};
 for (const [level, rows] of Object.entries(more)) raw[level].push(...rows);
+// Lot 3 (2026-11): temes nous al B2 i més paraules als temes antics.
+// Afegeix sempre al final de cada nivell: l'identificador de cada targeta depèn de la posició.
+const extra = {
+B2: [
+["steel","acer","a strong metal made from iron and carbon","The roof is supported by steel beams.","Engineering"],
+["column","pilar","a vertical part of a structure that supports weight","They added a new column in the middle of the garage.","Engineering"],
+["scaffolding","bastida","a temporary structure workers stand on to build or repair a building","The scaffolding will come down next week.","Engineering"],
+["measure","mesurar","to find the size or amount of something","Please measure the opening before you order the door.","Engineering"],
+["drill","trepant / foradar","a tool for making holes, or to make a hole with it","We need to drill four holes for the anchors.","Engineering"],
+["load","càrrega","the weight that a structure has to carry","The floor can carry a heavy load.","Engineering"],
+["strum","rasguejar","to play a guitar by moving your fingers across the strings","Strum the chords slowly at first.","Music"],
+["fret","trast","one of the metal lines across the neck of a guitar","Put your finger just behind the fifth fret.","Music"],
+["scale","escala","a series of notes going up or down in order","I practise the minor scale every morning.","Music"],
+["amp","amplificador","a machine that makes the sound of an electric guitar louder","Turn the amp down, the neighbours are sleeping.","Music"],
+["verse","estrofa","a part of a song that comes before the chorus","The second verse is much quieter.","Music"],
+["play by ear","tocar d'oïda","to play music without reading it","She can play by ear almost any song she hears.","Music"],
+["injury","lesió","physical damage to the body","He missed the race because of a knee injury.","Health"],
+["heart rate","freqüència cardíaca","how many times your heart beats per minute","My heart rate goes up quickly on the hills.","Health"],
+["get fit","posar-se en forma","to become healthy and strong through exercise","I want to get fit before the summer.","Health"],
+["rest day","dia de descans","a day without training so the body can recover","Tomorrow is a rest day, so no bike.","Health"],
+["balanced diet","dieta equilibrada","eating the right amounts of different kinds of food","A balanced diet gives you more energy.","Health"],
+["sweat","suar / suor","to produce liquid through your skin when hot or active","You sweat a lot on the indoor trainer.","Health"],
+["sow","sembrar","to put seeds in the ground so they grow","We sow the lettuce in early spring.","Gardening"],
+["dig","cavar","to break and move soil with a tool","Dig a small hole for each plant.","Gardening"],
+["fertiliser","adob","a substance added to soil to help plants grow","I only use organic fertiliser in the garden.","Gardening"],
+["greenhouse","hivernacle","a glass building where plants are grown","The tomatoes start in the greenhouse.","Gardening"],
+["ripe","madur","ready to be picked and eaten","The figs are ripe at the end of August.","Gardening"],
+["shade","ombra","an area protected from direct sunlight","Lettuce grows better in partial shade in summer.","Gardening"],
+["generate","generar","to produce or create something","The tool can generate a summary in seconds.","AI"],
+["summarise","resumir","to give the main points of something in a short form","Can you summarise this report in five lines?","AI"],
+["machine learning","aprenentatge automàtic","computers learning patterns from data instead of fixed rules","Machine learning helps predict the wind.","AI"],
+["privacy","privacitat","the right to keep personal information to yourself","Read the privacy settings before you upload files.","AI"],
+["voice assistant","assistent de veu","software that answers spoken questions","I asked the voice assistant to set a timer.","AI"],
+["training data","dades d'entrenament","the information used to teach an AI model","The quality of the training data matters a lot.","AI"]
+],
+'B2+': [
+["sort out","resoldre / endreçar","to deal with a problem or organise something","I need to sort out the papers before Monday.","Everyday"],
+["turn down","rebutjar / abaixar","to refuse an offer, or to reduce the volume","She turned down the job because of the commute.","Everyday"],
+["look forward to","tenir ganes de","to feel happy about something that is going to happen","I'm looking forward to the weekend.","Everyday"]
+],
+C1: [
+["make ends meet","arribar a final de mes","to have just enough money to pay for what you need","Many families struggle to make ends meet.","Everyday"],
+["a blessing in disguise","un mal que porta un bé","something that seems bad but turns out to be good","Losing that contract was a blessing in disguise.","Everyday"],
+["go the extra mile","fer un esforç de més","to do more than is expected","She always goes the extra mile for her clients.","Everyday"],
+["fall through","anar-se'n en orris","to fail to happen as planned","The sale fell through at the last minute.","Everyday"],
+["on the spur of the moment","sense pensar-s'ho / de cop","suddenly, without planning","We went to the beach on the spur of the moment.","Everyday"],
+["get the hang of","agafar-hi el truc","to learn how to do something","You'll get the hang of the new software quickly.","Everyday"],
+["come to terms with","acceptar / pair","to accept a difficult situation","It took him months to come to terms with the injury.","Everyday"],
+["by and large","en general","on the whole; generally","By and large, the project went well.","Everyday"],
+["rule of thumb","regla pràctica","a practical method based on experience, not exact calculation","As a rule of thumb, allow ten percent extra material.","Everyday"],
+["backward compatible","compatible amb versions anteriors","able to work with older versions of a system","The new app is backward compatible with old files.","Technology"],
+["legacy system","sistema heretat / antic","an old system that is still in use","The legacy system still runs the payroll.","Technology"],
+["glitch","error / fallada puntual","a small, sudden problem in a system","A glitch in the update deleted my settings.","Technology"],
+["seamless","sense interrupcions / fluid","smooth and without problems between parts","The switch to the new server was seamless.","Technology"],
+["scalable","escalable","able to grow and handle more work easily","We need a scalable solution for next year.","Technology"],
+["overhaul","revisió a fons / renovar","to examine and improve something completely","They plan to overhaul the whole website.","Technology"],
+["follow up","fer el seguiment","to take further action after something","I'll follow up with the supplier tomorrow.","Work"],
+["touch base","posar-se en contacte","to make brief contact with someone","Let's touch base after the site visit.","Work"],
+["flag up","assenyalar / avisar de","to draw attention to a possible problem","The engineer flagged up a problem with the welds.","Work"],
+["hand over","traspassar / lliurar","to give responsibility for something to someone else","I'll hand over the project before my holidays.","Work"],
+["lead time","termini d'entrega","the time between ordering something and receiving it","The lead time for the steel is six weeks.","Work"]
+]};
+for (const [level, rows] of Object.entries(extra)) raw[level].push(...rows);
 const cards = Object.entries(raw).flatMap(([level, rows])=>rows.map((r,i)=>({id:level+'-'+i,level,word:r[0],ca:r[1],meaning:r[2],example:r[3],topic:r[4]})));

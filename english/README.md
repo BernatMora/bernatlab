@@ -1,6 +1,6 @@
 # English Step
 
-Web per practicar vocabulari anglès cada dia, pensada per a l'iPhone. C1 per defecte; C2 per posar-s'hi a prova, B2+ per refrescar i B2 opcional. 184 expressions amb definició en anglès, significat en català i frase d'exemple, en vuit temes: Engineering, Music, Health, Gardening, AI, Work, Technology i Everyday.
+Web per practicar vocabulari anglès cada dia, pensada per a l'iPhone. C1 per defecte; C2 per posar-s'hi a prova, B2+ per refrescar i B2 opcional. 237 expressions amb definició en anglès, significat en català i frase d'exemple, en vuit temes: Engineering, Music, Health, Gardening, AI, Work, Technology i Everyday.
 
 ## Cinc modes de pràctica
 
